@@ -39,6 +39,9 @@ namespace Home.Persistence.Configurations
                 .HasConversion(
                 v => v.Value,
                 v => BaseEnumeration.FromValue<ResourceTypeSE>(v));
+
+            _ = entity.HasIndex(e => new { e.Entity, e.EntityID })
+                .HasDatabaseName("IX_Audit_Entity_EntityID");
         }
 
         #endregion Methods
