@@ -10,7 +10,7 @@ namespace Home.Domain.Services.Audits
         #region Methods
 
         void AddAudit(TEntity entity, EntityState entityState, User user);
-        IReadOnlyList<Audit> GetPendingAudits();
+        IQueryable<Audit> GetAudits();
 
         #endregion Methods
 

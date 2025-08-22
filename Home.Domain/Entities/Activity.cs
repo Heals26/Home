@@ -1,6 +1,4 @@
-﻿using Home.Domain.Enumerations;
-
-namespace Home.Domain.Entities
+﻿namespace Home.Domain.Entities
 {
 
     public class Activity
@@ -19,11 +17,24 @@ namespace Home.Domain.Entities
         public DateTime DueDateUTC { get; set; }
         public string Title { get; set; }
 
-        public ICollection<Audit> Audits
-        {
-            get => this.m_Audits.Where(a => a.Entity == ResourceTypeSE.Activity).ToHashSet();
-        }
+        /// <summary>
+        /// Tracking of who did what
+        /// </summary>
+        public ICollection<Audit> Audits { get; set; }
+
+        /// <summary>
+        /// The region where the content sits
+        /// </summary>
         public ICollection<ActivityRegion> Regions { get; set; }
+
+        /// <summary>
+        /// Todo, Refining, Progressing, Blocked, Testing, Done
+        /// </summary>
+        public ActivityState State { get; set; }
+
+        /// <summary>
+        /// Todo, In Progress, Done
+        /// </summary>
         public ActivityStatus Status { get; set; }
         public User User { get; set; }
 

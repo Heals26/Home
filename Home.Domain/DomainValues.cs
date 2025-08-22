@@ -12,7 +12,7 @@
         public static int FirstNameLength = BaseNameLength;
         public static int MiddleNameLength = BaseNameLength;
         public static int LastNameLength = BaseNameLength;
-        public static int FullnameLength = FirstNameLength + MiddleNameLength + LastNameLength + SpacesBetweenNames;
+        public static int FullNameLength = FirstNameLength + MiddleNameLength + LastNameLength + SpacesBetweenNames;
 
         #endregion Fields
 

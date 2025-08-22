@@ -1,11 +1,14 @@
-﻿namespace Home.Persistence
+﻿using System.Reflection;
+
+namespace Home.Persistence
 {
+
     public class AssemblyUtility
     {
 
         #region Methods
 
-        public static AssemblyUtility GetAssembly() => AssemblyUtility.GetAssembly();
+        public static Assembly GetAssembly() => AssemblyUtility.GetAssembly();
 
         #endregion Methods
 

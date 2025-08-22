@@ -1,4 +1,5 @@
-﻿using Home.Domain.Entities;
+﻿using Home.Domain;
+using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,7 +13,7 @@ namespace Home.Persistence.Configurations
 
         public void Configure(EntityTypeBuilder<Activity> entity)
         {
-            _ = entity.ToTable(nameof(Activity), "home");
+            _ = entity.ToTable(nameof(Activity), DomainValues.Schema);
 
             _ = entity.HasKey(e => e.ActivityID);
             _ = entity.Property(e => e.ActivityID)
@@ -25,29 +26,38 @@ namespace Home.Persistence.Configurations
                 .IsRequired(false);
 
             _ = entity.Property(e => e.Title)
-                .IsRequired(false)
-                .HasMaxLength(250);
+                .HasMaxLength(250)
+                .IsRequired(false);
 
             _ = entity.HasMany(e => e.Audits)
                 .WithOne()
-                .HasForeignKey(e => e.EntityID)
-                .HasPrincipalKey(e => e.ActivityID)
+                .HasForeignKey(e => new { e.EntityID, e.Entity })
                 .HasConstraintName("FK_Activity_Audit")
                 .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.Property<long>("StateID");
+            _ = entity.HasOne(e => e.State)
+                .WithOne()
+                .HasForeignKey<Activity>("StateID")
+                .HasConstraintName("FK_Activity_State")
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired();
 
             _ = entity.Property<long>("StatusID");
             _ = entity.HasOne(e => e.Status)
                 .WithOne()
                 .HasForeignKey<Activity>("StatusID")
                 .HasConstraintName("FK_Activity_Status")
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired();
 
             _ = entity.Property<long>("UserID");
             _ = entity.HasOne(e => e.User)
                 .WithMany(e => e.AssignedActivities)
                 .HasForeignKey("UserID")
                 .HasConstraintName("FK_Activity_User")
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
         }
 
         #endregion Methods

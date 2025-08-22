@@ -1,23 +1,18 @@
 ﻿using Home.Application.Services.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Home.Persistence.Database
 {
 
-    public class PersistenceContext : DbContext, IPersistenceContext
+    public class PersistenceContext(DbContextOptions<PersistenceContext> options) : DbContext(options), IPersistenceContext
     {
 
-        #region Fields
+        #region Properties
 
 
 
-        #endregion Fields
-
-        #region Constructors
-
-        public PersistenceContext(DbContextOptions<PersistenceContext> options) : base(options) { }
-
-        #endregion Constructors
+        #endregion Properties
 
         #region Methods
 
@@ -27,8 +22,11 @@ namespace Home.Persistence.Database
         void IPersistenceContext.AddRange<TEntity>(ICollection<TEntity> entities)
             => base.AddRange(entities);
 
+        EntityEntry IPersistenceContext.Entity<TEntity>(TEntity entity)
+            => base.Entry(entity);
+
         TEntity IPersistenceContext.Find<TEntity>(object entityID, params object[] additionalEntityIDs)
-            => base.Find<TEntity>(new[] { entityID }.Concat(additionalEntityIDs).ToArray());
+            => base.Find<TEntity>([entityID, .. additionalEntityIDs]);
 
         IQueryable<TEntity> IPersistenceContext.GetEntities<TEntity>()
             => this.Set<TEntity>().AsQueryable();
@@ -38,6 +36,9 @@ namespace Home.Persistence.Database
 
         void IPersistenceContext.RemoveRange<TEntity>(IEnumerable<TEntity> entities)
             => base.RemoveRange(entities);
+
+        Task<int> IPersistenceContext.SaveChangesAsync(CancellationToken cancellationToken)
+            => base.SaveChangesAsync(cancellationToken);
 
         #endregion Methods
 

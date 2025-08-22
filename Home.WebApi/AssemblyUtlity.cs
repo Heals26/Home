@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Home.Application
+namespace Home.WebApi
 {
 
     public class AssemblyUtility

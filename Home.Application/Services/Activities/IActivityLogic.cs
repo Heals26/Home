@@ -1,6 +1,6 @@
 ﻿using Home.Domain.Entities;
 
-namespace Home.Domain.Services.Activities
+namespace Home.Application.Services.Activities
 {
 
     public interface IActivityLogic

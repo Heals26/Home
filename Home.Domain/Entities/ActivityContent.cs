@@ -10,6 +10,8 @@
         public string Content { get; set; }
         public int Sequence { get; set; }
 
+        public ActivityRegion Region { get; set; }
+
         #endregion Properties
 
     }
