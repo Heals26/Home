@@ -44,7 +44,7 @@ namespace Home.Persistence.Configurations
 
             _ = entity.HasMany(e => e.Audits)
                 .WithOne()
-                .HasForeignKey(e => new { e.EntityID, e.Entity })
+                .HasForeignKey(e => new { e.AuditID, e.EntityID, e.Entity })
                 .HasConstraintName("FK_User_Audit")
                 .OnDelete(DeleteBehavior.Cascade);
 

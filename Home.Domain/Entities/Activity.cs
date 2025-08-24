@@ -36,6 +36,7 @@
         /// Todo, In Progress, Done
         /// </summary>
         public ActivityStatus Status { get; set; }
+
         public User User { get; set; }
 
         #endregion Properties
