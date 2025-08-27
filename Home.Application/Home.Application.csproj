@@ -11,10 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Logic\Users\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="CleanArchitecture.Mediator" Version="1.0.0-local" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.8" />
   </ItemGroup>
 

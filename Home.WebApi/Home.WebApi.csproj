@@ -8,10 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CleanArchitecture.Mediator" Version="1.0.0-local" />
     <PackageReference Include="Scrutor" Version="6.1.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Home.Application\Home.Application.csproj" />
     <ProjectReference Include="..\Home.Domain\Home.Domain.csproj" />
   </ItemGroup>
 
