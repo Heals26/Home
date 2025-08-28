@@ -4,12 +4,12 @@ using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.Users.CreateUser;
 
-public class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>
+internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>
 {
 
     #region <Methods>
 
-    async Task<ContinuationBehaviour> IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>.EvaluateAsync(
+    Task<ContinuationBehaviour> IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>.EvaluateAsync(
         CreateUserInputPort inputPort,
         ICreateUserOutputPort outputPort,
         ServiceFactory serviceFactory,
@@ -24,7 +24,7 @@ public class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUser
             .Any())
             _Continuation = ContinuationBehaviour.Return;
 
-        return _Continuation;
+        return Task.FromResult(_Continuation);
     }
 
     #endregion <Methods>
