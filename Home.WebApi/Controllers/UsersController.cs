@@ -1,6 +1,7 @@
 ﻿using Home.Application.UseCases.Users.CreateUser;
 using Home.WebApi.Infrastructure.Attributes;
-using Home.WebApi.InterfaceAdapters.Users;
+using Home.WebApi.Presenters.Users;
+using Home.WebApi.UseCases.Users.CreateUser;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Home.WebApi.Controllers;
@@ -9,18 +10,13 @@ namespace Home.WebApi.Controllers;
 public class UsersController : BaseController
 {
 
-    #region Fields
-
-
-
-    #endregion Fields
     #region Methods
 
     [Version1]
     [HttpPost]
-    public async Task<IActionResult> CreateUser([FromServices] CreateUserPresenter presenter, [FromBody] object body, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateUser([FromServices] CreateUserPresenter presenter, [FromBody] CreateUserApiRequest body, CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new CreateUserInputPort(), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(this.Mapper.Map<CreateUserInputPort>(body), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
