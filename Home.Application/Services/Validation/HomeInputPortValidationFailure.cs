@@ -1,4 +1,5 @@
 ﻿namespace Home.Application.Services.Validation;
+
 public class HomeInputPortValidationFailure(List<HomeInputPortValidationFailure.ValidationError> errors)
 {
 
@@ -7,6 +8,18 @@ public class HomeInputPortValidationFailure(List<HomeInputPortValidationFailure.
     public List<ValidationError> Errors { get; } = errors;
 
     #endregion Properties
+
+    #region Methods
+
+    public Dictionary<string, string[]>? GetValidationErrors()
+        => this.Errors
+            ?.GroupBy(e => e.PropertyName)
+            ?.ToDictionary(
+                g => g.Key,
+                g => g.Select(e => e.Error).ToArray()
+            );
+
+    #endregion Methods
 
     #region Nested Classes
 

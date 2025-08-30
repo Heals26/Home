@@ -1,7 +1,8 @@
-﻿using AutoMapper;
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Validation;
+using Home.WebApi.Infrastructure.ObjectResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace Home.WebApi.Infrastructure.Presenters;
 
@@ -10,24 +11,7 @@ public class OutputPortPresenter : IAuthenticationFailureOutputPort,
     IAuthorisationPolicyFailureOutputPort<HomeAuthorisationFailure>
 {
 
-    #region Fields
-
-    private readonly IMapper? m_Mapper;
-
-    #endregion Fields
-
-    #region Constructors
-
-    public OutputPortPresenter(IMapper mapper)
-        => this.m_Mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-
-    public Task PresentAuthenticationFailureAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<ContinuationBehaviour> PresentInputPortValidationFailureAsync(HomeInputPortValidationFailure validationFailure, CancellationToken cancellationToken) => throw new NotImplementedException();
-
-
-    #endregion Constructors
-
-    #region - - - - - - Properties - - - - - -
+    #region Properties
 
     public bool PresentedSuccessfully { get; private set; }
 
@@ -36,6 +20,77 @@ public class OutputPortPresenter : IAuthenticationFailureOutputPort,
     #endregion Properties
 
     #region Methods
+    public Task PresentAuthenticationFailureAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
+
+    Task<ContinuationBehaviour> IAuthorisationPolicyFailureOutputPort<HomeAuthorisationFailure>.PresentAuthorisationPolicyFailureAsync(HomeAuthorisationFailure policyFailure, CancellationToken cancellationToken)
+    {
+        this.UnauthorisedAsync(policyFailure, cancellationToken);
+        return ContinuationBehaviour.ReturnAsync;
+    }
+
+    Task<ContinuationBehaviour> IInputPortValidationFailureOutputPort<HomeInputPortValidationFailure>.PresentInputPortValidationFailureAsync(HomeInputPortValidationFailure validationFailure, CancellationToken cancellationToken)
+    {
+        var _Details = new ValidationProblemDetails()
+        {
+            Detail = "See Errors property for more details.",
+            Status = (int)HttpStatusCode.UnprocessableContent,
+            Title = "One or more properties is invalid.",
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4",
+        };
+
+        _Details.Errors = validationFailure.GetValidationErrors() ?? [];
+
+        this.UnprocessableContent(_Details, cancellationToken);
+        return ContinuationBehaviour.ReturnAsync;
+    }
+
+    #endregion Methods
+
+    #region OutputPort Generic Methods
+
+    protected Task<ContinuationBehaviour> ConflictAsync(CancellationToken cancellationToken)
+    {
+        this.PresentedSuccessfully = true;
+        this.Result = new ConflictResult();
+
+        return ContinuationBehaviour.ReturnAsync;
+    }
+
+    protected Task CreatedAsync<TResult>(long resourceID, TResult result, CancellationToken cancellationToken)
+    {
+        this.PresentedSuccessfully = true;
+        this.Result = new CreatedResult();
+
+        return Task.CompletedTask;
+    }
+
+    protected Task NotFoundAsync(string errorMessage, CancellationToken cancellationToken)
+    {
+        this.Result = new NotFoundObjectResult(new ProblemDetails()
+        {
+            Detail = errorMessage,
+            Status = (int)HttpStatusCode.NotFound,
+            Title = "Entity was not found.",
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4",
+        });
+
+        return Task.CompletedTask;
+    }
+
+    protected Task OkAsync<TResult>(TResult result, CancellationToken cancellationToken)
+    {
+        this.PresentedSuccessfully = true;
+        this.Result = new OkObjectResult(result);
+        return Task.CompletedTask;
+    }
+
+    protected Task OkAsync(Stream stream, string contentType, CancellationToken cancellationToken, string fileName = null)
+    {
+        this.PresentedSuccessfully = true;
+        this.Result = new HomeStreamResult(stream, contentType) { FileName = fileName };
+
+        return Task.CompletedTask;
+    }
 
     protected Task UnauthorisedAsync(HomeAuthorisationFailure failure, CancellationToken cancellation)
     {
@@ -43,15 +98,12 @@ public class OutputPortPresenter : IAuthenticationFailureOutputPort,
         return Task.CompletedTask;
     }
 
-    Task<ContinuationBehaviour> IAuthorisationPolicyFailureOutputPort<HomeAuthorisationFailure>.PresentAuthorisationPolicyFailureAsync(HomeAuthorisationFailure policyFailure, CancellationToken cancellationToken) => throw new NotImplementedException();
-
-    #endregion Methods
-
-    #region OutputPort Generic Methods
-
-
+    protected Task UnprocessableContent(ValidationProblemDetails problemDetails, CancellationToken cancellationToken)
+    {
+        this.Result = new UnprocessableEntityObjectResult(problemDetails);
+        return Task.CompletedTask;
+    }
 
     #endregion OutputPort Generic Methods
 
 }
-
