@@ -52,12 +52,13 @@ static void Configure(IApplicationBuilder app, IWebHostEnvironment environment, 
     persistenceContext.Database.Migrate();
 }
 
-static IServiceCollection SetupEntityFramework(IServiceCollection services)
+static IServiceCollection SetupEntityFramework(IServiceCollection services, IConfiguration configuration)
 {
+    var _ConnectionString = configuration.GetConnectionString("databaseConnectionString");
     _ = services.AddDbContext<IPersistenceContext, PersistenceContext>(options =>
     {
         //_ = options.UseSqlServer($"Server={_Credentials.ServerName}; Database={_Credentials.DatabaseName}; User ID={_Credentials.UserName}; Password={_Credentials.Password};", o =>
-        _ = options.UseSqlServer($"", o =>
+        _ = options.UseSqlServer(_ConnectionString, o =>
         {
             _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
             _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
@@ -68,7 +69,7 @@ static IServiceCollection SetupEntityFramework(IServiceCollection services)
     _ = services.AddDbContext<IAuditPersistenceContext, AuditPersistenceContext>(options =>
     {
         //_ = options.UseSqlServer($"Server={_Credentials.ServerName}; Database={_Credentials.DatabaseName}; User ID={_Credentials.UserName}; Password={_Credentials.Password};", o =>
-        _ = options.UseSqlServer($"", o =>
+        _ = options.UseSqlServer(_ConnectionString, o =>
         {
             _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
             _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
