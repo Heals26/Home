@@ -14,9 +14,9 @@ namespace Home.Domain.Entities
 
         public long RecipeStepID { get; set; }
 
-        public int Sequence { get; set; }
         public string Content { get; set; }
-        public string Summary { get; set; }
+        public string Title { get; set; }
+        public int Sequence { get; set; }
 	        
 	    #endregion Properties
 

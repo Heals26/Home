@@ -29,7 +29,7 @@ namespace Home.Application.Logic.Audits
                     _Changes.Add($"Add: {this.SerializeEntityValues(entity)}");
                     break;
                 case EntityState.Modified:
-                    var _Entry = persistenceContext.Entity(entity)
+                    var _Entry = persistenceContext.Entity(entity);
                     foreach (var _Property in _Entry.Properties)
                         if (_Property.IsModified)
                             _Changes.Add($"Property: '{_Property.Metadata.Name}' changed from '{_Property.OriginalValue}' to '{_Property.CurrentValue}'");

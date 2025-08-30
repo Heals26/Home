@@ -16,8 +16,10 @@ namespace Home.Domain.Entities
         public string Name { get; set; }
         public string Url { get; set; }
 
-        public ICollection<Ingredient> Ingredients { get; set; }
+        public ICollection<Audit> Audits { get; set; }
+        public ICollection<RecipeIngredient> Ingredients { get; set; }
         public ICollection<RecipeNote> Notes { get; set; }
+        public ICollection<RecipeStep> Steps { get; set; }
 	        
 	    #endregion Properties
 

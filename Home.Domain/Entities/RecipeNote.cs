@@ -13,9 +13,9 @@ namespace Home.Domain.Entities
         #region Properties
 	        
 	    public long RecipeNoteID { get; set; }
-        public string Content { get; set; }
-        public DateTime CreatedOnUTC { get; set; }
+        
 
+        public Note Note { get; set; }
         public Recipe Recipe { get; set; }
 	        
 	    #endregion Properties

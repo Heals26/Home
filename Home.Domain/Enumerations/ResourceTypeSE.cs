@@ -8,6 +8,7 @@
 
         public static ResourceTypeSE User = new("User", 1);
         public static ResourceTypeSE Activity = new("Activity", 2);
+        public static ResourceTypeSE Recipe = new("Recipe", 3);
 
         #endregion Fields
 

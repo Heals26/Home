@@ -18,7 +18,7 @@ namespace Home.Domain.Entities
         public decimal Volumne { get; set; }
         public decimal Weight { get; set; }
 	        
-        public ICollection<Recipe> Recipes { get; set; }
+        public ICollection<RecipeIngredient> Recipes { get; set; }
 
 	    #endregion Properties
 
