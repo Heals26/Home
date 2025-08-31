@@ -19,7 +19,7 @@ ScopedServices(_Builder.Services);
 ScrutorServices(_Builder.Services);
 SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
-SetupEntityFramework(_Builder.Services);
+SetupEntityFramework(_Builder.Services, _Builder.Configuration);
 
 static void Configure(IApplicationBuilder app, IWebHostEnvironment environment, PersistenceContext persistenceContext)
 {

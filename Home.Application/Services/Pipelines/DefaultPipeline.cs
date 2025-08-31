@@ -2,4 +2,4 @@
 
 namespace Home.Application.Services.Pipelines;
 
-public class DefaultPipeline { } : Pipeline { }
+public class DefaultPipeline : Pipeline { }
