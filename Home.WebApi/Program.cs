@@ -21,7 +21,11 @@ SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
 SetupEntityFramework(_Builder.Services, _Builder.Configuration);
 
-static void Configure(IApplicationBuilder app, IWebHostEnvironment environment, PersistenceContext persistenceContext)
+var _Application = _Builder.Build();
+
+SetupApplication(_Application, _Builder.Environment);
+
+static void SetupApplication(WebApplication app, IWebHostEnvironment environment)
 {
     app.UseStaticFiles();
     app.UseSwagger();
@@ -49,7 +53,9 @@ static void Configure(IApplicationBuilder app, IWebHostEnvironment environment, 
         e.MapControllers();
     });
 
-    persistenceContext.Database.Migrate();
+    using var _Scope = app.Services.CreateScope();
+    var _PersistenceContext = _Scope.ServiceProvider.GetRequiredService<PersistenceContext>();
+    _PersistenceContext.Database.Migrate();
 }
 
 static IServiceCollection SetupEntityFramework(IServiceCollection services, IConfiguration configuration)

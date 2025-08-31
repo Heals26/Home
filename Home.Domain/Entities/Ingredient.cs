@@ -1,27 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Home.Domain.Entities;
 
-namespace Home.Domain.Entities
+public class Ingredient
 {
 
-    public  class Ingredient
-    {
+    #region Properties
 
-        #region Properties
-	        
-	    public long IngredientID { get; set; }
-        public string Name { get; set; }
-        public int Quantity { get; set; }
-        public decimal Volumne { get; set; }
-        public decimal Weight { get; set; }
-	        
-        public ICollection<RecipeIngredient> Recipes { get; set; }
+    public long IngredientID { get; set; }
+    public string Name { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal Volumne { get; set; }
+    public decimal Weight { get; set; }
 
-	    #endregion Properties
+    public ICollection<RecipeIngredient> Recipes { get; set; }
 
-    }
+    #endregion Properties
 
 }

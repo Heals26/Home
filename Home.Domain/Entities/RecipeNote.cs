@@ -1,25 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Home.Domain.Entities;
 
-namespace Home.Domain.Entities
+
+public class RecipeNote
 {
 
-    public class RecipeNote
-    {
+    #region Properties
 
-        #region Properties
-	        
-	    public long RecipeNoteID { get; set; }
-        
+    public long NoteID { get; set; }
+    public long RecipeID { get; set; }
 
-        public Note Note { get; set; }
-        public Recipe Recipe { get; set; }
-	        
-	    #endregion Properties
+    public Recipe Recipe { get; set; }
+    public Note Note { get; set; }
 
-    }
+    #endregion Properties
 
 }
