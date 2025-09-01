@@ -30,15 +30,14 @@ public class OutputPortPresenter : IAuthenticationFailureOutputPort,
 
     Task<ContinuationBehaviour> IInputPortValidationFailureOutputPort<HomeInputPortValidationFailure>.PresentInputPortValidationFailureAsync(HomeInputPortValidationFailure validationFailure, CancellationToken cancellationToken)
     {
-        var _Details = new ValidationProblemDetails()
+        var _Details = new ValidationProblemDetails
         {
             Detail = "See Errors property for more details.",
             Status = (int)HttpStatusCode.UnprocessableContent,
             Title = "One or more properties is invalid.",
             Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4",
+            Errors = validationFailure.GetValidationErrors() ?? []
         };
-
-        _Details.Errors = validationFailure.GetValidationErrors() ?? [];
 
         _ = this.UnprocessableContent(_Details, cancellationToken);
         return ContinuationBehaviour.ReturnAsync;
@@ -60,6 +59,14 @@ public class OutputPortPresenter : IAuthenticationFailureOutputPort,
     {
         this.PresentedSuccessfully = true;
         this.Result = new CreatedResult();
+
+        return Task.CompletedTask;
+    }
+
+    protected Task NoContentAsync(CancellationToken cancellationToken)
+    {
+        this.PresentedSuccessfully = true;
+        this.Result = new NoContentResult();
 
         return Task.CompletedTask;
     }

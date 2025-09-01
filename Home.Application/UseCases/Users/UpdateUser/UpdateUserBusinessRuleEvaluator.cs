@@ -1,17 +1,23 @@
 ﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.UseCases.Users.CreateUser;
 using Home.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Home.Application.UseCases.Users.CreateUser;
+namespace Home.Application.UseCases.Users.UpdateUser;
 
-internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>
+public class UpdateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<UpdateUserInputPort, IUpdateUserOutputPort>
 {
 
     #region Methods
 
-    Task<ContinuationBehaviour> IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>.EvaluateAsync(
-        CreateUserInputPort inputPort,
-        ICreateUserOutputPort outputPort,
+    Task<ContinuationBehaviour> IBusinessRuleEvaluator<UpdateUserInputPort, IUpdateUserOutputPort>.EvaluateAsync(
+        UpdateUserInputPort inputPort,
+        IUpdateUserOutputPort outputPort,
         ServiceFactory serviceFactory,
         CancellationToken cancellationToken)
     {
@@ -30,4 +36,3 @@ internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUs
     #endregion Methods
 
 }
-

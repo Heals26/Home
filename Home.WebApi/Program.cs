@@ -1,20 +1,23 @@
 ﻿using Asp.Versioning;
 using CleanArchitecture.Mediator.Setup;
+using Home.Application.Infrastructure.Users;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Pipelines;
 using Home.Application.Services.Validation;
+using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 using Home.Domain.Services.Users;
 using Home.Persistence.Database;
 using Home.WebApi;
 using Home.WebApi.Infrastructure.Extensions;
 using Home.WebApi.Infrastructure.Filters;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 var _Builder = WebApplication.CreateBuilder(args);
 
-ScopedServices(_Builder.Services);
+SetupScopedServices(_Builder.Services);
 ScrutorServices(_Builder.Services);
 SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
@@ -157,9 +160,10 @@ static IServiceCollection SetupMediator(IServiceCollection services)
     return services;
 }
 
-static IServiceCollection ScopedServices(IServiceCollection services)
+static IServiceCollection SetupScopedServices(IServiceCollection services)
 {
-    _ = services.AddScoped<IPasswordService, IPasswordService>();
+    _ = services.AddScoped<IPasswordService, PasswordService>();
+    _ = services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
     return services;
 }

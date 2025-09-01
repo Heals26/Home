@@ -1,7 +1,9 @@
 ﻿using Home.Application.UseCases.Users.CreateUser;
+using Home.Application.UseCases.Users.UpdateUser;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Presenters.Users;
 using Home.WebApi.UseCases.Users.CreateUser;
+using Home.WebApi.UseCases.Users.UpdateUser;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Home.WebApi.Controllers;
@@ -14,9 +16,28 @@ public class UsersController : BaseController
 
     [Version1]
     [HttpPost]
-    public async Task<IActionResult> CreateUser([FromServices] CreateUserPresenter presenter, [FromBody] CreateUserApiRequest body, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateUser(
+        [FromServices] CreateUserPresenter presenter,
+        [FromBody] CreateUserApiRequest body,
+        CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(this.Mapper.Map<CreateUserInputPort>(body), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpPatch("{userID}")]
+    public async Task<IActionResult> UpdateUser(
+        [FromServices] UpdateUserPresenter presenter,
+        [FromRoute] long userID,
+        [FromBody] UpdateUserApiRequest body,
+        CancellationToken cancellationToken)
+    {
+        var _InputPort = this.Mapper.Map<UpdateUserInputPort>(body);
+        _InputPort.UserID = userID;
+
+        await this.Pipeline.InvokeAsync(_InputPort, presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

@@ -2,13 +2,12 @@
 
 namespace Home.WebApi;
 
-
 public class AssemblyUtility
 {
 
     #region Methods
 
-    public static Assembly GetAssembly() => AssemblyUtility.GetAssembly();
+    public static Assembly GetAssembly() => typeof(AssemblyUtility).Assembly;
 
     #endregion Methods
 

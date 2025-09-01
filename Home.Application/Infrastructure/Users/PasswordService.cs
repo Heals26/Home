@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Home.Application.Infrastructure.Users;
 
-public class PasswordService(IPersistenceContext persistenceContext, PasswordHasher<User> passwordHasher) : IPasswordService
+public class PasswordService(IPersistenceContext persistenceContext, IPasswordHasher<User> passwordHasher) : IPasswordService
 {
 
     #region Methods
