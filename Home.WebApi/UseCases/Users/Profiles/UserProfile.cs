@@ -11,7 +11,7 @@ public class UserProfile : Profile
 
     public UserProfile()
     {
-        this.CreateMap<CreateUserApiRequest, CreateUserInputPort>();
+        _ = this.CreateMap<CreateUserApiRequest, CreateUserInputPort>();
 
     }
 

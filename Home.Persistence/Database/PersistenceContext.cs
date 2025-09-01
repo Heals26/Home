@@ -1,5 +1,4 @@
-﻿using Home.Application.Services.Database;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Home.Persistence.Database;

@@ -1,19 +1,17 @@
-﻿namespace Home.Domain.Entities
+﻿namespace Home.Domain.Entities;
+
+
+public class ActivityContent
 {
 
-    public class ActivityContent
-    {
+    #region Properties
 
-        #region Properties
+    public long ActivityContentID { get; set; }
+    public string Content { get; set; }
+    public int Sequence { get; set; }
 
-        public long ActivityContentID { get; set; }
-        public string Content { get; set; }
-        public int Sequence { get; set; }
+    public ActivityRegion Region { get; set; }
 
-        public ActivityRegion Region { get; set; }
-
-        #endregion Properties
-
-    }
+    #endregion Properties
 
 }

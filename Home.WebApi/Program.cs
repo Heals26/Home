@@ -1,6 +1,5 @@
 ﻿using Asp.Versioning;
 using CleanArchitecture.Mediator.Setup;
-using Home.Application.Services.Database;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Pipelines;
 using Home.Application.Services.Validation;
@@ -27,8 +26,8 @@ SetupApplication(_Application, _Builder.Environment);
 
 static void SetupApplication(WebApplication app, IWebHostEnvironment environment)
 {
-    app.UseStaticFiles();
-    app.UseSwagger();
+    _ = app.UseStaticFiles();
+    _ = app.UseSwagger();
     _ = app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v0/swagger.json", "Unversioned");
@@ -38,19 +37,19 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     });
     _ = app.UseDeveloperExceptionPage();
 
-    app.UseApiAuditing();
-    app.UseAuthentication();
+    _ = app.UseApiAuditing();
+    _ = app.UseAuthentication();
     //app.UseAuthorization();
 
-    app.Use(async (context, next) =>
+    _ = app.Use(async (context, next) =>
     {
         context.Request.EnableBuffering();
         await next();
     });
 
-    app.UseEndpoints(e =>
+    _ = app.UseEndpoints(e =>
     {
-        e.MapControllers();
+        _ = e.MapControllers();
     });
 
     using var _Scope = app.Services.CreateScope();
@@ -88,13 +87,13 @@ static IServiceCollection SetupEntityFramework(IServiceCollection services, ICon
 
 static IServiceCollection SetupInfrastructure(IServiceCollection services)
 {
-    services.AddAutoMapper(cfg => { },
+    _ = services.AddAutoMapper(cfg => { },
         Home.Application.AssemblyUtility.GetAssembly(),
         Home.Domain.AssemblyUtility.GetAssembly(),
         Home.Persistence.AssemblyUtility.GetAssembly(),
         Home.WebApi.AssemblyUtility.GetAssembly());
 
-    services.AddApiVersioning(options =>
+    _ = services.AddApiVersioning(options =>
     {
         options.ApiVersionReader = new HeaderApiVersionReader(ApiVersionHeaderFilter.API_HEADER);
         options.AssumeDefaultVersionWhenUnspecified = true;
@@ -105,22 +104,22 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
     //services.AddVersionedApiExplorer(options => options.GroupNameFormat = "'v'VVV");
 
     var _UnversionedDescription = new StringBuilder();
-    _UnversionedDescription.AppendLine("<p style=\"color: red\">");
-    _UnversionedDescription.AppendLine("This is the Unversioned definition of the API, and may change at any time.");
-    _UnversionedDescription.AppendLine("<br>");
-    _UnversionedDescription.AppendLine("For compatibility and stability, it is recommended to develop against a specific version definition.");
-    _UnversionedDescription.AppendLine("</p>");
+    _ = _UnversionedDescription.AppendLine("<p style=\"color: red\">");
+    _ = _UnversionedDescription.AppendLine("This is the Unversioned definition of the API, and may change at any time.");
+    _ = _UnversionedDescription.AppendLine("<br>");
+    _ = _UnversionedDescription.AppendLine("For compatibility and stability, it is recommended to develop against a specific version definition.");
+    _ = _UnversionedDescription.AppendLine("</p>");
 
     var _VersionDescription = new StringBuilder();
-    _VersionDescription.AppendLine("<strong>Liink is the software solution for the construction industry. Liink provides vital safety, production and construction collaboration between builders, subcontractors, and suppliers</strong>");
-    _VersionDescription.AppendLine("<br />");
-    _VersionDescription.AppendLine("To use this version of the API include the following header with your request:");
-    _VersionDescription.AppendLine("<br>");
-    _VersionDescription.AppendLine("<strong>key:</strong> `api-version`");
-    _VersionDescription.AppendLine("<br>");
-    _VersionDescription.AppendLine("<strong>value:</strong> `<Version>`");
+    _ = _VersionDescription.AppendLine("<strong>Liink is the software solution for the construction industry. Liink provides vital safety, production and construction collaboration between builders, subcontractors, and suppliers</strong>");
+    _ = _VersionDescription.AppendLine("<br />");
+    _ = _VersionDescription.AppendLine("To use this version of the API include the following header with your request:");
+    _ = _VersionDescription.AppendLine("<br>");
+    _ = _VersionDescription.AppendLine("<strong>key:</strong> `api-version`");
+    _ = _VersionDescription.AppendLine("<br>");
+    _ = _VersionDescription.AppendLine("<strong>value:</strong> `<Version>`");
 
-    services.AddSwaggerGen(s =>
+    _ = services.AddSwaggerGen(s =>
     {
         s.OperationFilter<ApiVersionHeaderFilter>();
 

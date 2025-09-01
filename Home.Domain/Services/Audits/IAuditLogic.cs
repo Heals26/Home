@@ -1,19 +1,17 @@
 ﻿using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Home.Domain.Services.Audits
+namespace Home.Domain.Services.Audits;
+
+
+public interface IAuditLogic<TEntity> where TEntity : class
 {
 
-    public interface IAuditLogic<TEntity> where TEntity : class
-    {
+    #region Methods
 
-        #region Methods
+    void AddAudit(TEntity entity, EntityState entityState, User user);
+    IQueryable<Audit> GetAudits();
 
-        void AddAudit(TEntity entity, EntityState entityState, User user);
-        IQueryable<Audit> GetAudits();
-
-        #endregion Methods
-
-    }
+    #endregion Methods
 
 }

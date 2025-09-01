@@ -77,7 +77,7 @@ public class ApiAuditing(RequestDelegate next)
         {
             var _AuditEntry = mapper.Map<ApiAuditEntry>(createAuditEntryCommand);
             dbContext.Add(_AuditEntry);
-            await dbContext.SaveChangesAsync(CancellationToken.None);
+            _ = await dbContext.SaveChangesAsync(CancellationToken.None);
         }
         catch (Exception ex)
         {

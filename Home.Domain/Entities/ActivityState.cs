@@ -1,18 +1,16 @@
-﻿namespace Home.Domain.Entities
+﻿namespace Home.Domain.Entities;
+
+
+public class ActivityState
 {
 
-    public class ActivityState
-    {
+    #region Properties
 
-        #region Properties
+    public long ActivityStateID { get; set; }
+    public string Name { get; set; }
 
-        public long ActivityStateID { get; set; }
-        public string Name { get; set; }
+    public ICollection<Activity> Activities { get; set; }
 
-        public ICollection<Activity> Activities { get; set; }
-
-        #endregion Properties
-
-    }
+    #endregion Properties
 
 }

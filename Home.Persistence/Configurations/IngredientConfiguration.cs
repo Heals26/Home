@@ -12,23 +12,23 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 
     public void Configure(EntityTypeBuilder<Ingredient> entity)
     {
-        entity.ToTable(nameof(Ingredient), DomainValues.Schema);
+        _ = entity.ToTable(nameof(Ingredient), DomainValues.Schema);
 
-        entity.HasKey(e => e.IngredientID);
-        entity.Property(e => e.IngredientID)
+        _ = entity.HasKey(e => e.IngredientID);
+        _ = entity.Property(e => e.IngredientID)
             .ValueGeneratedOnAdd();
 
-        entity.Property(e => e.Name)
+        _ = entity.Property(e => e.Name)
             .HasMaxLength(200)
             .IsRequired();
 
-        entity.Property(e => e.Quantity)
+        _ = entity.Property(e => e.Quantity)
             .IsRequired(false);
 
-        entity.Property(e => e.Volumne)
+        _ = entity.Property(e => e.Volumne)
             .IsRequired(false);
 
-        entity.Property(e => e.Weight)
+        _ = entity.Property(e => e.Weight)
             .IsRequired(false);
     }
 

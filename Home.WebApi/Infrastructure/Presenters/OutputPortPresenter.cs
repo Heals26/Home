@@ -24,7 +24,7 @@ public class OutputPortPresenter : IAuthenticationFailureOutputPort,
 
     Task<ContinuationBehaviour> IAuthorisationPolicyFailureOutputPort<HomeAuthorisationFailure>.PresentAuthorisationPolicyFailureAsync(HomeAuthorisationFailure policyFailure, CancellationToken cancellationToken)
     {
-        this.UnauthorisedAsync(policyFailure, cancellationToken);
+        _ = this.UnauthorisedAsync(policyFailure, cancellationToken);
         return ContinuationBehaviour.ReturnAsync;
     }
 
@@ -40,7 +40,7 @@ public class OutputPortPresenter : IAuthenticationFailureOutputPort,
 
         _Details.Errors = validationFailure.GetValidationErrors() ?? [];
 
-        this.UnprocessableContent(_Details, cancellationToken);
+        _ = this.UnprocessableContent(_Details, cancellationToken);
         return ContinuationBehaviour.ReturnAsync;
     }
 

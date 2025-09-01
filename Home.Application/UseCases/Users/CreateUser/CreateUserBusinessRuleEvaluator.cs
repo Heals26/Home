@@ -1,5 +1,4 @@
 ﻿using CleanArchitecture.Mediator;
-using Home.Application.Services.Database;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.Users.CreateUser;

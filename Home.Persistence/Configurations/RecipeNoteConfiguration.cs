@@ -12,19 +12,19 @@ public class RecipeNoteConfiguration : IEntityTypeConfiguration<RecipeNote>
 
     public void Configure(EntityTypeBuilder<RecipeNote> entity)
     {
-        entity.ToTable(nameof(RecipeNote), DomainValues.Schema);
+        _ = entity.ToTable(nameof(RecipeNote), DomainValues.Schema);
 
-        entity.HasKey(e => new { e.NoteID, e.RecipeID });
+        _ = entity.HasKey(e => new { e.NoteID, e.RecipeID });
 
-        entity.Property(e => e.RecipeID);
-        entity.HasOne(e => e.Recipe)
+        _ = entity.Property(e => e.RecipeID);
+        _ = entity.HasOne(e => e.Recipe)
             .WithMany(e => e.Notes)
             .HasConstraintName("FK_RecipeNote_Recipe")
             .HasForeignKey(e => e.RecipeID)
             .OnDelete(DeleteBehavior.Cascade);
 
-        entity.Property(e => e.NoteID);
-        entity.HasOne(e => e.Note)
+        _ = entity.Property(e => e.NoteID);
+        _ = entity.HasOne(e => e.Note)
             .WithMany()
             .HasConstraintName("FK_RecipeNote_Note")
             .HasForeignKey(e => e.NoteID)

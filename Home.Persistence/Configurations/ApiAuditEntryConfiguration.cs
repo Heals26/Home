@@ -54,10 +54,10 @@ internal class ApiAuditEntryConfiguration : IEntityTypeConfiguration<ApiAuditEnt
             .HasMaxLength(50)
             .IsRequired(false);
 
-        entity.Property<long?>("UserID")
+        _ = entity.Property<long?>("UserID")
             .IsRequired(false);
 
-        entity.HasOne(e => e.User)
+        _ = entity.HasOne(e => e.User)
             .WithMany()
             .HasConstraintName("FK_ApiAuditEntry_User")
             .HasForeignKey(e => e.UserID)

@@ -1,21 +1,19 @@
 ﻿using Home.Domain.Entities;
 
-namespace Home.Application.Services.Activities
+namespace Home.Application.Services.Activities;
+
+
+public interface IActivityLogic
 {
 
-    public interface IActivityLogic
-    {
+    #region Methods
 
-        #region Methods
+    User CreateActivity();
+    User UpdateActivity();
+    User DeleteActivity(long activityID);
+    User GetActivity(long activityID);
+    User GetActivities();
 
-        User CreateActivity();
-        User UpdateActivity();
-        User DeleteActivity(long activityID);
-        User GetActivity(long activityID);
-        User GetActivities();
-
-        #endregion Methods
-
-    }
+    #endregion Methods
 
 }

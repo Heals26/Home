@@ -12,20 +12,20 @@ public class RecipeStepConfiguration : IEntityTypeConfiguration<RecipeStep>
 
     public void Configure(EntityTypeBuilder<RecipeStep> entity)
     {
-        entity.ToTable(nameof(RecipeStep), DomainValues.Schema);
+        _ = entity.ToTable(nameof(RecipeStep), DomainValues.Schema);
 
-        entity.HasKey(e => e.RecipeStepID);
-        entity.Property(e => e.RecipeStepID)
+        _ = entity.HasKey(e => e.RecipeStepID);
+        _ = entity.Property(e => e.RecipeStepID)
             .ValueGeneratedOnAdd();
 
-        entity.Property(e => e.Content)
+        _ = entity.Property(e => e.Content)
             .IsRequired();
 
-        entity.Property(e => e.Title)
+        _ = entity.Property(e => e.Title)
             .HasMaxLength(250)
             .IsRequired();
 
-        entity.Property(e => e.Sequence)
+        _ = entity.Property(e => e.Sequence)
             .IsRequired();
     }
 

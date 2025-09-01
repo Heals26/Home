@@ -12,16 +12,16 @@ public class NoteConfiguration : IEntityTypeConfiguration<Note>
 
     public void Configure(EntityTypeBuilder<Note> entity)
     {
-        entity.ToTable(nameof(Note), DomainValues.Schema);
+        _ = entity.ToTable(nameof(Note), DomainValues.Schema);
 
-        entity.HasKey(e => e.NoteID);
-        entity.Property(e => e.NoteID)
+        _ = entity.HasKey(e => e.NoteID);
+        _ = entity.Property(e => e.NoteID)
             .ValueGeneratedOnAdd();
 
-        entity.Property(e => e.Content)
+        _ = entity.Property(e => e.Content)
             .IsRequired();
 
-        entity.Property(e => e.CreatedOnUTC)
+        _ = entity.Property(e => e.CreatedOnUTC)
             .HasDefaultValue(DateTime.UtcNow)
             .IsRequired();
 
