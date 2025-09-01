@@ -1,30 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <UserSecretsId>f6b1d435-a9e7-483c-bb25-be7f9fd4bdba</UserSecretsId>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Nullable>disable</Nullable>
+		<UserSecretsId>f6b1d435-a9e7-483c-bb25-be7f9fd4bdba</UserSecretsId>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
-    <PackageReference Include="CleanArchitecture.Mediator" Version="1.0.0-local" />
-    <PackageReference Include="Scrutor" Version="6.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="9.0.4" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
+		<PackageReference Include="CleanArchitecture.Mediator" Version="1.0.0-local" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.19" />
+		<PackageReference Include="Scrutor" Version="6.1.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="9.0.4" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Home.Application\Home.Application.csproj" />
-    <ProjectReference Include="..\Home.Domain\Home.Domain.csproj" />
-    <ProjectReference Include="..\Home.Persistence\Home.Persistence.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Infrastructure\AutoMapper\" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Home.Application\Home.Application.csproj" />
+		<ProjectReference Include="..\Home.Domain\Home.Domain.csproj" />
+		<ProjectReference Include="..\Home.Persistence\Home.Persistence.csproj" />
+	</ItemGroup>
 
 </Project>

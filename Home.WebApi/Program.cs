@@ -4,6 +4,7 @@ using Home.Application.Infrastructure.Users;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Pipelines;
 using Home.Application.Services.Validation;
+using Home.Application.UseCases.ApiAuditing;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 using Home.Domain.Services.Users;
@@ -18,14 +19,17 @@ using System.Text;
 var _Builder = WebApplication.CreateBuilder(args);
 
 SetupScopedServices(_Builder.Services);
-ScrutorServices(_Builder.Services);
+SetupScrutorServices(_Builder.Services);
+SetupSecrets(_Builder);
 SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
-SetupEntityFramework(_Builder.Services, _Builder.Configuration);
+SetupEntityFramework(_Builder.Services, _Builder.Configuration, _Builder.Environment);
 
 var _Application = _Builder.Build();
 
 SetupApplication(_Application, _Builder.Environment);
+
+_Application.Run();
 
 static void SetupApplication(WebApplication app, IWebHostEnvironment environment)
 {
@@ -33,8 +37,7 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     _ = app.UseSwagger();
     _ = app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v0/swagger.json", "Unversioned");
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Liink v1");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Home v1");
         options.EnableFilter();
         options.DocumentTitle = "Liink Swagger";
     });
@@ -42,6 +45,9 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
 
     _ = app.UseApiAuditing();
     _ = app.UseAuthentication();
+
+    _ = app.UseRouting();
+
     //app.UseAuthorization();
 
     _ = app.Use(async (context, next) =>
@@ -60,36 +66,61 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     _PersistenceContext.Database.Migrate();
 }
 
-static IServiceCollection SetupEntityFramework(IServiceCollection services, IConfiguration configuration)
+static IServiceCollection SetupEntityFramework(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
 {
     var _ConnectionString = configuration.GetConnectionString("databaseConnectionString");
-    _ = services.AddDbContext<IPersistenceContext, PersistenceContext>(options =>
-    {
-        //_ = options.UseSqlServer($"Server={_Credentials.ServerName}; Database={_Credentials.DatabaseName}; User ID={_Credentials.UserName}; Password={_Credentials.Password};", o =>
-        _ = options.UseSqlServer(_ConnectionString, o =>
-        {
-            _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-            _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
-        })
-        .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
-    });
 
-    _ = services.AddDbContext<IAuditPersistenceContext, AuditPersistenceContext>(options =>
+    if (environment.IsEnvironment("Tablet"))
     {
-        //_ = options.UseSqlServer($"Server={_Credentials.ServerName}; Database={_Credentials.DatabaseName}; User ID={_Credentials.UserName}; Password={_Credentials.Password};", o =>
-        _ = options.UseSqlServer(_ConnectionString, o =>
+        _ = services.AddDbContext<IPersistenceContext, PersistenceContext>(options =>
         {
-            _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-            _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
-        })
-        .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
-    });
+            _ = options.UseSqlite(_ConnectionString, o =>
+            {
+                _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                _ = o.MigrationsHistoryTable("__EFMigrationsHistory");
+            })
+            .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
+        });
+        _ = services.AddDbContext<IAuditPersistenceContext, AuditPersistenceContext>(options =>
+        {
+            _ = options.UseSqlite(_ConnectionString, o =>
+            {
+                _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                _ = o.MigrationsHistoryTable("__EFMigrationsHistory");
+            })
+            .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
+        });
+    }
+    else
+    {
+        _ = services.AddDbContext<IPersistenceContext, PersistenceContext>(options =>
+        {
+            _ = options.UseSqlServer(_ConnectionString, o =>
+            {
+                _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
+            })
+            .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
+        });
+
+        _ = services.AddDbContext<IAuditPersistenceContext, AuditPersistenceContext>(options =>
+        {
+            _ = options.UseSqlServer(_ConnectionString, o =>
+            {
+                _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
+            })
+            .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
+        });
+    }
 
     return services;
 }
 
 static IServiceCollection SetupInfrastructure(IServiceCollection services)
 {
+    _ = services.AddControllers();
+
     _ = services.AddAutoMapper(cfg => { },
         Home.Application.AssemblyUtility.GetAssembly(),
         Home.Domain.AssemblyUtility.GetAssembly(),
@@ -128,7 +159,6 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
 
         s.CustomSchemaIds(t => t.FullName);
 
-        s.SwaggerDoc("v0", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Liink", Version = "v0", Description = _UnversionedDescription.ToString() });
         s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Liink", Version = "v1", Description = _VersionDescription.ToString().Replace("<Version>", "1.0") });
 
         var _PresentationXML = $"{Home.WebApi.AssemblyUtility.GetAssembly().GetName().Name}.xml";
@@ -164,11 +194,15 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
 {
     _ = services.AddScoped<IPasswordService, PasswordService>();
     _ = services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+    _ = services.AddScoped<CreateApiAuditEntry>();
 
     return services;
 }
 
-static IServiceCollection ScrutorServices(IServiceCollection services)
+static void SetupSecrets(WebApplicationBuilder builder)
+    => builder.Configuration.AddUserSecrets<Program>(builder.Environment.IsEnvironment("Tablet"), true);
+
+static IServiceCollection SetupScrutorServices(IServiceCollection services)
 {
     _ = services.Scan(s =>
     {
@@ -176,6 +210,14 @@ static IServiceCollection ScrutorServices(IServiceCollection services)
         .AddClasses(c => c.AssignableTo(typeof(IAuditLogic<>)))
         .AsImplementedInterfaces()
         .WithScopedLifetime();
+    });
+
+    _ = services.Scan(s =>
+    {
+        _ = s.FromAssemblies(AssemblyUtility.GetAssembly())
+            .AddClasses(c => c.Where(t => t.Name.EndsWith("Presenter")))
+            .AsSelf()
+            .WithScopedLifetime();
     });
 
     return services;
