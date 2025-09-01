@@ -1,9 +1,9 @@
-﻿using Home.Domain.Entities;
+﻿using Home.Application.Services.Persistence;
+using Home.Domain.Entities;
 using Home.Domain.Services.Users;
 using Microsoft.AspNetCore.Identity;
 
 namespace Home.Application.Infrastructure.Users;
-
 
 public class PasswordService(IPersistenceContext persistenceContext, PasswordHasher<User> passwordHasher) : IPasswordService
 {

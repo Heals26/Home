@@ -1,8 +1,8 @@
-﻿using Home.Domain.Entities;
+﻿using Home.Application.Services.Persistence;
+using Home.Domain.Entities;
 using Home.Domain.Enumerations;
 using Microsoft.EntityFrameworkCore;
 namespace Home.Application.Logic.Audits;
-
 
 public class ActivityAuditLogic(IPersistenceContext persistenceContext) : AuditBase<Activity>(persistenceContext)
 {
