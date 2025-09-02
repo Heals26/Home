@@ -4,9 +4,15 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Home.Persistence.Database;
 
-
 public class PersistenceContext(DbContextOptions<PersistenceContext> options) : DbContext(options), IPersistenceContext
 {
+
+    #region Constructors
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        => _ = modelBuilder.ApplyConfigurationsFromAssembly(AssemblyUtility.GetAssembly());
+
+    #endregion Constructors
 
     #region Methods
 

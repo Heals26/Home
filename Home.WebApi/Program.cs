@@ -1,8 +1,8 @@
 ﻿using Asp.Versioning;
+using CleanArchitecture.Mediator;
 using CleanArchitecture.Mediator.Setup;
 using Home.Application.Infrastructure.Users;
 using Home.Application.Services.Persistence;
-using Home.Application.Services.Pipelines;
 using Home.Application.Services.Validation;
 using Home.Application.UseCases.ApiAuditing;
 using Home.Domain.Entities;
@@ -172,13 +172,14 @@ static IServiceCollection SetupMediator(IServiceCollection services)
 {
     CleanArchitectureMediator.Setup(config =>
     {
-        _ = config.AddPipeline<DefaultPipeline>(pipeline
+        _ = config.AddPipeline<Pipeline>(pipeline
             => pipeline.AddPipe(async (inputPort, outputPort, serviceFactory, nextPipeHandleAsync, cancellationToken) =>
             {
                 await nextPipeHandleAsync();
             })
-            .AddAuthentication(AuthenticationMode.MultiPrincipal)
-            .AddAuthorisationPolicyValidation<HomeAuthorisationFailure>()
+            //.AddAuthentication(AuthenticationMode.MultiPrincipal)
+            //.AddAuthorisationPolicyValidation<HomeAuthorisationFailure>()
+            //.AddLicencePolicyValidation<HomeLicencePolicyFailure>()
             .AddInputPortValidation<HomeInputPortValidationFailure>()
             .AddBusinessRuleEvaluation()
             .AddInteractorInvocation());
@@ -186,6 +187,8 @@ static IServiceCollection SetupMediator(IServiceCollection services)
         .AddAssemblies(Home.Application.AssemblyUtility.GetAssembly())
         .WithSingletonInstanceRegistrationAction((serviceType, instance) => services.AddSingleton(serviceType, instance))
         .WithSingletonServiceRegistrationAction((serviceType, implementationType) => services.AddSingleton(serviceType, implementationType)));
+
+    _ = services.AddScoped<ServiceFactory>(s => s.GetService);
 
     return services;
 }
