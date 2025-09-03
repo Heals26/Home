@@ -17,12 +17,10 @@ public class ApiAuditing(RequestDelegate next)
 
         ApiAuditing.SetAuditEntryRequestData(_AuditEntry.RequestData, context);
 
-
         // --------------------------------------------------------------------------------
         // Invoke next piece of Middleware in the request pipeline.
 
         await next(context);
-
 
         // --------------------------------------------------------------------------------
         // On Response Out

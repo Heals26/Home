@@ -7,6 +7,7 @@ public class ApiAuditEntry
 
     public long ApiAuditEntryID { get; set; }
     public string ActionName { get; set; }
+    public long? ClientApplicationID { get; set; }
     public long? CreatedResourceID { get; set; }
     public string Details { get; set; }
     public short HttpResponseStatusCode { get; set; }
@@ -19,6 +20,7 @@ public class ApiAuditEntry
     public long? UserID { get; set; }
     public string Version { get; set; }
 
+    public ClientApplication ClientApplication { get; set; }
     public User User { get; set; }
 
     #endregion Properties

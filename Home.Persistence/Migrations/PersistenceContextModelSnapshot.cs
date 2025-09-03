@@ -174,6 +174,9 @@ namespace Home.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<long?>("ClientApplicationID")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("CreatedResourceID")
                         .HasColumnType("bigint");
 
@@ -214,6 +217,8 @@ namespace Home.Persistence.Migrations
 
                     b.HasKey("ApiAuditEntryID");
 
+                    b.HasIndex("ClientApplicationID");
+
                     b.HasIndex("UserID");
 
                     b.ToTable("ApiAuditEntry", "home");
@@ -227,19 +232,9 @@ namespace Home.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AuditID"));
 
-                    b.Property<string>("AuditContent")
+                    b.Property<string>("Content")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime>("AuditDateUTC")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("AuditUserName")
-                        .HasMaxLength(152)
-                        .HasColumnType("nvarchar(152)");
-
-                    b.Property<long>("AuditUserUserID")
-                        .HasColumnType("bigint");
 
                     b.Property<long>("Entity")
                         .HasColumnType("bigint");
@@ -247,16 +242,52 @@ namespace Home.Persistence.Migrations
                     b.Property<long>("EntityID")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime>("ModifiedDateUTC")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UserID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(152)
+                        .HasColumnType("nvarchar(152)");
+
                     b.HasKey("AuditID");
 
-                    b.HasIndex("AuditUserUserID");
-
-                    b.HasIndex("EntityID");
+                    b.HasIndex("UserID");
 
                     b.HasIndex("Entity", "EntityID")
                         .HasDatabaseName("IX_Audit_Entity_EntityID");
 
                     b.ToTable("Audit", "home");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.ClientApplication", b =>
+                {
+                    b.Property<long>("ClientApplicationID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ClientApplicationID"));
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Secret")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("ClientApplicationID");
+
+                    b.ToTable("ClientApplication", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.Ingredient", b =>
@@ -311,7 +342,7 @@ namespace Home.Persistence.Migrations
 
                     b.HasIndex("LightGroupID");
 
-                    b.ToTable("Light");
+                    b.ToTable("Light", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.LightGroup", b =>
@@ -339,7 +370,7 @@ namespace Home.Persistence.Migrations
 
                     b.HasIndex("LightLocationID");
 
-                    b.ToTable("LightGroup");
+                    b.ToTable("LightGroup", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.LightLocation", b =>
@@ -362,7 +393,7 @@ namespace Home.Persistence.Migrations
 
                     b.HasKey("LightLocationID");
 
-                    b.ToTable("LightLocation");
+                    b.ToTable("LightLocation", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.Note", b =>
@@ -380,7 +411,7 @@ namespace Home.Persistence.Migrations
                     b.Property<DateTime>("CreatedOnUTC")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2025, 9, 3, 9, 37, 14, 334, DateTimeKind.Utc).AddTicks(8997));
+                        .HasDefaultValue(new DateTime(2025, 9, 3, 10, 30, 52, 343, DateTimeKind.Utc).AddTicks(9273));
 
                     b.HasKey("NoteID");
 
@@ -572,52 +603,28 @@ namespace Home.Persistence.Migrations
 
             modelBuilder.Entity("Home.Domain.Entities.ApiAuditEntry", b =>
                 {
+                    b.HasOne("Home.Domain.Entities.ClientApplication", "ClientApplication")
+                        .WithMany()
+                        .HasForeignKey("ClientApplicationID");
+
                     b.HasOne("Home.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_ApiAuditEntry_User");
 
+                    b.Navigation("ClientApplication");
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.Audit", b =>
                 {
-                    b.HasOne("Home.Domain.Entities.User", "AuditUser")
+                    b.HasOne("Home.Domain.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("AuditUserUserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserID");
 
-                    b.HasOne("Home.Domain.Entities.Activity", null)
-                        .WithMany("Audits")
-                        .HasForeignKey("EntityID")
-                        .OnDelete(DeleteBehavior.ClientCascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Activity_Audit");
-
-                    b.HasOne("Home.Domain.Entities.Note", null)
-                        .WithMany("Audits")
-                        .HasForeignKey("EntityID")
-                        .OnDelete(DeleteBehavior.ClientCascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Note_Audit");
-
-                    b.HasOne("Home.Domain.Entities.Recipe", null)
-                        .WithMany("Audits")
-                        .HasForeignKey("EntityID")
-                        .OnDelete(DeleteBehavior.ClientCascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Recipe_Audit");
-
-                    b.HasOne("Home.Domain.Entities.User", null)
-                        .WithMany("Audits")
-                        .HasForeignKey("EntityID")
-                        .OnDelete(DeleteBehavior.ClientCascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_User_Audit");
-
-                    b.Navigation("AuditUser");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.Light", b =>
@@ -695,8 +702,6 @@ namespace Home.Persistence.Migrations
 
             modelBuilder.Entity("Home.Domain.Entities.Activity", b =>
                 {
-                    b.Navigation("Audits");
-
                     b.Navigation("Regions");
                 });
 
@@ -730,15 +735,8 @@ namespace Home.Persistence.Migrations
                     b.Navigation("Groups");
                 });
 
-            modelBuilder.Entity("Home.Domain.Entities.Note", b =>
-                {
-                    b.Navigation("Audits");
-                });
-
             modelBuilder.Entity("Home.Domain.Entities.Recipe", b =>
                 {
-                    b.Navigation("Audits");
-
                     b.Navigation("Ingredients");
 
                     b.Navigation("Notes");
@@ -749,8 +747,6 @@ namespace Home.Persistence.Migrations
             modelBuilder.Entity("Home.Domain.Entities.User", b =>
                 {
                     b.Navigation("AssignedActivities");
-
-                    b.Navigation("Audits");
                 });
 #pragma warning restore 612, 618
         }

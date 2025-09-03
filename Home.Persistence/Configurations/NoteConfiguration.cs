@@ -25,11 +25,7 @@ public class NoteConfiguration : IEntityTypeConfiguration<Note>
             .HasDefaultValue(DateTime.UtcNow)
             .IsRequired();
 
-        _ = entity.HasMany(e => e.Audits)
-                .WithOne()
-            .HasForeignKey(e => e.EntityID)
-                .HasConstraintName("FK_Note_Audit")
-                .OnDelete(DeleteBehavior.ClientCascade);
+        _ = entity.Ignore(e => e.Audits);
     }
 
     #endregion Methods

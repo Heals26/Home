@@ -25,11 +25,7 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
         _ = entity.Property(e => e.Url)
             .IsRequired();
 
-        _ = entity.HasMany(e => e.Audits)
-            .WithOne()
-            .HasForeignKey(e => e.EntityID)
-            .HasConstraintName("FK_Recipe_Audit")
-            .OnDelete(DeleteBehavior.ClientCascade);
+        _ = entity.Ignore(e => e.Audits);
     }
 
     #endregion Methods

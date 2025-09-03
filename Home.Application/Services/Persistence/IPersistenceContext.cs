@@ -2,7 +2,6 @@
 
 namespace Home.Application.Services.Persistence;
 
-
 public interface IPersistenceContext
 {
 

@@ -41,14 +41,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         _ = entity.Property(e => e.PasswordLastChanged)
             .IsRequired();
 
-        _ = entity.HasMany(e => e.Audits)
-            .WithOne()
-            .HasForeignKey(e => e.EntityID)
-            .HasConstraintName("FK_User_Audit")
-            .OnDelete(DeleteBehavior.ClientCascade);
-
-        #endregion Methods
-
+        _ = entity.Ignore(e => e.Audits);
     }
+
+    #endregion Methods
 
 }

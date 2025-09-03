@@ -61,6 +61,7 @@ namespace Home.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "LightLocation",
+                schema: "home",
                 columns: table => new
                 {
                     LightLocationID = table.Column<long>(type: "bigint", nullable: false)
@@ -81,7 +82,7 @@ namespace Home.Persistence.Migrations
                     NoteID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedOnUTC = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValue: new DateTime(2025, 9, 3, 9, 37, 14, 334, DateTimeKind.Utc).AddTicks(8997))
+                    CreatedOnUTC = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValue: new DateTime(2025, 9, 3, 10, 16, 40, 762, DateTimeKind.Utc).AddTicks(4553))
                 },
                 constraints: table =>
                 {
@@ -124,6 +125,7 @@ namespace Home.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "LightGroup",
+                schema: "home",
                 columns: table => new
                 {
                     LightGroupID = table.Column<long>(type: "bigint", nullable: false)
@@ -138,6 +140,7 @@ namespace Home.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_LightGroup_LightLocation",
                         column: x => x.LightLocationID,
+                        principalSchema: "home",
                         principalTable: "LightLocation",
                         principalColumn: "LightLocationID",
                         onDelete: ReferentialAction.Cascade);
@@ -305,7 +308,33 @@ namespace Home.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Audit",
+                schema: "home",
+                columns: table => new
+                {
+                    AuditID = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Content = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Entity = table.Column<long>(type: "bigint", nullable: false),
+                    EntityID = table.Column<long>(type: "bigint", nullable: false),
+                    ModifiedDateUTC = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(152)", maxLength: 152, nullable: true),
+                    UserID = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Audit", x => x.AuditID);
+                    table.ForeignKey(
+                        name: "FK_Audit_User_UserID",
+                        column: x => x.UserID,
+                        principalSchema: "home",
+                        principalTable: "User",
+                        principalColumn: "UserID");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Light",
+                schema: "home",
                 columns: table => new
                 {
                     LightID = table.Column<long>(type: "bigint", nullable: false)
@@ -320,6 +349,7 @@ namespace Home.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_Light_Group",
                         column: x => x.LightGroupID,
+                        principalSchema: "home",
                         principalTable: "LightGroup",
                         principalColumn: "LightGroupID",
                         onDelete: ReferentialAction.Cascade);
@@ -346,56 +376,6 @@ namespace Home.Persistence.Migrations
                         principalTable: "Activity",
                         principalColumn: "ActivityID",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Audit",
-                schema: "home",
-                columns: table => new
-                {
-                    AuditID = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AuditContent = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    AuditDateUTC = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AuditUserUserID = table.Column<long>(type: "bigint", nullable: false),
-                    AuditUserName = table.Column<string>(type: "nvarchar(152)", maxLength: 152, nullable: true),
-                    Entity = table.Column<long>(type: "bigint", nullable: false),
-                    EntityID = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Audit", x => x.AuditID);
-                    table.ForeignKey(
-                        name: "FK_Activity_Audit",
-                        column: x => x.EntityID,
-                        principalSchema: "home",
-                        principalTable: "Activity",
-                        principalColumn: "ActivityID");
-                    table.ForeignKey(
-                        name: "FK_Audit_User_AuditUserUserID",
-                        column: x => x.AuditUserUserID,
-                        principalSchema: "home",
-                        principalTable: "User",
-                        principalColumn: "UserID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Note_Audit",
-                        column: x => x.EntityID,
-                        principalSchema: "home",
-                        principalTable: "Note",
-                        principalColumn: "NoteID");
-                    table.ForeignKey(
-                        name: "FK_Recipe_Audit",
-                        column: x => x.EntityID,
-                        principalSchema: "home",
-                        principalTable: "Recipe",
-                        principalColumn: "RecipeID");
-                    table.ForeignKey(
-                        name: "FK_User_Audit",
-                        column: x => x.EntityID,
-                        principalSchema: "home",
-                        principalTable: "User",
-                        principalColumn: "UserID");
                 });
 
             migrationBuilder.CreateTable(
@@ -473,30 +453,26 @@ namespace Home.Persistence.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Audit_AuditUserUserID",
-                schema: "home",
-                table: "Audit",
-                column: "AuditUserUserID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Audit_Entity_EntityID",
                 schema: "home",
                 table: "Audit",
                 columns: new[] { "Entity", "EntityID" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Audit_EntityID",
+                name: "IX_Audit_UserID",
                 schema: "home",
                 table: "Audit",
-                column: "EntityID");
+                column: "UserID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Light_LightGroupID",
+                schema: "home",
                 table: "Light",
                 column: "LightGroupID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LightGroup_LightLocationID",
+                schema: "home",
                 table: "LightGroup",
                 column: "LightLocationID");
 
@@ -535,7 +511,8 @@ namespace Home.Persistence.Migrations
                 schema: "home");
 
             migrationBuilder.DropTable(
-                name: "Light");
+                name: "Light",
+                schema: "home");
 
             migrationBuilder.DropTable(
                 name: "RecipeIngredient",
@@ -554,7 +531,8 @@ namespace Home.Persistence.Migrations
                 schema: "home");
 
             migrationBuilder.DropTable(
-                name: "LightGroup");
+                name: "LightGroup",
+                schema: "home");
 
             migrationBuilder.DropTable(
                 name: "Ingredient",
@@ -573,7 +551,8 @@ namespace Home.Persistence.Migrations
                 schema: "home");
 
             migrationBuilder.DropTable(
-                name: "LightLocation");
+                name: "LightLocation",
+                schema: "home");
 
             migrationBuilder.DropTable(
                 name: "ActivityState",

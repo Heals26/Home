@@ -28,11 +28,7 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
             .HasMaxLength(250)
             .IsRequired(false);
 
-        _ = entity.HasMany(e => e.Audits)
-            .WithOne()
-            .HasForeignKey(e => e.EntityID)
-            .HasConstraintName("FK_Activity_Audit")
-            .OnDelete(DeleteBehavior.ClientCascade);
+        _ = entity.Ignore(e => e.Audits);
 
         _ = entity.Property<long>("StateID");
         _ = entity.HasOne(e => e.State)
