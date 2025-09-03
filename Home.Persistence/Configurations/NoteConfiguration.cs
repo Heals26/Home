@@ -29,7 +29,7 @@ public class NoteConfiguration : IEntityTypeConfiguration<Note>
                 .WithOne()
             .HasForeignKey(e => e.EntityID)
                 .HasConstraintName("FK_Note_Audit")
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.ClientCascade);
     }
 
     #endregion Methods

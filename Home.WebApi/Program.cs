@@ -68,7 +68,7 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
 
 static IServiceCollection SetupEntityFramework(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
 {
-    var _ConnectionString = configuration.GetConnectionString("databaseConnectionString");
+    var _ConnectionString = configuration["databaseConnectionString"];
 
     if (environment.IsEnvironment("Tablet"))
     {
@@ -203,7 +203,7 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
 }
 
 static void SetupSecrets(WebApplicationBuilder builder)
-    => builder.Configuration.AddUserSecrets<Program>(builder.Environment.IsEnvironment("Tablet"), true);
+    => builder.Configuration.AddUserSecrets<Program>(false, true);
 
 static IServiceCollection SetupScrutorServices(IServiceCollection services)
 {

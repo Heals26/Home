@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Home.Persistence.Configurations;
 
-
 public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
 {
 
@@ -33,7 +32,7 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
             .WithOne()
             .HasForeignKey(e => e.EntityID)
             .HasConstraintName("FK_Activity_Audit")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.ClientCascade);
 
         _ = entity.Property<long>("StateID");
         _ = entity.HasOne(e => e.State)

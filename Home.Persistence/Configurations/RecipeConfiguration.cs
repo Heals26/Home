@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Home.Persistence.Configurations;
 
-
 public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
 {
 
@@ -30,7 +29,7 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
             .WithOne()
             .HasForeignKey(e => e.EntityID)
             .HasConstraintName("FK_Recipe_Audit")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.ClientCascade);
     }
 
     #endregion Methods
