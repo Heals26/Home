@@ -16,6 +16,7 @@ public class UsersController : BaseController
 
     [Version1]
     [HttpPost]
+    [ProducesResponseType<CreateUserApiResponse>(StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateUser(
         [FromServices] CreateUserPresenter presenter,
         [FromBody] CreateUserApiRequest body,
@@ -28,6 +29,7 @@ public class UsersController : BaseController
 
     [Version1]
     [HttpPatch("{userID}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateUser(
         [FromServices] UpdateUserPresenter presenter,
         [FromRoute] long userID,

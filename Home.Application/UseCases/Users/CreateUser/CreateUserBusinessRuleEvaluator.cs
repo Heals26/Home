@@ -20,8 +20,7 @@ internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUs
         var _Persistence = serviceFactory.GetService<IPersistenceContext>();
 
         if (_Persistence.GetEntities<User>()
-            .Where(u => u.Email.Equals(inputPort.Email, StringComparison.CurrentCultureIgnoreCase))
-            .Any())
+            .Any(u => u.Email.ToLower() == inputPort.Email.ToLower()))
             _Continuation = ContinuationBehaviour.Return;
 
         return Task.FromResult(_Continuation);

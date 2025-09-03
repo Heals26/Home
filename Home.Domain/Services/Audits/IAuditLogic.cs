@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Home.Domain.Services.Audits;
 
-
 public interface IAuditLogic<TEntity> where TEntity : class
 {
 

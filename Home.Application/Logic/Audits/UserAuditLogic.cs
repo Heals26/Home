@@ -13,12 +13,12 @@ public class UserAuditLogic(IPersistenceContext persistenceContext) : AuditBase<
     protected override void AddEntity(User userEntity, EntityState entityState, User user)
         => persistenceContext.Add(new Audit()
         {
-            AuditDateUTC = DateTime.UtcNow,
-            AuditUser = user,
+            ModifiedDateUTC = DateTime.UtcNow,
+            User = user,
             Entity = ResourceTypeSE.User,
             EntityID = userEntity.UserID,
-            AuditContent = this.GetAuditChanges(userEntity, entityState),
-            AuditUserName = user.UserName,
+            Content = this.GetAuditChanges(userEntity, entityState),
+            UserName = user.UserName,
         });
 
     protected override IQueryable<Audit> GetAudits()

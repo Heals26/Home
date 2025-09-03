@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Home.Application.Logic.Audits;
 
-
 public abstract class AuditBase<TEntity>(IPersistenceContext persistenceContext) : IAuditLogic<TEntity> where TEntity : class
 {
 

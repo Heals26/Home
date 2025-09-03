@@ -1,4 +1,5 @@
-﻿using Home.Domain.Entities;
+﻿using Home.Domain;
+using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,6 +12,8 @@ public class LightGroupConfiguration : IEntityTypeConfiguration<LightGroup>
 
     public void Configure(EntityTypeBuilder<LightGroup> entity)
     {
+        _ = entity.ToTable(nameof(LightGroup), DomainValues.Schema);
+
         _ = entity.HasKey(e => e.LightGroupID);
         _ = entity.Property(e => e.LightGroupID)
             .ValueGeneratedOnAdd();

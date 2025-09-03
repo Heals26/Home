@@ -209,7 +209,7 @@ static IServiceCollection SetupScrutorServices(IServiceCollection services)
 {
     _ = services.Scan(s =>
     {
-        _ = s.FromAssemblies(AssemblyUtility.GetAssembly())
+        _ = s.FromAssemblies(Home.Domain.AssemblyUtility.GetAssembly(), Home.Application.AssemblyUtility.GetAssembly())
         .AddClasses(c => c.AssignableTo(typeof(IAuditLogic<>)))
         .AsImplementedInterfaces()
         .WithScopedLifetime();

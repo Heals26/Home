@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Home.Persistence.Configurations;
 
-
 public class AuditConfiguration : IEntityTypeConfiguration<Audit>
 {
 
@@ -20,14 +19,14 @@ public class AuditConfiguration : IEntityTypeConfiguration<Audit>
         _ = entity.Property(e => e.AuditID)
             .ValueGeneratedOnAdd();
 
-        _ = entity.Property(e => e.AuditContent)
+        _ = entity.Property(e => e.Content)
             .IsRequired(false) // Optional, for change details
             .HasMaxLength(1000);
 
-        _ = entity.Property(e => e.AuditDateUTC)
+        _ = entity.Property(e => e.ModifiedDateUTC)
             .IsRequired();
 
-        _ = entity.Property(e => e.AuditUserName)
+        _ = entity.Property(e => e.UserName)
             .IsRequired(false)
             .HasMaxLength(152);
 
