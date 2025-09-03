@@ -10,9 +10,15 @@ public abstract class AuditBase<TEntity>(IPersistenceContext persistenceContext)
 
     #region Methods
 
-    protected abstract void AddEntity(TEntity entity, EntityState entityState, User user);
-    void IAuditLogic<TEntity>.AddAudit(TEntity entity, EntityState entityState, User user)
-        => this.AddEntity(entity, entityState, user);
+    protected abstract void AddEntity(TEntity entity, User user);
+
+    protected abstract void UpdateEntity(TEntity entity, User user);
+
+    void IAuditLogic<TEntity>.AddAudit(TEntity entity, User user)
+        => this.AddEntity(entity, user);
+
+    void IAuditLogic<TEntity>.UpdateAudit(TEntity entity, User user)
+        => this.UpdateEntity(entity, user);
 
     protected abstract IQueryable<Audit> GetAudits();
     IQueryable<Audit> IAuditLogic<TEntity>.GetAudits()

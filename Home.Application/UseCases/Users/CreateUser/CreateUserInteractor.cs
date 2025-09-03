@@ -4,7 +4,6 @@ using Home.Application.Services.Persistence;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 using Home.Domain.Services.Users;
-using Microsoft.EntityFrameworkCore;
 
 namespace Home.Application.UseCases.Users.CreateUser;
 
@@ -26,7 +25,7 @@ internal class CreateUserInteractor : IInteractor<CreateUserInputPort, ICreateUs
 
         var _User = _Mapper.Map<User>(inputPort);
 
-        _AuditLogic.AddAudit(_User, EntityState.Added, _User);
+        _AuditLogic.AddAudit(_User, _User);
 
         _PasswordServive.SetPassword(_User, inputPort.Password);
 

@@ -10,19 +10,30 @@ public class UserAuditLogic(IPersistenceContext persistenceContext) : AuditBase<
 
     #region Methods
 
-    protected override void AddEntity(User userEntity, EntityState entityState, User user)
+    protected override void AddEntity(User userEntity, User user)
         => persistenceContext.Add(new Audit()
         {
             ModifiedDateUTC = DateTime.UtcNow,
             User = user,
             Entity = ResourceTypeSE.User,
-            EntityID = userEntity.UserID,
-            Content = this.GetAuditChanges(userEntity, entityState),
+            EntityID = user.UserID,
+            Content = this.GetAuditChanges(userEntity, EntityState.Added),
             UserName = user.UserName,
         });
 
     protected override IQueryable<Audit> GetAudits()
         => persistenceContext.GetEntities<Audit>().Where(a => a.Entity == ResourceTypeSE.Activity);
+
+    protected override void UpdateEntity(User entity, User user)
+        => persistenceContext.Add(new Audit()
+        {
+            ModifiedDateUTC = DateTime.UtcNow,
+            User = user,
+            Entity = ResourceTypeSE.User,
+            EntityID = entity.UserID,
+            Content = this.GetAuditChanges(user, EntityState.Modified),
+            UserName = user.UserName
+        });
 
     #endregion Methods
 
