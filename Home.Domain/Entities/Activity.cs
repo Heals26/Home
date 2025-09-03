@@ -14,7 +14,7 @@ public class Activity
     public long ActivityID { get; set; }
 
     public DateTime? CompletedDateUTC { get; set; }
-    public DateTime DueDateUTC { get; set; }
+    public DateTime? DueDateUTC { get; set; }
     public string Title { get; set; }
 
     /// <summary>
