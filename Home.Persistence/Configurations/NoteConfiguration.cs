@@ -27,7 +27,7 @@ public class NoteConfiguration : IEntityTypeConfiguration<Note>
 
         _ = entity.HasMany(e => e.Audits)
                 .WithOne()
-                .HasForeignKey(e => new { e.AuditID, e.EntityID, e.Entity })
+            .HasForeignKey(e => e.EntityID)
                 .HasConstraintName("FK_Note_Audit")
                 .OnDelete(DeleteBehavior.Cascade);
     }

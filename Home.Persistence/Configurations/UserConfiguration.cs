@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Home.Persistence.Configurations;
 
-
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
 
@@ -44,7 +43,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         _ = entity.HasMany(e => e.Audits)
             .WithOne()
-            .HasForeignKey(e => new { e.AuditID, e.EntityID, e.Entity })
+            .HasForeignKey(e => e.EntityID)
             .HasConstraintName("FK_User_Audit")
             .OnDelete(DeleteBehavior.Cascade);
 

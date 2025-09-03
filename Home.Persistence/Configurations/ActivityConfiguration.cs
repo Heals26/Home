@@ -31,7 +31,7 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
 
         _ = entity.HasMany(e => e.Audits)
             .WithOne()
-            .HasForeignKey(e => new { e.AuditID, e.EntityID, e.Entity })
+            .HasForeignKey(e => e.EntityID)
             .HasConstraintName("FK_Activity_Audit")
             .OnDelete(DeleteBehavior.Cascade);
 

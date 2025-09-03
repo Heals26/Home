@@ -28,7 +28,7 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
 
         _ = entity.HasMany(e => e.Audits)
             .WithOne()
-            .HasForeignKey(e => new { e.AuditID, e.EntityID, e.Entity })
+            .HasForeignKey(e => e.EntityID)
             .HasConstraintName("FK_Recipe_Audit")
             .OnDelete(DeleteBehavior.Cascade);
     }
