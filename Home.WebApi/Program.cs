@@ -12,6 +12,9 @@ using Home.Persistence.Database;
 using Home.WebApi;
 using Home.WebApi.Infrastructure.Extensions;
 using Home.WebApi.Infrastructure.Filters;
+using Home.WebApi.Infrastructure.OAuth;
+using Home.WebApi.Infrastructure.Values;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
@@ -24,6 +27,9 @@ SetupSecrets(_Builder);
 SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
 SetupEntityFramework(_Builder.Services, _Builder.Configuration, _Builder.Environment);
+
+SetupAuthentication(_Builder.Services);
+SetupAuthorisation(_Builder.Services);
 
 var _Application = _Builder.Build();
 
@@ -43,12 +49,10 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     });
     _ = app.UseDeveloperExceptionPage();
 
+    _ = app.UseRouting();
     _ = app.UseApiAuditing();
     _ = app.UseAuthentication();
-
-    _ = app.UseRouting();
-
-    //app.UseAuthorization();
+    _ = app.UseAuthorization();
 
     _ = app.Use(async (context, next) =>
     {
@@ -64,6 +68,51 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     using var _Scope = app.Services.CreateScope();
     var _PersistenceContext = _Scope.ServiceProvider.GetRequiredService<PersistenceContext>();
     _PersistenceContext.Database.Migrate();
+}
+
+static IServiceCollection SetupAuthentication(IServiceCollection services)
+{
+    _ = services.AddAuthentication(o =>
+    {
+        o.DefaultAuthenticateScheme = FrameworkValues.Flexible;
+        o.DefaultChallengeScheme = FrameworkValues.Flexible;
+    }).AddPolicyScheme(FrameworkValues.Flexible, FrameworkValues.Flexible, o =>
+    {
+        o.ForwardDefaultSelector = context =>
+        {
+            _ = context.Request.Headers.TryGetValue(FrameworkValues.Authorisation, out var _AuthorisationHeaderValue);
+
+            if (_AuthorisationHeaderValue.Count == 0 || _AuthorisationHeaderValue.Count > 1)
+
+                if (_AuthorisationHeaderValue.Single().StartsWith(FrameworkValues.Basic))
+                    return FrameworkValues.Basic;
+                else if (_AuthorisationHeaderValue.Single().StartsWith(FrameworkValues.Bearer))
+                    return FrameworkValues.Bearer;
+
+            return FrameworkValues.Bearer;
+        };
+    })
+    .AddBasicAuthentication();
+
+    return services;
+}
+
+static IServiceCollection SetupAuthorisation(IServiceCollection services)
+{
+    _ = services.AddAuthorization(o =>
+    {
+        var _PolicyBuilder = new AuthorizationPolicyBuilder(FrameworkValues.Bearer, FrameworkValues.Basic).RequireAuthenticatedUser();
+        o.DefaultPolicy = _PolicyBuilder.Build();
+
+        o.AddPolicy(FrameworkValues.ScopeWebApp, p => p.AddRequirements(new ScopeRequirement(FrameworkValues.ScopeWebApp)));
+
+        o.AddPolicy(FrameworkValues.ScopeWebApp, p =>
+        {
+            _ = p.AddRequirements(new WebAppPlatformRequirement());
+        });
+    });
+
+    return services;
 }
 
 static IServiceCollection SetupEntityFramework(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)

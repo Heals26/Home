@@ -1,10 +1,13 @@
 ﻿namespace Home.Domain;
 
-
 public static class DomainValues
 {
+    #region Constants
+
     private const int SpacesBetweenNames = 2;
     private const int BaseNameLength = 50;
+
+    #endregion Constants
 
     #region Fields
 
