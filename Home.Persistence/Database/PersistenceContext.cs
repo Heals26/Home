@@ -27,7 +27,6 @@ public class PersistenceContext(DbContextOptions<PersistenceContext> options) : 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => _ = modelBuilder.ApplyConfigurationsFromAssembly(AssemblyUtility.GetAssembly());
 
-
     void IPersistenceContext.Remove<TEntity>(TEntity entity)
         => base.Remove(entity);
 

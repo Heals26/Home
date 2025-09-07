@@ -9,7 +9,7 @@ public class CreatePasswordGrantApiResponse
     public string GrantType { get; set; }
     public string RefreshToken { get; set; }
     public string Scope { get; set; }
-    public long User { get; set; }
+    public long UserID { get; set; }
 
     #endregion Properties
 

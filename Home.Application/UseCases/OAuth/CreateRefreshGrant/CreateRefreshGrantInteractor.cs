@@ -30,7 +30,7 @@ internal class CreateRefreshGrantInteractor : IInteractor<CreateRefreshGrantInpu
             return;
         }
 
-        if (inputPort.GrantType == default || inputPort.GrantType != OAuthValues.GrantTypePassword.Name)
+        if (inputPort.GrantType == default || inputPort.GrantType != OAuthValues.GrantTypeRefresh.Name)
         {
             await outputPort.PresentNotAuthorisedAsync(OAuthValues.InvalidGrant, cancellationToken);
             return;
