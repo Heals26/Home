@@ -25,7 +25,7 @@ public class PersistenceContext(DbContextOptions<PersistenceContext> options) : 
         => this.Set<TEntity>().AsQueryable();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => _ = modelBuilder.ApplyConfigurationsFromAssembly(Domain.AssemblyUtility.GetAssembly());
+        => _ = modelBuilder.ApplyConfigurationsFromAssembly(Persistence.AssemblyUtility.GetAssembly());
 
 
     void IPersistenceContext.Remove<TEntity>(TEntity entity)
