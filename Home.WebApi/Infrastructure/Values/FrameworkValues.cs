@@ -12,7 +12,7 @@ public static class FrameworkValues
 
     public static string IdentityClaimScopes = "Scopes";
 
-    public static string ScopeWebApp = "WebApp";
+    public const string ScopeWebApp = "WebApp";
 
     #endregion Properties
 

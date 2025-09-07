@@ -1,14 +1,17 @@
 ﻿using Home.Application.UseCases.Users.CreateUser;
 using Home.Application.UseCases.Users.UpdateUser;
 using Home.WebApi.Infrastructure.Attributes;
+using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.Users;
 using Home.WebApi.UseCases.Users.CreateUser;
 using Home.WebApi.UseCases.Users.UpdateUser;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Home.WebApi.Controllers;
 
 [Route("api/[controller]")]
+[Authorize(Policy = FrameworkValues.ScopeWebApp)]
 public class UsersController : BaseController
 {
 
