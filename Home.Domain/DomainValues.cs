@@ -11,11 +11,11 @@ public static class DomainValues
 
     #region Fields
 
-    public static string Schema = "home";
-    public static int FirstNameLength = BaseNameLength;
-    public static int MiddleNameLength = BaseNameLength;
-    public static int LastNameLength = BaseNameLength;
-    public static int FullNameLength = FirstNameLength + MiddleNameLength + LastNameLength + SpacesBetweenNames;
+    public static readonly string Schema = "home";
+    public static readonly int FirstNameLength = BaseNameLength;
+    public static readonly int MiddleNameLength = BaseNameLength;
+    public static readonly int LastNameLength = BaseNameLength;
+    public static readonly int FullNameLength = FirstNameLength + MiddleNameLength + LastNameLength + SpacesBetweenNames;
 
     #endregion Fields
 

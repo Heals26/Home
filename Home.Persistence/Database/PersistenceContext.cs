@@ -10,7 +10,7 @@ public class PersistenceContext(DbContextOptions<PersistenceContext> options) : 
     #region Constructors
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => _ = modelBuilder.ApplyConfigurationsFromAssembly(AssemblyUtility.GetAssembly());
+        => _ = modelBuilder.ApplyConfigurationsFromAssembly(Application.AssemblyUtility.GetAssembly());
 
     #endregion Constructors
 

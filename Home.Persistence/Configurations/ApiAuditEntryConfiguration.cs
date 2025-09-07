@@ -8,7 +8,7 @@ namespace Home.Persistence.Configurations;
 internal class ApiAuditEntryConfiguration : IEntityTypeConfiguration<ApiAuditEntry>
 {
 
-    #region IEntityTypeConfiguration Implementation
+    #region Methods
 
     public void Configure(EntityTypeBuilder<ApiAuditEntry> entity)
     {
@@ -54,16 +54,24 @@ internal class ApiAuditEntryConfiguration : IEntityTypeConfiguration<ApiAuditEnt
             .HasMaxLength(50)
             .IsRequired(false);
 
-        _ = entity.Property<long?>("UserID")
+        _ = entity.Property<long?>("ClientApplicationID")
+            .IsRequired(false);
+        _ = entity.HasOne(e => e.ClientApplication)
+            .WithMany()
+            .HasConstraintName("FK_ApiAuditEntry_ClientApplication")
+            .HasForeignKey("ClientApplicationID")
+            .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
+        _ = entity.Property<long?>("UserID")
+            .IsRequired(false);
         _ = entity.HasOne(e => e.User)
             .WithMany()
             .HasConstraintName("FK_ApiAuditEntry_User")
-            .HasForeignKey(e => e.UserID)
+            .HasForeignKey("UserID")
             .OnDelete(DeleteBehavior.SetNull);
     }
 
-    #endregion IEntityTypeConfiguration Implementation
+    #endregion Methods
 
 }

@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.Mediator;
+﻿using AutoMapper;
+using CleanArchitecture.Mediator;
 using Home.Application.Services.Validation;
 using Home.WebApi.Infrastructure.ObjectResults;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using System.Net;
 
 namespace Home.WebApi.Infrastructure.Presenters;
 
-public class OutputPortPresenter : IAuthenticationFailureOutputPort,
+public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputPort,
     IInputPortValidationFailureOutputPort<HomeInputPortValidationFailure>,
     IAuthorisationPolicyFailureOutputPort<HomeAuthorisationFailure>
 {

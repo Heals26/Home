@@ -16,7 +16,7 @@ public class PasswordService(IPersistenceContext persistenceContext, IPasswordHa
         user.PasswordLastChanged = DateTime.UtcNow;
     }
 
-    async Task<bool> IPasswordService.VerifyPassword(User user, string password, CancellationToken cancellationToken)
+    async Task<bool> IPasswordService.VerifyPasswordAsync(User user, string password, CancellationToken cancellationToken)
     {
         var _Result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
 

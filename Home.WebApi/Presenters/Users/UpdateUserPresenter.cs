@@ -1,10 +1,11 @@
-﻿using CleanArchitecture.Mediator;
+﻿using AutoMapper;
+using CleanArchitecture.Mediator;
 using Home.Application.UseCases.Users.UpdateUser;
 using Home.WebApi.Infrastructure.Presenters;
 
 namespace Home.WebApi.Presenters.Users;
 
-public class UpdateUserPresenter : OutputPortPresenter, IUpdateUserOutputPort
+public class UpdateUserPresenter(IMapper mapper) : OutputPortPresenter(mapper), IUpdateUserOutputPort
 {
 
     #region Methods

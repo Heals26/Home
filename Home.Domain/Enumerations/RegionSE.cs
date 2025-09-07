@@ -3,12 +3,6 @@
 public class RegionSE : BaseEnumeration
 {
 
-    #region Fields
-
-
-
-    #endregion Fields
-
     #region Constructors
 
     public RegionSE(string name, long value) : base(name, value) { }

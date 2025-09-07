@@ -1,0 +1,16 @@
+﻿namespace Home.WebApi.UseCases.OAuth.CreatePasswordGrant;
+
+public class CreatePasswordGrantApiResponse
+{
+
+    #region Properties
+    public string AccessToken { get; set; }
+    public string ExpiresIn { get; set; }
+    public string GrantType { get; set; }
+    public string RefreshToken { get; set; }
+    public string Scope { get; set; }
+    public long User { get; set; }
+
+    #endregion Properties
+
+}

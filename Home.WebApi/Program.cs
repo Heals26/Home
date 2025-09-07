@@ -1,8 +1,10 @@
 ﻿using Asp.Versioning;
 using CleanArchitecture.Mediator;
 using CleanArchitecture.Mediator.Setup;
+using Home.Application.Infrastructure.Security;
 using Home.Application.Infrastructure.Users;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Application.Services.Validation;
 using Home.Application.UseCases.ApiAuditing;
 using Home.Domain.Entities;
@@ -45,7 +47,7 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Home v1");
         options.EnableFilter();
-        options.DocumentTitle = "Liink Swagger";
+        options.DocumentTitle = "Home Swagger";
     });
     _ = app.UseDeveloperExceptionPage();
 
@@ -82,7 +84,7 @@ static IServiceCollection SetupAuthentication(IServiceCollection services)
         {
             _ = context.Request.Headers.TryGetValue(FrameworkValues.Authorisation, out var _AuthorisationHeaderValue);
 
-            if (_AuthorisationHeaderValue.Count == 0 || _AuthorisationHeaderValue.Count > 1)
+            if (_AuthorisationHeaderValue.Count != 0)
 
                 if (_AuthorisationHeaderValue.Single().StartsWith(FrameworkValues.Basic))
                     return FrameworkValues.Basic;
@@ -195,9 +197,9 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
     _ = _UnversionedDescription.AppendLine("</p>");
 
     var _VersionDescription = new StringBuilder();
-    _ = _VersionDescription.AppendLine("<strong>Liink is the software solution for the construction industry. Liink provides vital safety, production and construction collaboration between builders, subcontractors, and suppliers</strong>");
+    _ = _VersionDescription.AppendLine("<strong>This is always a work in progress and I am happy to cut corners to avoid burning out.</strong>");
     _ = _VersionDescription.AppendLine("<br />");
-    _ = _VersionDescription.AppendLine("To use this version of the API include the following header with your request:");
+    _ = _VersionDescription.AppendLine("Make sure you use the below to be able to connect to the API:");
     _ = _VersionDescription.AppendLine("<br>");
     _ = _VersionDescription.AppendLine("<strong>key:</strong> `api-version`");
     _ = _VersionDescription.AppendLine("<br>");
@@ -209,7 +211,7 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
 
         s.CustomSchemaIds(t => t.FullName);
 
-        s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Liink", Version = "v1", Description = _VersionDescription.ToString().Replace("<Version>", "1.0") });
+        s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Home", Version = "v1", Description = _VersionDescription.ToString().Replace("<Version>", "1.0") });
 
         var _PresentationXML = $"{Home.WebApi.AssemblyUtility.GetAssembly().GetName().Name}.xml";
         s.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, _PresentationXML));
@@ -245,9 +247,10 @@ static IServiceCollection SetupMediator(IServiceCollection services)
 
 static IServiceCollection SetupScopedServices(IServiceCollection services)
 {
-    _ = services.AddScoped<IPasswordService, PasswordService>();
-    _ = services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-    _ = services.AddScoped<CreateApiAuditEntry>();
+    _ = services.AddScoped<IPasswordService, PasswordService>()
+        .AddScoped<IPasswordHasher<User>, PasswordHasher<User>>()
+        .AddScoped<CreateApiAuditEntry>()
+        .AddScoped<ITokenFactory, TokenFactory>();
 
     return services;
 }
