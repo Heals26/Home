@@ -1,7 +1,6 @@
 ﻿using Home.Application.Services.Persistence;
 using Home.Application.Services.User;
 using Home.Application.UseCases.ApiAuditing;
-using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
@@ -10,7 +9,7 @@ using System.Text.Encodings.Web;
 
 namespace Home.WebApi.Infrastructure.OAuth;
 
-public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
 
     #region Fields
@@ -21,7 +20,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
 
     #region Constructors
 
-    public BasicAuthenticationHandler(
+    public BearerAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
@@ -38,7 +37,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         if (!this.Request.Headers.TryGetValue(FrameworkValues.Authorisation, out var _AuthorisationHeaderValue))
         {
             var _ErrorMessage = "Cannot read Authorization header";
-            this.SetApiAuditEntry(null, nameof(BasicAuthenticationHandler), _ErrorMessage);
+            this.SetApiAuditEntry(null, nameof(BearerAuthenticationHandler), _ErrorMessage);
             return AuthenticateResult.Fail(_ErrorMessage);
         }
 
@@ -46,32 +45,48 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         {
             var _AccessToken = string.Empty;
 
-            var _ClientApplication = this.m_PersistenceContext.GetEntities<ClientApplication>()
-                .SingleOrDefault(ca => ca.AccessToken == _AccessToken);
+            var _AuthenticationMetadata = this.m_PersistenceContext.GetEntities<Domain.Entities.AuthenticationMetadata>()
+                .Where(ca => ca.AccessToken == _AccessToken)
+                .Select(am => new
+                {
+                    AuthenticationMetadata = am,
+                    am.ClientApplication,
+                    am.User
+                })
+                .SingleOrDefault()
+                ?.AuthenticationMetadata;
 
-            if (_ClientApplication == null || !this.TryValidateAuthorisationString(_AuthorisationHeaderValue, out _AccessToken))
+            if (_AuthenticationMetadata == null || !this.TryValidateAuthorisationString(_AuthorisationHeaderValue, out _AccessToken))
             {
                 this.SetApiAuditEntry(null, nameof(TryValidateAuthorisationString), "Invalid Token");
                 return AuthenticateResult.Fail("Invalid Token");
             }
 
-            var _AuthenticationMetadata = new AuthenticationMetadata()
+            if (_AuthenticationMetadata.DateSetUTC.AddYears(1) < DateTime.UtcNow)
             {
-                ClientApplicationID = _ClientApplication.ClientApplicationID,
-                ClientName = _ClientApplication.Name,
+                this.SetApiAuditEntry(null, nameof(TryValidateAuthorisationString), "Access token is invalid or has expired.");
+                return AuthenticateResult.Fail("Access token is invalid or has expired.");
+            }
+
+            var _OAuthMetadata = new AuthenticationMetadata()
+            {
+                ClientApplicationID = _AuthenticationMetadata.ClientApplication.ClientApplicationID,
+                ClientName = _AuthenticationMetadata.ClientApplication.Name,
+                Scopes = _AuthenticationMetadata.Scopes,
+                UserID = _AuthenticationMetadata.User.UserID
             };
 
             var _ClaimsPrincipal = new ClaimsPrincipal(
                 new ClaimsIdentity(
                     new List<Claim>([
 
-                        new(nameof(AuthenticationMetadata.ClientApplicationID), _AuthenticationMetadata.ClientApplicationID.ToString(), ClaimValueTypes.Integer64),
-                        new(nameof(AuthenticationMetadata.Scopes), _AuthenticationMetadata.Scopes, ClaimValueTypes.String),
-                        new(nameof(AuthenticationMetadata.ClientName), _AuthenticationMetadata.ClientName.ToString(), ClaimValueTypes.String)
+                        new(nameof(AuthenticationMetadata.ClientApplicationID), _OAuthMetadata.ClientApplicationID.ToString(), ClaimValueTypes.Integer64),
+                        new(nameof(AuthenticationMetadata.Scopes), _OAuthMetadata.Scopes, ClaimValueTypes.String),
+                        new(nameof(AuthenticationMetadata.ClientName), _OAuthMetadata.ClientName.ToString(), ClaimValueTypes.String)
                     ])));
 
             var _Ticket = new AuthenticationTicket(_ClaimsPrincipal, this.Scheme.Name);
-            this.SetApiAuditEntry(_AuthenticationMetadata, nameof(BasicAuthenticationHandler), null);
+            this.SetApiAuditEntry(_OAuthMetadata, nameof(BasicAuthenticationHandler), null);
 
             return AuthenticateResult.Success(_Ticket);
         }
@@ -86,7 +101,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
     {
         accessToken = string.Empty;
 
-        if (!authorisationHeader.StartsWith(FrameworkValues.Basic))
+        if (!authorisationHeader.StartsWith(FrameworkValues.Bearer))
             return false;
 
         var _AuthorisationValues = authorisationHeader.Split(' ', 2);

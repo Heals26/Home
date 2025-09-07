@@ -18,7 +18,7 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IA
     AuthenticationMetadata IAuthorisationService.GetAuthenticationMetadata()
         => new()
         {
-            AccountID = long.Parse(((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.AccountID))?.Value),
+            UserID = long.Parse(((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.UserID))?.Value),
             ClientApplicationID = long.Parse(((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.ClientApplicationID))?.Value),
             Scopes = ((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.ClientApplicationID))?.Value
         };

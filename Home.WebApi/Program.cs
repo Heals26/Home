@@ -92,7 +92,8 @@ static IServiceCollection SetupAuthentication(IServiceCollection services)
             return FrameworkValues.Bearer;
         };
     })
-    .AddBasicAuthentication();
+    .AddBasicAuthentication()
+    .AddBearerAuthentication();
 
     return services;
 }

@@ -5,8 +5,9 @@ public class AuthenticationMetadata
 
     #region Properties
 
-    public long AccountID { get; set; }
+    public long UserID { get; set; }
     public long ClientApplicationID { get; set; }
+    public string ClientName { get; set; }
     public string Scopes { get; set; }
 
     #endregion Properties

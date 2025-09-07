@@ -38,9 +38,7 @@ public class CreateApiAuditEntry
         #region Properties
 
         public long? UserID { get; set; }
-
         public long? ClientApplicationID { get; set; }
-
         public string ClientName { get; set; }
 
         #endregion Properties
@@ -53,15 +51,10 @@ public class CreateApiAuditEntry
         #region Properties
 
         public string RemoteIPAddress { get; set; }
-
         public string RequestBody { get; set; }
-
         public DateTime RequestReceivedOnUTC { get; set; }
-
         public string RequestUri { get; set; }
-
         public string UserAgent { get; set; }
-
         public string Version { get; set; }
 
         #endregion Properties
@@ -74,7 +67,6 @@ public class CreateApiAuditEntry
         #region Properties
 
         public short HttpResponseStatusCode { get; set; }
-
         public DateTime ResponseSentOnUTC { get; set; }
 
         #endregion Properties
