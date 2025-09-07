@@ -11,6 +11,9 @@ public class AuditPersistenceContext(DbContextOptions<AuditPersistenceContext> o
     void IAuditPersistenceContext.Add<TEntity>(TEntity entity)
         => base.Add(entity);
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        => _ = modelBuilder.ApplyConfigurationsFromAssembly(Domain.AssemblyUtility.GetAssembly());
+
     Task<int> IAuditPersistenceContext.SaveChangesAsync(CancellationToken cancellationToken)
         => base.SaveChangesAsync(cancellationToken);
 

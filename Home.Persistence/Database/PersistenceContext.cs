@@ -7,13 +7,6 @@ namespace Home.Persistence.Database;
 public class PersistenceContext(DbContextOptions<PersistenceContext> options) : DbContext(options), IPersistenceContext
 {
 
-    #region Constructors
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => _ = modelBuilder.ApplyConfigurationsFromAssembly(Application.AssemblyUtility.GetAssembly());
-
-    #endregion Constructors
-
     #region Methods
 
     void IPersistenceContext.Add<TEntity>(TEntity entity)
@@ -30,6 +23,10 @@ public class PersistenceContext(DbContextOptions<PersistenceContext> options) : 
 
     IQueryable<TEntity> IPersistenceContext.GetEntities<TEntity>()
         => this.Set<TEntity>().AsQueryable();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        => _ = modelBuilder.ApplyConfigurationsFromAssembly(Domain.AssemblyUtility.GetAssembly());
+
 
     void IPersistenceContext.Remove<TEntity>(TEntity entity)
         => base.Remove(entity);
