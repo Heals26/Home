@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace Home.Application.Services.User;
+namespace Home.Application.Services.Security;
 
 public interface IAuthorisationService
 {

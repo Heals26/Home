@@ -2,7 +2,6 @@
 
 namespace Home.Application.Services.EntityLogic.Activities;
 
-
 public interface IActivityLogic
 {
 

@@ -1,4 +1,4 @@
-﻿namespace Home.Application.Services.User;
+﻿namespace Home.Application.Services.Security;
 
 public class AuthenticationMetadata
 {

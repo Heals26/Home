@@ -1,5 +1,5 @@
 ﻿using Home.Application.Services.Persistence;
-using Home.Application.Services.User;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 
@@ -24,7 +24,7 @@ public class WebAppPlatformHandler(
 
         var _AuthenticationMetadata = authorisationService.GetAuthenticationMetadata();
 
-        if (_ClientApplication.Any(ca => ca.ClientApplicationID == _AuthenticationMetadata.ClientApplicationID)
+        if (_ClientApplication.Any(ca => ca.ClientApplicationID == _AuthenticationMetadata.ClientApplicationID))
             context.Succeed(requirement);
         else
         {

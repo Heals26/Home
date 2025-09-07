@@ -1,5 +1,5 @@
 ﻿using Home.Application.Services.Persistence;
-using Home.Application.Services.User;
+using Home.Application.Services.Security;
 using Home.Application.UseCases.ApiAuditing;
 using Home.WebApi.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication;

@@ -1,7 +1,6 @@
 ﻿using Home.Application.Services.Persistence;
-using Home.Application.Services.User;
+using Home.Application.Services.Security;
 using Home.Application.UseCases.ApiAuditing;
-using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
@@ -46,7 +45,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         {
             var _AccessToken = string.Empty;
 
-            var _ClientApplication = this.m_PersistenceContext.GetEntities<ClientApplication>()
+            var _ClientApplication = this.m_PersistenceContext.GetEntities<Domain.Entities.ClientApplication>()
                 .SingleOrDefault(ca => ca.AccessToken == _AccessToken);
 
             if (_ClientApplication == null || !this.TryValidateAuthorisationString(_AuthorisationHeaderValue, out _AccessToken))
