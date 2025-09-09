@@ -2,7 +2,6 @@
 
 namespace Home.Domain.Services.Users;
 
-
 public interface IPasswordService
 {
 

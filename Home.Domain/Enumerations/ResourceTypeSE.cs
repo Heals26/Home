@@ -1,6 +1,5 @@
 ﻿namespace Home.Domain.Enumerations;
 
-
 public class ResourceTypeSE : BaseEnumeration
 {
 

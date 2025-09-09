@@ -2,7 +2,6 @@
 
 namespace Home.Domain.Entities;
 
-
 public class ActivityRegion
 {
 

@@ -5,7 +5,6 @@ public static class ApplicationValues
 
     #region Properties
 
-
     #endregion Properties
 
 }

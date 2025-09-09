@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Home.Persistence.Configurations;
 
-
 public class ActivityContentConfiguration : IEntityTypeConfiguration<ActivityContent>
 {
 

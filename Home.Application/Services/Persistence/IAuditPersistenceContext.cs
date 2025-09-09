@@ -5,7 +5,6 @@ public interface IAuditPersistenceContext
 
     #region Properties
 
-
     #endregion Properties
 
     #region Methods
