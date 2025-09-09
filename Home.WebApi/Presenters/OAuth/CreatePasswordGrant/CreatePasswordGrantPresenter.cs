@@ -5,7 +5,7 @@ using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
 using Home.WebApi.UseCases.OAuth.CreateRefreshGrant;
 
-namespace Home.WebApi.Presenters.OAuth;
+namespace Home.WebApi.Presenters.OAuth.CreatePasswordGrant;
 
 public class CreatePasswordGrantPresenter(IMapper mapper) : OutputPortPresenter(mapper), ICreatePasswordGrantOutputPort
 {

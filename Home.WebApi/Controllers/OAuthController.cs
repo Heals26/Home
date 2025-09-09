@@ -2,7 +2,8 @@
 using Home.Application.UseCases.OAuth.CreatePasswordGrant;
 using Home.Application.UseCases.OAuth.CreateRefreshGrant;
 using Home.WebApi.Infrastructure.Attributes;
-using Home.WebApi.Presenters.OAuth;
+using Home.WebApi.Presenters.OAuth.CreatePasswordGrant;
+using Home.WebApi.Presenters.OAuth.CreateRefreshGrant;
 using Home.WebApi.UseCases.OAuth;
 using Home.WebApi.UseCases.OAuth.CreatePasswordGrant;
 using Home.WebApi.UseCases.OAuth.CreateRefreshGrant;

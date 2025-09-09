@@ -3,7 +3,7 @@ using CleanArchitecture.Mediator;
 using Home.Application.UseCases.Users.UpdateUser;
 using Home.WebApi.Infrastructure.Presenters;
 
-namespace Home.WebApi.Presenters.Users;
+namespace Home.WebApi.Presenters.Users.UpdateUser;
 
 public class UpdateUserPresenter(IMapper mapper) : OutputPortPresenter(mapper), IUpdateUserOutputPort
 {

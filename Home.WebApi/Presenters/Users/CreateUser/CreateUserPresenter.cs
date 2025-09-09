@@ -4,7 +4,7 @@ using Home.Application.UseCases.Users.CreateUser;
 using Home.WebApi.Infrastructure.Presenters;
 using Home.WebApi.UseCases.Users.CreateUser;
 
-namespace Home.WebApi.Presenters.Users;
+namespace Home.WebApi.Presenters.Users.CreateUser;
 
 public class CreateUserPresenter(IMapper mapper) : OutputPortPresenter(mapper), ICreateUserOutputPort
 {
