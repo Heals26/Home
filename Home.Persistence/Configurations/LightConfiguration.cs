@@ -14,9 +14,9 @@ public class LightConfiguration : IEntityTypeConfiguration<Light>
     {
         _ = entity.ToTable(nameof(Light), DomainValues.Schema);
 
+        _ = entity.HasKey(e => e.LightID);
         _ = entity.Property(e => e.LightID)
             .ValueGeneratedOnAdd();
-        _ = entity.HasKey(e => e.LightID);
 
         _ = entity.Property(e => e.ID)
             .HasMaxLength(250)
