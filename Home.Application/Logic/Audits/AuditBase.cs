@@ -14,10 +14,15 @@ public abstract class AuditBase<TEntity>(IAuthorisationService authorisationServ
 
     protected abstract void AddEntity(TEntity entity);
 
+    protected abstract void DeleteEntity(TEntity entity);
+
     protected abstract void UpdateEntity(TEntity entity);
 
     void IAuditLogic<TEntity>.AddAudit(TEntity entity)
         => this.AddEntity(entity);
+
+    void IAuditLogic<TEntity>.DeleteAudit(TEntity entity)
+        => this.DeleteEntity(entity);
 
     void IAuditLogic<TEntity>.UpdateAudit(TEntity entity)
         => this.UpdateEntity(entity);

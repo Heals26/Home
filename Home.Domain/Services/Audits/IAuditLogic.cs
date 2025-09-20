@@ -14,6 +14,12 @@ public interface IAuditLogic<TEntity> where TEntity : class
     /// <param name="user">The user that did the deed</param>
     void AddAudit(TEntity entity);
 
+    /// <summary>
+    /// The entity to be deleted
+    /// </summary>
+    /// <param name="entity"></param>
+    void DeleteAudit(TEntity entity);
+
     IQueryable<Audit> GetAudits();
 
     /// <summary>

@@ -1,9 +1,11 @@
 ﻿using Home.Application.UseCases.ShoppingCarts.CreateShoppingCart;
+using Home.Application.UseCases.ShoppingCarts.DeleteShoppingCart;
 using Home.Application.UseCases.ShoppingCarts.GetShoppingCart;
 using Home.Application.UseCases.ShoppingCarts.UpdateShoppingCart;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.ShoppingCarts.CreateShoppingCart;
+using Home.WebApi.Presenters.ShoppingCarts.DeleteShoppingCart;
 using Home.WebApi.Presenters.ShoppingCarts.GetShoppingCart;
 using Home.WebApi.Presenters.ShoppingCarts.UpdateShoppingCart;
 using Home.WebApi.UseCases.ShoppingCarts.CreateShoppingCart;
@@ -30,6 +32,19 @@ public class ShoppingCartController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new CreateShoppingCartInputPort() { Name = request.Name }, presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpDelete("{shoppingCartID}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DeleteShoppingCart(
+        [FromServices] DeleteShoppingCartPresenter presenter,
+        [FromRoute] long shoppingCartID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new DeleteShoppingCartInputPort() { ShoppingCartID = shoppingCartID }, presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

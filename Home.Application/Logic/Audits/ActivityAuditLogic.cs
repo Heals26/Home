@@ -23,6 +23,12 @@ public class ActivityAuditLogic(IAuthorisationService authorisationService, IPer
             UserName = this.GetUser()?.UserName,
         });
 
+    protected override void DeleteEntity(Activity entity)
+        => persistenceContext.GetEntities<Audit>()
+            .Where(a => a.Entity == ResourceTypeSE.Activity && a.EntityID == entity.ActivityID)
+            .ToList()
+            .ForEach(a => persistenceContext.Remove(a));
+
     protected override IQueryable<Audit> GetAudits()
         => persistenceContext.GetEntities<Audit>().Where(a => a.Entity == ResourceTypeSE.Activity);
 

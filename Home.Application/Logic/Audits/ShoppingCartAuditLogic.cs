@@ -23,6 +23,12 @@ public class ShoppingCartAuditLogic(IAuthorisationService authorisationService, 
             UserName = this.GetUser()?.UserName,
         });
 
+    protected override void DeleteEntity(ShoppingCart entity)
+        => persistenceContext.GetEntities<Audit>()
+            .Where(a => a.Entity == ResourceTypeSE.ShoppingCart && a.EntityID == entity.ShoppingCartID)
+            .ToList()
+            .ForEach(a => persistenceContext.Remove(a));
+
     protected override IQueryable<Audit> GetAudits()
         => persistenceContext.GetEntities<Audit>().Where(a => a.Entity == ResourceTypeSE.Activity);
 
