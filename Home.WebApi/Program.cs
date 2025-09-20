@@ -247,6 +247,8 @@ static IServiceCollection SetupMediator(IServiceCollection services)
 
 static IServiceCollection SetupScopedServices(IServiceCollection services)
 {
+    _ = services.AddHttpContextAccessor();
+
     _ = services
         .AddScoped<IAuthorisationService, AuthorisationService>()
         .AddScoped<IPasswordService, PasswordService>()
