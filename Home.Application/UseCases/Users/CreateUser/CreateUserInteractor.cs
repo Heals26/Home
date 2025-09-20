@@ -25,7 +25,7 @@ internal class CreateUserInteractor : IInteractor<CreateUserInputPort, ICreateUs
 
         var _User = _Mapper.Map<User>(inputPort);
 
-        _AuditLogic.AddAudit(_User, _User);
+        _AuditLogic.AddAudit(_User);
 
         _PasswordServive.SetPassword(_User, inputPort.Password);
 

@@ -29,7 +29,7 @@ internal class UpdateUserInteractor : IInteractor<UpdateUserInputPort, IUpdateUs
         if (inputPort.Password.HasBeenSet)
             _PasswordServive.SetPassword(_User, inputPort.Password);
 
-        _AuditLogic.UpdateAudit(_User, _User);
+        _AuditLogic.UpdateAudit(_User);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

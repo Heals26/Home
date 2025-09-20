@@ -1,26 +1,29 @@
 ﻿using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 using Microsoft.EntityFrameworkCore;
 
 namespace Home.Application.Logic.Audits;
 
-public abstract class AuditBase<TEntity>(IPersistenceContext persistenceContext) : IAuditLogic<TEntity> where TEntity : class
+public abstract class AuditBase<TEntity>(IAuthorisationService authorisationService, IPersistenceContext persistenceContext)
+    : IAuditLogic<TEntity> where TEntity : class
 {
 
     #region Methods
 
-    protected abstract void AddEntity(TEntity entity, User user);
+    protected abstract void AddEntity(TEntity entity);
 
-    protected abstract void UpdateEntity(TEntity entity, User user);
+    protected abstract void UpdateEntity(TEntity entity);
 
-    void IAuditLogic<TEntity>.AddAudit(TEntity entity, User user)
-        => this.AddEntity(entity, user);
+    void IAuditLogic<TEntity>.AddAudit(TEntity entity)
+        => this.AddEntity(entity);
 
-    void IAuditLogic<TEntity>.UpdateAudit(TEntity entity, User user)
-        => this.UpdateEntity(entity, user);
+    void IAuditLogic<TEntity>.UpdateAudit(TEntity entity)
+        => this.UpdateEntity(entity);
 
     protected abstract IQueryable<Audit> GetAudits();
+
     IQueryable<Audit> IAuditLogic<TEntity>.GetAudits()
         => this.GetAudits();
 
@@ -49,17 +52,23 @@ public abstract class AuditBase<TEntity>(IPersistenceContext persistenceContext)
         return string.Join(", ", _Changes);
     }
 
-    private string SerializeEntityValues(TEntity entity)
+    protected virtual User GetUser()
     {
-        var _Properties = entity.GetType().GetProperties()
-            .Select(p => $"{p.Name}: {p.GetValue(entity)}");
-        return string.Join(", ", _Properties);
+        var _UserID = authorisationService.User.FindFirst(nameof(Services.Security.AuthenticationMetadata.UserID));
+        return persistenceContext.Find<User>(_UserID);
     }
 
     private object GetEntityID(TEntity entity)
     {
         var _PropertyID = entity.GetType().GetProperty($"{typeof(TEntity).Name}ID");
         return _PropertyID!.GetValue(entity)!;
+    }
+
+    private string SerializeEntityValues(TEntity entity)
+    {
+        var _Properties = entity.GetType().GetProperties()
+            .Select(p => $"{p.Name}: {p.GetValue(entity)}");
+        return string.Join(", ", _Properties);
     }
 
     #endregion Methods

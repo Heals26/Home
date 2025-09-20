@@ -247,7 +247,9 @@ static IServiceCollection SetupMediator(IServiceCollection services)
 
 static IServiceCollection SetupScopedServices(IServiceCollection services)
 {
-    _ = services.AddScoped<IPasswordService, PasswordService>()
+    _ = services
+        .AddScoped<IAuthorisationService, AuthorisationService>()
+        .AddScoped<IPasswordService, PasswordService>()
         .AddScoped<IPasswordHasher<User>, PasswordHasher<User>>()
         .AddScoped<CreateApiAuditEntry>()
         .AddScoped<ITokenFactory, TokenFactory>();

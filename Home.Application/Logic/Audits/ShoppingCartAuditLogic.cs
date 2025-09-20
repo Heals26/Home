@@ -6,35 +6,35 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Home.Application.Logic.Audits;
 
-public class ActivityAuditLogic(IAuthorisationService authorisationService, IPersistenceContext persistenceContext)
-    : AuditBase<Activity>(authorisationService, persistenceContext)
+public class ShoppingCartAuditLogic(IAuthorisationService authorisationService, IPersistenceContext persistenceContext)
+    : AuditBase<ShoppingCart>(authorisationService, persistenceContext)
 {
 
     #region Methods
 
-    protected override void AddEntity(Activity activity)
+    protected override void AddEntity(ShoppingCart shoppingCart)
         => persistenceContext.Add(new Audit()
         {
             ModifiedDateUTC = DateTime.UtcNow,
             User = this.GetUser(),
-            Entity = ResourceTypeSE.Activity,
-            EntityID = activity.ActivityID,
-            Content = this.GetAuditChanges(activity, EntityState.Added),
+            Entity = ResourceTypeSE.ShoppingCart,
+            EntityID = shoppingCart.ShoppingCartID,
+            Content = this.GetAuditChanges(shoppingCart, EntityState.Added),
             UserName = this.GetUser()?.UserName,
         });
 
     protected override IQueryable<Audit> GetAudits()
         => persistenceContext.GetEntities<Audit>().Where(a => a.Entity == ResourceTypeSE.Activity);
 
-    protected override void UpdateEntity(Activity entity)
+    protected override void UpdateEntity(ShoppingCart shoppingCart)
         => persistenceContext.Add(new Audit()
         {
             ModifiedDateUTC = DateTime.UtcNow,
             User = this.GetUser(),
-            Entity = ResourceTypeSE.Activity,
-            EntityID = entity.ActivityID,
-            Content = this.GetAuditChanges(entity, EntityState.Modified),
-            UserName = this.GetUser().UserName,
+            Entity = ResourceTypeSE.ShoppingCart,
+            EntityID = shoppingCart.ShoppingCartID,
+            Content = this.GetAuditChanges(shoppingCart, EntityState.Modified),
+            UserName = this.GetUser()?.UserName,
         });
 
     #endregion Methods

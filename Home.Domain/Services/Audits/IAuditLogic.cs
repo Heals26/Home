@@ -12,7 +12,7 @@ public interface IAuditLogic<TEntity> where TEntity : class
     /// </summary>
     /// <param name="entity">The relevant entity</param>
     /// <param name="user">The user that did the deed</param>
-    void AddAudit(TEntity entity, User user);
+    void AddAudit(TEntity entity);
 
     IQueryable<Audit> GetAudits();
 
@@ -21,7 +21,7 @@ public interface IAuditLogic<TEntity> where TEntity : class
     /// </summary>
     /// <param name="entity">The relevant entity</param>
     /// <param name="user">The user that did the deed</param>
-    void UpdateAudit(TEntity entity, User user);
+    void UpdateAudit(TEntity entity);
 
     #endregion Methods
 
