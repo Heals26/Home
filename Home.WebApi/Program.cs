@@ -2,7 +2,9 @@
 using CleanArchitecture.Mediator;
 using CleanArchitecture.Mediator.Setup;
 using Home.Application.Infrastructure.Security;
+using Home.Application.Infrastructure.ShoppingCarts;
 using Home.Application.Infrastructure.Users;
+using Home.Application.Services.EntityLogic.ShoppingCarts;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Application.Services.Validation;
@@ -255,6 +257,9 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
         .AddScoped<IPasswordHasher<User>, PasswordHasher<User>>()
         .AddScoped<CreateApiAuditEntry>()
         .AddScoped<ITokenFactory, TokenFactory>();
+
+    _ = services
+        .AddScoped<IShoppingCartLogic, ShoppingCartLogic>();
 
     return services;
 }

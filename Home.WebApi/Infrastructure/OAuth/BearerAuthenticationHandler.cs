@@ -83,7 +83,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
             var _ClaimsPrincipal = new ClaimsPrincipal(
                 new ClaimsIdentity(
                     new List<Claim>([
-
+                        new(nameof(AuthenticationMetadata.UserID), _OAuthMetadata.UserID.ToString(), ClaimValueTypes.Integer64),
                         new(nameof(AuthenticationMetadata.ClientApplicationID), _OAuthMetadata.ClientApplicationID.ToString(), ClaimValueTypes.Integer64),
                         new(nameof(AuthenticationMetadata.Scopes), _OAuthMetadata.Scopes, ClaimValueTypes.String),
                         new(nameof(AuthenticationMetadata.ClientName), _OAuthMetadata.ClientName.ToString(), ClaimValueTypes.String)

@@ -15,6 +15,9 @@ public class GetShoppingCartPresenter(IMapper mapper)
     Task IGetShoppingCartOutputPort.PresentShoppingCartAsync(ShoppingCart shoppingCart, CancellationToken cancellationToken)
         => this.OkAsync(mapper.Map<GetShoppingCartApiResponse>(shoppingCart), cancellationToken);
 
+    Task IGetShoppingCartOutputPort.PresentShoppingCartNotFoundAsync(long shippingCartID, CancellationToken cancellationToken)
+        => this.NotFoundAsync($"Shopping Cart {shippingCartID} Not Found", cancellationToken);
+
     #endregion Methods
 
 }

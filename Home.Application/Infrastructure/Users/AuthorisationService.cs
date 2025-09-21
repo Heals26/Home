@@ -20,7 +20,8 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IA
         {
             UserID = long.Parse(((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.UserID))?.Value),
             ClientApplicationID = long.Parse(((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.ClientApplicationID))?.Value),
-            Scopes = ((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.ClientApplicationID))?.Value
+            ClientName = ((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.ClientName))?.Value,
+            Scopes = ((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.Scopes))?.Value
         };
 
     #endregion Methods

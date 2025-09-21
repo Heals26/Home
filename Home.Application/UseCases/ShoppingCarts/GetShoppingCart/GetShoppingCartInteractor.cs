@@ -24,10 +24,13 @@ internal class GetShoppingCartInteractor : IInteractor<GetShoppingCartInputPort,
                 ShoppingCart = sc,
                 sc.Items
             })
-            .Single()
-            .ShoppingCart;
+            .SingleOrDefault()
+            ?.ShoppingCart;
 
-        await outputPort.PresentShoppingCartAsync(_ShoppingCart, cancellationToken);
+        if (_ShoppingCart == null)
+            await outputPort.PresentShoppingCartNotFoundAsync(inputPort.ShoppingCartID, cancellationToken);
+        else
+            await outputPort.PresentShoppingCartAsync(_ShoppingCart, cancellationToken);
     }
 
     #endregion Methods
