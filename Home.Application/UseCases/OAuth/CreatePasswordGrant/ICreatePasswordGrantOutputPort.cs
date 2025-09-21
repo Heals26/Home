@@ -1,10 +1,9 @@
-﻿using CleanArchitecture.Mediator;
-using Home.Application.Infrastructure.Values;
+﻿using Home.Application.Infrastructure.Values;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.OAuth.CreatePasswordGrant;
 
-public interface ICreatePasswordGrantOutputPort : IAuthenticationFailureOutputPort
+public interface ICreatePasswordGrantOutputPort
 {
 
     #region Methods

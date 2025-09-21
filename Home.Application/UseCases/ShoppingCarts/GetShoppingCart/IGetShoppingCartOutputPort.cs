@@ -1,9 +1,8 @@
-﻿using CleanArchitecture.Mediator;
-using Home.Domain.Entities;
+﻿using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.ShoppingCarts.GetShoppingCart;
 
-public interface IGetShoppingCartOutputPort : IAuthenticationFailureOutputPort
+public interface IGetShoppingCartOutputPort
 {
 
     #region Methods

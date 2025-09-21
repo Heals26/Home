@@ -1,8 +1,6 @@
-﻿using CleanArchitecture.Mediator;
+﻿namespace Home.Application.UseCases.ShoppingCarts.UpdateShoppingCart;
 
-namespace Home.Application.UseCases.ShoppingCarts.UpdateShoppingCart;
-
-public interface IUpdateShoppingCartOutputPort : IAuthenticationFailureOutputPort
+public interface IUpdateShoppingCartOutputPort
 {
 
     #region Methods

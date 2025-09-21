@@ -18,7 +18,7 @@ public class OAuthValues : BaseEnumeration
     public static readonly OAuthValues GrantTypePassword = new("password", 7);
     public static readonly OAuthValues GrantTypeRefresh = new("refresh_token", 8);
 
-    public static readonly OAuthValues WebAppScope = new("WebAppScope", 9);
+    public static readonly OAuthValues WebAppScope = new("WebApp", 9);
 
     #endregion Fields
 

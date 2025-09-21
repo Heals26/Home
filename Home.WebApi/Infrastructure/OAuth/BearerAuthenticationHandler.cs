@@ -43,7 +43,11 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
         try
         {
-            var _AccessToken = string.Empty;
+            var _AuthorizationToken = _AuthorisationHeaderValue.ToString().Split(' ');
+            if (_AuthorizationToken.Length != 2)
+                return AuthenticateResult.Fail("Invalid Token");
+
+            var _AccessToken = _AuthorizationToken.Last();
 
             var _AuthenticationMetadata = this.m_PersistenceContext.GetEntities<Domain.Entities.AuthenticationMetadata>()
                 .Where(ca => ca.AccessToken == _AccessToken)

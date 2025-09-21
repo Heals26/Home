@@ -6,14 +6,14 @@ namespace Home.WebApi.Infrastructure.OAuth;
 public class ScopeRequirement : IAuthorizationRequirement
 {
 
-    #region - - - - - - Constructors - - - - - -
+    #region Constructors
 
     public ScopeRequirement(string scope)
         => this.Scope = scope ?? throw new ArgumentNullException(nameof(scope));
 
     #endregion Constructors
 
-    #region - - - - - - Properties - - - - - -
+    #region Properties
 
     public string Scope { get; }
 
@@ -24,24 +24,23 @@ public class ScopeRequirement : IAuthorizationRequirement
 public class ScopeHandler : AuthorizationHandler<ScopeRequirement>
 {
 
-    #region - - - - - - Fields - - - - - -
+    #region Fields
 
     private readonly IHttpContextAccessor m_HttpContextAccessor;
 
     #endregion Fields
 
-    #region - - - - - - Constructors - - - - - -
+    #region Constructors
 
     public ScopeHandler(IHttpContextAccessor httpContextAccessor)
         => this.m_HttpContextAccessor = httpContextAccessor;
 
     #endregion Constructors
 
-    #region - - - - - - Methods - - - - - -
+    #region Methods
 
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ScopeRequirement requirement)
     {
-
         if (!context.User.Claims.Any())
             return Task.CompletedTask;
 

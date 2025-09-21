@@ -102,17 +102,17 @@ static IServiceCollection SetupAuthentication(IServiceCollection services)
 
 static IServiceCollection SetupAuthorisation(IServiceCollection services)
 {
+    _ = services.AddScoped<IAuthorizationHandler, ScopeHandler>()
+        .AddScoped<IAuthorizationHandler, WebAppPlatformHandler>();
+
     _ = services.AddAuthorization(o =>
     {
         var _PolicyBuilder = new AuthorizationPolicyBuilder(FrameworkValues.Bearer, FrameworkValues.Basic).RequireAuthenticatedUser();
         o.DefaultPolicy = _PolicyBuilder.Build();
 
-        o.AddPolicy(FrameworkValues.ScopeWebApp, p => p.AddRequirements(new ScopeRequirement(FrameworkValues.ScopeWebApp)));
-
-        o.AddPolicy(FrameworkValues.ScopeWebApp, p =>
-        {
-            _ = p.AddRequirements(new WebAppPlatformRequirement());
-        });
+        o.AddPolicy(FrameworkValues.ScopeWebApp, p => p
+            .AddRequirements(new ScopeRequirement(FrameworkValues.ScopeWebApp))
+            .AddRequirements(new WebAppPlatformRequirement()));
     });
 
     return services;

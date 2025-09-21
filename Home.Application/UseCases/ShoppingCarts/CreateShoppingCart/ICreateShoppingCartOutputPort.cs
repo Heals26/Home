@@ -1,8 +1,6 @@
-﻿using CleanArchitecture.Mediator;
+﻿namespace Home.Application.UseCases.ShoppingCarts.CreateShoppingCart;
 
-namespace Home.Application.UseCases.ShoppingCarts.CreateShoppingCart;
-
-public interface ICreateShoppingCartOutputPort : IAuthenticationFailureOutputPort
+public interface ICreateShoppingCartOutputPort
 {
 
     #region Methods
