@@ -1,9 +1,15 @@
 ﻿
 using Home.Application.UseCases.ShoppingCartItems.CreateShoppingCartItem;
+using Home.Application.UseCases.ShoppingCartItems.GetShoppingCartItem;
+using Home.Application.UseCases.ShoppingCartItems.UpdateShoppingCartItem;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.ShoppingCartItems.CreateShoppingCartItem;
+using Home.WebApi.Presenters.ShoppingCartItems.GetShoppingCart;
+using Home.WebApi.Presenters.ShoppingCartItems.UpdateShoppingCartItem;
 using Home.WebApi.UseCases.ShoppingCartItems.CreateShoppingCartItem;
+using Home.WebApi.UseCases.ShoppingCartItems.GetShoppingCartItem;
+using Home.WebApi.UseCases.ShoppingCartItems.UpdateShoppingCartItem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,6 +31,40 @@ public class ShoppingCartItemsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new CreateShoppingCartItemInputPort() { Name = request.Name }, presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpGet("{shoppingCartItemID}")]
+    [ProducesResponseType<GetShoppingCartItemApiResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetShoppingCartItem(
+        [FromServices] GetShoppingCartItemPresenter presenter,
+        [FromRoute] long shoppingCartID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new GetShoppingCartItemInputPort(shoppingCartID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpPatch("{shoppingCartItemID}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UpdateShoppingCartItem(
+        [FromServices] UpdateShoppingCartItemPresenter presenter,
+        [FromRoute] long shoppingCartItemID,
+        [FromBody] UpdateShoppingCartItemApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new UpdateShoppingCartItemInputPort(
+            request.Cost,
+            request.InBasket,
+            request.Name,
+            request.Quantity,
+            shoppingCartItemID,
+            request.Sequence
+            ), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

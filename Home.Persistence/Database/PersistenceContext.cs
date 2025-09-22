@@ -15,6 +15,9 @@ public class PersistenceContext(DbContextOptions<PersistenceContext> options) : 
     void IPersistenceContext.AddRange<TEntity>(ICollection<TEntity> entities)
         => base.AddRange(entities);
 
+    bool IPersistenceContext.DoesEntityExist<TEntity>(long entityID)
+        => base.Find<TEntity>([entityID]) != null;
+
     EntityEntry IPersistenceContext.Entity<TEntity>(TEntity entity)
         => base.Entry(entity);
 

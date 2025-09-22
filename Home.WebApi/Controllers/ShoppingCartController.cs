@@ -1,13 +1,16 @@
-﻿using Home.Application.UseCases.ShoppingCarts.CreateShoppingCart;
+﻿using Home.Application.UseCases.ShoppingCartItems.GetShoppingCartItems;
+using Home.Application.UseCases.ShoppingCarts.CreateShoppingCart;
 using Home.Application.UseCases.ShoppingCarts.DeleteShoppingCart;
 using Home.Application.UseCases.ShoppingCarts.GetShoppingCart;
 using Home.Application.UseCases.ShoppingCarts.UpdateShoppingCart;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
+using Home.WebApi.Presenters.ShoppingCartItems.GetShoppingCartItems;
 using Home.WebApi.Presenters.ShoppingCarts.CreateShoppingCart;
 using Home.WebApi.Presenters.ShoppingCarts.DeleteShoppingCart;
 using Home.WebApi.Presenters.ShoppingCarts.GetShoppingCart;
 using Home.WebApi.Presenters.ShoppingCarts.UpdateShoppingCart;
+using Home.WebApi.UseCases.ShoppingCartItems.GetShoppingCartItems;
 using Home.WebApi.UseCases.ShoppingCarts.CreateShoppingCart;
 using Home.WebApi.UseCases.ShoppingCarts.GetShoppingCart;
 using Home.WebApi.UseCases.ShoppingCarts.UpdateShoppingCart;
@@ -58,6 +61,19 @@ public class ShoppingCartController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetShoppingCartInputPort() { ShoppingCartID = shoppingCartID }, presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpGet("{shoppingCartID}/Items/Items")]
+    [ProducesResponseType<GetShoppingCartItemsApiResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetShoppingCartItems(
+        [FromServices] GetShoppingCartItemsPresenter presenter,
+        [FromRoute] long shoppingCartID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new GetShoppingCartItemsInputPort(shoppingCartID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
