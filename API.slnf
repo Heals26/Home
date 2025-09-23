@@ -1,0 +1,11 @@
+{
+  "solution": {
+    "path": "Home.sln",
+    "projects": [
+      "Home.Application\\Home.Application.csproj",
+      "Home.Domain\\Home.Domain.csproj",
+      "Home.Persistence\\Home.Persistence.csproj",
+      "Home.WebApi\\Home.WebApi.csproj"
+    ]
+  }
+}

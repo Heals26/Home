@@ -9,12 +9,21 @@ public class HomeHttpClient(HttpClient httpClient)
 
     #region Methods
 
-    public async Task<TResponse> SendAsync<TRequest, TResponse>(TRequest request, ApiProviderHelper apiProvider, Action<ProblemDetails> errors, CancellationToken cancellationToken)
+    public async Task<TResponse>? SendAsync<TRequest, TResponse>(
+        TRequest request,
+        ApiProviderHelper apiProvider,
+        Action<ProblemDetails> errors,
+        CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var _HttpRequestMessage = new HttpRequestMessage(apiProvider.HttpMethod, apiProvider.Uri)
+        {
+            Content = apiProvider.RouteType.GetHttpRequestMessage(request)
+        };
+
+        return await this.SendRequestAsync<TResponse>(_HttpRequestMessage, errors, cancellationToken);
     }
 
-    private async Task<TResponse> SendRequestAsync<TResponse>(HttpRequestMessage httpMessage, Action<ProblemDetails> errors, CancellationToken cancellationToken)
+    private async Task<TResponse?> SendRequestAsync<TResponse>(HttpRequestMessage httpMessage, Action<ProblemDetails> errors, CancellationToken cancellationToken)
     {
         try
         {
@@ -22,7 +31,11 @@ public class HomeHttpClient(HttpClient httpClient)
             var _Content = await _HttpResponse.Content.ReadAsStringAsync();
 
             if (_HttpResponse.IsSuccessStatusCode)
-                return JsonSerializer.Deserialize<TResponse>(_Content);
+            {
+                return typeof(TResponse) == typeof(bool)
+                    ? (TResponse)(object)true
+                    : JsonSerializer.Deserialize<TResponse>(_Content);
+            }
 
             errors.Invoke(JsonSerializer.Deserialize<ProblemDetails>(_Content));
         }

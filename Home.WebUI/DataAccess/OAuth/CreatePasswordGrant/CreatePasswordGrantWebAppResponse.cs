@@ -1,0 +1,16 @@
+﻿namespace Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
+
+public class CreatePasswordGrantWebAppResponse
+{
+
+    #region Properties
+    public string AccessToken { get; set; }
+    public string ExpiresIn { get; set; }
+    public string GrantType { get; set; }
+    public string RefreshToken { get; set; }
+    public string Scope { get; set; }
+    public long UserID { get; set; }
+
+    #endregion Properties
+
+}
