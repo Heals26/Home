@@ -2,4 +2,4 @@
 
 namespace Home.Application.UseCases.ShoppingCartItems.GetShoppingCartItem;
 
-public record GetShoppingCartItemInputPort(long shoppingCartItem) : IInputPort<IGetShoppingCartItemOutputPort> { }
+public record GetShoppingCartItemInputPort(long shoppingCartItem) : IInputPort<IGetShoppingCartItemOutputPort>;

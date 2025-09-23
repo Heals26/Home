@@ -2,13 +2,5 @@
 
 namespace Home.Application.UseCases.ShoppingCarts.CreateShoppingCart;
 
-public class CreateShoppingCartInputPort : IInputPort<ICreateShoppingCartOutputPort>
-{
+public record CreateShoppingCartInputPort(string Name) : IInputPort<ICreateShoppingCartOutputPort>;
 
-    #region Properties
-
-    public string Name { get; set; }
-
-    #endregion Properties
-
-}

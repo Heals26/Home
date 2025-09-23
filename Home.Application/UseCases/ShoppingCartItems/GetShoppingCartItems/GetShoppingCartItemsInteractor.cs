@@ -16,10 +16,9 @@ public class GetShoppingCartItemsInteractor : IInteractor<GetShoppingCartItemsIn
     {
         var _ShoppingCartLogic = serviceFactory.GetService<IShoppingCartLogic>();
 
-        if (!_ShoppingCartLogic.DoesShoppingCartExist(inputPort.ShoppingCartID))
-            return outputPort.PresentShoppingCartNotFoundAsync(inputPort.ShoppingCartID, cancellationToken);
-
-        return outputPort.PresentShoppingCartItemsAsync(_ShoppingCartLogic.GetItems(inputPort.ShoppingCartID), cancellationToken);
+        return _ShoppingCartLogic.DoesShoppingCartExist(inputPort.ShoppingCartID)
+            ? outputPort.PresentShoppingCartItemsAsync(_ShoppingCartLogic.GetItems(inputPort.ShoppingCartID), cancellationToken)
+            : outputPort.PresentShoppingCartNotFoundAsync(inputPort.ShoppingCartID, cancellationToken);
     }
 
     #endregion Methods
