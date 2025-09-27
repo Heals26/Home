@@ -1,27 +1,41 @@
 using Home.WebUI.Components;
+using Home.WebUI.Infrastructure.HttpClients;
+using Home.WebUI.Infrastructure.Services.HttpClients;
 
-var builder = WebApplication.CreateBuilder(args);
+var _Builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
+_Builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-var app = builder.Build();
+_Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
+{
+    var _BaseUrlString = _Builder.Configuration["apiBaseUrl"];
+
+    if (_BaseUrlString == null)
+        throw new InvalidOperationException("API base URL is not configured.");
+    else if (!Uri.TryCreate(_BaseUrlString, UriKind.Absolute, out var _BaseUrl))
+        throw new InvalidOperationException("API base URL is malformed.");
+
+    options.BaseAddress = new(_BaseUrlString);
+});
+
+var _App = _Builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (!_App.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    _ = _App.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    _ = _App.UseHsts();
 }
 
-app.UseHttpsRedirection();
+_App.UseHttpsRedirection();
 
-app.UseStaticFiles();
-app.UseAntiforgery();
+_App.UseStaticFiles();
+_App.UseAntiforgery();
 
-app.MapRazorComponents<App>()
+_App.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+_App.Run();

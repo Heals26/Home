@@ -1,15 +1,17 @@
 ﻿using Home.WebUI.Infrastructure.ApiProviders.Helpers;
+using Home.WebUI.Infrastructure.Services.HttpClients;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace Home.WebUI.Infrastructure.HttpClients;
 
 public class HomeHttpClient(HttpClient httpClient)
+    : IHomeHttpClient
 {
 
     #region Methods
 
-    public async Task<TResponse>? SendAsync<TRequest, TResponse>(
+    public async Task<TResponse?> SendAsync<TRequest, TResponse>(
         TRequest request,
         ApiProviderHelper apiProvider,
         Action<ProblemDetails> errors,

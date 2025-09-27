@@ -1,7 +1,15 @@
-﻿@page "/shopping-cart"
+﻿
+@page "/shopping-carts"
 
 <h3>ShoppingCartComponent</h3>
 
 @code {
+
+	protected override async Task OnInitializedAsync()
+	{
+		var _ShoppingCarts = this.ApiAccess;
+
+
+	}
 
 }

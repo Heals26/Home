@@ -42,7 +42,7 @@ public class UsersController : BaseController
         [FromRoute] long userID,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new GetUserInputPort() { UserID = userID }, presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new GetUserInputPort(userID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
@@ -56,8 +56,8 @@ public class UsersController : BaseController
         [FromBody] UpdateUserApiRequest body,
         CancellationToken cancellationToken)
     {
-        var _InputPort = this.Mapper.Map<UpdateUserInputPort>(body);
-        _InputPort.UserID = userID;
+        var _ApiRequest = this.Mapper.Map<UpdateUserInputPort>(body);
+        var _InputPort = _ApiRequest with { UserID = userID };
 
         await this.Pipeline.InvokeAsync(_InputPort, presenter, this.ServiceFactory, cancellationToken);
 

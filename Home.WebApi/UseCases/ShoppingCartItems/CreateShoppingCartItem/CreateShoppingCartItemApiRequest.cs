@@ -9,6 +9,7 @@ public class CreateShoppingCartItemApiRequest
     public bool InBasket { get; set; }
     public string Name { get; set; }
     public int Quantity { get; set; }
+    public long ShoppingCartID { get; set; }
 
     #endregion Properties
 

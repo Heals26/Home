@@ -34,7 +34,7 @@ public class ShoppingCartController : BaseController
         [FromBody] CreateShoppingCartApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new CreateShoppingCartInputPort() { Name = request.Name }, presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new CreateShoppingCartInputPort(request.Name), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
@@ -47,7 +47,7 @@ public class ShoppingCartController : BaseController
         [FromRoute] long shoppingCartID,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new DeleteShoppingCartInputPort() { ShoppingCartID = shoppingCartID }, presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new DeleteShoppingCartInputPort(shoppingCartID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
@@ -60,7 +60,7 @@ public class ShoppingCartController : BaseController
         [FromRoute] long shoppingCartID,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new GetShoppingCartInputPort() { ShoppingCartID = shoppingCartID }, presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new GetShoppingCartInputPort(shoppingCartID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
@@ -87,11 +87,7 @@ public class ShoppingCartController : BaseController
         [FromBody] UpdateShoppingCartApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new UpdateShoppingCartInputPort()
-        {
-            ShoppingCartID = shoppingCartID,
-            Name = request.Name
-        }, presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new UpdateShoppingCartInputPort(request.Name, shoppingCartID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
