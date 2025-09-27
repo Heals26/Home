@@ -31,7 +31,7 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
 
     Task<ContinuationBehaviour> IInputPortValidationFailureOutputPort<HomeInputPortValidationFailure>.PresentInputPortValidationFailureAsync(HomeInputPortValidationFailure validationFailure, CancellationToken cancellationToken)
     {
-        var _Details = new ValidationProblemDetails
+        var _Details = new ValidationProblemDetails()
         {
             Detail = "See Errors property for more details.",
             Status = (int)HttpStatusCode.UnprocessableContent,

@@ -21,7 +21,7 @@ namespace Home.WebApi.Controllers;
 
 [Route("api/[controller]")]
 [Authorize(Policy = FrameworkValues.ScopeWebApp)]
-public class ShoppingCartController : BaseController
+public class ShoppingCartsController : BaseController
 {
 
     #region Methods

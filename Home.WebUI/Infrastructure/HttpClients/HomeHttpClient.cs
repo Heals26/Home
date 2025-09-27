@@ -1,6 +1,7 @@
 ﻿using Home.WebUI.Infrastructure.ApiProviders.Helpers;
 using Home.WebUI.Infrastructure.Services.HttpClients;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Text.Json;
 
 namespace Home.WebUI.Infrastructure.HttpClients;
@@ -11,7 +12,7 @@ public class HomeHttpClient(HttpClient httpClient)
 
     #region Methods
 
-    public async Task<TResponse?> SendAsync<TRequest, TResponse>(
+    public async Task<TResponse?> SendRequestAsync<TRequest, TResponse>(
         TRequest request,
         ApiProviderHelper apiProvider,
         Action<ProblemDetails> errors,
@@ -22,10 +23,26 @@ public class HomeHttpClient(HttpClient httpClient)
             Content = apiProvider.RouteType.GetHttpRequestMessage(request)
         };
 
-        return await this.SendRequestAsync<TResponse>(_HttpRequestMessage, errors, cancellationToken);
+        return await this.SendAsync<TResponse>(_HttpRequestMessage, errors, cancellationToken);
     }
 
-    private async Task<TResponse?> SendRequestAsync<TResponse>(HttpRequestMessage httpMessage, Action<ProblemDetails> errors, CancellationToken cancellationToken)
+    private ValidationProblemDetails ConvertProblemDetailsToValidationProblemDetails(ProblemDetails problemDetails)
+        => problemDetails is ValidationProblemDetails _ValidationProblemDetails
+            ? _ValidationProblemDetails
+            : new ValidationProblemDetails()
+            {
+                Title = problemDetails.Title,
+                Status = problemDetails.Status,
+                Detail = problemDetails.Detail,
+                Instance = problemDetails.Instance,
+                Type = problemDetails.Type,
+                Errors = new Dictionary<string, string[]>()
+                {
+                    { "Error", new string[] { problemDetails.Detail ?? "An error occurred." } }
+                }
+            };
+
+    private async Task<TResponse?> SendAsync<TResponse>(HttpRequestMessage httpMessage, Action<ValidationProblemDetails> errors, CancellationToken cancellationToken)
     {
         try
         {
@@ -39,7 +56,33 @@ public class HomeHttpClient(HttpClient httpClient)
                     : JsonSerializer.Deserialize<TResponse>(_Content);
             }
 
-            errors.Invoke(JsonSerializer.Deserialize<ProblemDetails>(_Content));
+
+
+            switch (_HttpResponse.StatusCode)
+            {
+                case HttpStatusCode.NotFound:
+                case HttpStatusCode.BadRequest:
+                case HttpStatusCode.Unauthorized:
+                    errors.Invoke(this.ConvertProblemDetailsToValidationProblemDetails(JsonSerializer.Deserialize<ProblemDetails>(_Content)!));
+                    return default;
+                case HttpStatusCode.UnprocessableContent:
+                    errors.Invoke(JsonSerializer.Deserialize<ValidationProblemDetails>(_Content)!);
+                    return default;
+                default:
+                    errors.Invoke(new ValidationProblemDetails()
+                    {
+                        Title = "Error",
+                        Status = (int)_HttpResponse.StatusCode,
+                        Detail = "An error occurred.",
+                        Instance = httpMessage.RequestUri?.ToString(),
+                        Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                        Errors = new Dictionary<string, string[]>()
+                        {
+                            { "Error", new string[] { "An error occurred." } }
+                        }
+                    });
+                    return default;
+            }
         }
         catch (HttpRequestException)
         {
