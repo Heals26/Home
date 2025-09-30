@@ -15,7 +15,7 @@ public class HomeHttpClient(HttpClient httpClient)
     public async Task<TResponse?> SendRequestAsync<TRequest, TResponse>(
         TRequest request,
         ApiProviderHelper apiProvider,
-        Action<ProblemDetails> errors,
+        Action<ValidationProblemDetails> errors,
         CancellationToken cancellationToken)
     {
         var _HttpRequestMessage = new HttpRequestMessage(apiProvider.HttpMethod, apiProvider.Uri)
@@ -55,8 +55,6 @@ public class HomeHttpClient(HttpClient httpClient)
                     ? (TResponse)(object)true
                     : JsonSerializer.Deserialize<TResponse>(_Content);
             }
-
-
 
             switch (_HttpResponse.StatusCode)
             {

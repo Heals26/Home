@@ -1,6 +1,7 @@
 using Home.WebUI.Components;
 using Home.WebUI.Infrastructure.HttpClients;
 using Home.WebUI.Infrastructure.Services.HttpClients;
+using MudBlazor.Services;
 
 var _Builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ _Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
 
     options.BaseAddress = new(_BaseUrlString);
 });
+
+_Builder.Services.AddMudServices();
 
 var _App = _Builder.Build();
 
