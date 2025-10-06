@@ -23,6 +23,8 @@ public class HomeHttpClient(HttpClient httpClient)
             Content = apiProvider.RouteType.GetHttpRequestMessage(request)
         };
 
+        _HttpRequestMessage.Headers.Add("api-version", apiProvider.Version);
+
         return await this.SendAsync<TResponse>(_HttpRequestMessage, errors, cancellationToken);
     }
 
@@ -53,18 +55,34 @@ public class HomeHttpClient(HttpClient httpClient)
             {
                 return typeof(TResponse) == typeof(bool)
                     ? (TResponse)(object)true
-                    : JsonSerializer.Deserialize<TResponse>(_Content);
+                    : JsonSerializer.Deserialize<TResponse>(_Content, JsonOptions.DefaultOptions);
             }
 
             switch (_HttpResponse.StatusCode)
             {
                 case HttpStatusCode.NotFound:
+                    if (string.IsNullOrWhiteSpace(_Content))
+                        errors.Invoke(new()
+                        {
+                            Title = "Either the API isn't running or the endpoint doesn't exist.",
+                            Status = (int)HttpStatusCode.NotFound,
+                            Detail = "Validate that the API is running or you have the correct endpoint and API version.",
+                            Instance = string.Empty,
+                            Type = string.Empty,
+                            Errors = new Dictionary<string, string[]>()
+                            {
+                                { "Error", new string[] { "Please ensure that everything is correctly running. If it isn't contact the system administrator." } }
+                            }
+                        });
+                    else
+                        errors.Invoke(this.ConvertProblemDetailsToValidationProblemDetails(JsonSerializer.Deserialize<ProblemDetails>(_Content, JsonOptions.DefaultOptions)!));
+                    return default;
                 case HttpStatusCode.BadRequest:
                 case HttpStatusCode.Unauthorized:
-                    errors.Invoke(this.ConvertProblemDetailsToValidationProblemDetails(JsonSerializer.Deserialize<ProblemDetails>(_Content)!));
+                    errors.Invoke(this.ConvertProblemDetailsToValidationProblemDetails(JsonSerializer.Deserialize<ProblemDetails>(_Content, JsonOptions.DefaultOptions)!));
                     return default;
                 case HttpStatusCode.UnprocessableContent:
-                    errors.Invoke(JsonSerializer.Deserialize<ValidationProblemDetails>(_Content)!);
+                    errors.Invoke(JsonSerializer.Deserialize<ValidationProblemDetails>(_Content, JsonOptions.DefaultOptions)!);
                     return default;
                 default:
                     errors.Invoke(new ValidationProblemDetails()
