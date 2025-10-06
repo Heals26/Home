@@ -37,7 +37,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
         if (!this.Request.Headers.TryGetValue(FrameworkValues.Authorisation, out var _AuthorisationHeaderValue))
         {
             var _ErrorMessage = "Cannot read Authorization header";
-            this.SetApiAuditEntry(null, nameof(BearerAuthenticationHandler), _ErrorMessage);
+            this.SetApiAuditEntry(null, $"{nameof(BearerAuthenticationHandler)} {this.Request.RouteValues["action"]}", _ErrorMessage);
             return AuthenticateResult.Fail(_ErrorMessage);
         }
 
@@ -90,7 +90,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
                     ])));
 
             var _Ticket = new AuthenticationTicket(_ClaimsPrincipal, this.Scheme.Name);
-            this.SetApiAuditEntry(_OAuthMetadata, nameof(BearerAuthenticationHandler), null);
+            this.SetApiAuditEntry(_OAuthMetadata, $"{nameof(BearerAuthenticationHandler)} {this.Request.RouteValues["action"]}", null);
 
             return AuthenticateResult.Success(_Ticket);
         }
