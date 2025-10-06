@@ -1,10 +1,12 @@
-﻿using Home.Application.Services.Security;
+﻿using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
+using Home.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 namespace Home.Application.Infrastructure.Users;
 
-public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IAuthorisationService
+public class AuthorisationService(IHttpContextAccessor httpContextAccessor, IPersistenceContext persistenceContext) : IAuthorisationService
 {
 
     #region Properties
@@ -15,7 +17,7 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IA
 
     #region Methods
 
-    AuthenticationMetadata IAuthorisationService.GetAuthenticationMetadata()
+    Services.Security.AuthenticationMetadata IAuthorisationService.GetAuthenticationMetadata()
         => new()
         {
             UserID = long.Parse(((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.UserID))?.Value),
@@ -23,6 +25,12 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IA
             ClientName = ((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.ClientName))?.Value,
             Scopes = ((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.Scopes))?.Value
         };
+
+    User IAuthorisationService.GetUser()
+    {
+        var _UserID = ((IAuthorisationService)this).User.FindFirst(nameof(Services.Security.AuthenticationMetadata.UserID));
+        return persistenceContext.Find<User>(_UserID!);
+    }
 
     #endregion Methods
 

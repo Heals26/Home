@@ -1,6 +1,7 @@
 ﻿@using Home.WebUI.Infrastructure.ApiProviders
 @using Home.WebUI.Infrastructure.CancellationTokens
 @using Home.WebUI.Infrastructure.Services.HttpClients
+@using Home.WebUI.Infrastructure.UriProvider
 @using Home.WebUI.Components.Pages.Shared
 @using Home.WebUI.Components.Pages.Shared.ErrorHandlers
 @using Microsoft.AspNetCore.Components.Forms
@@ -12,3 +13,5 @@
 @using MudBlazor
 @using System.Net.Http
 @using System.Net.Http.Json
+
+@inject IHomeHttpClient ApiAccess

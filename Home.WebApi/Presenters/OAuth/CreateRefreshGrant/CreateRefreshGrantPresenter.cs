@@ -12,7 +12,7 @@ public class CreateRefreshGrantPresenter(IMapper mapper) : OutputPortPresenter(m
 
     #region Methods
 
-    Task ICreateRefreshGrantOutputPort.PresentAuthorisationGrantedAsync(AuthenticationMetadata data, CancellationToken cancellationToken)
+    Task ICreateRefreshGrantOutputPort.PresentAuthorisationGrantedAsync(UserAuthentication data, CancellationToken cancellationToken)
         => this.OkAsync(mapper.Map<CreateRefreshGrantApiResponse>(data), cancellationToken);
 
     Task ICreateRefreshGrantOutputPort.PresentNotAuthorisedAsync(OAuthValues error, CancellationToken cancellationToken)

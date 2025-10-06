@@ -1,0 +1,83 @@
+﻿@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCart
+@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCarts
+
+<MudCard Elevation="2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Shopping Carts</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudList @bind-bind-SelectedValue="this.m_SelectedCart"
+            SelectionMode="SelectionMode.SingleSelection"
+            T="GetShoppingCartDto" >
+            @if (this.m_ShoppingCarts == null || !this.m_ShoppingCarts.ShoppingCarts.Any())
+            {
+                <MudAlert Severity="Severity.Info"
+                          Variant="Variant.Outlined">
+                    No shopping carts created.
+                </MudAlert>
+            }
+            else
+            {
+                @foreach (var _Cart in this.m_ShoppingCarts.ShoppingCarts)
+                {
+                    <MudListItem>
+                        <MudGrid>
+                            <MudItem xs="8">
+                                <MudText>@_Cart.Name</MudText>
+                                <MudText Typo="Typo.caption">@_Cart.ItemCount items</MudText>
+                            </MudItem>
+                            <MudItem xs="4">
+                                <MudText>Created By: @_Cart.CreatedBy</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudListItem>
+                }
+            }
+        </MudList>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Create New Cart</MudButton>
+    </MudCardActions>
+</MudCard>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />
+
+@code {
+
+    #region Fields
+
+    private ErrorHandler? m_ErrorHandler;
+    private GetShoppingCartsWebAppResponse? m_ShoppingCarts;
+    private GetShoppingCartDto? m_SelectedCart;
+
+    #endregion Fields
+
+    #region Properties
+
+    [CascadingParameter(Name = "CancellationToken")]
+    public CancellationToken CancellationToken { get; set; }
+
+    [Parameter]
+    public long? ShoppingCartID { get; set; }
+
+    #endregion Properties
+
+    #region Lifecycle Methods
+
+    protected override async Task OnInitializedAsync()
+    {
+        var _ShoppingCarts = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartsWebAppResponse>(
+            null!,
+            ApiProvider.GetShoppingCarts(),
+		    (e) => this.m_ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+		if (_ShoppingCarts != null)
+			this.m_ShoppingCarts = _ShoppingCarts;
+    }
+
+	#endregion Lifecycle Methods
+
+}

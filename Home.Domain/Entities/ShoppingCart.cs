@@ -9,6 +9,7 @@ public class ShoppingCart
     public string Name { get; set; }
 
     public ICollection<Audit> Audits { get; set; }
+    public User CreatedBy { get; set; }
     public ICollection<ShoppingCartItem> Items { get; set; }
 
     #endregion Properties

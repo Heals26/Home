@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using Home.Domain.Entities;
+using System.Security.Claims;
 
 namespace Home.Application.Services.Security;
 
@@ -14,6 +15,7 @@ public interface IAuthorisationService
     #region Methods
 
     AuthenticationMetadata GetAuthenticationMetadata();
+    User GetUser();
 
     #endregion Methods
 

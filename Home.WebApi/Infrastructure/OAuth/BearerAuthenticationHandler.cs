@@ -49,7 +49,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
             var _AccessToken = _AuthorizationToken.Last();
 
-            var _AuthenticationMetadata = this.m_PersistenceContext.GetEntities<Domain.Entities.AuthenticationMetadata>()
+            var _AuthenticationMetadata = this.m_PersistenceContext.GetEntities<Domain.Entities.UserAuthentication>()
                 .Where(ca => ca.AccessToken == _AccessToken)
                 .Select(am => new
                 {
@@ -90,7 +90,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
                     ])));
 
             var _Ticket = new AuthenticationTicket(_ClaimsPrincipal, this.Scheme.Name);
-            this.SetApiAuditEntry(_OAuthMetadata, nameof(BasicAuthenticationHandler), null);
+            this.SetApiAuditEntry(_OAuthMetadata, nameof(BearerAuthenticationHandler), null);
 
             return AuthenticateResult.Success(_Ticket);
         }

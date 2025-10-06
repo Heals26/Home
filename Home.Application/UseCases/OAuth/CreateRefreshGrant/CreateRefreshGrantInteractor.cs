@@ -39,7 +39,7 @@ internal class CreateRefreshGrantInteractor : IInteractor<CreateRefreshGrantInpu
         var _ClientApplication = _PersistenceContext.GetEntities<ClientApplication>()
             .Single(ca => ca.ClientApplicationID == inputPort.ClientID && ca.Secret == inputPort.ClientSecret);
 
-        var _ExistingToken = _PersistenceContext.GetEntities<Domain.Entities.AuthenticationMetadata>()
+        var _ExistingToken = _PersistenceContext.GetEntities<Domain.Entities.UserAuthentication>()
             .Where(am => am.RefreshToken == inputPort.RefreshToken)
             .Select(am => new
             {
@@ -58,7 +58,7 @@ internal class CreateRefreshGrantInteractor : IInteractor<CreateRefreshGrantInpu
         var _AccessToken = _TokenFactory.GetOAuthToken();
         var _RefreshToken = _TokenFactory.GetOAuthToken();
 
-        var _AuthenticationMetadata = new Domain.Entities.AuthenticationMetadata()
+        var _AuthenticationMetadata = new Domain.Entities.UserAuthentication()
         {
             AccessToken = _AccessToken,
             ClientApplication = _ClientApplication,

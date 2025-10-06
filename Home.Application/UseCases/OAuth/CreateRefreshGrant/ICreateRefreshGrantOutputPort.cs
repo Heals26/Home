@@ -10,7 +10,7 @@ public interface ICreateRefreshGrantOutputPort : IAuthenticationFailureOutputPor
     #region Methods
 
     Task PresentNotAuthorisedAsync(OAuthValues error, CancellationToken cancellationToken);
-    Task PresentAuthorisationGrantedAsync(AuthenticationMetadata data, CancellationToken cancellationToken);
+    Task PresentAuthorisationGrantedAsync(UserAuthentication data, CancellationToken cancellationToken);
 
     #endregion Methods
 

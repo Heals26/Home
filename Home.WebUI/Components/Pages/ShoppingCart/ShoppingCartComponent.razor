@@ -1,51 +1,86 @@
-﻿@using Home.WebUI.DataAccess.ShoppingCarts.CreateShoppingCart
-@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCart
+﻿@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCart
+@using Home.WebUI.DataAccess.ShoppingCarts.Models
 
-@page "/shopping-carts"
 
-@inject IHomeHttpClient ApiAccess
+<MudCard Elevation="2">
+	<MudCardHeader>
+		<CardHeaderContent>
+			<MudText Typo="Typo.h6">@this.m_ShoppingCart?.Name</MudText>
+		</CardHeaderContent>
+	</MudCardHeader>
+	<MudCardContent>
+		<MudList T="ShoppingCartItemDto">
+			@if (this.m_ShoppingCart == null)
+			{
+				<MudAlert Severity="Severity.Info"
+						  Variant="Variant.Outlined">
+					No shopping cart selected.
+				</MudAlert>
+			}
+			else
+			{
+				@foreach (var _Item in this.m_ShoppingCart.Items)
+				{
+					<MudListItem>
+						<MudListItem>
+							<MudGrid>
+								<MudItem xs="6">@_Item.Name</MudItem>
+								<MudItem xs="6">@_Item.Quantity</MudItem>
+								<MudItem xs="6">@_Item.Cost</MudItem>
+							</MudGrid>
+						</MudListItem>
+					</MudListItem>
+				}
 
-@if (this.m_ShoppingCart != null)
-{
-		@this.m_ShoppingCart.Name
-}
+				<MudDivider />
+				<MudText Class="mt-2"
+				Typo="Typo.body1">
+					<b>Total:</b> $@this.m_ShoppingCart.Items.Sum(i => i.Cost * i.Quantity)
+				</MudText>
+			}
+		</MudList>
+	</MudCardContent>
+	<MudCardActions>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Checkout</MudButton>
+		<MudButton Variant="Variant.Text" Color="Color.Secondary">Clear Cart</MudButton>
+	</MudCardActions>
+</MudCard>
 
 @code {
 
 	#region Fields
 
-	private CancellationTokenHandler m_CancellationTokenHandler = new();
 	private ErrorHandler? m_ErrorHandler;
 	private GetShoppingCartWebAppResponse? m_ShoppingCart;
 
 	#endregion Fields
 
+	#region Properties
+
+	[CascadingParameter(Name = "CancellationToken")]
+	public CancellationToken CancellationToken { get; set; }
+
+	[Parameter]
+	public long? ShoppingCartID { get; set; }
+
+	#endregion Properties
+
 	#region Lifecycle Methods
 
-	protected override async Task OnInitializedAsync()
+	protected override async Task OnParametersSetAsync()
 	{
-		this.m_ShoppingCart = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartWebAppResponse>(null, ApiProvider.GetShoppingCarts(),
-			(e) => this.m_ErrorHandler!.AddError(e), this.m_CancellationTokenHandler.Token);
+		if (this.ShoppingCartID.HasValue)
+		{
+			this.m_ShoppingCart = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartWebAppResponse>(
+				null!,
+				ApiProvider.GetShoppingCart(this.ShoppingCartID.Value),
+				(e) => this.m_ErrorHandler!.AddError(e),
+				this.CancellationToken);
+		}
 
 
 	}
 
 	#endregion Lifecycle Methods
-
-	#region Methods
-
-	private async Task CreateShoppingCart()
-	{
-		var _CreateResponse = await this.ApiAccess.SendRequestAsync<CreateShoppingCartWebAppRequest, CreateShoppingCartWebAppResponse>(new CreateShoppingCartWebAppRequest()
-		{
-			Name = "My Cart"
-		}, ApiProvider.CreateShoppingCart(),
-			(e) => this.m_ErrorHandler!.AddError(e), this.m_CancellationTokenHandler.Token);
-		if (_CreateResponse != null)
-			this.m_ShoppingCart = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartWebAppResponse>(null, ApiProvider.GetShoppingCarts(),
-				(e) => this.m_ErrorHandler!.AddError(e), this.m_CancellationTokenHandler.Token);
-	}
-
-	#endregion Methods
 
 }
