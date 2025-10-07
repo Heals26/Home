@@ -1,0 +1,21 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+
+@page "/logout"
+
+@inject IHttpContextAccessor HttpContextAccessor
+
+@code {
+
+	#region Lifecycle Methods
+
+	protected override async Task OnInitializedAsync()
+	{
+		await this.HttpContextAccessor.HttpContext?.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme)!;
+		this.HttpContextAccessor.HttpContext?.Session.Clear();
+		this.NavigationManager.NavigateTo(AuthorisationUriProvider.GetLoginUri(), true);
+	}
+
+	#endregion Lifecycle Methods
+
+}

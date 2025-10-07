@@ -4,12 +4,13 @@ public class CreatePasswordGrantWebAppResponse
 {
 
     #region Properties
-    public string AccessToken { get; set; }
-    public string ExpiresIn { get; set; }
-    public string GrantType { get; set; }
-    public string RefreshToken { get; set; }
-    public string Scope { get; set; }
-    public long UserID { get; set; }
+    public required string AccessToken { get; set; }
+    public required List<string> Claims { get; set; } = [];
+    public required long ExpiresIn { get; set; }
+    public required string GrantType { get; set; }
+    public required string RefreshToken { get; set; }
+    public required string Scope { get; set; }
+    public required long UserID { get; set; }
 
     #endregion Properties
 

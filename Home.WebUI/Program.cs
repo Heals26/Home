@@ -1,6 +1,10 @@
 using Home.WebUI.Components;
 using Home.WebUI.Infrastructure.HttpClients;
+using Home.WebUI.Infrastructure.Security;
 using Home.WebUI.Infrastructure.Services.HttpClients;
+using Home.WebUI.Infrastructure.Services.Security;
+using Home.WebUI.Infrastructure.UriProvider;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using MudBlazor.Services;
 
 var _Builder = WebApplication.CreateBuilder(args);
@@ -8,6 +12,25 @@ var _Builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 _Builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+_Builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath = AuthorisationUriProvider.GetLoginUri();
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+        options.SlidingExpiration = true;
+    });
+
+_Builder.Services.AddAuthorization();
+_Builder.Services.AddHttpContextAccessor();
+_Builder.Services.AddDataProtection();
 
 _Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
 {
@@ -19,6 +42,18 @@ _Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
         throw new InvalidOperationException("API base URL is malformed.");
 
     options.BaseAddress = new(_BaseUrlString);
+})
+    .AddHttpMessageHandler<TokenDelegatingHandler>();
+
+_Builder.Services.AddScoped<TokenDelegatingHandler>();
+_Builder.Services.AddScoped<IAuthorisationService, AuthorisationService>();
+
+_Builder.Services.AddDistributedMemoryCache();
+_Builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 _Builder.Services.AddMudServices();
@@ -34,11 +69,15 @@ if (!_App.Environment.IsDevelopment())
 }
 
 _App.UseHttpsRedirection();
-
 _App.UseStaticFiles();
 _App.UseAntiforgery();
 
+_App.UseAuthentication();
+_App.UseAuthorization();
+
 _App.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+_App.MapBlazorHub();
 
 _App.Run();

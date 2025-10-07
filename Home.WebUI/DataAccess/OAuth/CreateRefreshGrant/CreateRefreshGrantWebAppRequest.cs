@@ -7,8 +7,8 @@ public class CreateRefreshGrantWebAppRequest
 
     #region Properties
 
-    [JsonPropertyName("access_token")]
-    public string AccessToken { get; set; }
+    [JsonPropertyName("refresh_token")]
+    public string RefreshToken { get; set; }
 
     [JsonPropertyName("client_id")]
     public long ClientID { get; set; }

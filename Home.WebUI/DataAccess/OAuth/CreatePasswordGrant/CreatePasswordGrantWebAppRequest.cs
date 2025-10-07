@@ -2,7 +2,7 @@
 
 namespace Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
 
-public class CreatePasswordWebAppRequest
+public class CreatePasswordGrantWebAppRequest
 {
 
     #region Properties
@@ -17,13 +17,13 @@ public class CreatePasswordWebAppRequest
     public string GrantType { get; set; }
 
     [JsonPropertyName("password")]
-    public string Password { get; set; }
+    public string? Password { get; set; }
 
     [JsonPropertyName("scope")]
     public string Scope { get; set; }
 
     [JsonPropertyName("username")]
-    public string Username { get; set; }
+    public string? Username { get; set; }
 
     #endregion Properties
 
