@@ -12,7 +12,7 @@ public class CreatePasswordGrantPresenter(IMapper mapper) : OutputPortPresenter(
 
     #region Methods
 
-    Task ICreatePasswordGrantOutputPort.PresentAuthorisationGrantedAsync(AuthenticationMetadata data, CancellationToken cancellationToken)
+    Task ICreatePasswordGrantOutputPort.PresentAuthorisationGrantedAsync(UserAuthentication data, CancellationToken cancellationToken)
         => this.OkAsync(mapper.Map<CreateRefreshGrantApiResponse>(data), cancellationToken);
 
     Task ICreatePasswordGrantOutputPort.PresentNotAuthorisedAsync(OAuthValues error, CancellationToken cancellationToken)

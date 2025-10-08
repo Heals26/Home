@@ -17,15 +17,15 @@ public class OAuthProfile : Profile
     public OAuthProfile()
     {
         _ = this.CreateMap<OAuthApiRequest, CreatePasswordGrantInputPort>();
-        _ = this.CreateMap<AuthenticationMetadata, CreatePasswordGrantApiResponse>()
-            .ForMember(d => d.ExpiresIn, o => o.MapFrom(s => s.DateSetUTC.AddYears(1)))
+        _ = this.CreateMap<UserAuthentication, CreatePasswordGrantApiResponse>()
+            .ForMember(d => d.ExpiresIn, o => o.MapFrom(s => (s.DateSetUTC.AddYears(1) - DateTime.UtcNow).Ticks))
             .ForMember(d => d.GrantType, o => o.MapFrom(s => OAuthValues.GrantTypePassword))
             .ForMember(d => d.Scope, o => o.MapFrom(s => string.Join(",", OAuthValues.WebAppScope.Name)))
             .ForMember(d => d.UserID, o => o.MapFrom(s => s.User.UserID));
 
         _ = this.CreateMap<OAuthApiRequest, CreateRefreshGrantInputPort>();
-        _ = this.CreateMap<AuthenticationMetadata, CreateRefreshGrantApiResponse>()
-            .ForMember(d => d.ExpiresIn, o => o.MapFrom(s => s.DateSetUTC.AddYears(1)))
+        _ = this.CreateMap<UserAuthentication, CreateRefreshGrantApiResponse>()
+            .ForMember(d => d.ExpiresIn, o => o.MapFrom(s => (s.DateSetUTC.AddYears(1) - DateTime.UtcNow).Ticks))
             .ForMember(d => d.GrantType, o => o.MapFrom(s => OAuthValues.GrantTypeRefresh))
             .ForMember(d => d.Scope, o => o.MapFrom(s => string.Join(",", OAuthValues.WebAppScope.Name)))
             .ForMember(d => d.UserID, o => o.MapFrom(s => s.User.UserID));

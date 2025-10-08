@@ -22,6 +22,14 @@ public class ShoppingCartConfiguration : IEntityTypeConfiguration<ShoppingCart>
             .HasMaxLength(250)
             .IsRequired(false);
 
+        _ = entity.Property("ShoppingCartID");
+        _ = entity.HasOne(e => e.CreatedBy)
+            .WithMany(e => e.CreatedShoppingCarts)
+            .HasForeignKey("FK_ShoppingCart_User")
+            .HasConstraintName("FK_ShoppingCart_User")
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
+
         _ = entity.Ignore(e => e.Audits);
     }
 

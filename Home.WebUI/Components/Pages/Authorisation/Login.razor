@@ -1,0 +1,82 @@
+﻿@using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant
+@using Home.WebUI.Infrastructure.Services.Security
+
+@attribute [AllowAnonymous]
+
+@inject IConfigurationManager ConfigurationManager
+@inject IAuthorisationService AuthorisationService
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+	<MudCard>
+		<MudCardHeader>
+			<CardHeaderContent>
+				<MudText Typo="Typo.h3">Sign In</MudText>
+			</CardHeaderContent>
+		</MudCardHeader>
+
+		<MudCardContent>
+			<EditForm Model="this.m_Model">
+				<DataAnnotationsValidator />
+
+				<MudTextField @bind-Value="this.m_Model.Username" Label="Username" Variant="Variant.Outlined" Class="mb-4" For="@(() => this.m_Model.Username)" />
+				<MudTextField @bind-Value="this.m_Model.Password" Label="Password" Variant="Variant.Outlined" InputType="InputType.Password" Class="mb-4" For="@(() => this.m_Model.Password)" />
+				<MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" FullWidth="true" Disabled="this.m_IsLoading">
+					@if (this.m_IsLoading)
+					{
+						<MudProgressCircular Indeterminate="true" Size="Size.Small" />
+					}
+					else
+					{
+						<span>Sign In</span>
+					}
+				</MudButton>
+			</EditForm>
+
+			<ErrorHandler @ref="this.m_ErrorHandler" />
+		</MudCardContent>
+	</MudCard>
+</MudContainer>
+
+@code {
+
+
+	#region Fields
+
+	private CancellationTokenHandler m_CancellationTokenHandler = new();
+	private ErrorHandler? m_ErrorHandler;
+	private bool m_IsLoading;
+	private CreatePasswordGrantWebAppRequest? m_Model;
+
+	#endregion Fields
+
+	#region Methods
+
+	private async Task HandleValidSubmit()
+	{
+		this.m_IsLoading = true;
+
+		try
+		{
+			var _Response = await this.ApiAccess.TryLoginAsync(
+				this.m_Model!,
+				(e) => this.m_ErrorHandler!.AddError(e),
+				this.m_CancellationTokenHandler.Token);
+
+			if (_Response)
+				this.NavigationManager.NavigateTo(ShoppingCartUriProvider.GetShoppingCartsUri());
+			else
+				this.m_ErrorHandler!.AddError("There was an error saving your credentials. Please try again later.");
+		}
+		catch (Exception _Exception)
+		{
+			this.m_ErrorHandler!.AddError($"Error: {_Exception.Message}");
+		}
+		finally
+		{
+			this.m_IsLoading = false;
+		}
+	}
+
+	#endregion Methods
+
+}

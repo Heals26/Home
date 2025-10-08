@@ -58,10 +58,7 @@ public abstract class AuditBase<TEntity>(IAuthorisationService authorisationServ
     }
 
     protected virtual User GetUser()
-    {
-        var _UserID = authorisationService.User.FindFirst(nameof(Services.Security.AuthenticationMetadata.UserID));
-        return persistenceContext.Find<User>(_UserID);
-    }
+        => authorisationService.GetUser();
 
     private object GetEntityID(TEntity entity)
     {

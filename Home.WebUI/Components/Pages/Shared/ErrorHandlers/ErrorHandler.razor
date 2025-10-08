@@ -12,7 +12,7 @@
 
 @code {
 
-        #region Fields
+    #region Fields
 
 	private List<string> m_Errors = new();
 
@@ -26,6 +26,11 @@
             foreach (var _Error in errors.Errors)
                 this.m_Errors.AddRange(_Error.Value);
     }
+
+    public void AddError(string error)
+    {
+        this.m_Errors.Add(error);
+	}
 
     public void ResetErrors()
     {

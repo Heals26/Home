@@ -1,0 +1,58 @@
+﻿@using Home.WebUI.DataAccess.ShoppingCarts.CreateShoppingCart
+@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCart
+@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCarts
+@using Home.WebUI.Infrastructure.ChangeTrackers
+
+@page "/shopping-carts"
+
+<CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
+	<MudContainer Class="mt-4"
+				  MaxWidth="MaxWidth.Large">
+		<MudGrid>
+			<MudItem sm="8"
+					 xs="12">
+				<ShoppingCartComponent @ref="this.m_ShoppingCart"
+									   ShoppingCartID="this.ShoppingCartID" />
+			</MudItem>
+			<MudItem sm="4"
+					 xs="12">
+				<ShoppingCartsComponent ShoppingCartID="this.ShoppingCartID" />
+			</MudItem>
+		</MudGrid>
+	</MudContainer>
+
+	<ErrorHandler @ref="this.m_ErrorHandler" />
+</CascadingValue>
+
+@code {
+
+	#region Fields
+
+	private CancellationTokenHandler m_CancellationTokenHandler = new();
+	private ErrorHandler? m_ErrorHandler;
+	private ShoppingCartComponent? m_ShoppingCart;
+
+	#endregion Fields
+
+	#region Properties
+
+	[Parameter]
+	public long? ShoppingCartID { get; set; }
+
+	#endregion Properties
+
+	#region Lifecycle Methods
+
+	protected override async Task OnInitializedAsync()
+	{
+
+	}
+
+	#endregion Lifecycle Methods
+
+	#region Methods
+
+
+	#endregion Methods
+
+}

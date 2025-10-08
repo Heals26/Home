@@ -2,6 +2,7 @@
 using Home.Application.UseCases.ShoppingCarts.CreateShoppingCart;
 using Home.Application.UseCases.ShoppingCarts.DeleteShoppingCart;
 using Home.Application.UseCases.ShoppingCarts.GetShoppingCart;
+using Home.Application.UseCases.ShoppingCarts.GetShoppingCarts;
 using Home.Application.UseCases.ShoppingCarts.UpdateShoppingCart;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
@@ -9,10 +10,12 @@ using Home.WebApi.Presenters.ShoppingCartItems.GetShoppingCartItems;
 using Home.WebApi.Presenters.ShoppingCarts.CreateShoppingCart;
 using Home.WebApi.Presenters.ShoppingCarts.DeleteShoppingCart;
 using Home.WebApi.Presenters.ShoppingCarts.GetShoppingCart;
+using Home.WebApi.Presenters.ShoppingCarts.GetShoppingCarts;
 using Home.WebApi.Presenters.ShoppingCarts.UpdateShoppingCart;
 using Home.WebApi.UseCases.ShoppingCartItems.GetShoppingCartItems;
 using Home.WebApi.UseCases.ShoppingCarts.CreateShoppingCart;
 using Home.WebApi.UseCases.ShoppingCarts.GetShoppingCart;
+using Home.WebApi.UseCases.ShoppingCarts.GetShoppingCarts;
 using Home.WebApi.UseCases.ShoppingCarts.UpdateShoppingCart;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -61,6 +64,18 @@ public class ShoppingCartsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetShoppingCartInputPort(shoppingCartID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpGet]
+    [ProducesResponseType<GetShoppingCartsApiResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetShoppingCarts(
+        [FromServices] GetShoppingCartsPresenter presenter,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new GetShoppingCartsInputPort(), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

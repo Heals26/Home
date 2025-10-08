@@ -262,47 +262,6 @@ namespace Home.Persistence.Migrations
                     b.ToTable("Audit", "home");
                 });
 
-            modelBuilder.Entity("Home.Domain.Entities.AuthenticationMetadata", b =>
-                {
-                    b.Property<long>("AuthenticationMetadataID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AuthenticationMetadataID"));
-
-                    b.Property<string>("AccessToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("ClientApplicationID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("ClientApplictionID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("DateSetUTC")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RefreshToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Scopes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("UserID")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("AuthenticationMetadataID");
-
-                    b.HasIndex("ClientApplicationID");
-
-                    b.HasIndex("UserID");
-
-                    b.ToTable("AuthenticationMetadata", "home");
-                });
-
             modelBuilder.Entity("Home.Domain.Entities.ClientApplication", b =>
                 {
                     b.Property<long>("ClientApplicationID")
@@ -452,7 +411,7 @@ namespace Home.Persistence.Migrations
                     b.Property<DateTime>("CreatedOnUTC")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2025, 9, 21, 11, 47, 5, 7, DateTimeKind.Utc).AddTicks(4980));
+                        .HasDefaultValue(new DateTime(2025, 10, 6, 1, 2, 48, 403, DateTimeKind.Utc).AddTicks(8210));
 
                     b.HasKey("NoteID");
 
@@ -549,11 +508,16 @@ namespace Home.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ShoppingCartID"));
 
+                    b.Property<long>("FK_ShoppingCart_User")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
                     b.HasKey("ShoppingCartID");
+
+                    b.HasIndex("FK_ShoppingCart_User");
 
                     b.ToTable("ShoppingCart", "home");
                 });
@@ -638,6 +602,47 @@ namespace Home.Persistence.Migrations
                     b.HasKey("UserID");
 
                     b.ToTable("User", "home");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.UserAuthentication", b =>
+                {
+                    b.Property<long>("AuthenticationMetadataID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("AuthenticationMetadataID"));
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ClientApplicationID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ClientApplictionID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("DateSetUTC")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("UserID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("AuthenticationMetadataID");
+
+                    b.HasIndex("ClientApplicationID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("UserAuthentication", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.Activity", b =>
@@ -729,27 +734,6 @@ namespace Home.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Home.Domain.Entities.AuthenticationMetadata", b =>
-                {
-                    b.HasOne("Home.Domain.Entities.ClientApplication", "ClientApplication")
-                        .WithMany()
-                        .HasForeignKey("ClientApplicationID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_AuthenticationMetadata_ClientApplication");
-
-                    b.HasOne("Home.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_AuthenticationMetadata_User");
-
-                    b.Navigation("ClientApplication");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Home.Domain.Entities.Light", b =>
                 {
                     b.HasOne("Home.Domain.Entities.LightGroup", "Group")
@@ -823,6 +807,18 @@ namespace Home.Persistence.Migrations
                         .HasForeignKey("RecipeID");
                 });
 
+            modelBuilder.Entity("Home.Domain.Entities.ShoppingCart", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.User", "CreatedBy")
+                        .WithMany("CreatedShoppingCarts")
+                        .HasForeignKey("FK_ShoppingCart_User")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ShoppingCart_User");
+
+                    b.Navigation("CreatedBy");
+                });
+
             modelBuilder.Entity("Home.Domain.Entities.ShoppingCartItem", b =>
                 {
                     b.HasOne("Home.Domain.Entities.ShoppingCart", "ShoppingCart")
@@ -833,6 +829,27 @@ namespace Home.Persistence.Migrations
                         .HasConstraintName("FK_ShoppingListItem_ShoppingList");
 
                     b.Navigation("ShoppingCart");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.UserAuthentication", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.ClientApplication", "ClientApplication")
+                        .WithMany()
+                        .HasForeignKey("ClientApplicationID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_AuthenticationMetadata_ClientApplication");
+
+                    b.HasOne("Home.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_AuthenticationMetadata_User");
+
+                    b.Navigation("ClientApplication");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.Activity", b =>
@@ -887,6 +904,8 @@ namespace Home.Persistence.Migrations
             modelBuilder.Entity("Home.Domain.Entities.User", b =>
                 {
                     b.Navigation("AssignedActivities");
+
+                    b.Navigation("CreatedShoppingCarts");
                 });
 #pragma warning restore 612, 618
         }

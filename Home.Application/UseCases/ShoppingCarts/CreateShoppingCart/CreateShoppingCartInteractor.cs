@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 
@@ -18,11 +19,13 @@ internal class CreateShoppingCartInteractor : IInteractor<CreateShoppingCartInpu
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<ShoppingCart>>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
 
         var _ShoppingCart = new ShoppingCart()
         {
-            Name = inputPort.Name,
-            Items = []
+            CreatedBy = _AuthorisationService.GetUser(),
+            Items = [],
+            Name = inputPort.Name
         };
 
         _AuditLogic.AddAudit(_ShoppingCart);

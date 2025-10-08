@@ -54,7 +54,7 @@ internal class CreatePasswordGrantInteractor : IInteractor<CreatePasswordGrantIn
         var _AccessToken = _TokenFactory.GetOAuthToken();
         var _RefreshToken = _TokenFactory.GetOAuthToken();
 
-        var _AuthenticationMetadata = new Domain.Entities.AuthenticationMetadata()
+        var _AuthenticationMetadata = new UserAuthentication()
         {
             AccessToken = _AccessToken,
             ClientApplication = _ClientApplication,

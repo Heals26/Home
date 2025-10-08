@@ -1,6 +1,6 @@
 ﻿namespace Home.Domain.Entities;
 
-public class AuthenticationMetadata
+public class UserAuthentication
 {
 
     #region Properties

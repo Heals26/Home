@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Home.Persistence.Configurations;
 
-public class AuthenticationMetdataConfiguration : IEntityTypeConfiguration<AuthenticationMetadata>
+public class UserAuthentication : IEntityTypeConfiguration<Domain.Entities.UserAuthentication>
 {
 
     #region Methods
 
-    public void Configure(EntityTypeBuilder<AuthenticationMetadata> entity)
+    public void Configure(EntityTypeBuilder<Domain.Entities.UserAuthentication> entity)
     {
-        _ = entity.ToTable(nameof(AuthenticationMetadata), DomainValues.Schema);
+        _ = entity.ToTable(nameof(Domain.Entities.UserAuthentication), DomainValues.Schema);
 
         _ = entity.Property(e => e.AuthenticationMetadataID)
             .ValueGeneratedOnAdd();

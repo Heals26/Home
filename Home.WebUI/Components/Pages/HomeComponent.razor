@@ -1,6 +1,8 @@
-﻿@page "/"
+﻿@using Home.WebUI.Components.Pages.ShoppingCart
 
-<h3>Home</h3>
+@page "/"
+
+<a href="@ShoppingCartUriProvider.GetShoppingCartsUri()">Home</a>
 
 @code {
 

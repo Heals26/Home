@@ -1,0 +1,135 @@
+﻿@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCart
+@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCarts
+@using Home.WebUI.DataAccess.ShoppingCarts.CreateShoppingCart
+
+<MudCard Elevation="2">
+	<MudCardHeader>
+		<CardHeaderContent>
+			<MudText Typo="Typo.h6">Shopping Carts</MudText>
+		</CardHeaderContent>
+	</MudCardHeader>
+	<MudCardContent>
+		<MudList @bind-bind-SelectedValue="this.m_SelectedCart"
+				 SelectionMode="SelectionMode.SingleSelection"
+				 T="GetShoppingCartDto">
+			@if (this.m_ShoppingCarts == null)
+			{
+				<MudProgressCircular Color="Color.Primary"
+									 Indeterminate="true"
+									 Size="Size.Large" />
+			}
+			else
+			{
+				if (!this.m_ShoppingCarts.ShoppingCarts.Any())
+				{
+					<MudAlert Severity="Severity.Info"
+							  Variant="Variant.Outlined">
+						No shopping carts created.
+					</MudAlert>
+				}
+
+				<MudListSubheader>
+					<EditForm Model="this.m_CreateShoppingCart" OnValidSubmit="CreateShoppingCartAsync">
+						<MudGrid AlignItems="AlignItems.Center">
+							<MudItem xs="8">
+								<MudTextField @bind-Value="this.m_CreateShoppingCart!.Name"
+											  Class="ma-0"
+											  Immediate="true"
+											  Label="New Cart Name"
+											  Variant="Variant.Outlined"
+											  Required="true" />
+							</MudItem>
+							<MudItem Class="d-flex justify-end gap-2"
+									 xs="4">
+								<MudButton ButtonType="ButtonType.Submit"
+										   Color="Color.Primary"
+										   Size="Size.Small"
+										   StartIcon="@Icons.Material.Filled.Check"
+										   Variant="Variant.Filled">
+									Create
+								</MudButton>
+							</MudItem>
+						</MudGrid>
+					</EditForm>
+				</MudListSubheader>
+
+				@foreach (var _Cart in this.m_ShoppingCarts.ShoppingCarts)
+				{
+					<MudListItem>
+						<MudGrid>
+							<MudItem xs="8">
+								<MudText>@_Cart.Name</MudText>
+								<MudText Typo="Typo.caption">@_Cart.ItemCount items</MudText>
+							</MudItem>
+							<MudItem xs="4">
+								<MudText>Created By: @_Cart.CreatedBy</MudText>
+							</MudItem>
+						</MudGrid>
+					</MudListItem>
+				}
+			}
+		</MudList>
+	</MudCardContent>
+	<MudCardActions>
+		<MudButton Class="ml-auto"
+				   Color="Color.Primary"
+				   Variant="Variant.Filled">
+			Create New Cart
+		</MudButton>
+	</MudCardActions>
+</MudCard>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />
+
+@code {
+
+	#region Fields
+
+	private ErrorHandler? m_ErrorHandler;
+	private CreateShoppingCartWebAppRequest? m_CreateShoppingCart = new();
+	private GetShoppingCartDto? m_SelectedCart;
+	private GetShoppingCartsWebAppResponse? m_ShoppingCarts;
+
+	#endregion Fields
+
+	#region Properties
+
+	[CascadingParameter(Name = "CancellationToken")]
+	public CancellationToken CancellationToken { get; set; }
+
+	[Parameter]
+	public long? ShoppingCartID { get; set; }
+
+	#endregion Properties
+
+	#region Lifecycle Methods
+
+	protected override async Task OnInitializedAsync()
+	{
+		var _ShoppingCarts = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartsWebAppResponse>(
+			null!,
+			ApiProvider.GetShoppingCarts(),
+			(e) => this.m_ErrorHandler?.AddError(e),
+			this.CancellationToken);
+
+		if (_ShoppingCarts != null)
+			this.m_ShoppingCarts = _ShoppingCarts;
+	}
+
+	#endregion Lifecycle Methods
+
+	#region Methods
+
+	private async Task CreateShoppingCartAsync()
+	{
+		await this.ApiAccess.SendRequestAsync<CreateShoppingCartWebAppRequest, CreateShoppingCartWebAppResponse>(
+			this.m_CreateShoppingCart!,
+			ApiProvider.CreateShoppingCart(),
+			(e) => this.m_ErrorHandler!.AddError(e),
+			this.CancellationToken
+		);
+	}
+
+	#endregion Methods
+
+}
