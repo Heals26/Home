@@ -3,7 +3,6 @@
 
 @attribute [AllowAnonymous]
 
-@inject IConfigurationManager ConfigurationManager
 @inject IAuthorisationService AuthorisationService
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
@@ -45,7 +44,7 @@
 	private CancellationTokenHandler m_CancellationTokenHandler = new();
 	private ErrorHandler? m_ErrorHandler;
 	private bool m_IsLoading;
-	private CreatePasswordGrantWebAppRequest? m_Model;
+	private CreatePasswordGrantWebAppRequest m_Model = new();
 
 	#endregion Fields
 
@@ -58,7 +57,7 @@
 		try
 		{
 			var _Response = await this.ApiAccess.TryLoginAsync(
-				this.m_Model!,
+				this.m_Model,
 				(e) => this.m_ErrorHandler!.AddError(e),
 				this.m_CancellationTokenHandler.Token);
 
