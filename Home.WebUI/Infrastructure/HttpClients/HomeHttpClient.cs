@@ -197,6 +197,7 @@ public class HomeHttpClient(
         _ = await authorisationService.TryRefreshAsync(_Response, cancellationToken);
         return true;
     }
+    
     async Task<bool> IHomeHttpClient.TryLoginAsync(
         CreatePasswordGrantWebAppRequest request,
         Action<ValidationProblemDetails> problemDetails,
