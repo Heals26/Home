@@ -15,9 +15,9 @@ namespace Home.WebUI.Infrastructure.HttpClients;
 
 public class HomeHttpClient(
     IAuthorisationService authorisationService,
-    ConfigurationManager configurationManager,
+    IConfiguration configurationManager,
     HttpClient httpClient,
-    HttpContextAccessor httpContextAccessor)
+    IHttpContextAccessor httpContextAccessor)
     : IHomeHttpClient
 {
 
@@ -197,7 +197,7 @@ public class HomeHttpClient(
         _ = await authorisationService.TryRefreshAsync(_Response, cancellationToken);
         return true;
     }
-    
+
     async Task<bool> IHomeHttpClient.TryLoginAsync(
         CreatePasswordGrantWebAppRequest request,
         Action<ValidationProblemDetails> problemDetails,
