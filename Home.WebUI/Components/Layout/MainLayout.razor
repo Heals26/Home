@@ -1,13 +1,28 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider IsDarkMode />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
     <MudMainContent>
-        @this.Body
+        <ErrorBoundary>
+            <ChildContent>
+                @this.Body
+            </ChildContent>
+            <ErrorContent Context="ex">
+                Source: @ex.Source
+                <hr />
+                Message: @ex.Message
+                <hr />
+                Data: @ex.Data
+                <hr />
+                Inner Exception: @ex.InnerException
+                <hr />
+                Stack Trace: @ex.StackTrace
+            </ErrorContent>
+        </ErrorBoundary>
     </MudMainContent>
 </MudLayout>
 

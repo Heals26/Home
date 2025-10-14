@@ -7,7 +7,8 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
                 <NotAuthorized>
-                    <RedirectToLogin />
+                    <div>You are not authorized. Please <a href="@AuthorisationUriProvider.GetLoginUri()">log in</a>.</div>
+                    @* <RedirectToLogin /> *@
                 </NotAuthorized>
                 <Authorizing />
             </AuthorizeRouteView>

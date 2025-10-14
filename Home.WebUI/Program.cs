@@ -11,7 +11,7 @@ var _Builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 _Builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options => options.DetailedErrors = true);
 
 _Builder.Services.AddAuthentication(options =>
 {
@@ -64,20 +64,20 @@ var _App = _Builder.Build();
 if (!_App.Environment.IsDevelopment())
 {
     _ = _App.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     _ = _App.UseHsts();
 }
 
-_App.UseHttpsRedirection();
 _App.UseStaticFiles();
-_App.UseAntiforgery();
+_App.UseHttpsRedirection();
+_App.UseRouting();
 
 _App.UseAuthentication();
 _App.UseAuthorization();
 
+_App.UseWebSockets();
+_App.UseAntiforgery();
+
 _App.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-_App.MapBlazorHub();
 
 _App.Run();
