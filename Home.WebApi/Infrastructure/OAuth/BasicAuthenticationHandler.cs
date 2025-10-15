@@ -1,10 +1,12 @@
-﻿using Home.Application.Services.Persistence;
+﻿using Home.Application.Infrastructure.Values;
+using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Application.UseCases.ApiAuditing;
 using Home.WebApi.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 
 namespace Home.WebApi.Infrastructure.OAuth;
@@ -43,24 +45,29 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
 
         try
         {
-            var _AccessToken = string.Empty;
-
-            var _ClientApplication = this.m_PersistenceContext.GetEntities<Domain.Entities.ClientApplication>()
-                .SingleOrDefault(ca => ca.AccessToken == _AccessToken);
-
-            if (_ClientApplication == null || !this.TryValidateAuthorisationString(_AuthorisationHeaderValue, out _AccessToken))
+            (string clientSecret, string accessToken) _AccessToken = (string.Empty, string.Empty);
+            if (!this.TryValidateAuthorisationString(_AuthorisationHeaderValue, out _AccessToken))
             {
                 this.SetApiAuditEntry(null, nameof(TryValidateAuthorisationString), "Invalid Token");
                 return AuthenticateResult.Fail("Invalid Token");
             }
 
-            var _AuthenticationMetadata = new AuthenticationMetadata()
+            var _ClientApplication = this.m_PersistenceContext.GetEntities<Domain.Entities.ClientApplication>()
+                .SingleOrDefault(ca => ca.AccessToken == _AccessToken.clientSecret && ca.Secret == _AccessToken.accessToken);
+
+            if (_ClientApplication == null)
+            {
+                this.SetApiAuditEntry(null, nameof(TryValidateAuthorisationString), OAuthValues.InvalidClient.Name);
+                return AuthenticateResult.Fail(OAuthValues.InvalidClient.Name);
+            }
+
+            AuthenticationMetadata _AuthenticationMetadata = new()
             {
                 ClientApplicationID = _ClientApplication.ClientApplicationID,
                 ClientName = _ClientApplication.Name,
             };
 
-            var _ClaimsPrincipal = new ClaimsPrincipal(
+            ClaimsPrincipal _ClaimsPrincipal = new(
                 new ClaimsIdentity(
                     new List<Claim>([
 
@@ -69,7 +76,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
                         new(nameof(AuthenticationMetadata.ClientName), _AuthenticationMetadata.ClientName.ToString(), ClaimValueTypes.String)
                     ])));
 
-            var _Ticket = new AuthenticationTicket(_ClaimsPrincipal, this.Scheme.Name);
+            AuthenticationTicket _Ticket = new(_ClaimsPrincipal, this.Scheme.Name);
             this.SetApiAuditEntry(_AuthenticationMetadata, $"{nameof(BasicAuthenticationHandler)} {this.Request.RouteValues["action"]}", null);
 
             return AuthenticateResult.Success(_Ticket);
@@ -81,19 +88,19 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         }
     }
 
-    private bool TryValidateAuthorisationString(string authorisationHeader, out string accessToken)
+    private bool TryValidateAuthorisationString(string authorisationHeader, out (string clientSecret, string accessToken) token)
     {
-        accessToken = string.Empty;
+        token = (string.Empty, string.Empty);
 
         if (!authorisationHeader.StartsWith(FrameworkValues.Basic))
             return false;
 
-        var _AuthorisationValues = authorisationHeader.Split(' ', 2);
+        var _AuthorisationValues = Encoding.UTF8.GetString(Convert.FromBase64String(authorisationHeader)).Split(' ', 2);
 
         if (_AuthorisationValues.Length != 2)
             return false;
 
-        accessToken = _AuthorisationValues.Last();
+        token = (_AuthorisationValues.First(), _AuthorisationValues.Last());
 
         return true;
     }

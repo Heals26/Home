@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 
 namespace Home.WebUI.Infrastructure.HttpClients;
@@ -62,15 +63,16 @@ public class HomeHttpClient(
     {
         try
         {
-            var _AccessToken = httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true
+            var _IsAuthenticated = httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true;
+            var _AccessToken = _IsAuthenticated
                 ? await httpContextAccessor.HttpContext.GetTokenAsync("access_token")
-                : null;
+                : Convert.ToBase64String(Encoding.UTF8.GetBytes($"{configurationManager.GetValue<string>("OAuth:AccessToken:AccessToken")!}:{configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!}"));
 
             var _IsPublicEndpoint = httpMessage.RequestUri?.AbsolutePath.Contains(AuthorisationUriProvider.GetLoginUri(), StringComparison.CurrentCultureIgnoreCase) ?? false;
 
-            if (!_IsPublicEndpoint && !string.IsNullOrEmpty(_AccessToken))
+            if (!string.IsNullOrEmpty(_AccessToken))
             {
-                httpMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _AccessToken);
+                httpMessage.Headers.Authorization = new AuthenticationHeaderValue(_IsAuthenticated ? "Bearer" : "Basic", _AccessToken);
             }
             else if (!_IsPublicEndpoint && string.IsNullOrEmpty(_AccessToken))
             {
