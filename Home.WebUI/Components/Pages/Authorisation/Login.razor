@@ -87,6 +87,7 @@
 		catch (Exception _Exception)
 		{
 			this.m_ErrorHandler!.AddError($"Error: {_Exception.Message}");
+			this.StateHasChanged();
 		}
 		finally
 		{

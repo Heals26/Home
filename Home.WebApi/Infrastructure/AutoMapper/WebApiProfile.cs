@@ -18,7 +18,7 @@ public class WebApiProfile : Profile
 
                 ActionName = dto.ActionData.ActionName,
                 CreatedResourceID = dto.ActionData.CreatedResourceID,
-                Details = dto.ActionData.Details?.Substring(0, dto.ActionData.Details.Length > 4000 ? 4000 : dto.ActionData.Details.Length),
+                Details = dto.ActionData.Details?[..(dto.ActionData.Details.Length > 4000 ? 4000 : dto.ActionData.Details.Length)],
 
                 RemoteIPAddress = dto.RequestData.RemoteIPAddress,
                 RequestBody = dto.RequestData.RequestBody,

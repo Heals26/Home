@@ -63,12 +63,12 @@ public class HomeHttpClient(
     {
         try
         {
-            var _IsAuthenticated = httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true;
+            var _IsAuthenticated = httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
             var _AccessToken = _IsAuthenticated
-                ? await httpContextAccessor.HttpContext.GetTokenAsync("access_token")
+                ? await httpContextAccessor.HttpContext?.GetTokenAsync("access_token")! ?? string.Empty
                 : Convert.ToBase64String(Encoding.UTF8.GetBytes($"{configurationManager.GetValue<string>("OAuth:AccessToken:AccessToken")!}:{configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!}"));
 
-            var _IsPublicEndpoint = httpMessage.RequestUri?.AbsolutePath.Contains(AuthorisationUriProvider.GetLoginUri(), StringComparison.CurrentCultureIgnoreCase) ?? false;
+            var _IsPublicEndpoint = httpMessage.RequestUri?.OriginalString.Contains(AuthorisationUriProvider.GetLoginUri(), StringComparison.CurrentCultureIgnoreCase) ?? false;
 
             if (!string.IsNullOrEmpty(_AccessToken))
             {
@@ -154,6 +154,10 @@ public class HomeHttpClient(
         catch (TaskCanceledException)
         {
 
+        }
+        catch (Exception _Exception)
+        {
+            _ = _Exception.InnerException;
         }
 
         throw new NotImplementedException();

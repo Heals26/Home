@@ -61,10 +61,11 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
                 return AuthenticateResult.Fail(OAuthValues.InvalidClient.Name);
             }
 
-            AuthenticationMetadata _AuthenticationMetadata = new()
+            var _AuthenticationMetadata = new AuthenticationMetadata()
             {
                 ClientApplicationID = _ClientApplication.ClientApplicationID,
                 ClientName = _ClientApplication.Name,
+                Scopes = string.Empty
             };
 
             ClaimsPrincipal _ClaimsPrincipal = new(
@@ -88,14 +89,14 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         }
     }
 
-    private bool TryValidateAuthorisationString(string authorisationHeader, out (string clientSecret, string accessToken) token)
+    private bool TryValidateAuthorisationString(string authorisationHeader, out (string accessToken, string clientSecret) token)
     {
         token = (string.Empty, string.Empty);
 
         if (!authorisationHeader.StartsWith(FrameworkValues.Basic))
             return false;
 
-        var _AuthorisationValues = Encoding.UTF8.GetString(Convert.FromBase64String(authorisationHeader)).Split(' ', 2);
+        var _AuthorisationValues = Encoding.UTF8.GetString(Convert.FromBase64String(authorisationHeader.Split(' ').Last())).Split(':', 2);
 
         if (_AuthorisationValues.Length != 2)
             return false;
@@ -109,8 +110,8 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
     {
         var _ApiAuditEntry = this.Context.RequestServices.GetRequiredService<CreateApiAuditEntry>();
 
-        _ApiAuditEntry.AuthenticationData.ClientApplicationID = _ApiAuditEntry.AuthenticationData.ClientApplicationID ?? authenticationMetadata?.ClientApplicationID;
-        _ApiAuditEntry.AuthenticationData.UserID = _ApiAuditEntry.AuthenticationData.UserID ?? authenticationMetadata?.UserID;
+        _ApiAuditEntry.AuthenticationData.ClientApplicationID = authenticationMetadata?.ClientApplicationID;
+        _ApiAuditEntry.AuthenticationData.UserID = authenticationMetadata?.UserID;
 
         _ApiAuditEntry.ActionData.ActionName = actionName;
         _ApiAuditEntry.ActionData.Details = errors;

@@ -1,6 +1,8 @@
 ﻿using Home.WebUI.Infrastructure.Enumerations;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Home.WebUI.Infrastructure.ApiProviders.Helpers;
 
@@ -40,8 +42,14 @@ public class RouteType : BaseEnumeration
                 if (_Value is Stream _Stream)
                     _MultipartFormDataContent.Add(new StreamContent(_Stream), _Property.Name, _Property.Name);
                 else
-                    _MultipartFormDataContent.Add(new StringContent(_Value.ToString()!), _Property.Name);
+                {
+                    var _JsonPropertyNameAttribute = _Property.GetCustomAttribute<JsonPropertyNameAttribute>();
+                    var _FormFieldName = _JsonPropertyNameAttribute?.Name ?? _Property.Name;
+                    _MultipartFormDataContent.Add(new StringContent(_Value.ToString()!), _FormFieldName);
+                }
             }
+
+            return _MultipartFormDataContent;
         }
 
         return null;
