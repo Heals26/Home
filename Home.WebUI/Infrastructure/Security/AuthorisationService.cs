@@ -39,10 +39,10 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IA
         var _Principal = new ClaimsPrincipal(_Identity);
 
         // Store tokens in auth properties (encrypted in cookie)
-        var _AuthenticationProperties = new AuthenticationProperties
+        var _AuthenticationProperties = new AuthenticationProperties()
         {
             IsPersistent = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(response.ExpiresIn)
+            ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(response.ExpiresIn / TimeSpan.TicksPerSecond)
         };
         _AuthenticationProperties.Items.Add(".token.access_token", response.AccessToken);
         _AuthenticationProperties.Items.Add(".token.refresh_token", response.RefreshToken);
@@ -52,7 +52,7 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IA
         var _HttpContext = httpContextAccessor.HttpContext;
         if (_HttpContext != null)
         {
-            await _HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, _Principal, _AuthenticationProperties);
+            _ = await _HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, _Principal, _AuthenticationProperties);
             return true;
         }
 
