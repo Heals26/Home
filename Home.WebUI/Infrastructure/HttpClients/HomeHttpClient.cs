@@ -65,7 +65,7 @@ public class HomeHttpClient(
         {
             var _IsAuthenticated = httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
             var _AccessToken = _IsAuthenticated
-                ? await httpContextAccessor.HttpContext?.GetTokenAsync("access_token")! ?? string.Empty
+                ? (await authorisationService.GetTokenAsync())?.AccessToken ?? string.Empty
                 : Convert.ToBase64String(Encoding.UTF8.GetBytes($"{configurationManager.GetValue<string>("OAuth:AccessToken:AccessToken")!}:{configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!}"));
 
             var _IsPublicEndpoint = httpMessage.RequestUri?.OriginalString.Contains(AuthorisationUriProvider.GetLoginUri(), StringComparison.CurrentCultureIgnoreCase) ?? false;

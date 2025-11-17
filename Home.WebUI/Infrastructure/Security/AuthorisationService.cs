@@ -1,31 +1,61 @@
 ﻿using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
 using Home.WebUI.DataAccess.OAuth.CreateRefreshGrant;
 using Home.WebUI.Infrastructure.Services.Security;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Home.WebUI.Infrastructure.Values;
+using Home.WebUI.ViewModels.OAuth;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Home.WebUI.Infrastructure.Security;
 
-public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IAuthorisationService
+public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage) : IAuthorisationService
 {
 
     #region Methods
 
+    private JsonSerializerOptions GetOptions()
+        => new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    async Task<OAuthViewModel?> IAuthorisationService.GetTokenAsync()
+    {
+        var _Result = await protectedLocalStorage.GetAsync<string>(AuthorisationValues.OAuthKey);
+        if (!_Result.Success || string.IsNullOrEmpty(_Result.Value))
+            return null;
+
+        return JsonSerializer.Deserialize<OAuthViewModel>(_Result.Value);
+    }
+
+    async Task<bool> IAuthorisationService.IsTokenExpiredAsync()
+    {
+        var _Token = await ((IAuthorisationService)this).GetTokenAsync();
+
+        if (_Token == null)
+            return false;
+
+        var _ExpiresAt = DateTimeOffset.FromUnixTimeSeconds(_Token.ExpiresIn);
+        return DateTimeOffset.UtcNow > _ExpiresAt.AddMinutes(-5);
+    }
+
+    private ValueTask StoreTokensAsync(OAuthViewModel oauthToken, JsonSerializerOptions options)
+         => protectedLocalStorage.SetAsync(AuthorisationValues.OAuthKey, JsonSerializer.Serialize(oauthToken, options));
+
+    ValueTask IAuthorisationService.SignOutAsync()
+        => protectedLocalStorage.DeleteAsync(AuthorisationValues.OAuthKey);
+
     async Task<bool> IAuthorisationService.TryRefreshAsync(CreateRefreshGrantWebAppResponse response, CancellationToken cancellationToken)
     {
-        if (httpContextAccessor.HttpContext == null)
-            return false;
-
-        var _Ticket = await httpContextAccessor.HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        if (_Ticket == null)
-            return false;
-
-        _Ticket.Properties!.Items[".token.access_token"] = response.AccessToken;
-        _Ticket.Properties!.Items[".token.refresh_token"] = response.RefreshToken;
-        _Ticket.Properties!.ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(response.ExpiresIn);
-        await httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, _Ticket.Principal!, _Ticket.Properties);
+        // Store refreshed tokens in browser (no SignInAsync needed)
+        await StoreTokensAsync(new()
+        {
+            AccessToken = response.AccessToken,
+            Claims = (await ((IAuthorisationService)this).GetTokenAsync())?.Claims!,
+            ExpiresIn = response.ExpiresIn,
+            GrantType = response.GrantType,
+            RefreshToken = response.RefreshToken,
+            Scope = response.Scope,
+            UserID = response.UserID
+        }, GetOptions());
 
         return true;
     }
@@ -33,31 +63,22 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor) : IA
     async Task<bool> IAuthorisationService.TrySignInAsync(CreatePasswordGrantWebAppRequest request, CreatePasswordGrantWebAppResponse response, CancellationToken cancellationToken)
     {
         var _Claims = response.Claims.Select(c => new Claim(c, c)).ToList();
-        _Claims.Add(new Claim(ClaimTypes.Name, request.Username!)); // Fallback if not in claims
+        _Claims.Add(new Claim(ClaimTypes.Name, request.Username!));
 
-        var _Identity = new ClaimsIdentity(_Claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var _Principal = new ClaimsPrincipal(_Identity);
-
-        // Store tokens in auth properties (encrypted in cookie)
-        var _AuthenticationProperties = new AuthenticationProperties()
+        await StoreTokensAsync(new()
         {
-            IsPersistent = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(response.ExpiresIn / TimeSpan.TicksPerSecond)
-        };
-        _AuthenticationProperties.Items.Add(".token.access_token", response.AccessToken);
-        _AuthenticationProperties.Items.Add(".token.refresh_token", response.RefreshToken);
-        _AuthenticationProperties.Items.Add(".token.expires_in", response.ExpiresIn.ToString());
+            AccessToken = response.AccessToken,
+            Claims = response.Claims,
+            ExpiresIn = response.ExpiresIn,
+            GrantType = response.GrantType,
+            RefreshToken = response.RefreshToken,
+            Scope = response.Scope,
+            UserID = response.UserID
+        }, this.GetOptions());
 
-        // Sign in (creates encrypted cookie)
-        var _HttpContext = httpContextAccessor.HttpContext;
-        if (_HttpContext != null)
-        {
-            _ = await _HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, _Principal, _AuthenticationProperties);
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     #endregion Methods
+
 }

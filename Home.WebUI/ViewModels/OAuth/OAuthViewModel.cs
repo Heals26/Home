@@ -1,6 +1,6 @@
-﻿namespace Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
+﻿namespace Home.WebUI.ViewModels.OAuth;
 
-public class CreatePasswordGrantWebAppResponse
+public class OAuthViewModel
 {
 
     #region Properties
