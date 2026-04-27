@@ -18,6 +18,9 @@ public class PasswordService(IPersistenceContext persistenceContext, IPasswordHa
 
     async Task<bool> IPasswordService.VerifyPasswordAsync(User user, string password, CancellationToken cancellationToken)
     {
+        if (user == null || user.Password == null)
+            return false;
+
         var _Result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
 
         if (_Result == PasswordVerificationResult.SuccessRehashNeeded)

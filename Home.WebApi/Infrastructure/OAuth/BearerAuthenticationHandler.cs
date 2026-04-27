@@ -66,7 +66,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
                 return AuthenticateResult.Fail("Invalid Token");
             }
 
-            if (_AuthenticationMetadata.DateSetUTC.AddYears(1) < DateTime.UtcNow)
+            if (_AuthenticationMetadata.DateSetUTC.AddHours(1) < DateTime.UtcNow)
             {
                 this.SetApiAuditEntry(null, nameof(TryValidateAuthorisationString), "Access token is invalid or has expired.");
                 return AuthenticateResult.Fail("Access token is invalid or has expired.");

@@ -38,14 +38,20 @@ internal class CreatePasswordGrantInteractor : IInteractor<CreatePasswordGrantIn
         }
 
         var _ClientApplication = _PersistenceContext.GetEntities<ClientApplication>()
-            .Single(ca => ca.ClientApplicationID == inputPort.ClientID);
+            .SingleOrDefault(ca => ca.ClientApplicationID == inputPort.ClientID);
+
+        if (_ClientApplication == null)
+        {
+            await outputPort.PresentNotAuthorisedAsync(OAuthValues.InvalidClient, cancellationToken);
+            return;
+        }
 
         // Work out scopes
 
         var _User = _PersistenceContext.GetEntities<User>()
             .SingleOrDefault(u => u.Email == inputPort.Username);
 
-        if (!await _PasswordService.VerifyPasswordAsync(_User, inputPort.Password, cancellationToken))
+        if (_User == null || !await _PasswordService.VerifyPasswordAsync(_User, inputPort.Password, cancellationToken))
         {
             await outputPort.PresentNotAuthorisedAsync(OAuthValues.InvalidUsernameOrPassword, cancellationToken);
             return;

@@ -1,4 +1,4 @@
-﻿using Home.Application.Services.Persistence;
+using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Microsoft.AspNetCore.Http;
@@ -18,18 +18,32 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor, IPer
     #region Methods
 
     Services.Security.AuthenticationMetadata IAuthorisationService.GetAuthenticationMetadata()
-        => new()
+    {
+        var _Service = (IAuthorisationService)this;
+        var _UserIDValue = _Service.User.FindFirst(nameof(AuthenticationMetadata.UserID))?.Value;
+        var _ClientIDValue = _Service.User.FindFirst(nameof(AuthenticationMetadata.ClientApplicationID))?.Value;
+
+        if (_UserIDValue == null || _ClientIDValue == null)
+            throw new UnauthorizedAccessException("Required authentication claims are missing.");
+
+        return new()
         {
-            UserID = long.Parse(((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.UserID))?.Value),
-            ClientApplicationID = long.Parse(((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.ClientApplicationID))?.Value),
-            ClientName = ((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.ClientName))?.Value,
-            Scopes = ((IAuthorisationService)this).User.FindFirst(nameof(AuthenticationMetadata.Scopes))?.Value
+            UserID = long.Parse(_UserIDValue),
+            ClientApplicationID = long.Parse(_ClientIDValue),
+            ClientName = _Service.User.FindFirst(nameof(AuthenticationMetadata.ClientName))?.Value,
+            Scopes = _Service.User.FindFirst(nameof(AuthenticationMetadata.Scopes))?.Value
         };
+    }
 
     User IAuthorisationService.GetUser()
     {
-        var _UserID = ((IAuthorisationService)this).User.FindFirst(nameof(Services.Security.AuthenticationMetadata.UserID));
-        return persistenceContext.Find<User>(_UserID!);
+        var _UserIDValue = ((IAuthorisationService)this).User
+            .FindFirst(nameof(Services.Security.AuthenticationMetadata.UserID))?.Value;
+
+        if (_UserIDValue == null || !long.TryParse(_UserIDValue, out var _UserID))
+            throw new UnauthorizedAccessException("User identity claim is missing or invalid.");
+
+        return persistenceContext.Find<User>(_UserID);
     }
 
     #endregion Methods

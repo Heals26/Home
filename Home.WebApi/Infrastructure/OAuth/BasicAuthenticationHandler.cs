@@ -45,7 +45,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
 
         try
         {
-            (string clientSecret, string accessToken) _AccessToken = (string.Empty, string.Empty);
+            (string accessToken, string clientSecret) _AccessToken = (string.Empty, string.Empty);
             if (!this.TryValidateAuthorisationString(_AuthorisationHeaderValue, out _AccessToken))
             {
                 this.SetApiAuditEntry(null, nameof(TryValidateAuthorisationString), "Invalid Token");
@@ -53,7 +53,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
             }
 
             var _ClientApplication = this.m_PersistenceContext.GetEntities<Domain.Entities.ClientApplication>()
-                .SingleOrDefault(ca => ca.AccessToken == _AccessToken.clientSecret && ca.Secret == _AccessToken.accessToken);
+                .SingleOrDefault(ca => ca.AccessToken == _AccessToken.accessToken && ca.Secret == _AccessToken.clientSecret);
 
             if (_ClientApplication == null)
             {
