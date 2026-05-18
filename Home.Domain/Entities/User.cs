@@ -16,7 +16,7 @@ public class User
 
     public ICollection<Activity> AssignedActivities { get; set; }
     public ICollection<Audit> Audits { get; set; }
-    public ICollection<ShoppingCart> CreatedShoppingCarts { get; set; }
+    public Household Household { get; set; }
 
     #endregion Properties
 
