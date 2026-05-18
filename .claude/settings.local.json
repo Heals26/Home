@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls -la)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Repos\\\\Home\\\\.claude\\\\worktrees\\\\zealous-lichterman-c353a5\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Repos\\\\Home\\\\.claude\\\\worktrees\\\\zealous-lichterman-c353a5\\\\Home.Domain\\\\Entities\" -Name)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet ef *)",
+      "Bash(git add *)"
+    ]
+  }
+}

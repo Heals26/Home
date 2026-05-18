@@ -23,6 +23,13 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
             .IsRequired();
 
         _ = entity.Property(e => e.Url)
+            .IsRequired(false);
+
+        _ = entity.HasOne(e => e.Household)
+            .WithMany(e => e.Recipes)
+            .HasConstraintName("FK_Recipe_Household")
+            .HasForeignKey("HouseholdID")
+            .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
 
         _ = entity.Ignore(e => e.Audits);

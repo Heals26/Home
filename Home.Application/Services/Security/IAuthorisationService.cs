@@ -15,6 +15,7 @@ public interface IAuthorisationService
     #region Methods
 
     AuthenticationMetadata GetAuthenticationMetadata();
+    Household GetHousehold();
     User GetUser();
 
     #endregion Methods
