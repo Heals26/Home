@@ -32,6 +32,13 @@ public class GetRecipePresenter(IMapper mapper)
                 NoteID = rn.NoteID,
                 Content = rn.Note.Content,
                 CreatedOnUTC = rn.Note.CreatedOnUTC
+            })],
+            Steps = [.. recipe.Steps.OrderBy(s => s.Sequence).Select(s => new RecipeStepDto()
+            {
+                RecipeStepID = s.RecipeStepID,
+                Sequence = s.Sequence,
+                Title = s.Title,
+                Content = s.Content
             })]
         }, cancellationToken);
 
