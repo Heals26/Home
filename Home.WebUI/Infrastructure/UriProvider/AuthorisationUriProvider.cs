@@ -6,7 +6,7 @@ public static class AuthorisationUriProvider
     #region Methods
 
     public static string GetLoginUri()
-        => "/";
+        => "/login";
 
     public static string GetLoginUri(string returnUrl)
         => string.IsNullOrWhiteSpace(returnUrl)

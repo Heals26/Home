@@ -1,10 +1,6 @@
-﻿@using Home.WebUI.Components.Pages.ShoppingCart
-
-@page "/home"
-
-<a href="@ShoppingCartUriProvider.GetShoppingCartsUri()">Home</a>
+@page "/home-legacy"
 
 @code {
-
-
+    protected override void OnInitialized()
+        => NavigationManager.NavigateTo("/");
 }

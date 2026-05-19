@@ -7,7 +7,13 @@
       "Bash(gh pr *)",
       "Bash(curl -s \"https://api.github.com/repos/Heals26/Home/pulls?state=open\")",
       "Bash(python3 -c \"import json,sys; prs=json.load\\(sys.stdin\\); [print\\(f'PR #{p[\\\\\"number\\\\\"]}: {p[\\\\\"title\\\\\"]} - {p[\\\\\"html_url\\\\\"]}'\\) for p in prs]\")",
-      "Bash(curl -s \"https://api.github.com/repos/Heals26/Home/pulls/2/comments\")"
+      "Bash(curl -s \"https://api.github.com/repos/Heals26/Home/pulls/2/comments\")",
+      "WebSearch",
+      "Bash(npm --version)",
+      "Bash(mkdir -p \"C:\\\\Repos\\\\Home\\\\Home.WebUI\\\\wwwroot\\\\css\")",
+      "Bash(mkdir -p \"C:\\\\Repos\\\\Home\\\\Home.WebUI\\\\Components\\\\Shared\\\\Buttons\" \"C:\\\\Repos\\\\Home\\\\Home.WebUI\\\\Components\\\\Shared\\\\Cards\" \"C:\\\\Repos\\\\Home\\\\Home.WebUI\\\\Components\\\\Shared\\\\Inputs\" \"C:\\\\Repos\\\\Home\\\\Home.WebUI\\\\Components\\\\Shared\\\\Feedback\" \"C:\\\\Repos\\\\Home\\\\Home.WebUI\\\\Components\\\\Shared\\\\Modals\" \"C:\\\\Repos\\\\Home\\\\Home.WebUI\\\\Components\\\\Shared\\\\Navigation\" \"C:\\\\Repos\\\\Home\\\\Home.WebUI\\\\Components\\\\Pages\\\\Dashboard\")",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
     ]
   }
 }

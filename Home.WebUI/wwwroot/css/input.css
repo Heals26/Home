@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    background-color: #09090b;
+    color: #fafafa;
+    font-family: 'Inter', system-ui, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    height: 100%;
+    overflow: hidden;
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  input[type="range"] {
+    accent-color: #14b8a6;
+  }
+}
+
+@layer components {
+  .app-scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

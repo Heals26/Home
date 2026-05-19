@@ -1,0 +1,45 @@
+@* Surface card with optional title and actions slot *@
+
+<div class="@GetClasses()">
+    @if (Title != null || TitleContent != null || ActionsContent != null)
+    {
+        <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+            <div>
+                @if (TitleContent != null)
+                {
+                    @TitleContent
+                }
+                else if (Title != null)
+                {
+                    <h2 class="text-base font-semibold text-zinc-50">@Title</h2>
+                }
+                @if (Subtitle != null)
+                {
+                    <p class="text-sm text-zinc-400 mt-0.5">@Subtitle</p>
+                }
+            </div>
+            @if (ActionsContent != null)
+            {
+                <div class="flex items-center gap-2">
+                    @ActionsContent
+                </div>
+            }
+        </div>
+    }
+    <div class="@(Padded ? "p-5" : "")">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+    [Parameter] public RenderFragment? ActionsContent { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public bool Padded { get; set; } = true;
+    [Parameter] public string? Class { get; set; }
+
+    private string GetClasses()
+        => $"bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden {Class}";
+}
