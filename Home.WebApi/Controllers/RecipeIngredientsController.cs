@@ -1,12 +1,15 @@
 using Home.Application.UseCases.RecipeIngredients.AddRecipeIngredient;
+using Home.Application.UseCases.RecipeIngredients.GetRecipeIngredient;
 using Home.Application.UseCases.RecipeIngredients.RemoveRecipeIngredient;
 using Home.Application.UseCases.RecipeIngredients.UpdateRecipeIngredient;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.RecipeIngredients.AddRecipeIngredient;
+using Home.WebApi.Presenters.RecipeIngredients.GetRecipeIngredient;
 using Home.WebApi.Presenters.RecipeIngredients.RemoveRecipeIngredient;
 using Home.WebApi.Presenters.RecipeIngredients.UpdateRecipeIngredient;
 using Home.WebApi.UseCases.RecipeIngredients.AddRecipeIngredient;
+using Home.WebApi.UseCases.RecipeIngredients.GetRecipeIngredient;
 using Home.WebApi.UseCases.RecipeIngredients.UpdateRecipeIngredient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +36,18 @@ public class RecipeIngredientsController : BaseController
             presenter,
             this.ServiceFactory,
             cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpGet("{ingredientID}")]
+    [ProducesResponseType<GetRecipeIngredientApiResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecipeIngredient(
+        [FromServices] GetRecipeIngredientPresenter presenter,
+        [FromRoute] long ingredientID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new GetRecipeIngredientInputPort(ingredientID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
