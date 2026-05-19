@@ -1,18 +1,18 @@
-﻿namespace Home.Domain.Entities;
+using Home.WebApi.UseCases.Ingredients.Models;
 
-public class Ingredient
+namespace Home.WebApi.UseCases.RecipeIngredients.GetRecipeIngredient;
+
+public class GetRecipeIngredientApiResponse
 {
 
     #region Properties
 
     public long IngredientID { get; set; }
     public string Name { get; set; }
+    public List<IngredientNoteDto> Notes { get; set; }
     public decimal? Quantity { get; set; }
     public decimal? Volume { get; set; }
     public decimal? Weight { get; set; }
-
-    public ICollection<IngredientNote> Notes { get; set; }
-    public ICollection<RecipeIngredient> Recipes { get; set; }
 
     #endregion Properties
 
