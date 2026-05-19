@@ -19,7 +19,11 @@ internal class AddRecipeNoteInteractor : IInteractor<AddRecipeNoteInputPort, IAd
 
         var _Recipe = _PersistenceContext.GetEntities<Recipe>()
             .Where(r => r.RecipeID == inputPort.RecipeID)
-            .Select(r => new { Recipe = r, r.Notes })
+            .Select(r => new
+            {
+                Recipe = r,
+                r.Notes
+            })
             .SingleOrDefault()
             ?.Recipe;
 

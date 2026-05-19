@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Home.WebApi.Controllers;
 
+[Version1]
 [Route("api/[controller]")]
 [Authorize(Policy = FrameworkValues.ScopeWebApp)]
 public class RecipesController : BaseController
@@ -26,7 +27,6 @@ public class RecipesController : BaseController
 
     #region Methods
 
-    [Version1]
     [HttpPost]
     [ProducesResponseType<CreateRecipeApiResponse>(StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateRecipe(
@@ -39,7 +39,6 @@ public class RecipesController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpDelete("{recipeID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteRecipe(
@@ -52,7 +51,6 @@ public class RecipesController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpGet("{recipeID}")]
     [ProducesResponseType<GetRecipeApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRecipe(
@@ -65,7 +63,6 @@ public class RecipesController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpGet]
     [ProducesResponseType<GetRecipesApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRecipes(
@@ -77,7 +74,6 @@ public class RecipesController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpPatch("{recipeID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateRecipe(

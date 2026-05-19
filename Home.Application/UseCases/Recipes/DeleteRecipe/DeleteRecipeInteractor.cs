@@ -17,10 +17,10 @@ internal class DeleteRecipeInteractor : IInteractor<DeleteRecipeInputPort, IDele
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
 
-        _PersistenceContext.GetEntities<Recipe>()
-            .Where(r => r.RecipeID == input.RecipeID)
-            .ToList()
-            .ForEach(r => _PersistenceContext.Remove(r));
+        var _Recipe = _PersistenceContext.Find<Recipe>(input.RecipeID);
+
+        if (_Recipe != null)
+            _PersistenceContext.Remove(_Recipe);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

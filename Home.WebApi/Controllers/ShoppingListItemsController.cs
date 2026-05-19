@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Home.WebApi.Controllers;
 
+[Version1]
 [Route("api/[controller]")]
 [Authorize(Policy = FrameworkValues.ScopeWebApp)]
 public class ShoppingListItemsController : BaseController
@@ -23,7 +24,6 @@ public class ShoppingListItemsController : BaseController
 
     #region Methods
 
-    [Version1]
     [HttpPost]
     [ProducesResponseType<CreateShoppingListItemApiResponse>(StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateShoppingListItem(
@@ -40,7 +40,6 @@ public class ShoppingListItemsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpDelete("{shoppingListItemID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteShoppingListItem(
@@ -53,7 +52,6 @@ public class ShoppingListItemsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpGet("{shoppingListItemID}")]
     [ProducesResponseType<GetShoppingListItemApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetShoppingListItem(
@@ -66,7 +64,6 @@ public class ShoppingListItemsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpPatch("{shoppingListItemID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateShoppingListItem(

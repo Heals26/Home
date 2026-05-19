@@ -10,10 +10,10 @@ public interface IShoppingListLogic
     #region Methods
 
     ShoppingListItem AddItem(CreateShoppingListItemInputPort inputPort);
-    ShoppingListItem GetItem(long shoppingListItemID);
-    IQueryable<ShoppingListItem> GetItems(long shoppingListID);
     bool DoesShoppingListExist(long shoppingListID);
     bool DoesShoppingListItemExist(long shoppingListItemID);
+    ShoppingListItem GetItem(long shoppingListItemID);
+    IQueryable<ShoppingListItem> GetItems(long shoppingListID);
     void UpdateItem(UpdateShoppingListItemInputPort inputPort);
 
     #endregion Methods

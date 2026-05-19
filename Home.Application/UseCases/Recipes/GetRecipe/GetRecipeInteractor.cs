@@ -22,8 +22,16 @@ internal class GetRecipeInteractor : IInteractor<GetRecipeInputPort, IGetRecipeO
             .Select(r => new
             {
                 Recipe = r,
-                Ingredients = r.Ingredients.Select(ri => new { RecipeIngredient = ri, ri.Ingredient }),
-                Notes = r.Notes.Select(rn => new { RecipeNote = rn, rn.Note }),
+                Ingredients = r.Ingredients.Select(ri => new
+                {
+                    RecipeIngredient = ri,
+                    ri.Ingredient
+                }),
+                Notes = r.Notes.Select(rn => new
+                {
+                    RecipeNote = rn,
+                    rn.Note
+                }),
                 r.Steps
             })
             .SingleOrDefault()

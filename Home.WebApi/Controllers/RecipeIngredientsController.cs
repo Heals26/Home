@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Home.WebApi.Controllers;
 
+[Version1]
 [Route("api/[controller]")]
 [Authorize(Policy = FrameworkValues.ScopeWebApp)]
 public class RecipeIngredientsController : BaseController
@@ -20,7 +21,6 @@ public class RecipeIngredientsController : BaseController
 
     #region Methods
 
-    [Version1]
     [HttpPost]
     [ProducesResponseType<AddRecipeIngredientApiResponse>(StatusCodes.Status201Created)]
     public async Task<IActionResult> AddRecipeIngredient(
@@ -37,7 +37,6 @@ public class RecipeIngredientsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpDelete("{recipeID}/{ingredientID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RemoveRecipeIngredient(
@@ -51,7 +50,6 @@ public class RecipeIngredientsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpPatch("{ingredientID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateRecipeIngredient(

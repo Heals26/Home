@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Home.WebApi.Controllers;
 
+[Version1]
 [Route("api/[controller]")]
 [Authorize(Policy = FrameworkValues.ScopeWebApp)]
 public class ShoppingListsController : BaseController
@@ -31,7 +32,6 @@ public class ShoppingListsController : BaseController
 
     #region Methods
 
-    [Version1]
     [HttpPost("{shoppingListID}/Recipes/{recipeID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> AddRecipeToShoppingList(
@@ -45,7 +45,6 @@ public class ShoppingListsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpPost]
     [ProducesResponseType<CreateShoppingListApiResponse>(StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateShoppingList(
@@ -58,7 +57,6 @@ public class ShoppingListsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpDelete("{shoppingListID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteShoppingList(
@@ -71,7 +69,6 @@ public class ShoppingListsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpGet("{shoppingListID}")]
     [ProducesResponseType<GetShoppingListApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetShoppingList(
@@ -84,7 +81,6 @@ public class ShoppingListsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpGet("{shoppingListID}/Items")]
     [ProducesResponseType<GetShoppingListItemsApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetShoppingListItems(
@@ -97,7 +93,6 @@ public class ShoppingListsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpGet]
     [ProducesResponseType<GetShoppingListsApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetShoppingLists(
@@ -109,7 +104,6 @@ public class ShoppingListsController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpPatch("{shoppingListID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateShoppingList(
