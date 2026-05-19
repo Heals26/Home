@@ -1,13 +1,13 @@
+using Home.Application.UseCases.IngredientNotes.AddIngredientNote;
+using Home.Application.UseCases.IngredientNotes.RemoveIngredientNote;
 using Home.Application.UseCases.Notes.UpdateNote;
-using Home.Application.UseCases.RecipeNotes.AddRecipeNote;
-using Home.Application.UseCases.RecipeNotes.RemoveRecipeNote;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
+using Home.WebApi.Presenters.IngredientNotes.AddIngredientNote;
+using Home.WebApi.Presenters.IngredientNotes.RemoveIngredientNote;
 using Home.WebApi.Presenters.Notes.UpdateNote;
-using Home.WebApi.Presenters.RecipeNotes.AddRecipeNote;
-using Home.WebApi.Presenters.RecipeNotes.RemoveRecipeNote;
+using Home.WebApi.UseCases.IngredientNotes.AddIngredientNote;
 using Home.WebApi.UseCases.Notes.UpdateNote;
-using Home.WebApi.UseCases.RecipeNotes.AddRecipeNote;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,32 +16,32 @@ namespace Home.WebApi.Controllers;
 [Version1]
 [Route("api/[controller]")]
 [Authorize(Policy = FrameworkValues.ScopeWebApp)]
-public class RecipeNotesController : BaseController
+public class IngredientNotesController : BaseController
 {
 
     #region Methods
 
     [HttpPost]
-    [ProducesResponseType<AddRecipeNoteApiResponse>(StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddRecipeNote(
-        [FromServices] AddRecipeNotePresenter presenter,
-        [FromBody] AddRecipeNoteApiRequest request,
+    [ProducesResponseType<AddIngredientNoteApiResponse>(StatusCodes.Status201Created)]
+    public async Task<IActionResult> AddIngredientNote(
+        [FromServices] AddIngredientNotePresenter presenter,
+        [FromBody] AddIngredientNoteApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new AddRecipeNoteInputPort(request.Content, request.RecipeID), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new AddIngredientNoteInputPort(request.Content, request.IngredientID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
 
-    [HttpDelete("{recipeID}/{noteID}")]
+    [HttpDelete("{ingredientID}/{noteID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> RemoveRecipeNote(
-        [FromServices] RemoveRecipeNotePresenter presenter,
-        [FromRoute] long recipeID,
+    public async Task<IActionResult> RemoveIngredientNote(
+        [FromServices] RemoveIngredientNotePresenter presenter,
+        [FromRoute] long ingredientID,
         [FromRoute] long noteID,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new RemoveRecipeNoteInputPort(noteID, recipeID), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new RemoveIngredientNoteInputPort(ingredientID, noteID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
