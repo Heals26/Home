@@ -11,6 +11,7 @@ public class Ingredient
     public decimal? Volume { get; set; }
     public decimal? Weight { get; set; }
 
+    public ICollection<IngredientNote> Notes { get; set; }
     public ICollection<RecipeIngredient> Recipes { get; set; }
 
     #endregion Properties

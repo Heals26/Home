@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet ef *)",
+      "Bash(dotnet build *)",
+      "Bash(gh pr create --title 'Add ingredient GET, ingredient notes, and note editing' --body ' *)",
+      "Bash(gh pr *)",
+      "Bash(curl -s \"https://api.github.com/repos/Heals26/Home/pulls?state=open\")",
+      "Bash(python3 -c \"import json,sys; prs=json.load\\(sys.stdin\\); [print\\(f'PR #{p[\\\\\"number\\\\\"]}: {p[\\\\\"title\\\\\"]} - {p[\\\\\"html_url\\\\\"]}'\\) for p in prs]\")",
+      "Bash(curl -s \"https://api.github.com/repos/Heals26/Home/pulls/2/comments\")"
+    ]
+  }
+}
