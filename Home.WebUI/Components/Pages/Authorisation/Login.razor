@@ -1,0 +1,100 @@
+﻿@using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant
+@using Home.WebUI.Infrastructure.Services.Security
+
+@attribute [AllowAnonymous]
+
+@page "/"
+
+@inject IAuthorisationService AuthorisationService
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+	<MudCard>
+		<MudCardHeader>
+			<CardHeaderContent>
+				<MudText Typo="Typo.h3">Sign In</MudText>
+			</CardHeaderContent>
+		</MudCardHeader>
+
+		<MudCardContent>
+			<MudForm @ref="this.m_Form" Model="this.m_Model">
+				<MudTextField @bind-Value="this.m_Model.Username"
+							  Class="mb-4"
+							  For="@(() => this.m_Model.Username)"
+							  Label="Username"
+							  UserAttributes="@(new Dictionary<string, object> { { "autocomplete", "email" } })"
+							  Variant="Variant.Outlined" />
+
+				<MudTextField @bind-Value="this.m_Model.Password"
+							  Class="mb-4"
+							  InputType="InputType.Password"
+							  For="@(() => this.m_Model.Password)"
+							  Label="Password"
+							  UserAttributes="@(new Dictionary<string, object> { { "autocomplete", "password" } })"
+							  Variant="Variant.Outlined" />
+
+				<MudButton @onclick="() => this.HandleSubmit()"
+						   ButtonType="ButtonType.Button"
+						   Color="Color.Primary"
+						   Disabled="this.m_IsLoading"
+						   FullWidth="true"
+						   Variant="Variant.Filled">
+
+					@if (this.m_IsLoading)
+					{
+						<MudProgressCircular Indeterminate="true" Size="Size.Small" />
+					}
+					else
+					{
+						<span>Sign In</span>
+					}
+				</MudButton>
+			</MudForm>
+			<ErrorHandler @ref="this.m_ErrorHandler" />
+		</MudCardContent>
+	</MudCard>
+</MudContainer>
+
+@code {
+
+	#region Fields
+
+	private CancellationTokenHandler m_CancellationTokenHandler = new();
+	private ErrorHandler? m_ErrorHandler;
+	private bool m_IsLoading;
+	private MudForm? m_Form;
+	private CreatePasswordGrantWebAppRequest m_Model = new();
+
+	#endregion Fields
+
+	#region Methods
+
+	private async Task HandleSubmit()
+	{
+		this.m_IsLoading = true;
+
+		try
+		{
+			var _Response = await this.ApiAccess.TryLoginAsync(
+				this.m_Model,
+				(e) => this.m_ErrorHandler!.AddError(e),
+				this.m_CancellationTokenHandler.Token);
+
+			if (_Response)
+				this.NavigationManager.NavigateTo(ShoppingCartUriProvider.GetShoppingCartsUri());
+			else
+				this.m_ErrorHandler!.AddError("There was an error saving your credentials. Please try again later.");
+		}
+		catch (Exception _Exception)
+		{
+			this.m_ErrorHandler!.AddError($"Error: {_Exception.Message}");
+			this.StateHasChanged();
+		}
+		finally
+		{
+			this.m_IsLoading = false;
+		}
+	}
+
+	#endregion Methods
+
+}

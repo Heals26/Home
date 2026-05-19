@@ -1,0 +1,6 @@
+﻿@code {
+
+	protected override void OnInitialized()
+		=> this.NavigationManager.NavigateTo(AuthorisationUriProvider.GetLoginUri(Uri.EscapeDataString(this.NavigationManager.Uri)), forceLoad: true);
+
+}

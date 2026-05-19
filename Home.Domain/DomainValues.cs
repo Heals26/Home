@@ -1,21 +1,22 @@
-﻿namespace Home.Domain
+﻿namespace Home.Domain;
+
+public static class DomainValues
 {
+    #region Constants
 
-    public static class DomainValues
-    {
-        private const int SpacesBetweenNames = 2;
-        private const int BaseNameLength = 50;
+    private const int SpacesBetweenNames = 2;
+    private const int BaseNameLength = 50;
 
-        #region Fields
+    #endregion Constants
 
-        public static string Schema = "home";
-        public static int FirstNameLength = BaseNameLength;
-        public static int MiddleNameLength = BaseNameLength;
-        public static int LastNameLength = BaseNameLength;
-        public static int FullNameLength = FirstNameLength + MiddleNameLength + LastNameLength + SpacesBetweenNames;
+    #region Fields
 
-        #endregion Fields
+    public static readonly string Schema = "home";
+    public static readonly int FirstNameLength = BaseNameLength;
+    public static readonly int MiddleNameLength = BaseNameLength;
+    public static readonly int LastNameLength = BaseNameLength;
+    public static readonly int FullNameLength = FirstNameLength + MiddleNameLength + LastNameLength + SpacesBetweenNames;
 
-    }
+    #endregion Fields
 
 }

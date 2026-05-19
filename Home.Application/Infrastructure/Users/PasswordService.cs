@@ -1,38 +1,38 @@
-﻿using Home.Application.Services.Database;
+﻿using Home.Application.Services.Persistence;
 using Home.Domain.Entities;
 using Home.Domain.Services.Users;
 using Microsoft.AspNetCore.Identity;
 
-namespace Home.Application.Infrastructure.Users
+namespace Home.Application.Infrastructure.Users;
+
+public class PasswordService(IPersistenceContext persistenceContext, IPasswordHasher<User> passwordHasher) : IPasswordService
 {
 
-    public class PasswordService(IPersistenceContext persistenceContext, PasswordHasher<User> passwordHasher) : IPasswordService
+    #region Methods
+
+    void IPasswordService.SetPassword(User user, string password)
     {
+        user.Password = passwordHasher.HashPassword(user, password);
+        user.PasswordLastChanged = DateTime.UtcNow;
+    }
 
-        #region Methods
+    async Task<bool> IPasswordService.VerifyPasswordAsync(User user, string password, CancellationToken cancellationToken)
+    {
+        if (user == null || user.Password == null)
+            return false;
 
-        void IPasswordService.SetPassword(User user, string password)
+        var _Result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
+
+        if (_Result == PasswordVerificationResult.SuccessRehashNeeded)
         {
             user.Password = passwordHasher.HashPassword(user, password);
-            user.PasswordLastChanged = DateTime.UtcNow;
+
+            _ = await persistenceContext.SaveChangesAsync(cancellationToken);
         }
 
-        async Task<bool> IPasswordService.VerifyPassword(User user, string password, CancellationToken cancellationToken)
-        {
-            var _Result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
-
-            if (_Result == PasswordVerificationResult.SuccessRehashNeeded)
-            {
-                user.Password = passwordHasher.HashPassword(user, password);
-
-                _ = await persistenceContext.SaveChangesAsync(cancellationToken);
-            }
-
-            return _Result == PasswordVerificationResult.Success || _Result == PasswordVerificationResult.SuccessRehashNeeded;
-        }
-
-        #endregion Methods
-
+        return _Result == PasswordVerificationResult.Success || _Result == PasswordVerificationResult.SuccessRehashNeeded;
     }
+
+    #endregion Methods
 
 }

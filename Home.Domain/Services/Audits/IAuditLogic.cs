@@ -1,19 +1,34 @@
 ﻿using Home.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
-namespace Home.Domain.Services.Audits
+namespace Home.Domain.Services.Audits;
+
+public interface IAuditLogic<TEntity> where TEntity : class
 {
 
-    public interface IAuditLogic<TEntity> where TEntity : class
-    {
+    #region Methods
 
-        #region Methods
+    /// <summary>
+    /// The entity to be added
+    /// </summary>
+    /// <param name="entity">The relevant entity</param>
+    /// <param name="user">The user that did the deed</param>
+    void AddAudit(TEntity entity);
 
-        void AddAudit(TEntity entity, EntityState entityState, User user);
-        IQueryable<Audit> GetAudits();
+    /// <summary>
+    /// The entity to be deleted
+    /// </summary>
+    /// <param name="entity"></param>
+    void DeleteAudit(TEntity entity);
 
-        #endregion Methods
+    IQueryable<Audit> GetAudits();
 
-    }
+    /// <summary>
+    /// The entity to be updated
+    /// </summary>
+    /// <param name="entity">The relevant entity</param>
+    /// <param name="user">The user that did the deed</param>
+    void UpdateAudit(TEntity entity);
+
+    #endregion Methods
 
 }

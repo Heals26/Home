@@ -2,29 +2,39 @@
 using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Home.Persistence.Configurations
+namespace Home.Persistence.Configurations;
+
+public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
 {
 
-    public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
+    #region Methods
+
+    public void Configure(EntityTypeBuilder<Recipe> entity)
     {
+        _ = entity.ToTable(nameof(Recipe), DomainValues.Schema);
 
-        #region Methods
-	        
-	    public void Configure(EntityTypeBuilder<Recipe> entity)
-        {
-            entity.ToTable(nameof(Recipe), DomainValues.Schema);
+        _ = entity.HasKey(e => e.RecipeID);
+        _ = entity.Property(e => e.RecipeID)
+            .ValueGeneratedOnAdd();
 
-            entity.HasKey(e => e.RecipeID;
-        }
-	        
-	        #endregion Methods
+        _ = entity.Property(e => e.Name)
+            .HasMaxLength(250)
+            .IsRequired();
 
+        _ = entity.Property(e => e.Url)
+            .IsRequired(false);
+
+        _ = entity.HasOne(e => e.Household)
+            .WithMany(e => e.Recipes)
+            .HasConstraintName("FK_Recipe_Household")
+            .HasForeignKey("HouseholdID")
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
+
+        _ = entity.Ignore(e => e.Audits);
     }
+
+    #endregion Methods
 
 }

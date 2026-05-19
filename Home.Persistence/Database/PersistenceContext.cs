@@ -1,47 +1,44 @@
-﻿using Home.Application.Services.Database;
+﻿using Home.Application.Services.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace Home.Persistence.Database
+namespace Home.Persistence.Database;
+
+public class PersistenceContext(DbContextOptions<PersistenceContext> options) : DbContext(options), IPersistenceContext
 {
 
-    public class PersistenceContext(DbContextOptions<PersistenceContext> options) : DbContext(options), IPersistenceContext
-    {
+    #region Methods
 
-        #region Properties
+    void IPersistenceContext.Add<TEntity>(TEntity entity)
+        => base.Add(entity);
 
+    void IPersistenceContext.AddRange<TEntity>(ICollection<TEntity> entities)
+        => base.AddRange(entities);
 
+    bool IPersistenceContext.DoesEntityExist<TEntity>(long entityID)
+        => base.Find<TEntity>([entityID]) != null;
 
-        #endregion Properties
+    EntityEntry IPersistenceContext.Entity<TEntity>(TEntity entity)
+        => base.Entry(entity);
 
-        #region Methods
+    TEntity IPersistenceContext.Find<TEntity>(object entityID, params object[] additionalEntityIDs)
+        => base.Find<TEntity>([entityID, .. additionalEntityIDs]);
 
-        void IPersistenceContext.Add<TEntity>(TEntity entity)
-            => base.Add(entity);
+    IQueryable<TEntity> IPersistenceContext.GetEntities<TEntity>()
+        => this.Set<TEntity>().AsQueryable();
 
-        void IPersistenceContext.AddRange<TEntity>(ICollection<TEntity> entities)
-            => base.AddRange(entities);
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        => _ = modelBuilder.ApplyConfigurationsFromAssembly(AssemblyUtility.GetAssembly());
 
-        EntityEntry IPersistenceContext.Entity<TEntity>(TEntity entity)
-            => base.Entry(entity);
+    void IPersistenceContext.Remove<TEntity>(TEntity entity)
+        => base.Remove(entity);
 
-        TEntity IPersistenceContext.Find<TEntity>(object entityID, params object[] additionalEntityIDs)
-            => base.Find<TEntity>([entityID, .. additionalEntityIDs]);
+    void IPersistenceContext.RemoveRange<TEntity>(IEnumerable<TEntity> entities)
+        => base.RemoveRange(entities);
 
-        IQueryable<TEntity> IPersistenceContext.GetEntities<TEntity>()
-            => this.Set<TEntity>().AsQueryable();
+    Task<int> IPersistenceContext.SaveChangesAsync(CancellationToken cancellationToken)
+        => base.SaveChangesAsync(cancellationToken);
 
-        void IPersistenceContext.Remove<TEntity>(TEntity entity)
-            => base.Remove(entity);
-
-        void IPersistenceContext.RemoveRange<TEntity>(IEnumerable<TEntity> entities)
-            => base.RemoveRange(entities);
-
-        Task<int> IPersistenceContext.SaveChangesAsync(CancellationToken cancellationToken)
-            => base.SaveChangesAsync(cancellationToken);
-
-        #endregion Methods
-
-    }
+    #endregion Methods
 
 }

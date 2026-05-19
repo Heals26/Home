@@ -1,5 +1,5 @@
 ﻿using CleanArchitecture.Mediator;
-using Home.Application.Services.Database;
+using Home.Application.Services.Persistence;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.Users.CreateUser;
@@ -7,7 +7,7 @@ namespace Home.Application.UseCases.Users.CreateUser;
 internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>
 {
 
-    #region <Methods>
+    #region Methods
 
     Task<ContinuationBehaviour> IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>.EvaluateAsync(
         CreateUserInputPort inputPort,
@@ -17,17 +17,16 @@ internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUs
     {
         var _Continuation = ContinuationBehaviour.Continue;
 
-        var _PersitenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _Persistence = serviceFactory.GetService<IPersistenceContext>();
 
-        if (_PersitenceContext.GetEntities<User>()
-            .Where(u => u.Email.Equals(inputPort.Email, StringComparison.CurrentCultureIgnoreCase))
-            .Any())
+        if (_Persistence.GetEntities<User>()
+            .Any(u => u.Email.ToLower() == inputPort.Email.ToLower()))
             _Continuation = ContinuationBehaviour.Return;
 
         return Task.FromResult(_Continuation);
     }
 
-    #endregion <Methods>
+    #endregion Methods
 
 }
 

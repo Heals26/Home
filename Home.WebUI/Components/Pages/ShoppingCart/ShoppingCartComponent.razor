@@ -1,0 +1,86 @@
+﻿@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCart
+@using Home.WebUI.DataAccess.ShoppingCarts.Models
+
+
+<MudCard Elevation="2">
+	<MudCardHeader>
+		<CardHeaderContent>
+			<MudText Typo="Typo.h6">@this.m_ShoppingCart?.Name</MudText>
+		</CardHeaderContent>
+	</MudCardHeader>
+	<MudCardContent>
+		<MudList T="ShoppingCartItemDto">
+			@if (this.m_ShoppingCart == null)
+			{
+				<MudAlert Severity="Severity.Info"
+						  Variant="Variant.Outlined">
+					No shopping cart selected.
+				</MudAlert>
+			}
+			else
+			{
+				@foreach (var _Item in this.m_ShoppingCart.Items)
+				{
+					<MudListItem>
+						<MudListItem>
+							<MudGrid>
+								<MudItem xs="6">@_Item.Name</MudItem>
+								<MudItem xs="6">@_Item.Quantity</MudItem>
+								<MudItem xs="6">@_Item.Cost</MudItem>
+							</MudGrid>
+						</MudListItem>
+					</MudListItem>
+				}
+
+				<MudDivider />
+				<MudText Class="mt-2"
+				Typo="Typo.body1">
+					<b>Total:</b> $@this.m_ShoppingCart.Items.Sum(i => i.Cost * i.Quantity)
+				</MudText>
+			}
+		</MudList>
+	</MudCardContent>
+	<MudCardActions>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Checkout</MudButton>
+		<MudButton Variant="Variant.Text" Color="Color.Secondary">Clear Cart</MudButton>
+	</MudCardActions>
+</MudCard>
+
+@code {
+
+	#region Fields
+
+	private ErrorHandler? m_ErrorHandler;
+	private GetShoppingCartWebAppResponse? m_ShoppingCart;
+
+	#endregion Fields
+
+	#region Properties
+
+	[CascadingParameter(Name = "CancellationToken")]
+	public CancellationToken CancellationToken { get; set; }
+
+	[Parameter]
+	public long? ShoppingCartID { get; set; }
+
+	#endregion Properties
+
+	#region Lifecycle Methods
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (this.ShoppingCartID.HasValue)
+		{
+			this.m_ShoppingCart = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartWebAppResponse>(
+				null!,
+				ApiProvider.GetShoppingCart(this.ShoppingCartID.Value),
+				(e) => this.m_ErrorHandler!.AddError(e),
+				this.CancellationToken);
+		}
+
+
+	}
+
+	#endregion Lifecycle Methods
+
+}
