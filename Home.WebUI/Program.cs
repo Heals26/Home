@@ -5,7 +5,6 @@ using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.UriProvider;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using MudBlazor.Services;
 
 var _Builder = WebApplication.CreateBuilder(args);
 
@@ -55,8 +54,6 @@ _Builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
-
-_Builder.Services.AddMudServices();
 
 var _App = _Builder.Build();
 

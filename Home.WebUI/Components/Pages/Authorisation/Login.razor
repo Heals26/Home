@@ -1,100 +1,85 @@
-﻿@using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant
+@using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant
 @using Home.WebUI.Infrastructure.Services.Security
 
 @attribute [AllowAnonymous]
 
-@page "/"
+@page "/login"
 
 @inject IAuthorisationService AuthorisationService
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
-	<MudCard>
-		<MudCardHeader>
-			<CardHeaderContent>
-				<MudText Typo="Typo.h3">Sign In</MudText>
-			</CardHeaderContent>
-		</MudCardHeader>
+<div class="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-zinc-50">Sign In</h1>
+            <p class="text-sm text-zinc-400 mt-1">Enter your credentials to continue</p>
+        </div>
 
-		<MudCardContent>
-			<MudForm @ref="this.m_Form" Model="this.m_Model">
-				<MudTextField @bind-Value="this.m_Model.Username"
-							  Class="mb-4"
-							  For="@(() => this.m_Model.Username)"
-							  Label="Username"
-							  UserAttributes="@(new Dictionary<string, object> { { "autocomplete", "email" } })"
-							  Variant="Variant.Outlined" />
+        <div class="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+            <EditForm Model="this.m_Model" OnValidSubmit="HandleSubmit">
+                <div class="flex flex-col gap-4">
+                    <AppInput Label="Username"
+                              Value="@this.m_Model.Username"
+                              ValueChanged="@(v => this.m_Model.Username = v ?? string.Empty)"
+                              Placeholder="Enter your username"
+                              Type="text" />
 
-				<MudTextField @bind-Value="this.m_Model.Password"
-							  Class="mb-4"
-							  InputType="InputType.Password"
-							  For="@(() => this.m_Model.Password)"
-							  Label="Password"
-							  UserAttributes="@(new Dictionary<string, object> { { "autocomplete", "password" } })"
-							  Variant="Variant.Outlined" />
+                    <AppInput Label="Password"
+                              Value="@this.m_Model.Password"
+                              ValueChanged="@(v => this.m_Model.Password = v ?? string.Empty)"
+                              Placeholder="Enter your password"
+                              Type="password" />
 
-				<MudButton @onclick="() => this.HandleSubmit()"
-						   ButtonType="ButtonType.Button"
-						   Color="Color.Primary"
-						   Disabled="this.m_IsLoading"
-						   FullWidth="true"
-						   Variant="Variant.Filled">
+                    <AppButton Type="submit" Loading="this.m_IsLoading" Class="w-full mt-2">
+                        Sign In
+                    </AppButton>
+                </div>
+            </EditForm>
+        </div>
 
-					@if (this.m_IsLoading)
-					{
-						<MudProgressCircular Indeterminate="true" Size="Size.Small" />
-					}
-					else
-					{
-						<span>Sign In</span>
-					}
-				</MudButton>
-			</MudForm>
-			<ErrorHandler @ref="this.m_ErrorHandler" />
-		</MudCardContent>
-	</MudCard>
-</MudContainer>
+        <ErrorHandler @ref="this.m_ErrorHandler" />
+    </div>
+</div>
 
 @code {
 
-	#region Fields
+    #region Fields
 
-	private CancellationTokenHandler m_CancellationTokenHandler = new();
-	private ErrorHandler? m_ErrorHandler;
-	private bool m_IsLoading;
-	private MudForm? m_Form;
-	private CreatePasswordGrantWebAppRequest m_Model = new();
+    private CancellationTokenHandler m_CancellationTokenHandler = new();
+    private ErrorHandler? m_ErrorHandler;
+    private bool m_IsLoading;
+    private CreatePasswordGrantWebAppRequest m_Model = new();
 
-	#endregion Fields
+    #endregion Fields
 
-	#region Methods
+    #region Methods
 
-	private async Task HandleSubmit()
-	{
-		this.m_IsLoading = true;
+    private async Task HandleSubmit()
+    {
+        this.m_IsLoading = true;
 
-		try
-		{
-			var _Response = await this.ApiAccess.TryLoginAsync(
-				this.m_Model,
-				(e) => this.m_ErrorHandler!.AddError(e),
-				this.m_CancellationTokenHandler.Token);
+        try
+        {
+            var _Response = await this.ApiAccess.TryLoginAsync(
+                this.m_Model,
+                (e) => this.m_ErrorHandler!.AddError(e),
+                this.m_CancellationTokenHandler.Token);
 
-			if (_Response)
-				this.NavigationManager.NavigateTo(ShoppingCartUriProvider.GetShoppingCartsUri());
-			else
-				this.m_ErrorHandler!.AddError("There was an error saving your credentials. Please try again later.");
-		}
-		catch (Exception _Exception)
-		{
-			this.m_ErrorHandler!.AddError($"Error: {_Exception.Message}");
-			this.StateHasChanged();
-		}
-		finally
-		{
-			this.m_IsLoading = false;
-		}
-	}
+            if (_Response)
+                this.NavigationManager.NavigateTo("/");
+            else
+                this.m_ErrorHandler!.AddError("There was an error saving your credentials. Please try again later.");
+        }
+        catch (Exception _Exception)
+        {
+            this.m_ErrorHandler!.AddError($"Error: {_Exception.Message}");
+            this.StateHasChanged();
+        }
+        finally
+        {
+            this.m_IsLoading = false;
+        }
+    }
 
-	#endregion Methods
+    #endregion Methods
 
 }

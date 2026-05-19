@@ -1,0 +1,47 @@
+@* Styled text input with label and error support *@
+
+<div class="flex flex-col gap-1.5 @Class">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="text-sm font-medium text-zinc-300">@Label</label>
+    }
+    <input type="@Type"
+           value="@Value"
+           placeholder="@Placeholder"
+           disabled="@Disabled"
+           @oninput="OnInputChanged"
+           @onchange="OnChangeHandler"
+           class="@GetInputClasses()" />
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <span class="text-xs text-red-400">@Error</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public string Type { get; set; } = "text";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+    {
+        await ValueChanged.InvokeAsync(e.Value?.ToString());
+    }
+
+    private async Task OnChangeHandler(ChangeEventArgs e)
+    {
+        await ValueChanged.InvokeAsync(e.Value?.ToString());
+    }
+
+    private string GetInputClasses()
+    {
+        var _Base = "w-full bg-zinc-800 border rounded-lg px-4 py-3 text-sm text-zinc-50 placeholder-zinc-500 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]";
+        var _Border = string.IsNullOrEmpty(Error) ? "border-zinc-700" : "border-red-500";
+        return $"{_Base} {_Border}";
+    }
+}

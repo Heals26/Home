@@ -1,0 +1,11 @@
+{
+  "name": "home-webui",
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./wwwroot/css/input.css -o ./wwwroot/css/app.css",
+    "watch:css": "tailwindcss -i ./wwwroot/css/input.css -o ./wwwroot/css/app.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^2.2.19"
+  }
+}
