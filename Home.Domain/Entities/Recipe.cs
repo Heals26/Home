@@ -10,6 +10,7 @@ public class Recipe
     public string Url { get; set; }
 
     public ICollection<Audit> Audits { get; set; }
+    public Household Household { get; set; }
     public ICollection<RecipeIngredient> Ingredients { get; set; }
     public ICollection<RecipeNote> Notes { get; set; }
     public ICollection<RecipeStep> Steps { get; set; }

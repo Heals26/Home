@@ -41,6 +41,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         _ = entity.Property(e => e.PasswordLastChanged)
             .IsRequired();
 
+        _ = entity.HasOne(e => e.Household)
+            .WithMany(e => e.Members)
+            .HasConstraintName("FK_User_Household")
+            .HasForeignKey("HouseholdID")
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
         _ = entity.Ignore(e => e.Audits);
     }
 

@@ -3,14 +3,16 @@
 public class ShoppingListItem
 {
 
-    #region - - - - - - Properties - - - - - -
+    #region Properties
 
     public long ShoppingListItemID { get; set; }
-    public int Cost { get; set; }
+    public decimal? Cost { get; set; }
     public bool InBasket { get; set; }
     public string Name { get; set; }
-    public int Quantity { get; set; }
+    public decimal? Quantity { get; set; }
     public long Sequence { get; set; }
+    public decimal? Volume { get; set; }
+    public decimal? Weight { get; set; }
 
     public ShoppingList ShoppingList { get; set; }
 

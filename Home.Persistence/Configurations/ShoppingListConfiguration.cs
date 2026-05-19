@@ -1,4 +1,4 @@
-﻿using Home.Domain;
+using Home.Domain;
 using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -8,7 +8,7 @@ namespace Home.Persistence.Configurations;
 public class ShoppingListConfiguration : IEntityTypeConfiguration<ShoppingList>
 {
 
-    #region - - - - - - Methods - - - - - -
+    #region Methods
 
     public void Configure(EntityTypeBuilder<ShoppingList> entity)
     {
@@ -21,6 +21,15 @@ public class ShoppingListConfiguration : IEntityTypeConfiguration<ShoppingList>
         _ = entity.Property(e => e.Name)
             .HasMaxLength(250)
             .IsRequired(false);
+
+        _ = entity.HasOne(e => e.Household)
+            .WithMany(e => e.ShoppingLists)
+            .HasConstraintName("FK_ShoppingList_Household")
+            .HasForeignKey("HouseholdID")
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
+
+        _ = entity.Ignore(e => e.Audits);
     }
 
     #endregion Methods

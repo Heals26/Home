@@ -290,6 +290,24 @@ namespace Home.Persistence.Migrations
                     b.ToTable("ClientApplication", "home");
                 });
 
+            modelBuilder.Entity("Home.Domain.Entities.Household", b =>
+                {
+                    b.Property<long>("HouseholdID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("HouseholdID"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("HouseholdID");
+
+                    b.ToTable("Household", "home");
+                });
+
             modelBuilder.Entity("Home.Domain.Entities.Ingredient", b =>
                 {
                     b.Property<long>("IngredientID")
@@ -304,13 +322,16 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<decimal?>("Quantity")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
-                    b.Property<decimal?>("Volumne")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal?>("Volume")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<decimal?>("Weight")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.HasKey("IngredientID");
 
@@ -411,7 +432,7 @@ namespace Home.Persistence.Migrations
                     b.Property<DateTime>("CreatedOnUTC")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2025, 10, 6, 1, 2, 48, 403, DateTimeKind.Utc).AddTicks(8210));
+                        .HasDefaultValue(new DateTime(2026, 5, 18, 12, 55, 47, 738, DateTimeKind.Utc).AddTicks(6489));
 
                     b.HasKey("NoteID");
 
@@ -426,16 +447,20 @@ namespace Home.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("RecipeID"));
 
+                    b.Property<long>("HouseholdID")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("Url")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RecipeID");
+
+                    b.HasIndex("HouseholdID");
 
                     b.ToTable("Recipe", "home");
                 });
@@ -500,40 +525,39 @@ namespace Home.Persistence.Migrations
                     b.ToTable("RecipeStep", "home");
                 });
 
-            modelBuilder.Entity("Home.Domain.Entities.ShoppingCart", b =>
+            modelBuilder.Entity("Home.Domain.Entities.ShoppingList", b =>
                 {
-                    b.Property<long>("ShoppingCartID")
+                    b.Property<long>("ShoppingListID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ShoppingCartID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ShoppingListID"));
 
-                    b.Property<long>("FK_ShoppingCart_User")
+                    b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Name")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.HasKey("ShoppingCartID");
+                    b.HasKey("ShoppingListID");
 
-                    b.HasIndex("FK_ShoppingCart_User");
+                    b.HasIndex("HouseholdID");
 
-                    b.ToTable("ShoppingCart", "home");
+                    b.ToTable("ShoppingList", "home");
                 });
 
-            modelBuilder.Entity("Home.Domain.Entities.ShoppingCartItem", b =>
+            modelBuilder.Entity("Home.Domain.Entities.ShoppingListItem", b =>
                 {
-                    b.Property<long>("ShoppingCartItemID")
+                    b.Property<long>("ShoppingListItemID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ShoppingCartItemID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ShoppingListItemID"));
 
-                    b.Property<int>("Cost")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                    b.Property<decimal?>("Cost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<bool>("InBasket")
                         .ValueGeneratedOnAdd()
@@ -544,10 +568,9 @@ namespace Home.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Quantity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
+                    b.Property<decimal?>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<long>("Sequence")
                         .ValueGeneratedOnAdd()
@@ -557,11 +580,19 @@ namespace Home.Persistence.Migrations
                     b.Property<long>("ShoppingListID")
                         .HasColumnType("bigint");
 
-                    b.HasKey("ShoppingCartItemID");
+                    b.Property<decimal?>("Volume")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal?>("Weight")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.HasKey("ShoppingListItemID");
 
                     b.HasIndex("ShoppingListID");
 
-                    b.ToTable("ShoppingCartItem", "home");
+                    b.ToTable("ShoppingListItem", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.User", b =>
@@ -582,6 +613,9 @@ namespace Home.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<long?>("HouseholdID")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -600,6 +634,8 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("UserID");
+
+                    b.HasIndex("HouseholdID");
 
                     b.ToTable("User", "home");
                 });
@@ -758,6 +794,18 @@ namespace Home.Persistence.Migrations
                     b.Navigation("Location");
                 });
 
+            modelBuilder.Entity("Home.Domain.Entities.Recipe", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany("Recipes")
+                        .HasForeignKey("HouseholdID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Recipe_Household");
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("Home.Domain.Entities.RecipeIngredient", b =>
                 {
                     b.HasOne("Home.Domain.Entities.Ingredient", "Ingredient")
@@ -807,28 +855,39 @@ namespace Home.Persistence.Migrations
                         .HasForeignKey("RecipeID");
                 });
 
-            modelBuilder.Entity("Home.Domain.Entities.ShoppingCart", b =>
+            modelBuilder.Entity("Home.Domain.Entities.ShoppingList", b =>
                 {
-                    b.HasOne("Home.Domain.Entities.User", "CreatedBy")
-                        .WithMany("CreatedShoppingCarts")
-                        .HasForeignKey("FK_ShoppingCart_User")
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany("ShoppingLists")
+                        .HasForeignKey("HouseholdID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_ShoppingCart_User");
+                        .HasConstraintName("FK_ShoppingList_Household");
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("Household");
                 });
 
-            modelBuilder.Entity("Home.Domain.Entities.ShoppingCartItem", b =>
+            modelBuilder.Entity("Home.Domain.Entities.ShoppingListItem", b =>
                 {
-                    b.HasOne("Home.Domain.Entities.ShoppingCart", "ShoppingCart")
+                    b.HasOne("Home.Domain.Entities.ShoppingList", "ShoppingList")
                         .WithMany("Items")
                         .HasForeignKey("ShoppingListID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_ShoppingListItem_ShoppingList");
 
-                    b.Navigation("ShoppingCart");
+                    b.Navigation("ShoppingList");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.User", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany("Members")
+                        .HasForeignKey("HouseholdID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_User_Household");
+
+                    b.Navigation("Household");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.UserAuthentication", b =>
@@ -872,6 +931,15 @@ namespace Home.Persistence.Migrations
                     b.Navigation("Activities");
                 });
 
+            modelBuilder.Entity("Home.Domain.Entities.Household", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Recipes");
+
+                    b.Navigation("ShoppingLists");
+                });
+
             modelBuilder.Entity("Home.Domain.Entities.Ingredient", b =>
                 {
                     b.Navigation("Recipes");
@@ -896,7 +964,7 @@ namespace Home.Persistence.Migrations
                     b.Navigation("Steps");
                 });
 
-            modelBuilder.Entity("Home.Domain.Entities.ShoppingCart", b =>
+            modelBuilder.Entity("Home.Domain.Entities.ShoppingList", b =>
                 {
                     b.Navigation("Items");
                 });
@@ -904,8 +972,6 @@ namespace Home.Persistence.Migrations
             modelBuilder.Entity("Home.Domain.Entities.User", b =>
                 {
                     b.Navigation("AssignedActivities");
-
-                    b.Navigation("CreatedShoppingCarts");
                 });
 #pragma warning restore 612, 618
         }
