@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls -la)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Repos\\\\Home\\\\.claude\\\\worktrees\\\\zealous-lichterman-c353a5\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Repos\\\\Home\\\\.claude\\\\worktrees\\\\zealous-lichterman-c353a5\\\\Home.Domain\\\\Entities\" -Name)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet ef *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr create --title 'Implement recipe tracking and shopping list system' --body ' *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "WebFetch(domain:api.github.com)",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__get_page_text",
+      "mcp__Claude_in_Chrome__javascript_tool"
+    ]
+  }
+}

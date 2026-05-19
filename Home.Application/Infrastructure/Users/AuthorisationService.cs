@@ -35,6 +35,14 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor, IPer
         };
     }
 
+    Household IAuthorisationService.GetHousehold()
+    {
+        var _User = ((IAuthorisationService)this).GetUser();
+        return persistenceContext.GetEntities<Household>()
+            .Where(h => h.Members.Any(m => m.UserID == _User.UserID))
+            .Single();
+    }
+
     User IAuthorisationService.GetUser()
     {
         var _UserIDValue = ((IAuthorisationService)this).User

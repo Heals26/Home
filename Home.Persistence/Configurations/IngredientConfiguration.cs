@@ -23,12 +23,15 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
             .IsRequired();
 
         _ = entity.Property(e => e.Quantity)
+            .HasPrecision(18, 4)
             .IsRequired(false);
 
-        _ = entity.Property(e => e.Volumne)
+        _ = entity.Property(e => e.Volume)
+            .HasPrecision(18, 4)
             .IsRequired(false);
 
         _ = entity.Property(e => e.Weight)
+            .HasPrecision(18, 4)
             .IsRequired(false);
     }
 
