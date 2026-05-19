@@ -11,6 +11,7 @@ public class GetRecipeApiResponse
     public string Name { get; set; }
     public List<RecipeNoteDto> Notes { get; set; }
     public long RecipeID { get; set; }
+    public List<RecipeStepDto> Steps { get; set; }
     public string Url { get; set; }
 
     #endregion Properties
