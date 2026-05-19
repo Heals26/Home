@@ -1,31 +1,19 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
-
-<MudLayout>
-    <MudMainContent>
+<div class="flex flex-col h-screen bg-zinc-950">
+    <main class="flex-1 app-scrollable">
         <ErrorBoundary>
             <ChildContent>
-                @this.Body
+                @Body
             </ChildContent>
             <ErrorContent Context="ex">
-                Source: @ex.Source
-                <hr />
-                Message: @ex.Message
-                <hr />
-                Data: @ex.Data
-                <hr />
-                Inner Exception: @ex.InnerException
-                <hr />
-                Stack Trace: @ex.StackTrace
+                <div class="p-6 text-red-400">
+                    <p class="font-semibold">Something went wrong</p>
+                    <p class="text-sm text-zinc-400 mt-1">@ex.Message</p>
+                </div>
             </ErrorContent>
         </ErrorBoundary>
-    </MudMainContent>
-</MudLayout>
+    </main>
+</div>
 
-@code {
-
-}
+@code { }
