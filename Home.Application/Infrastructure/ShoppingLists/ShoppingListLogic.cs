@@ -35,6 +35,12 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
         };
     }
 
+    bool IShoppingListLogic.DoesShoppingListExist(long shoppingListID)
+        => persistenceContext.DoesEntityExist<ShoppingList>(shoppingListID);
+
+    bool IShoppingListLogic.DoesShoppingListItemExist(long shoppingListItemID)
+        => persistenceContext.DoesEntityExist<ShoppingListItem>(shoppingListItemID);
+
     ShoppingListItem IShoppingListLogic.GetItem(long shoppingListItemID)
         => persistenceContext.GetEntities<ShoppingListItem>()
             .Where(sli => sli.ShoppingListItemID == shoppingListItemID)
@@ -48,12 +54,6 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
     IQueryable<ShoppingListItem> IShoppingListLogic.GetItems(long shoppingListID)
         => persistenceContext.GetEntities<ShoppingListItem>()
             .Where(sli => sli.ShoppingList.ShoppingListID == shoppingListID);
-
-    bool IShoppingListLogic.DoesShoppingListExist(long shoppingListID)
-        => persistenceContext.DoesEntityExist<ShoppingList>(shoppingListID);
-
-    bool IShoppingListLogic.DoesShoppingListItemExist(long shoppingListItemID)
-        => persistenceContext.DoesEntityExist<ShoppingListItem>(shoppingListItemID);
 
     void IShoppingListLogic.UpdateItem(UpdateShoppingListItemInputPort inputPort)
     {

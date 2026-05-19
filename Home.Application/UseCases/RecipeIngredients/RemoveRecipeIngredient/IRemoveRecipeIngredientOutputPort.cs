@@ -5,8 +5,8 @@ public interface IRemoveRecipeIngredientOutputPort
 
     #region Methods
 
-    Task PresentRecipeIngredientRemovedNoContentAsync(CancellationToken cancellationToken);
     Task PresentRecipeIngredientNotFoundAsync(long ingredientID, CancellationToken cancellationToken);
+    Task PresentRecipeIngredientRemovedNoContentAsync(CancellationToken cancellationToken);
 
     #endregion Methods
 

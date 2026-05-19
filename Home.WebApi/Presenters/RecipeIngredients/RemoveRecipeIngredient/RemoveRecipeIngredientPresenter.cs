@@ -10,11 +10,11 @@ public class RemoveRecipeIngredientPresenter(IMapper mapper)
 
     #region Methods
 
-    Task IRemoveRecipeIngredientOutputPort.PresentRecipeIngredientRemovedNoContentAsync(CancellationToken cancellationToken)
-        => this.NoContentAsync(cancellationToken);
-
     Task IRemoveRecipeIngredientOutputPort.PresentRecipeIngredientNotFoundAsync(long ingredientID, CancellationToken cancellationToken)
         => this.NotFoundAsync($"Recipe Ingredient {ingredientID} Not Found", cancellationToken);
+
+    Task IRemoveRecipeIngredientOutputPort.PresentRecipeIngredientRemovedNoContentAsync(CancellationToken cancellationToken)
+        => this.NoContentAsync(cancellationToken);
 
     #endregion Methods
 
