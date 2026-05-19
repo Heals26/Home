@@ -18,6 +18,7 @@ public class GetShoppingCartDto
     public string CreatedBy { get; set; }
     public long ItemCount { get; set; }
     public string Name { get; set; }
+    public long ShoppingCartID { get; set; }
 
     #endregion Properties
 

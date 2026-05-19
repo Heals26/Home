@@ -1,0 +1,35 @@
+@* Segmented button control for mutually exclusive option selection *@
+@typeparam TValue
+
+<div class="inline-flex bg-zinc-800 rounded-lg p-1 gap-1 @Class">
+    @foreach (var _Option in Options)
+    {
+        <button type="button"
+                class="@GetOptionClasses(_Option.Value)"
+                @onclick="() => SelectAsync(_Option.Value)">
+            @_Option.Label
+        </button>
+    }
+</div>
+
+@code {
+    public record SegmentOption(string Label, TValue Value);
+
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public List<SegmentOption> Options { get; set; } = [];
+    [Parameter] public string? Class { get; set; }
+
+    private async Task SelectAsync(TValue value)
+        => await ValueChanged.InvokeAsync(value);
+
+    private string GetOptionClasses(TValue optionValue)
+    {
+        var _IsSelected = EqualityComparer<TValue>.Default.Equals(Value, optionValue);
+        var _Base = "px-4 py-2 text-sm font-medium rounded-md transition-all duration-150 min-h-[40px]";
+        var _State = _IsSelected
+            ? "bg-teal-600 text-white shadow-sm"
+            : "text-zinc-400 hover:text-zinc-200";
+        return $"{_Base} {_State}";
+    }
+}
