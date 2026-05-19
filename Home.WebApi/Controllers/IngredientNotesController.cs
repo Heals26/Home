@@ -33,7 +33,7 @@ public class IngredientNotesController : BaseController
         return presenter.Result;
     }
 
-    [HttpDelete("{ingredientID}/{noteID}")]
+    [HttpDelete("{ingredientID}/Note/{noteID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RemoveIngredientNote(
         [FromServices] RemoveIngredientNotePresenter presenter,
@@ -46,15 +46,15 @@ public class IngredientNotesController : BaseController
         return presenter.Result;
     }
 
-    [HttpPatch("{noteID}")]
+    [HttpPatch("{ingredientNoteID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateNote(
         [FromServices] UpdateNotePresenter presenter,
-        [FromRoute] long noteID,
+        [FromRoute] long ingredientNoteID,
         [FromBody] UpdateNoteApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new UpdateNoteInputPort(noteID, request.Content), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new UpdateNoteInputPort(ingredientNoteID, request.Content), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
