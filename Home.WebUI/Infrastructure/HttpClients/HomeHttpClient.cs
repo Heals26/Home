@@ -149,18 +149,41 @@ public class HomeHttpClient(
         }
         catch (HttpRequestException)
         {
-
+            errors.Invoke(new ValidationProblemDetails()
+            {
+                Title = "Cannot reach the API",
+                Status = (int)HttpStatusCode.ServiceUnavailable,
+                Errors = new Dictionary<string, string[]>()
+                {
+                    { "Error", new string[] { "The API is not reachable. Please ensure it is running." } }
+                }
+            });
         }
         catch (TaskCanceledException)
         {
-
+            errors.Invoke(new ValidationProblemDetails()
+            {
+                Title = "Request timed out",
+                Status = (int)HttpStatusCode.RequestTimeout,
+                Errors = new Dictionary<string, string[]>()
+                {
+                    { "Error", new string[] { "The request timed out. Please try again." } }
+                }
+            });
         }
         catch (Exception _Exception)
         {
-            _ = _Exception.InnerException;
+            errors.Invoke(new ValidationProblemDetails()
+            {
+                Title = "Unexpected error",
+                Errors = new Dictionary<string, string[]>()
+                {
+                    { "Error", new string[] { _Exception.Message } }
+                }
+            });
         }
 
-        throw new NotImplementedException();
+        return default;
     }
 
     private async Task<bool> TryRefreshTokenAsync(Action<ValidationProblemDetails> errors, CancellationToken cancellationToken)
