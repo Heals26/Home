@@ -12,7 +12,10 @@
       "Bash(git push *)",
       "Bash(gh pr create --title 'Implement recipe tracking and shopping list system' --body ' *)",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__get_page_text",
+      "mcp__Claude_in_Chrome__javascript_tool"
     ]
   }
 }

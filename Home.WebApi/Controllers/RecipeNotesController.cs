@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Home.WebApi.Controllers;
 
+[Version1]
 [Route("api/[controller]")]
 [Authorize(Policy = FrameworkValues.ScopeWebApp)]
 public class RecipeNotesController : BaseController
@@ -17,7 +18,6 @@ public class RecipeNotesController : BaseController
 
     #region Methods
 
-    [Version1]
     [HttpPost]
     [ProducesResponseType<AddRecipeNoteApiResponse>(StatusCodes.Status201Created)]
     public async Task<IActionResult> AddRecipeNote(
@@ -30,7 +30,6 @@ public class RecipeNotesController : BaseController
         return presenter.Result;
     }
 
-    [Version1]
     [HttpDelete("{recipeID}/{noteID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RemoveRecipeNote(

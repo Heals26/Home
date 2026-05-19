@@ -2,8 +2,10 @@
 using CleanArchitecture.Mediator;
 using CleanArchitecture.Mediator.Setup;
 using Home.Application.Infrastructure.Security;
+using Home.Application.Infrastructure.Recipes;
 using Home.Application.Infrastructure.ShoppingLists;
 using Home.Application.Infrastructure.Users;
+using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
@@ -259,6 +261,7 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
         .AddScoped<ITokenFactory, TokenFactory>();
 
     _ = services
+        .AddScoped<IRecipeLogic, RecipeLogic>()
         .AddScoped<IShoppingListLogic, ShoppingListLogic>();
 
     return services;
