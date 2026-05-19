@@ -85,18 +85,6 @@ public class ShoppingListsController : BaseController
     }
 
     [Version1]
-    [HttpGet]
-    [ProducesResponseType<GetShoppingListsApiResponse>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetShoppingLists(
-        [FromServices] GetShoppingListsPresenter presenter,
-        CancellationToken cancellationToken)
-    {
-        await this.Pipeline.InvokeAsync(new GetShoppingListsInputPort(), presenter, this.ServiceFactory, cancellationToken);
-
-        return presenter.Result;
-    }
-
-    [Version1]
     [HttpGet("{shoppingListID}/Items")]
     [ProducesResponseType<GetShoppingListItemsApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetShoppingListItems(
@@ -105,6 +93,18 @@ public class ShoppingListsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetShoppingListItemsInputPort(shoppingListID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpGet]
+    [ProducesResponseType<GetShoppingListsApiResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetShoppingLists(
+        [FromServices] GetShoppingListsPresenter presenter,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new GetShoppingListsInputPort(), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
