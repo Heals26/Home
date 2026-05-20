@@ -1,4 +1,4 @@
-﻿using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
+using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
 using Home.WebUI.DataAccess.OAuth.CreateRefreshGrant;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.Values;
@@ -46,9 +46,6 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage)
         }
     }
 
-    private JsonSerializerOptions GetOptions()
-        => new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
     async Task<OAuthViewModel?> IAuthorisationService.GetTokenAsync()
     {
         var _Result = await protectedLocalStorage.GetAsync<string>(AuthorisationValues.OAuthKey);
@@ -69,8 +66,8 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage)
         return DateTimeOffset.UtcNow > _ExpiresAt.AddMinutes(-5);
     }
 
-    private ValueTask StoreTokensAsync(OAuthViewModel oauthToken, JsonSerializerOptions options)
-         => protectedLocalStorage.SetAsync(AuthorisationValues.OAuthKey, JsonSerializer.Serialize(oauthToken, options));
+    private ValueTask StoreTokensAsync(OAuthViewModel oauthToken)
+        => protectedLocalStorage.SetAsync(AuthorisationValues.OAuthKey, JsonSerializer.Serialize(oauthToken));
 
     async ValueTask IAuthorisationService.SignOutAsync()
     {
@@ -80,7 +77,7 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage)
 
     async Task<bool> IAuthorisationService.TryRefreshAsync(CreateRefreshGrantWebAppResponse response, CancellationToken cancellationToken)
     {
-        await StoreTokensAsync(new()
+        await this.StoreTokensAsync(new()
         {
             AccessToken = response.AccessToken,
             Claims = (await ((IAuthorisationService)this).GetTokenAsync())?.Claims!,
@@ -89,15 +86,15 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage)
             RefreshToken = response.RefreshToken,
             Scope = response.Scope,
             UserID = response.UserID
-        }, GetOptions());
+        });
 
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        this.NotifyAuthenticationStateChanged(this.GetAuthenticationStateAsync());
         return true;
     }
 
     async Task<bool> IAuthorisationService.TrySignInAsync(CreatePasswordGrantWebAppRequest request, CreatePasswordGrantWebAppResponse response, CancellationToken cancellationToken)
     {
-        await StoreTokensAsync(new()
+        await this.StoreTokensAsync(new()
         {
             AccessToken = response.AccessToken,
             Claims = response.Claims,
@@ -106,9 +103,9 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage)
             RefreshToken = response.RefreshToken,
             Scope = response.Scope,
             UserID = response.UserID
-        }, this.GetOptions());
+        });
 
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        this.NotifyAuthenticationStateChanged(this.GetAuthenticationStateAsync());
         return true;
     }
 
