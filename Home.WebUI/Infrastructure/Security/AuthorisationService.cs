@@ -3,16 +3,48 @@ using Home.WebUI.DataAccess.OAuth.CreateRefreshGrant;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.Values;
 using Home.WebUI.ViewModels.OAuth;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using System.Security.Claims;
 using System.Text.Json;
 
 namespace Home.WebUI.Infrastructure.Security;
 
-public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage) : IAuthorisationService
+public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage)
+    : AuthenticationStateProvider, IAuthorisationService
 {
 
     #region Methods
+
+    private static AuthenticationState Unauthenticated()
+        => new(new ClaimsPrincipal(new ClaimsIdentity()));
+
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+    {
+        try
+        {
+            var _Token = await ((IAuthorisationService)this).GetTokenAsync();
+
+            if (_Token == null || string.IsNullOrEmpty(_Token.AccessToken))
+                return Unauthenticated();
+
+            var _Claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, _Token.UserID.ToString())
+            };
+
+            if (_Token.Claims != null)
+                _Claims.AddRange(_Token.Claims.Select(c => new Claim(c, c)));
+
+            return new AuthenticationState(
+                new ClaimsPrincipal(new ClaimsIdentity(_Claims, "Bearer")));
+        }
+        catch
+        {
+            // ProtectedLocalStorage is unavailable during pre-render (no JS interop yet)
+            return Unauthenticated();
+        }
+    }
 
     private JsonSerializerOptions GetOptions()
         => new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -40,12 +72,14 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage) :
     private ValueTask StoreTokensAsync(OAuthViewModel oauthToken, JsonSerializerOptions options)
          => protectedLocalStorage.SetAsync(AuthorisationValues.OAuthKey, JsonSerializer.Serialize(oauthToken, options));
 
-    ValueTask IAuthorisationService.SignOutAsync()
-        => protectedLocalStorage.DeleteAsync(AuthorisationValues.OAuthKey);
+    async ValueTask IAuthorisationService.SignOutAsync()
+    {
+        await protectedLocalStorage.DeleteAsync(AuthorisationValues.OAuthKey);
+        NotifyAuthenticationStateChanged(Task.FromResult(Unauthenticated()));
+    }
 
     async Task<bool> IAuthorisationService.TryRefreshAsync(CreateRefreshGrantWebAppResponse response, CancellationToken cancellationToken)
     {
-        // Store refreshed tokens in browser (no SignInAsync needed)
         await StoreTokensAsync(new()
         {
             AccessToken = response.AccessToken,
@@ -57,14 +91,12 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage) :
             UserID = response.UserID
         }, GetOptions());
 
+        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         return true;
     }
 
     async Task<bool> IAuthorisationService.TrySignInAsync(CreatePasswordGrantWebAppRequest request, CreatePasswordGrantWebAppResponse response, CancellationToken cancellationToken)
     {
-        var _Claims = response.Claims.Select(c => new Claim(c, c)).ToList();
-        _Claims.Add(new Claim(ClaimTypes.Name, request.Username!));
-
         await StoreTokensAsync(new()
         {
             AccessToken = response.AccessToken,
@@ -76,6 +108,7 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage) :
             UserID = response.UserID
         }, this.GetOptions());
 
+        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         return true;
     }
 

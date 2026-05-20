@@ -1,12 +1,12 @@
-@* Segmented button control for mutually exclusive option selection *@
+@* Segmented control for mutually exclusive option selection. Use @bind-Value for two-way binding. *@
 @typeparam TValue
 
-<div class="inline-flex bg-zinc-800 rounded-lg p-1 gap-1 @Class">
-    @foreach (var _Option in Options)
+<div class="inline-flex bg-zinc-800 rounded-lg p-1 gap-1 @this.Class">
+    @foreach (var _Option in this.Options)
     {
         <button type="button"
-                class="@GetOptionClasses(_Option.Value)"
-                @onclick="() => SelectAsync(_Option.Value)">
+                class="@this.GetOptionClasses(_Option.Value)"
+                @onclick="() => this.SelectAsync(_Option.Value)">
             @_Option.Label
         </button>
     }
@@ -21,15 +21,13 @@
     [Parameter] public string? Class { get; set; }
 
     private async Task SelectAsync(TValue value)
-        => await ValueChanged.InvokeAsync(value);
+        => await this.ValueChanged.InvokeAsync(value);
 
     private string GetOptionClasses(TValue optionValue)
     {
-        var _IsSelected = EqualityComparer<TValue>.Default.Equals(Value, optionValue);
+        var _IsSelected = EqualityComparer<TValue>.Default.Equals(this.Value, optionValue);
         var _Base = "px-4 py-2 text-sm font-medium rounded-md transition-all duration-150 min-h-[40px]";
-        var _State = _IsSelected
-            ? "bg-teal-600 text-white shadow-sm"
-            : "text-zinc-400 hover:text-zinc-200";
+        var _State = _IsSelected ? "bg-teal-600 text-white shadow-sm" : "text-zinc-400 hover:text-zinc-200";
         return $"{_Base} {_State}";
     }
 }

@@ -1,33 +1,33 @@
-@* Surface card with optional title and actions slot *@
+@* Surface card with optional title, subtitle and actions slot. *@
 
-<div class="@GetClasses()">
-    @if (Title != null || TitleContent != null || ActionsContent != null)
+<div class="@this.GetClasses()">
+    @if (this.Title != null || this.TitleContent != null || this.ActionsContent != null)
     {
         <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
             <div>
-                @if (TitleContent != null)
+                @if (this.TitleContent != null)
                 {
-                    @TitleContent
+                    @this.TitleContent
                 }
-                else if (Title != null)
+                else if (this.Title != null)
                 {
-                    <h2 class="text-base font-semibold text-zinc-50">@Title</h2>
+                    <h2 class="text-base font-semibold text-zinc-50">@this.Title</h2>
                 }
-                @if (Subtitle != null)
+                @if (this.Subtitle != null)
                 {
-                    <p class="text-sm text-zinc-400 mt-0.5">@Subtitle</p>
+                    <p class="text-sm text-zinc-400 mt-0.5">@this.Subtitle</p>
                 }
             </div>
-            @if (ActionsContent != null)
+            @if (this.ActionsContent != null)
             {
                 <div class="flex items-center gap-2">
-                    @ActionsContent
+                    @this.ActionsContent
                 </div>
             }
         </div>
     }
-    <div class="@(Padded ? "p-5" : "")">
-        @ChildContent
+    <div class="@(this.Padded ? "p-5" : "")">
+        @this.ChildContent
     </div>
 </div>
 
@@ -41,5 +41,5 @@
     [Parameter] public string? Class { get; set; }
 
     private string GetClasses()
-        => $"bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden {Class}";
+        => $"bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden {this.Class}";
 }

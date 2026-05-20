@@ -1,0 +1,39 @@
+@* Text input — use for text, email, search, url, tel. For passwords use HomePasswordInput. *@
+
+<div class="flex flex-col gap-1.5 @this.Class">
+    @if (!string.IsNullOrEmpty(this.Label))
+    {
+        <label class="text-sm font-medium text-zinc-300">@this.Label</label>
+    }
+    <input type="@this.Type"
+           value="@this.Value"
+           placeholder="@this.Placeholder"
+           disabled="@this.Disabled"
+           @oninput="this.OnInputChanged"
+           class="@this.GetInputClasses()" />
+    @if (!string.IsNullOrEmpty(this.Error))
+    {
+        <span class="text-xs text-red-400">@this.Error</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public string Type { get; set; } = "text";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+        => await this.ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+
+    private string GetInputClasses()
+    {
+        var _Base = "w-full bg-zinc-800 border rounded-lg px-4 py-3 text-sm text-zinc-50 placeholder-zinc-500 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]";
+        var _Border = string.IsNullOrEmpty(this.Error) ? "border-zinc-700" : "border-red-500";
+        return $"{_Base} {_Border}";
+    }
+}

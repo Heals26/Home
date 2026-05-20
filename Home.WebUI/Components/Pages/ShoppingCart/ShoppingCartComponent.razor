@@ -1,7 +1,7 @@
 @using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCart
 @using Home.WebUI.DataAccess.ShoppingCarts.Models
 
-<AppCard>
+<HomeCard>
     <TitleContent>
         @if (this.m_ShoppingCart != null)
         {
@@ -15,11 +15,11 @@
     <ChildContent>
         @if (this.m_ShoppingCart == null)
         {
-            <AppEmptyState Title="Select a list" Subtitle="Choose a shopping list from the left to see its items" />
+            <HomeEmptyState Title="Select a list" Subtitle="Choose a shopping list from the left to see its items" />
         }
         else if (!this.m_ShoppingCart.Items.Any())
         {
-            <AppEmptyState Title="List is empty" Subtitle="Add items to get started" />
+            <HomeEmptyState Title="List is empty" Subtitle="Add items to get started" />
         }
         else
         {
@@ -46,29 +46,37 @@
             </div>
         }
     </ChildContent>
-</AppCard>
+</HomeCard>
 
 @code {
+
     #region Fields
+
     private ErrorHandler? m_ErrorHandler;
     private GetShoppingCartWebAppResponse? m_ShoppingCart;
+
     #endregion Fields
 
     #region Properties
+
     [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
     [Parameter] public long? ShoppingCartID { get; set; }
+
     #endregion Properties
 
     #region Lifecycle Methods
+
     protected override async Task OnParametersSetAsync()
     {
         if (this.ShoppingCartID.HasValue)
         {
             this.m_ShoppingCart = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartWebAppResponse>(
                 null!, ApiProvider.GetShoppingCart(this.ShoppingCartID.Value),
-                e => this.m_ErrorHandler!.AddError(e),
+                e => this.m_ErrorHandler?.AddError(e),
                 this.CancellationToken);
         }
     }
+
     #endregion Lifecycle Methods
+
 }

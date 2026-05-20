@@ -1,0 +1,28 @@
+@* iOS-style toggle switch. Use @bind-Value for two-way binding. *@
+
+<button type="button"
+        role="switch"
+        aria-checked="@this.Value"
+        class="@this.GetClasses()"
+        disabled="@this.Disabled"
+        @onclick="this.ToggleAsync">
+    <span class="@this.GetThumbClasses()"></span>
+</button>
+
+@code {
+    [Parameter] public bool Value { get; set; }
+    [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+
+    private async Task ToggleAsync()
+    {
+        if (!this.Disabled)
+            await this.ValueChanged.InvokeAsync(!this.Value);
+    }
+
+    private string GetClasses()
+        => $"relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-zinc-950 disabled:opacity-50 {(this.Value ? "bg-teal-500" : "bg-zinc-700")}";
+
+    private string GetThumbClasses()
+        => $"inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform duration-200 {(this.Value ? "translate-x-7" : "translate-x-1")}";
+}

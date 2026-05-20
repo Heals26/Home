@@ -2,27 +2,27 @@
 @using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCarts
 @using Home.WebUI.DataAccess.ShoppingCarts.CreateShoppingCart
 
-<AppCard Title="Lists">
+<HomeCard Title="Lists">
     <ActionsContent>
-        <AppButton Size="sm" OnClick="OpenCreateModal">
+        <HomeButton Size="sm" OnClick="this.OpenCreateModal">
             <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             New
-        </AppButton>
+        </HomeButton>
     </ActionsContent>
     <ChildContent>
         @if (this.m_ShoppingCarts == null)
         {
-            <AppLoader Class="py-8" />
+            <HomeLoader Class="py-8" />
         }
         else if (!this.m_ShoppingCarts.ShoppingCarts.Any())
         {
-            <AppEmptyState Title="No lists yet" Subtitle="Create your first shopping list">
+            <HomeEmptyState Title="No lists yet" Subtitle="Create your first shopping list">
                 <ActionContent>
-                    <AppButton OnClick="OpenCreateModal">Create List</AppButton>
+                    <HomeButton OnClick="this.OpenCreateModal">Create List</HomeButton>
                 </ActionContent>
-            </AppEmptyState>
+            </HomeEmptyState>
         }
         else
         {
@@ -30,7 +30,7 @@
                 @foreach (var _Cart in this.m_ShoppingCarts.ShoppingCarts)
                 {
                     <button class="w-full text-left px-5 py-4 hover:bg-zinc-800 active:bg-zinc-800 transition-colors"
-                            @onclick="() => SelectCart(_Cart)">
+                            @onclick="() => this.SelectCart(_Cart)">
                         <p class="text-sm font-medium text-zinc-50">@_Cart.Name</p>
                         <p class="text-xs text-zinc-500 mt-0.5">@_Cart.ItemCount items</p>
                     </button>
@@ -38,41 +38,46 @@
             </div>
         }
     </ChildContent>
-</AppCard>
+</HomeCard>
 
-<AppModal @bind-Visible="this.m_ShowCreate" Title="New Shopping List">
+<HomeModal @bind-Visible="this.m_ShowCreate" Title="New Shopping List">
     <ChildContent>
-        <EditForm Model="this.m_CreateRequest" OnValidSubmit="CreateShoppingCartAsync">
-            <AppInput Label="List name"
-                      Value="@this.m_CreateRequest!.Name"
-                      ValueChanged="@(v => this.m_CreateRequest!.Name = v ?? string.Empty)"
-                      Placeholder="e.g. Weekly shop" />
+        <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateShoppingCartAsync">
+            <HomeTextInput Label="List name"
+                           @bind-Value="this.m_CreateRequest!.Name"
+                           Placeholder="e.g. Weekly shop" />
             <div class="mt-4 flex justify-end gap-3">
-                <AppButton Variant="ghost" OnClick="() => m_ShowCreate = false">Cancel</AppButton>
-                <AppButton Type="submit" Loading="this.m_Creating">Create</AppButton>
+                <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
+                <HomeButton Type="submit" Loading="this.m_Creating">Create</HomeButton>
             </div>
         </EditForm>
     </ChildContent>
-</AppModal>
+</HomeModal>
 
 <ErrorHandler @ref="this.m_ErrorHandler" />
 
 @code {
+
     #region Fields
+
     private ErrorHandler? m_ErrorHandler;
     private CreateShoppingCartWebAppRequest? m_CreateRequest = new();
     private GetShoppingCartsWebAppResponse? m_ShoppingCarts;
     private bool m_ShowCreate;
     private bool m_Creating;
+
     #endregion Fields
 
     #region Properties
+
     [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
     [Parameter] public long? ShoppingCartID { get; set; }
     [Parameter] public EventCallback<long> ShoppingCartIDChanged { get; set; }
+
     #endregion Properties
 
     #region Lifecycle Methods
+
     protected override async Task OnInitializedAsync()
     {
         var _Result = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartsWebAppResponse>(
@@ -83,26 +88,34 @@
         if (_Result != null)
             this.m_ShoppingCarts = _Result;
     }
+
     #endregion Lifecycle Methods
 
     #region Methods
-    private void OpenCreateModal() => this.m_ShowCreate = true;
+
+    private void OpenCreateModal()
+        => this.m_ShowCreate = true;
 
     private void SelectCart(GetShoppingCartDto cart)
-        => NavigationManager.NavigateTo($"/shopping-carts/{cart.ShoppingCartID}");
+        => this.NavigationManager.NavigateTo($"/shopping-carts/{cart.ShoppingCartID}");
 
     private async Task CreateShoppingCartAsync()
     {
         this.m_Creating = true;
+
         await this.ApiAccess.SendRequestAsync<CreateShoppingCartWebAppRequest, CreateShoppingCartWebAppResponse>(
             this.m_CreateRequest!,
             ApiProvider.CreateShoppingCart(),
             e => this.m_ErrorHandler!.AddError(e),
             this.CancellationToken);
+
         this.m_Creating = false;
         this.m_ShowCreate = false;
         this.m_CreateRequest = new();
-        await OnInitializedAsync();
+
+        await this.OnInitializedAsync();
     }
+
     #endregion Methods
+
 }

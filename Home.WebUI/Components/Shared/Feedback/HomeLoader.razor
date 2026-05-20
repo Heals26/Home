@@ -1,13 +1,13 @@
-@* Loading spinner - use inside cards or as page loader *@
+@* Loading spinner. Sizes: sm, md (default), lg. *@
 
-<div class="flex items-center justify-center @Class">
-    <svg class="animate-spin @GetSizeClass() text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+<div class="flex items-center justify-center @this.Class">
+    <svg class="animate-spin @this.GetSizeClass() text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
     </svg>
-    @if (!string.IsNullOrEmpty(Label))
+    @if (!string.IsNullOrEmpty(this.Label))
     {
-        <span class="ml-3 text-sm text-zinc-400">@Label</span>
+        <span class="ml-3 text-sm text-zinc-400">@this.Label</span>
     }
 </div>
 
@@ -16,10 +16,10 @@
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? Class { get; set; }
 
-    private string GetSizeClass() => Size switch
+    private string GetSizeClass() => this.Size switch
     {
         "sm" => "h-4 w-4",
         "lg" => "h-10 w-10",
-        _ => "h-6 w-6"
+        _    => "h-6 w-6"
     };
 }

@@ -1,0 +1,29 @@
+@* Empty state display for lists and pages with no data. *@
+
+<div class="flex flex-col items-center justify-center py-16 px-6 text-center @this.Class">
+    @if (this.IconContent != null)
+    {
+        <div class="mb-4 text-zinc-600">
+            @this.IconContent
+        </div>
+    }
+    <p class="text-base font-medium text-zinc-300">@this.Title</p>
+    @if (!string.IsNullOrEmpty(this.Subtitle))
+    {
+        <p class="text-sm text-zinc-500 mt-1">@this.Subtitle</p>
+    }
+    @if (this.ActionContent != null)
+    {
+        <div class="mt-6">
+            @this.ActionContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Nothing here yet";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public RenderFragment? IconContent { get; set; }
+    [Parameter] public RenderFragment? ActionContent { get; set; }
+    [Parameter] public string? Class { get; set; }
+}

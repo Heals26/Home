@@ -1,19 +1,19 @@
-@* Modal dialog - slides up on mobile/tablet, centered on desktop *@
+@* Modal dialog — slides up on mobile/tablet, centred on desktop. Use @bind-Visible for two-way binding. *@
 
-@if (Visible)
+@if (this.Visible)
 {
     <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
         @* Backdrop *@
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"
-             @onclick="CloseAsync"></div>
+             @onclick="this.CloseAsync"></div>
 
         @* Panel *@
         <div class="relative w-full sm:max-w-lg bg-zinc-900 rounded-t-2xl sm:rounded-2xl border border-zinc-800 shadow-2xl z-10 max-h-[90vh] flex flex-col">
             @* Header *@
             <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
-                <h3 class="text-base font-semibold text-zinc-50">@Title</h3>
+                <h3 class="text-base font-semibold text-zinc-50">@this.Title</h3>
                 <button class="text-zinc-400 hover:text-zinc-50 transition-colors p-1 -mr-1 rounded-lg"
-                        @onclick="CloseAsync">
+                        @onclick="this.CloseAsync">
                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -21,13 +21,13 @@
             </div>
             @* Body *@
             <div class="px-6 py-5 overflow-y-auto app-scrollable">
-                @ChildContent
+                @this.ChildContent
             </div>
             @* Footer *@
-            @if (FooterContent != null)
+            @if (this.FooterContent != null)
             {
                 <div class="px-6 py-4 border-t border-zinc-800 shrink-0">
-                    @FooterContent
+                    @this.FooterContent
                 </div>
             }
         </div>
@@ -37,10 +37,10 @@
 @code {
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
-    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Title { get; set; } = string.Empty;
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? FooterContent { get; set; }
 
     private async Task CloseAsync()
-        => await VisibleChanged.InvokeAsync(false);
+        => await this.VisibleChanged.InvokeAsync(false);
 }
