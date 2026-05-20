@@ -11,7 +11,7 @@ public static partial class ApiProvider
         => $"{GetShoppingCartsBaseUrl()}/{shoppingCartID}";
 
     private static string GetShoppingCartsBaseUrl()
-        => $"{GetBaseApiUrl()}/ShoppingCarts";
+        => $"{GetBaseApiUrl()}/ShoppingLists";
 
     #endregion Bases
 
