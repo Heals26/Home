@@ -1,20 +1,20 @@
-@* Range slider for continuous values (brightness, temperature, volume) *@
+@* Range slider for continuous values (brightness, temperature, volume). Use @bind-Value for two-way binding. *@
 
-<div class="flex flex-col gap-2 @Class">
-    @if (!string.IsNullOrEmpty(Label))
+<div class="flex flex-col gap-2 @this.Class">
+    @if (!string.IsNullOrEmpty(this.Label))
     {
         <div class="flex justify-between items-center">
-            <label class="text-sm font-medium text-zinc-300">@Label</label>
-            <span class="text-sm font-semibold text-teal-400">@Value@Unit</span>
+            <label class="text-sm font-medium text-zinc-300">@this.Label</label>
+            <span class="text-sm font-semibold text-teal-400">@this.Value@this.Unit</span>
         </div>
     }
     <input type="range"
-           min="@Min"
-           max="@Max"
-           step="@Step"
-           value="@Value"
-           disabled="@Disabled"
-           @oninput="OnInputChanged"
+           min="@this.Min"
+           max="@this.Max"
+           step="@this.Step"
+           value="@this.Value"
+           disabled="@this.Disabled"
+           @oninput="this.OnInputChanged"
            class="w-full h-2 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-teal-500 disabled:opacity-50" />
 </div>
 
@@ -22,7 +22,7 @@
     [Parameter] public double Value { get; set; }
     [Parameter] public EventCallback<double> ValueChanged { get; set; }
     [Parameter] public string? Label { get; set; }
-    [Parameter] public string Unit { get; set; } = "";
+    [Parameter] public string Unit { get; set; } = string.Empty;
     [Parameter] public double Min { get; set; } = 0;
     [Parameter] public double Max { get; set; } = 100;
     [Parameter] public double Step { get; set; } = 1;
@@ -31,7 +31,7 @@
 
     private async Task OnInputChanged(ChangeEventArgs e)
     {
-        if (double.TryParse(e.Value?.ToString(), out var _Val))
-            await ValueChanged.InvokeAsync(_Val);
+        if (double.TryParse(e.Value?.ToString(), out var _Value))
+            await this.ValueChanged.InvokeAsync(_Value);
     }
 }

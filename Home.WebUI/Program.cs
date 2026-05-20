@@ -5,6 +5,7 @@ using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.UriProvider;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var _Builder = WebApplication.CreateBuilder(args);
 
@@ -45,15 +46,10 @@ _Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
     .AddHttpMessageHandler<TokenDelegatingHandler>();
 
 _Builder.Services.AddScoped<TokenDelegatingHandler>();
-_Builder.Services.AddScoped<IAuthorisationService, AuthorisationService>();
+_Builder.Services.AddScoped<AuthorisationService>();
+_Builder.Services.AddScoped<IAuthorisationService>(sp => sp.GetRequiredService<AuthorisationService>());
+_Builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthorisationService>());
 
-_Builder.Services.AddDistributedMemoryCache();
-_Builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(60);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-});
 
 var _App = _Builder.Build();
 

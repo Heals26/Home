@@ -1,9 +1,8 @@
-﻿@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.Cookies
+﻿@using Home.WebUI.Infrastructure.Services.Security
 
 @page "/logout"
 
-@inject IHttpContextAccessor HttpContextAccessor
+@inject IAuthorisationService AuthorisationService
 
 @code {
 
@@ -11,8 +10,7 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		await this.HttpContextAccessor.HttpContext?.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme)!;
-		this.HttpContextAccessor.HttpContext?.Session.Clear();
+		await this.AuthorisationService.SignOutAsync();
 		this.NavigationManager.NavigateTo(AuthorisationUriProvider.GetLoginUri(), true);
 	}
 
