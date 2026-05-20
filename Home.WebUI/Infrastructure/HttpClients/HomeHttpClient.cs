@@ -1,11 +1,10 @@
-﻿using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
+using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
 using Home.WebUI.DataAccess.OAuth.CreateRefreshGrant;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.ApiProviders.Helpers;
 using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.UriProvider;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Headers;
@@ -17,8 +16,7 @@ namespace Home.WebUI.Infrastructure.HttpClients;
 public class HomeHttpClient(
     IAuthorisationService authorisationService,
     IConfiguration configurationManager,
-    HttpClient httpClient,
-    IHttpContextAccessor httpContextAccessor)
+    HttpClient httpClient)
     : IHomeHttpClient
 {
 
@@ -63,18 +61,22 @@ public class HomeHttpClient(
     {
         try
         {
-            var _IsAuthenticated = httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
-            var _AccessToken = _IsAuthenticated
-                ? (await authorisationService.GetTokenAsync())?.AccessToken ?? string.Empty
-                : Convert.ToBase64String(Encoding.UTF8.GetBytes($"{configurationManager.GetValue<string>("OAuth:AccessToken:AccessToken")!}:{configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!}"));
+            var _Token = await authorisationService.GetTokenAsync();
+            var _IsAuthenticated = _Token != null && !string.IsNullOrEmpty(_Token.AccessToken);
+            var _IsLoginEndpoint = httpMessage.RequestUri?.OriginalString.Contains(AuthorisationUriProvider.GetLoginUri(), StringComparison.CurrentCultureIgnoreCase) ?? false;
 
-            var _IsPublicEndpoint = httpMessage.RequestUri?.OriginalString.Contains(AuthorisationUriProvider.GetLoginUri(), StringComparison.CurrentCultureIgnoreCase) ?? false;
-
-            if (!string.IsNullOrEmpty(_AccessToken))
+            if (_IsAuthenticated)
             {
-                httpMessage.Headers.Authorization = new AuthenticationHeaderValue(_IsAuthenticated ? "Bearer" : "Basic", _AccessToken);
+                httpMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _Token!.AccessToken);
             }
-            else if (!_IsPublicEndpoint && string.IsNullOrEmpty(_AccessToken))
+            else if (_IsLoginEndpoint)
+            {
+                var _BasicCredentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(
+                    $"{configurationManager.GetValue<string>("OAuth:AccessToken:AccessToken")!}:{configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!}"));
+
+                httpMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", _BasicCredentials);
+            }
+            else
             {
                 errors.Invoke(new()
                 {
@@ -126,7 +128,6 @@ public class HomeHttpClient(
                 case HttpStatusCode.Unauthorized:
                     if (await this.TryRefreshTokenAsync(errors, cancellationToken))
                         return await this.SendAsync<TResponse>(httpMessage, errors, cancellationToken);
-
                     return default;
                 case HttpStatusCode.UnprocessableContent:
                     errors.Invoke(JsonSerializer.Deserialize<ValidationProblemDetails>(_Content, JsonOptions.DefaultOptions)!);
@@ -188,6 +189,8 @@ public class HomeHttpClient(
 
     private async Task<bool> TryRefreshTokenAsync(Action<ValidationProblemDetails> errors, CancellationToken cancellationToken)
     {
+        var _CurrentToken = await authorisationService.GetTokenAsync();
+
         var _HttpRequestMessage = new HttpRequestMessage(ApiProvider.GetOAuthToken().HttpMethod, ApiProvider.GetOAuthToken().Uri)
         {
             Content = ApiProvider.GetOAuthToken().RouteType.GetHttpRequestMessage(new CreateRefreshGrantWebAppRequest()
@@ -195,7 +198,7 @@ public class HomeHttpClient(
                 ClientID = configurationManager.GetValue<long>("OAuth:AccessToken:ClientID")!,
                 ClientSecret = configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!,
                 GrantType = configurationManager.GetValue<string>("OAuth:AccessToken:GrantType")!,
-                RefreshToken = await httpContextAccessor.HttpContext?.GetTokenAsync("refresh_token")! ?? string.Empty
+                RefreshToken = _CurrentToken?.RefreshToken ?? string.Empty
             })
         };
 
@@ -215,9 +218,9 @@ public class HomeHttpClient(
                 Instance = _HttpRequestMessage.RequestUri?.ToString(),
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
                 Errors = new Dictionary<string, string[]>()
-                    {
-                        { "Error", new string[] { "An error occurred while refreshing the token." } }
-                    }
+                {
+                    { "Error", new string[] { "An error occurred while refreshing the token." } }
+                }
             });
 
             return false;

@@ -42,14 +42,10 @@ _Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
         throw new InvalidOperationException("API base URL is malformed.");
 
     options.BaseAddress = new(_BaseUrlString);
-})
-    .AddHttpMessageHandler<TokenDelegatingHandler>();
-
-_Builder.Services.AddScoped<TokenDelegatingHandler>();
+});
 _Builder.Services.AddScoped<AuthorisationService>();
 _Builder.Services.AddScoped<IAuthorisationService>(sp => sp.GetRequiredService<AuthorisationService>());
 _Builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthorisationService>());
-
 
 var _App = _Builder.Build();
 
