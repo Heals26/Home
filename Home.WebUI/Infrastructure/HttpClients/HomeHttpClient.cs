@@ -4,7 +4,6 @@ using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.ApiProviders.Helpers;
 using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
-using Home.WebUI.Infrastructure.UriProvider;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Headers;
@@ -63,7 +62,7 @@ public class HomeHttpClient(
         {
             var _Token = await authorisationService.GetTokenAsync();
             var _IsAuthenticated = _Token != null && !string.IsNullOrEmpty(_Token.AccessToken);
-            var _IsLoginEndpoint = httpMessage.RequestUri?.OriginalString.Contains(AuthorisationUriProvider.GetLoginUri(), StringComparison.CurrentCultureIgnoreCase) ?? false;
+            var _IsLoginEndpoint = httpMessage.RequestUri?.OriginalString.Contains(ApiProvider.GetOAuthToken().Uri, StringComparison.CurrentCultureIgnoreCase) ?? false;
 
             if (_IsAuthenticated)
             {

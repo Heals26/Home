@@ -3,7 +3,7 @@
 <button type="@this.Type"
         class="@this.GetClasses()"
         disabled="@(this.Disabled || this.Loading)"
-        @onclick="this.OnClick"
+        @onclick="@(this.OnClick.HasDelegate ? this.OnClick : EventCallback.Empty)"
         @attributes="this.AdditionalAttributes">
     @if (this.Loading)
     {

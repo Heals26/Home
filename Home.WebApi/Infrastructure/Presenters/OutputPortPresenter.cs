@@ -59,7 +59,7 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
     protected Task CreatedAsync<TResult>(long resourceID, TResult result, CancellationToken cancellationToken)
     {
         this.PresentedSuccessfully = true;
-        this.Result = new CreatedResult();
+        this.Result = new CreatedResult(resourceID.ToString(), result);
 
         return Task.CompletedTask;
     }

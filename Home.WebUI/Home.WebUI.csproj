@@ -7,6 +7,10 @@
     <UserSecretsId>a35e0d28-79e6-49e4-b06b-0f70f37898ad</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.8" />
+  </ItemGroup>
+
   <Target Name="BuildTailwind" BeforeTargets="Build">
     <Exec Command="npm run build:css" WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
