@@ -25,7 +25,7 @@ public class OAuthViewModel
     [JsonPropertyName("scope")]
     public string Scope { get; set; } = string.Empty;
 
-    [JsonPropertyName("userId")]
+    [JsonPropertyName("userID")]
     public required long UserID { get; set; }
 
     #endregion Properties
