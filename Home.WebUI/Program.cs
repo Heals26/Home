@@ -1,4 +1,5 @@
 using Home.WebUI.Components;
+using Microsoft.AspNetCore.DataProtection;
 using Home.WebUI.Infrastructure.HttpClients;
 using Home.WebUI.Infrastructure.Security;
 using Home.WebUI.Infrastructure.Services.HttpClients;
@@ -30,7 +31,8 @@ _Builder.Services.AddAuthentication(options =>
 
 _Builder.Services.AddAuthorization();
 _Builder.Services.AddHttpContextAccessor();
-_Builder.Services.AddDataProtection();
+_Builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(_Builder.Environment.ContentRootPath, "DataProtectionKeys")));
 
 _Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
 {

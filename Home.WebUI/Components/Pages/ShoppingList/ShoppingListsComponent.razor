@@ -1,7 +1,3 @@
-@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCart
-@using Home.WebUI.DataAccess.ShoppingCarts.GetShoppingCarts
-@using Home.WebUI.DataAccess.ShoppingCarts.CreateShoppingCart
-
 <HomeCard Title="Lists">
     <ActionsContent>
         <HomeButton Size="sm" OnClick="this.OpenCreateModal">
@@ -10,11 +6,11 @@
         </HomeButton>
     </ActionsContent>
     <ChildContent>
-        @if (this.m_ShoppingCarts == null)
+        @if (this.m_ShoppingLists == null)
         {
             <HomeLoader Class="py-8" />
         }
-        else if (!this.m_ShoppingCarts.ShoppingCarts.Any())
+        else if (!this.m_ShoppingLists.ShoppingLists.Any())
         {
             <HomeEmptyState Title="No lists yet" Subtitle="Create your first shopping list">
                 <ActionContent>
@@ -25,12 +21,12 @@
         else
         {
             <div class="divide-y divide-zinc-800 -mx-5 -mb-5">
-                @foreach (var _Cart in this.m_ShoppingCarts.ShoppingCarts)
+                @foreach (var _List in this.m_ShoppingLists.ShoppingLists)
                 {
                     <button class="w-full text-left px-5 py-4 hover:bg-zinc-800 active:bg-zinc-800 transition-colors"
-                            @onclick="() => this.SelectCart(_Cart)">
-                        <p class="text-sm font-medium text-zinc-50">@_Cart.Name</p>
-                        <p class="text-xs text-zinc-500 mt-0.5">@_Cart.ItemCount items</p>
+                            @onclick="() => this.SelectList(_List)">
+                        <p class="text-sm font-medium text-zinc-50">@_List.Name</p>
+                        <p class="text-xs text-zinc-500 mt-0.5">@_List.ItemCount items</p>
                     </button>
                 }
             </div>
@@ -40,7 +36,7 @@
 
 <HomeModal @bind-Visible="this.m_ShowCreate" Title="New Shopping List">
     <ChildContent>
-        <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateShoppingCartAsync">
+        <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateShoppingListAsync">
             <HomeTextInput Label="List name"
                            @bind-Value="this.m_CreateRequest!.Name"
                            Placeholder="e.g. Weekly shop" />
@@ -59,8 +55,8 @@
     #region Fields
 
     private ErrorHandler? m_ErrorHandler;
-    private CreateShoppingCartWebAppRequest? m_CreateRequest = new();
-    private GetShoppingCartsWebAppResponse? m_ShoppingCarts;
+    private CreateShoppingListWebAppRequest? m_CreateRequest = new();
+    private GetShoppingListsWebAppResponse? m_ShoppingLists;
     private bool m_ShowCreate;
     private bool m_Creating;
 
@@ -69,8 +65,8 @@
     #region Properties
 
     [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
-    [Parameter] public long? ShoppingCartID { get; set; }
-    [Parameter] public EventCallback<long> ShoppingCartIDChanged { get; set; }
+    [Parameter] public long? ShoppingListID { get; set; }
+    [Parameter] public EventCallback<long> ShoppingListIDChanged { get; set; }
 
     #endregion Properties
 
@@ -78,13 +74,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, GetShoppingCartsWebAppResponse>(
-            null!, ApiProvider.GetShoppingCarts(),
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetShoppingListsWebAppResponse>(
+            null!, ApiProvider.GetShoppingLists(),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
         if (_Result != null)
-            this.m_ShoppingCarts = _Result;
+            this.m_ShoppingLists = _Result;
     }
 
     #endregion Lifecycle Methods
@@ -94,16 +90,17 @@
     private void OpenCreateModal()
         => this.m_ShowCreate = true;
 
-    private void SelectCart(GetShoppingCartDto cart)
-        => this.NavigationManager.NavigateTo($"/shopping-carts/{cart.ShoppingCartID}");
+    private void SelectList(GetShoppingListDto list)
+        => this.NavigationManager.NavigateTo($"/shopping-lists/{list.ShoppingListID}");
 
-    private async Task CreateShoppingCartAsync()
+    private async Task CreateShoppingListAsync()
     {
+        if (this.m_Creating) return;
         this.m_Creating = true;
 
-        await this.ApiAccess.SendRequestAsync<CreateShoppingCartWebAppRequest, CreateShoppingCartWebAppResponse>(
+        await this.ApiAccess.SendRequestAsync<CreateShoppingListWebAppRequest, CreateShoppingListWebAppResponse>(
             this.m_CreateRequest!,
-            ApiProvider.CreateShoppingCart(),
+            ApiProvider.CreateShoppingList(),
             e => this.m_ErrorHandler!.AddError(e),
             this.CancellationToken);
 

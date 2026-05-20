@@ -48,11 +48,21 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage)
 
     async Task<OAuthViewModel?> IAuthorisationService.GetTokenAsync()
     {
-        var _Result = await protectedLocalStorage.GetAsync<string>(AuthorisationValues.OAuthKey);
-        if (!_Result.Success || string.IsNullOrEmpty(_Result.Value))
-            return null;
+        try
+        {
+            var _Result = await protectedLocalStorage.GetAsync<string>(AuthorisationValues.OAuthKey);
+            if (!_Result.Success || string.IsNullOrEmpty(_Result.Value))
+                return null;
 
-        return JsonSerializer.Deserialize<OAuthViewModel>(_Result.Value);
+            return JsonSerializer.Deserialize<OAuthViewModel>(_Result.Value);
+        }
+        catch
+        {
+            // Stored value is unreadable (e.g. key ring changed) — treat as unauthenticated
+            // and attempt to clear the stale entry so future reads succeed
+            try { await protectedLocalStorage.DeleteAsync(AuthorisationValues.OAuthKey); } catch { }
+            return null;
+        }
     }
 
     async Task<bool> IAuthorisationService.IsTokenExpiredAsync()
