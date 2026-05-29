@@ -9,11 +9,10 @@
                 <ShoppingListsComponent ShoppingListID="this.ShoppingListID" />
             </div>
             <div class="flex-1 min-w-0">
-                <ShoppingListComponent @ref="this.m_ShoppingList" ShoppingListID="this.ShoppingListID" />
+                <ShoppingListComponent ShoppingListID="this.ShoppingListID" />
             </div>
         </div>
     </div>
-    <ErrorHandler @ref="this.m_ErrorHandler" />
 </CascadingValue>
 
 @code {
@@ -21,8 +20,6 @@
     #region Fields
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
-    private ErrorHandler? m_ErrorHandler;
-    private ShoppingListComponent? m_ShoppingList;
 
     #endregion Fields
 

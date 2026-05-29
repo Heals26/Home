@@ -37,7 +37,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
         if (!this.Request.Headers.TryGetValue(FrameworkValues.Authorisation, out var _AuthorisationHeaderValue))
         {
             var _ErrorMessage = "Cannot read Authorization header";
-            this.SetApiAuditEntry(null, $"{nameof(BearerAuthenticationHandler)} {this.Request.RouteValues["action"]}", _ErrorMessage);
+            this.SetApiAuditEntry(null, $"{this.Request?.RouteValues["action"] ?? nameof(BearerAuthenticationHandler)}", _ErrorMessage);
             return AuthenticateResult.Fail(_ErrorMessage);
         }
 
