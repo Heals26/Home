@@ -1,4 +1,4 @@
-﻿using Home.Domain;
+using Home.Domain;
 using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -30,28 +30,36 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
 
         _ = entity.Ignore(e => e.Audits);
 
-        _ = entity.Property<long>("StateID");
+        _ = entity.Property<long>("HouseholdID");
+        _ = entity.HasOne(e => e.Household)
+            .WithMany(e => e.Activities)
+            .HasForeignKey("HouseholdID")
+            .HasConstraintName("FK_Activity_Household")
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
+
+        _ = entity.Property<long?>("StateID");
         _ = entity.HasOne(e => e.State)
-            .WithOne()
-            .HasForeignKey<Activity>("StateID")
+            .WithMany(e => e.Activities)
+            .HasForeignKey("StateID")
             .HasConstraintName("FK_Activity_State")
             .OnDelete(DeleteBehavior.NoAction)
-            .IsRequired();
+            .IsRequired(false);
 
-        _ = entity.Property<long>("StatusID");
+        _ = entity.Property<long?>("StatusID");
         _ = entity.HasOne(e => e.Status)
-            .WithOne()
-            .HasForeignKey<Activity>("StatusID")
+            .WithMany(e => e.Activities)
+            .HasForeignKey("StatusID")
             .HasConstraintName("FK_Activity_Status")
             .OnDelete(DeleteBehavior.NoAction)
-            .IsRequired();
+            .IsRequired(false);
 
-        _ = entity.Property<long>("UserID");
+        _ = entity.Property<long?>("UserID");
         _ = entity.HasOne(e => e.User)
             .WithMany(e => e.AssignedActivities)
             .HasForeignKey("UserID")
             .HasConstraintName("FK_Activity_User")
-            .OnDelete(DeleteBehavior.Cascade)
+            .OnDelete(DeleteBehavior.NoAction)
             .IsRequired(false);
     }
 

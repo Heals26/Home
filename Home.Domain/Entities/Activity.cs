@@ -21,6 +21,8 @@ public class Activity
     /// </summary>
     public ICollection<Audit> Audits { get; set; }
 
+    public Household Household { get; set; }
+
     /// <summary>
     /// The region where the content sits
     /// </summary>
@@ -29,14 +31,14 @@ public class Activity
     /// <summary>
     /// Todo, Refining, Progressing, Blocked, Testing, Done
     /// </summary>
-    public ActivityState State { get; set; }
+    public ActivityState? State { get; set; }
 
     /// <summary>
     /// Todo, In Progress, Done
     /// </summary>
-    public ActivityStatus Status { get; set; }
+    public ActivityStatus? Status { get; set; }
 
-    public User User { get; set; }
+    public User? User { get; set; }
 
     #endregion Properties
 
