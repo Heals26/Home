@@ -22,7 +22,7 @@ internal class GetActivitiesInteractor : IInteractor<GetActivitiesInputPort, IGe
         var _Household = _AuthorisationService.GetHousehold();
 
         var _Activities = _PersistenceContext.GetEntities<Activity>()
-            .Where(a => a.User != null && a.User.Household.HouseholdID == _Household.HouseholdID)
+            .Where(a => a.Household.HouseholdID == _Household.HouseholdID)
             .ToList();
 
         await output.PresentActivitiesAsync(_Activities, cancellationToken);

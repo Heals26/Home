@@ -25,7 +25,7 @@ public class ActivityContentConfiguration : IEntityTypeConfiguration<ActivityCon
         _ = entity.Property<long>("RegionID");
         _ = entity.HasOne(e => e.Region)
             .WithMany(e => e.Fields)
-            .HasForeignKey("FK_ActivityContent_ActivityRegion")
+            .HasForeignKey("RegionID")
             .HasConstraintName("FK_ActivityContent_ActivityRegion")
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();

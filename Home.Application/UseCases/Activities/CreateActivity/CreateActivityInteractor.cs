@@ -18,10 +18,12 @@ internal class CreateActivityInteractor : IInteractor<CreateActivityInputPort, I
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<Activity>>();
 
         var _Activity = new Activity()
         {
+            Household = _AuthorisationService.GetHousehold(),
             Title = inputPort.Title,
             DueDateUTC = inputPort.DueDateUTC,
             Audits = [],
