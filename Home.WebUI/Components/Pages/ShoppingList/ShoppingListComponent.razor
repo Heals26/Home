@@ -144,13 +144,17 @@
         this.m_AddItemRequest!.Quantity = decimal.TryParse(this.m_QuantityInput, out var _Qty) ? _Qty : null;
         this.m_AddItemRequest!.Cost = decimal.TryParse(this.m_CostInput, out var _Cost) ? _Cost : null;
 
-        await this.ApiAccess.SendRequestAsync<CreateShoppingListItemWebAppRequest, CreateShoppingListItemWebAppResponse>(
+        var _Result = await this.ApiAccess.SendRequestAsync<CreateShoppingListItemWebAppRequest, CreateShoppingListItemWebAppResponse>(
             this.m_AddItemRequest!,
             ApiProvider.CreateShoppingListItem(),
-            e => this.m_ErrorHandler!.AddError(e),
+            e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
         this.m_AddingItem = false;
+
+        if (_Result == null)
+            return;
+
         this.m_ShowAddItem = false;
         this.m_AddItemRequest = new() { ShoppingListID = this.ShoppingListID!.Value };
 

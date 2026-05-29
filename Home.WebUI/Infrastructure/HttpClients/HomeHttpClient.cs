@@ -48,9 +48,6 @@ public class HomeHttpClient(
                 Instance = problemDetails.Instance,
                 Type = problemDetails.Type,
                 Errors = new Dictionary<string, string[]>()
-                {
-                    { "Error", new string[] { problemDetails.Detail ?? "An error occurred." } }
-                }
             };
 
     private async Task<TResponse?> SendAsync<TResponse>(
@@ -79,15 +76,12 @@ public class HomeHttpClient(
             {
                 errors.Invoke(new()
                 {
-                    Title = "Unauthorized",
+                    Title = "Not signed in.",
                     Status = (int)HttpStatusCode.Unauthorized,
-                    Detail = "You are not authorized to access this resource.",
+                    Detail = "Please sign in to access this resource.",
                     Instance = httpMessage.RequestUri?.ToString(),
                     Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
                     Errors = new Dictionary<string, string[]>()
-                    {
-                        { "Error", new string[] { "You are not authorized to access this resource." } }
-                    }
                 });
                 return default;
             }
@@ -108,15 +102,12 @@ public class HomeHttpClient(
                     if (string.IsNullOrWhiteSpace(_Content))
                         errors.Invoke(new()
                         {
-                            Title = "Either the API isn't running or the endpoint doesn't exist.",
+                            Title = "Not found.",
                             Status = (int)HttpStatusCode.NotFound,
-                            Detail = "Validate that the API is running or you have the correct endpoint and API version.",
+                            Detail = "The requested resource could not be found. Ensure the API is running and the endpoint is correct.",
                             Instance = string.Empty,
                             Type = string.Empty,
                             Errors = new Dictionary<string, string[]>()
-                            {
-                                { "Error", new string[] { "Please ensure that everything is correctly running. If it isn't contact the system administrator." } }
-                            }
                         });
                     else
                         errors.Invoke(this.ConvertProblemDetailsToValidationProblemDetails(JsonSerializer.Deserialize<ProblemDetails>(_Content, JsonOptions.DefaultOptions)!));
@@ -134,15 +125,12 @@ public class HomeHttpClient(
                 default:
                     errors.Invoke(new ValidationProblemDetails()
                     {
-                        Title = "Error",
+                        Title = "An error occurred.",
                         Status = (int)_HttpResponse.StatusCode,
-                        Detail = "An error occurred.",
+                        Detail = $"The server returned an unexpected response ({(int)_HttpResponse.StatusCode}).",
                         Instance = httpMessage.RequestUri?.ToString(),
                         Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
                         Errors = new Dictionary<string, string[]>()
-                        {
-                            { "Error", new string[] { "An error occurred." } }
-                        }
                     });
                     return default;
             }
@@ -151,35 +139,29 @@ public class HomeHttpClient(
         {
             errors.Invoke(new ValidationProblemDetails()
             {
-                Title = "Cannot reach the API",
+                Title = "Cannot reach the API.",
                 Status = (int)HttpStatusCode.ServiceUnavailable,
+                Detail = "The API is not reachable. Please ensure it is running.",
                 Errors = new Dictionary<string, string[]>()
-                {
-                    { "Error", new string[] { "The API is not reachable. Please ensure it is running." } }
-                }
             });
         }
         catch (TaskCanceledException)
         {
             errors.Invoke(new ValidationProblemDetails()
             {
-                Title = "Request timed out",
+                Title = "Request timed out.",
                 Status = (int)HttpStatusCode.RequestTimeout,
+                Detail = "The request timed out. Please try again.",
                 Errors = new Dictionary<string, string[]>()
-                {
-                    { "Error", new string[] { "The request timed out. Please try again." } }
-                }
             });
         }
         catch (Exception _Exception)
         {
             errors.Invoke(new ValidationProblemDetails()
             {
-                Title = "Unexpected error",
+                Title = "An unexpected error occurred.",
+                Detail = _Exception.Message,
                 Errors = new Dictionary<string, string[]>()
-                {
-                    { "Error", new string[] { _Exception.Message } }
-                }
             });
         }
 

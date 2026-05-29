@@ -2,40 +2,86 @@
 
 @if (this.m_Errors.Any())
 {
-    <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+    <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full">
         @foreach (var _Error in this.m_Errors)
         {
-            <div class="bg-red-900/90 border border-red-700 text-red-100 rounded-xl px-4 py-3 text-sm shadow-lg">
-                @_Error
+            <div class="bg-red-900/90 border border-red-700 text-red-100 rounded-xl px-4 py-3 text-sm shadow-lg flex gap-3 items-start">
+                <div class="flex-1 min-w-0">
+                    @if (!string.IsNullOrWhiteSpace(_Error.Title))
+                    {
+                        <p class="font-semibold">@_Error.Title</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_Error.Detail))
+                    {
+                        <p class="text-red-200 text-xs mt-0.5">@_Error.Detail</p>
+                    }
+                    @foreach (var _FieldError in _Error.FieldErrors)
+                    {
+                        <p class="text-red-200 text-xs mt-0.5">@_FieldError</p>
+                    }
+                </div>
+                <button @onclick="() => this.RemoveError(_Error)"
+                        class="text-red-300 hover:text-red-100 shrink-0 mt-0.5"
+                        type="button">
+                    <span class="home-icon home-icon-x h-4 w-4 inline-block"></span>
+                </button>
             </div>
         }
     </div>
 }
 
 @code {
+
+    #region Records
+
+    private record ErrorEntry(string Title, string Detail, IReadOnlyList<string> FieldErrors);
+
+    #endregion Records
+
     #region Fields
-    private List<string> m_Errors = new();
+
+    private List<ErrorEntry> m_Errors = new();
+
     #endregion Fields
 
     #region Methods
+
     public void AddError(ValidationProblemDetails errors)
     {
-        if (errors.Errors != null)
-            foreach (var _Error in errors.Errors)
-                this.m_Errors.AddRange(_Error.Value);
-        StateHasChanged();
+        var _Title = errors.Title ?? string.Empty;
+        var _Detail = errors.Detail ?? string.Empty;
+        var _FieldErrors = errors.Errors?
+            .SelectMany(e => e.Value)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .ToList() ?? [];
+
+        // If there's no title and no detail, fall back to field errors only
+        // If there's nothing at all, show a generic message
+        if (string.IsNullOrWhiteSpace(_Title) && string.IsNullOrWhiteSpace(_Detail) && !_FieldErrors.Any())
+            _Title = "An error occurred.";
+
+        this.m_Errors.Add(new ErrorEntry(_Title, _Detail, _FieldErrors));
+        this.StateHasChanged();
     }
 
     public void AddError(string error)
     {
-        this.m_Errors.Add(error);
-        StateHasChanged();
+        this.m_Errors.Add(new ErrorEntry(error, string.Empty, []));
+        this.StateHasChanged();
+    }
+
+    private void RemoveError(ErrorEntry error)
+    {
+        this.m_Errors.Remove(error);
+        this.StateHasChanged();
     }
 
     public void ResetErrors()
     {
         this.m_Errors.Clear();
-        StateHasChanged();
+        this.StateHasChanged();
     }
+
     #endregion Methods
+
 }

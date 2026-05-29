@@ -23,11 +23,19 @@
             <div class="divide-y divide-zinc-800 -mx-5 -mb-5">
                 @foreach (var _List in this.m_ShoppingLists.ShoppingLists)
                 {
-                    <button class="w-full text-left px-5 py-4 hover:bg-zinc-800 active:bg-zinc-800 transition-colors"
-                            @onclick="() => this.SelectList(_List)">
-                        <p class="text-sm font-medium text-zinc-50">@_List.Name</p>
-                        <p class="text-xs text-zinc-500 mt-0.5">@_List.ItemCount items</p>
-                    </button>
+                    <div class="flex items-center gap-1 hover:bg-zinc-800 transition-colors group">
+                        <button class="flex-1 text-left px-5 py-4"
+                                @onclick="() => this.SelectList(_List)">
+                            <p class="text-sm font-medium @(this.ShoppingListID == _List.ShoppingListID ? "text-white" : "text-zinc-50")">@_List.Name</p>
+                            <p class="text-xs text-zinc-500 mt-0.5">@_List.ItemCount items</p>
+                        </button>
+                        <button class="px-3 py-4 text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                type="button"
+                                title="Delete list"
+                                @onclick="() => this.DeleteShoppingListAsync(_List.ShoppingListID)">
+                            <span class="home-icon home-icon-x h-4 w-4 inline-block"></span>
+                        </button>
+                    </div>
                 }
             </div>
         }
@@ -98,15 +106,35 @@
         if (this.m_Creating) return;
         this.m_Creating = true;
 
-        await this.ApiAccess.SendRequestAsync<CreateShoppingListWebAppRequest, CreateShoppingListWebAppResponse>(
+        var _Result = await this.ApiAccess.SendRequestAsync<CreateShoppingListWebAppRequest, CreateShoppingListWebAppResponse>(
             this.m_CreateRequest!,
             ApiProvider.CreateShoppingList(),
-            e => this.m_ErrorHandler!.AddError(e),
+            e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
         this.m_Creating = false;
+
+        if (_Result == null)
+            return;
+
         this.m_ShowCreate = false;
         this.m_CreateRequest = new();
+
+        await this.OnInitializedAsync();
+    }
+
+    private async Task DeleteShoppingListAsync(long shoppingListID)
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+            null!, ApiProvider.DeleteShoppingList(shoppingListID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+        if (_Result != true)
+            return;
+
+        if (this.ShoppingListID == shoppingListID)
+            this.NavigationManager.NavigateTo("/shopping-lists");
 
         await this.OnInitializedAsync();
     }
