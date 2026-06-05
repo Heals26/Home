@@ -23,6 +23,15 @@ internal class GetActivitiesInteractor : IInteractor<GetActivitiesInputPort, IGe
 
         var _Activities = _PersistenceContext.GetEntities<Activity>()
             .Where(a => a.Household.HouseholdID == _Household.HouseholdID)
+            .Select(a => new
+            {
+                Activity = a,
+                a.State,
+                a.Status,
+                a.User
+            })
+            .ToList()
+            .Select(a => a.Activity)
             .ToList();
 
         await output.PresentActivitiesAsync(_Activities, cancellationToken);

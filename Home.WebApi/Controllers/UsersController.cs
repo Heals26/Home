@@ -1,9 +1,11 @@
 ﻿using Home.Application.UseCases.Users.CreateUser;
+using Home.Application.UseCases.Users.DeleteUser;
 using Home.Application.UseCases.Users.GetUser;
 using Home.Application.UseCases.Users.UpdateUser;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.Users.CreateUser;
+using Home.WebApi.Presenters.Users.DeleteUser;
 using Home.WebApi.Presenters.Users.GetUser;
 using Home.WebApi.Presenters.Users.UpdateUser;
 using Home.WebApi.UseCases.Users.CreateUser;
@@ -30,6 +32,19 @@ public class UsersController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(this.Mapper.Map<CreateUserInputPort>(body), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpDelete("{userID}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DeleteUser(
+        [FromServices] DeleteUserPresenter presenter,
+        [FromRoute] long userID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new DeleteUserInputPort(userID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

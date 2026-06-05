@@ -2,9 +2,11 @@
 using CleanArchitecture.Mediator;
 using CleanArchitecture.Mediator.Setup;
 using Home.Application.Infrastructure.Security;
+using Home.Application.Infrastructure.Activities;
 using Home.Application.Infrastructure.Recipes;
 using Home.Application.Infrastructure.ShoppingLists;
 using Home.Application.Infrastructure.Users;
+using Home.Application.Services.EntityLogic.Activities;
 using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
@@ -74,6 +76,28 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     using var _Scope = app.Services.CreateScope();
     var _PersistenceContext = _Scope.ServiceProvider.GetRequiredService<PersistenceContext>();
     _PersistenceContext.Database.Migrate();
+
+    SeedLookups(_PersistenceContext);
+}
+
+static void SeedLookups(PersistenceContext context)
+{
+    if (!context.Set<ActivityState>().Any())
+        context.AddRange(
+            new ActivityState() { Name = "Todo" },
+            new ActivityState() { Name = "Refining" },
+            new ActivityState() { Name = "Progressing" },
+            new ActivityState() { Name = "Blocked" },
+            new ActivityState() { Name = "Testing" },
+            new ActivityState() { Name = "Done" });
+
+    if (!context.Set<ActivityStatus>().Any())
+        context.AddRange(
+            new ActivityStatus() { Name = "Todo" },
+            new ActivityStatus() { Name = "In Progress" },
+            new ActivityStatus() { Name = "Done" });
+
+    _ = context.SaveChanges();
 }
 
 static IServiceCollection SetupAuthentication(IServiceCollection services)
@@ -261,6 +285,7 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
         .AddScoped<ITokenFactory, TokenFactory>();
 
     _ = services
+        .AddScoped<IActivityLogic, ActivityLogic>()
         .AddScoped<IRecipeLogic, RecipeLogic>()
         .AddScoped<IShoppingListLogic, ShoppingListLogic>();
 

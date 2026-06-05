@@ -1,12 +1,15 @@
 using Home.Application.UseCases.RecipeSteps.AddRecipeStep;
+using Home.Application.UseCases.RecipeSteps.GetRecipeStep;
 using Home.Application.UseCases.RecipeSteps.RemoveRecipeStep;
 using Home.Application.UseCases.RecipeSteps.UpdateRecipeStep;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.RecipeSteps.AddRecipeStep;
+using Home.WebApi.Presenters.RecipeSteps.GetRecipeStep;
 using Home.WebApi.Presenters.RecipeSteps.RemoveRecipeStep;
 using Home.WebApi.Presenters.RecipeSteps.UpdateRecipeStep;
 using Home.WebApi.UseCases.RecipeSteps.AddRecipeStep;
+using Home.WebApi.UseCases.RecipeSteps.GetRecipeStep;
 using Home.WebApi.UseCases.RecipeSteps.UpdateRecipeStep;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +36,18 @@ public class RecipeStepsController : BaseController
             presenter,
             this.ServiceFactory,
             cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpGet("{recipeStepID}")]
+    [ProducesResponseType<GetRecipeStepApiResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecipeStep(
+        [FromServices] GetRecipeStepPresenter presenter,
+        [FromRoute] long recipeStepID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new GetRecipeStepInputPort(recipeStepID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

@@ -30,6 +30,12 @@
                 </IconContent>
             </HomeNavTile>
 
+            <HomeNavTile Href="/activities" Label="Activities" Subtitle="Kanban board">
+                <IconContent>
+                    <span class="home-icon home-icon-board h-10 w-10 inline-block"></span>
+                </IconContent>
+            </HomeNavTile>
+
             <HomeNavTile Href="/lights" Label="Lights" Subtitle="Coming soon" Class="opacity-50 pointer-events-none">
                 <IconContent>
                     <span class="home-icon home-icon-lightbulb h-10 w-10 inline-block"></span>
@@ -53,12 +59,14 @@
     private string GetGreeting()
     {
         var _Hour = DateTime.Now.Hour;
-        return _Hour switch
-        {
-            < 12 => "morning",
-            < 17 => "afternoon",
-            _    => "evening"
-        };
+
+        if (_Hour < 12)
+            return "morning";
+
+        if (_Hour < 17)
+            return "afternoon";
+
+        return "evening";
     }
 
     #endregion Methods

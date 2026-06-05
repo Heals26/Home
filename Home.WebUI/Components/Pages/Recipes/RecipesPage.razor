@@ -1,0 +1,163 @@
+@page "/recipes"
+
+<CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
+    <div class="flex flex-col h-full">
+        <HomeTopBar Title="Recipes" ShowBack="true" BackHref="/">
+            <ActionsContent>
+                <HomeButton Size="sm" OnClick="this.OpenCreateModal">
+                    <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
+                    New
+                </HomeButton>
+            </ActionsContent>
+        </HomeTopBar>
+
+        <div class="flex-1 p-4 app-scrollable">
+            @if (this.m_Recipes == null)
+            {
+                <HomeLoader Class="py-16" />
+            }
+            else if (!this.m_Recipes.Recipes.Any())
+            {
+                <HomeEmptyState Title="No recipes yet" Subtitle="Add your first recipe to get started">
+                    <ActionContent>
+                        <HomeButton OnClick="this.OpenCreateModal">Create Recipe</HomeButton>
+                    </ActionContent>
+                </HomeEmptyState>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+                    @foreach (var _Recipe in this.m_Recipes.Recipes.OrderBy(r => r.Name))
+                    {
+                        <div class="group relative bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-xl p-5 transition-all cursor-pointer"
+                             @onclick="() => this.OpenRecipe(_Recipe.RecipeID)">
+                            <div class="flex items-start gap-3">
+                                <span class="home-icon home-icon-book h-6 w-6 inline-block text-teal-400 shrink-0 mt-0.5"></span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-zinc-50 truncate">@_Recipe.Name</p>
+                                    @if (!string.IsNullOrWhiteSpace(_Recipe.Url))
+                                    {
+                                        <p class="text-xs text-zinc-500 truncate mt-0.5">@_Recipe.Url</p>
+                                    }
+                                </div>
+                            </div>
+                            <button class="absolute top-3 right-3 text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                    type="button"
+                                    title="Delete recipe"
+                                    @onclick="() => this.DeleteRecipeAsync(_Recipe.RecipeID)"
+                                    @onclick:stopPropagation="true">
+                                <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</CascadingValue>
+
+<HomeModal @bind-Visible="this.m_ShowCreate" Title="New Recipe">
+    <ChildContent>
+        <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateRecipeAsync">
+            <HomeTextInput Label="Recipe name"
+                           @bind-Value="this.m_CreateRequest!.Name"
+                           Placeholder="e.g. Spaghetti Bolognese" />
+            <div class="mt-3">
+                <HomeTextInput Label="Source URL (optional)"
+                               @bind-Value="this.m_CreateRequest!.Url"
+                               Placeholder="https://..." />
+            </div>
+            <div class="mt-4 flex justify-end gap-3">
+                <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
+                <HomeButton Type="submit" Loading="this.m_Creating">Create</HomeButton>
+            </div>
+        </EditForm>
+    </ChildContent>
+</HomeModal>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />
+
+@code {
+
+    #region Fields
+
+    private CancellationTokenHandler m_CancellationTokenHandler = new();
+    private ErrorHandler? m_ErrorHandler;
+    private GetRecipesWebAppResponse? m_Recipes;
+    private CreateRecipeWebAppRequest? m_CreateRequest = new();
+    private bool m_ShowCreate;
+    private bool m_Creating;
+
+    #endregion Fields
+
+    #region Properties
+
+    [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
+
+    #endregion Properties
+
+    #region Lifecycle Methods
+
+    protected override async Task OnInitializedAsync()
+        => await this.LoadRecipesAsync();
+
+    #endregion Lifecycle Methods
+
+    #region Methods
+
+    private void OpenCreateModal()
+    {
+        this.m_CreateRequest = new();
+        this.m_ShowCreate = true;
+    }
+
+    private void OpenRecipe(long recipeID)
+        => this.NavigationManager.NavigateTo($"/recipes/{recipeID}");
+
+    private async Task LoadRecipesAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetRecipesWebAppResponse>(
+            null!, ApiProvider.GetRecipes(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != null)
+            this.m_Recipes = _Result;
+    }
+
+    private async Task CreateRecipeAsync()
+    {
+        if (this.m_Creating) return;
+        this.m_Creating = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<CreateRecipeWebAppRequest, CreateRecipeWebAppResponse>(
+            this.m_CreateRequest!,
+            ApiProvider.CreateRecipe(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_Creating = false;
+
+        if (_Result == null)
+            return;
+
+        this.m_ShowCreate = false;
+        this.NavigationManager.NavigateTo($"/recipes/{_Result.RecipeID}");
+    }
+
+    private async Task DeleteRecipeAsync(long recipeID)
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+            null!, ApiProvider.DeleteRecipe(recipeID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != true)
+            return;
+
+        await this.LoadRecipesAsync();
+    }
+
+    #endregion Methods
+
+}

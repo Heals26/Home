@@ -21,7 +21,11 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
     #endregion Properties
 
     #region Methods
-    public Task PresentAuthenticationFailureAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task PresentAuthenticationFailureAsync(CancellationToken cancellationToken)
+    {
+        this.Result = new UnauthorizedResult();
+        return Task.CompletedTask;
+    }
 
     Task<ContinuationBehaviour> IAuthorisationPolicyFailureOutputPort<HomeAuthorisationFailure>.PresentAuthorisationPolicyFailureAsync(HomeAuthorisationFailure policyFailure, CancellationToken cancellationToken)
     {
