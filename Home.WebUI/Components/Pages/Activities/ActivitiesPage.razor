@@ -42,7 +42,7 @@
                                             {
                                                 <span class="inline-flex items-center gap-1 text-xs text-zinc-400">
                                                     <span class="home-icon home-icon-calendar h-3.5 w-3.5 inline-block"></span>
-                                                    @_Activity.DueDateUTC.Value.ToLocalTime().ToString("d MMM")
+                                                    @_Activity.DueDateUTC.Value.ToString("d MMM")
                                                 </span>
                                             }
                                             @if (!string.IsNullOrWhiteSpace(_Activity.AssignedTo))
@@ -305,7 +305,7 @@
     {
         this.m_EditActivity = activity;
         this.m_EditTitle = activity.Title;
-        this.m_EditDueDate = activity.DueDateUTC?.ToLocalTime();
+        this.m_EditDueDate = activity.DueDateUTC?.Date;
         this.m_EditStateID = activity.StateID;
         this.m_ShowEdit = true;
     }
