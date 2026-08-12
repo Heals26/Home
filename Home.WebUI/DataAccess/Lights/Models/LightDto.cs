@@ -1,4 +1,4 @@
-namespace Home.WebUI.DataAccess.Lights.Models;
+﻿namespace Home.WebUI.DataAccess.Lights.Models;
 
 public class LightDto
 {
@@ -49,6 +49,29 @@ public class LightDto
     /// When Home last refreshed this state from the provider.
     /// </summary>
     public DateTime StateUpdatedUTC { get; set; }
+
+
+    /// <summary>
+    /// True when the bulb can show colour. White-only bulbs get no colour picker.
+    /// </summary>
+    public bool HasColour { get; set; }
+
+    /// <summary>
+    /// True when the bulb can change white temperature.
+    /// </summary>
+    public bool HasVariableColourTemp { get; set; }
+
+    /// <summary>
+    /// The bulb's white-temperature range in kelvin. Zero when it reported none.
+    /// </summary>
+    public int MaxKelvin { get; set; }
+
+    public int MinKelvin { get; set; }
+
+    /// <summary>
+    /// The hardware's own name, e.g. "LIFX A19".
+    /// </summary>
+    public string ProductName { get; set; } = string.Empty;
 
     #endregion Properties
 

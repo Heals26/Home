@@ -43,6 +43,11 @@ internal class StartLightEffectInteractor
             }
         }
 
+        // Breathe and pulse move a bulb through colours, so a white-only bulb is left out rather
+        // than sent a command it will ignore. Cancelling goes to everything.
+        if (inputPort.Kind != LightEffectKind.Off)
+            _Lights = [.. _Lights.Where(l => l.HasColour)];
+
         if (_Lights.Count == 0)
         {
             await outputPort.PresentEffectStartedAsync(cancellationToken);

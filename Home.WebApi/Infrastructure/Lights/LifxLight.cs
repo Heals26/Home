@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Home.WebApi.Infrastructure.Lights;
 
@@ -32,6 +32,9 @@ internal class LifxLight
 
     [JsonPropertyName("location")]
     public LifxNamedReference Location { get; set; }
+
+    [JsonPropertyName("product")]
+    public LifxProduct Product { get; set; }
 
     [JsonPropertyName("power")]
     public string Power { get; set; }

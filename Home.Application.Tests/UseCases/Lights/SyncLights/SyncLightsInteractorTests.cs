@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Home.Application.Services.Lights;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
@@ -32,7 +32,8 @@ public class SyncLightsInteractorTests
         string groupName = "Bedroom",
         bool isOn = true,
         double brightness = 0.8d)
-        => new(id, label, groupID, groupName, "loc-1", "Home", true, isOn, brightness, 120d, 1d, 3500);
+        => new(id, label, groupID, groupName, "loc-1", "Home", true, isOn, brightness, 120d, 1d, 3500,
+            new LightCapabilities(true, true, false, false, 1500, 9000, "LIFX A19"));
 
     private LightLocation BuildLocation(params LightGroup[] groups)
     {

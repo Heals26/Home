@@ -13,6 +13,30 @@ public class Light
 
     #endregion Properties
 
+    #region Capabilities
+
+    // What the hardware can actually do, read from the provider on sync. The UI hides controls a
+    // bulb cannot honour, and effects are offered only where they will work.
+
+    public bool HasColour { get; set; }
+    public bool HasMatrix { get; set; }
+    public bool HasMultizone { get; set; }
+    public bool HasVariableColourTemp { get; set; }
+
+    /// <summary>
+    /// The bulb's white-temperature range. Zero on hardware that reported neither.
+    /// </summary>
+    public int MaxKelvin { get; set; }
+
+    public int MinKelvin { get; set; }
+
+    /// <summary>
+    /// The hardware's own name, e.g. "LIFX A19". Shown so a user can tell two bulbs apart.
+    /// </summary>
+    public string ProductName { get; set; }
+
+    #endregion Capabilities
+
     #region Cached State
 
     // Last state read from the provider. Cached so opening the Lights page costs nothing and the

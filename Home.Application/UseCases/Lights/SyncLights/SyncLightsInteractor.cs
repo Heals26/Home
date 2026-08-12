@@ -105,6 +105,15 @@ internal class SyncLightsInteractor : IInteractor<SyncLightsInputPort, ISyncLigh
 
     private static void ApplyState(Light light, LightSnapshot snapshot, DateTime nowUTC)
     {
+        // Capabilities are refreshed too — a firmware update can change what a bulb reports.
+        light.HasColour = snapshot.Capabilities.HasColour;
+        light.HasMatrix = snapshot.Capabilities.HasMatrix;
+        light.HasMultizone = snapshot.Capabilities.HasMultizone;
+        light.HasVariableColourTemp = snapshot.Capabilities.HasVariableColourTemp;
+        light.MinKelvin = snapshot.Capabilities.MinKelvin;
+        light.MaxKelvin = snapshot.Capabilities.MaxKelvin;
+        light.ProductName = snapshot.Capabilities.ProductName;
+
         light.Brightness = snapshot.Brightness;
         light.Hue = snapshot.Hue;
         light.IsConnected = snapshot.IsConnected;

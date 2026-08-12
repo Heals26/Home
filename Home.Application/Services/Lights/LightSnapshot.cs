@@ -1,4 +1,4 @@
-namespace Home.Application.Services.Lights;
+﻿namespace Home.Application.Services.Lights;
 
 /// <summary>
 /// A light's live state as reported by the lighting provider. This is transient external data —
@@ -17,4 +17,5 @@ public record LightSnapshot(
     double Brightness,
     double Hue,
     double Saturation,
-    int Kelvin);
+    int Kelvin,
+    LightCapabilities Capabilities);

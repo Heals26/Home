@@ -31,7 +31,12 @@ public class GetLightsPresenter(IMapper mapper)
                     Hue = l.Hue,
                     Saturation = l.Saturation,
                     Kelvin = l.Kelvin,
-                    StateUpdatedUTC = l.StateUpdatedUTC
+                    StateUpdatedUTC = l.StateUpdatedUTC,
+                    HasColour = l.HasColour,
+                    HasVariableColourTemp = l.HasVariableColourTemp,
+                    MinKelvin = l.MinKelvin,
+                    MaxKelvin = l.MaxKelvin,
+                    ProductName = l.ProductName
                 })]
             })]
         }, cancellationToken);

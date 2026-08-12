@@ -300,7 +300,19 @@ internal class LifxLightService(HttpClient httpClient, ILogger<LifxLightService>
             light.Brightness,
             light.Colour?.Hue ?? 0d,
             light.Colour?.Saturation ?? 0d,
-            light.Colour?.Kelvin ?? 0);
+            light.Colour?.Kelvin ?? 0,
+            ToCapabilities(light.Product));
+
+    private static LightCapabilities ToCapabilities(LifxProduct product)
+        => new(
+            product?.Capabilities?.HasColour ?? false,
+            product?.Capabilities?.HasVariableColourTemp ?? false,
+            product?.Capabilities?.HasMultizone ?? false,
+            // A chain and a matrix are both tile hardware as far as Home is concerned.
+            (product?.Capabilities?.HasMatrix ?? false) || (product?.Capabilities?.HasChain ?? false),
+            product?.Capabilities?.MinKelvin ?? 0,
+            product?.Capabilities?.MaxKelvin ?? 0,
+            product?.Name ?? "Unknown");
 
     #endregion Methods
 
