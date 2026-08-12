@@ -1,3 +1,7 @@
+// Home.WebApi has nullable disabled project-wide, but ILightService's contract is nullable-aware
+// (a null light list means "provider unreachable"). Opting this file in keeps that meaning.
+#nullable enable
+
 using Home.Application.Services.Lights;
 using System.Globalization;
 using System.Net;
