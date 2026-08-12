@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "webui",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "Home.WebUI", "--urls", "http://localhost:5251"],
+      "port": 5251
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "Home.WebApi", "--urls", "http://localhost:57175"],
+      "port": 57175
+    }
+  ]
+}
