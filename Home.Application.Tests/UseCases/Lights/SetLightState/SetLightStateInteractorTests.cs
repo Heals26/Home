@@ -141,7 +141,7 @@ public class SetLightStateInteractorTests
 
         this.m_Light.IsOn.Should().BeTrue();
         this.m_Light.Brightness.Should().Be(0.75d);
-        this.m_Light.StateUpdatedUTC.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        this.m_Light.StateUpdatedUTC.Should().Be(TestServiceFactory.DefaultNow.UtcDateTime, "the fake clock is fixed, so this is exact");
         this.m_PersistenceContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 

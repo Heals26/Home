@@ -62,14 +62,14 @@ internal class SetLightStateInteractor : IInteractor<SetLightStateInputPort, ISe
         }
 
         // The provider took it, so Home's cached copy is now correct without another read.
-        ApplyChange(_Light, _Change);
+        ApplyChange(_Light, _Change, serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
         await outputPort.PresentLightStateSetAsync(cancellationToken);
     }
 
-    private static void ApplyChange(Light light, LightStateChange change)
+    private static void ApplyChange(Light light, LightStateChange change, DateTime nowUTC)
     {
         if (change.IsOn.HasBeenSet)
             light.IsOn = change.IsOn.Value;
@@ -91,7 +91,7 @@ internal class SetLightStateInteractor : IInteractor<SetLightStateInputPort, ISe
             light.Saturation = 0d;
         }
 
-        light.StateUpdatedUTC = DateTime.UtcNow;
+        light.StateUpdatedUTC = nowUTC;
     }
 
     #endregion Methods

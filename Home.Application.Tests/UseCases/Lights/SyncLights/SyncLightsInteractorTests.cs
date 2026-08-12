@@ -128,7 +128,7 @@ public class SyncLightsInteractorTests
         _Light.Name.Should().Be("New Name");
         _Light.IsOn.Should().BeTrue();
         _Light.Brightness.Should().Be(0.9d);
-        _Light.StateUpdatedUTC.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        _Light.StateUpdatedUTC.Should().Be(TestServiceFactory.DefaultNow.UtcDateTime, "the fake clock is fixed, so this is exact");
 
         this.m_Added.OfType<Light>().Should().BeEmpty();
         this.m_OutputPort.Verify(

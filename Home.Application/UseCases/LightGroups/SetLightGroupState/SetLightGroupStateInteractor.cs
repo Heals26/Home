@@ -73,15 +73,17 @@ internal class SetLightGroupStateInteractor
             return;
         }
 
+        var _Now = serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime;
+
         foreach (var _Light in _Lights)
-            ApplyChange(_Light, _Change);
+            ApplyChange(_Light, _Change, _Now);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
         await outputPort.PresentLightGroupStateSetAsync(cancellationToken);
     }
 
-    private static void ApplyChange(Light light, LightStateChange change)
+    private static void ApplyChange(Light light, LightStateChange change, DateTime nowUTC)
     {
         if (change.IsOn.HasBeenSet)
             light.IsOn = change.IsOn.Value;
@@ -101,7 +103,7 @@ internal class SetLightGroupStateInteractor
             light.Saturation = 0d;
         }
 
-        light.StateUpdatedUTC = DateTime.UtcNow;
+        light.StateUpdatedUTC = nowUTC;
     }
 
     #endregion Methods

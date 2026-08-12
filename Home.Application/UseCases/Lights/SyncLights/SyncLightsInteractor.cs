@@ -34,7 +34,7 @@ internal class SyncLightsInteractor : IInteractor<SyncLightsInputPort, ISyncLigh
         }
 
         var _Household = _AuthorisationService.GetHousehold();
-        var _Now = DateTime.UtcNow;
+        var _Now = serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime;
 
         // Projected rather than Include()d, matching how the rest of the app forces eager loading.
         var _Locations = _PersistenceContext.GetEntities<LightLocation>()
@@ -81,6 +81,20 @@ internal class SyncLightsInteractor : IInteractor<SyncLightsInputPort, ISyncLigh
         // A bulb that has left the account cannot be controlled, so it should not be listed.
         var _LiveIDs = _Snapshots.Select(s => s.ID).ToHashSet();
         var _Removed = _ExistingLights.Values.Where(l => !_LiveIDs.Contains(l.ID)).ToList();
+
+        if (_Removed.Count > 0)
+        {
+            // LightSceneState deliberately does not cascade from Light — SQL Server rejects the
+            // second cascade path from Household — so its rows are cleared here instead. Skipping
+            // this would fail the delete on a foreign key.
+            var _RemovedKeys = _Removed.Select(l => l.LightID).ToHashSet();
+
+            var _OrphanedStates = _PersistenceContext.GetEntities<LightSceneState>()
+                .Where(s => _RemovedKeys.Contains(s.Light.LightID))
+                .ToList();
+
+            _PersistenceContext.RemoveRange(_OrphanedStates);
+        }
 
         _PersistenceContext.RemoveRange(_Removed);
 

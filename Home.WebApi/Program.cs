@@ -6,7 +6,9 @@ using Home.Application.Infrastructure.Activities;
 using Home.Application.Infrastructure.Recipes;
 using Home.Application.Infrastructure.ShoppingLists;
 using Home.Application.Infrastructure.Users;
+using Home.Application.Infrastructure.Lights;
 using Home.Application.Services.EntityLogic.Activities;
+using Home.Application.Services.EntityLogic.Lights;
 using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Lights;
@@ -247,6 +249,9 @@ static IServiceCollection SetupLights(IServiceCollection services, IConfiguratio
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _Token);
     });
 
+    // Schedules only fire while this process is alive — see LightScheduleRunner.
+    _ = services.AddHostedService<LightScheduleRunner>();
+
     return services;
 }
 
@@ -277,6 +282,10 @@ static IServiceCollection SetupMediator(IServiceCollection services)
 
     _ = services.AddScoped<ServiceFactory>(s => s.GetService);
 
+    // The BCL clock abstraction (.NET 8). Interactors resolve this instead of touching
+    // DateTime.UtcNow, so tests can drive time with FakeTimeProvider.
+    _ = services.AddSingleton(TimeProvider.System);
+
     return services;
 }
 
@@ -293,6 +302,7 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
 
     _ = services
         .AddScoped<IActivityLogic, ActivityLogic>()
+        .AddScoped<ILightSceneLogic, LightSceneLogic>()
         .AddScoped<IRecipeLogic, RecipeLogic>()
         .AddScoped<IShoppingListLogic, ShoppingListLogic>();
 
