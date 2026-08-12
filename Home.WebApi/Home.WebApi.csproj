@@ -5,6 +5,9 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<!-- The XML doc file exists for Swagger, not for documentation coverage. CS1591 (missing
+		     XML comment) fired ~469 times and buried the warnings that actually matter. -->
+		<NoWarn>$(NoWarn);1591</NoWarn>
 		<Nullable>disable</Nullable>
 		<UserSecretsId>f6b1d435-a9e7-483c-bb25-be7f9fd4bdba</UserSecretsId>
 	</PropertyGroup>
