@@ -9,6 +9,7 @@ using Home.Application.Infrastructure.Users;
 using Home.Application.Services.EntityLogic.Activities;
 using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.EntityLogic.ShoppingLists;
+using Home.Application.Services.Lights;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Application.Services.Validation;
@@ -20,11 +21,13 @@ using Home.Persistence.Database;
 using Home.WebApi;
 using Home.WebApi.Infrastructure.Extensions;
 using Home.WebApi.Infrastructure.Filters;
+using Home.WebApi.Infrastructure.Lights;
 using Home.WebApi.Infrastructure.OAuth;
 using Home.WebApi.Infrastructure.Values;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
 using System.Text;
 
 var _Builder = WebApplication.CreateBuilder(args);
@@ -35,6 +38,7 @@ SetupScrutorServices(_Builder.Services);
 SetupSecrets(_Builder);
 SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
+SetupLights(_Builder.Services, _Builder.Configuration);
 SetupEntityFramework(_Builder.Services, _Builder.Configuration, _Builder.Environment);
 
 SetupAuthentication(_Builder.Services);
@@ -244,6 +248,24 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
 
         var _PresentationXML = $"{Home.WebApi.AssemblyUtility.GetAssembly().GetName().Name}.xml";
         s.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, _PresentationXML));
+    });
+
+    return services;
+}
+
+static IServiceCollection SetupLights(IServiceCollection services, IConfiguration configuration)
+{
+    // No token configured is a valid state — the house just has no lights wired up yet. The
+    // service reports the provider as unavailable rather than the API failing to start.
+    var _Token = configuration["lifxApiToken"];
+
+    _ = services.AddHttpClient<ILightService, LifxLightService>(client =>
+    {
+        client.BaseAddress = new Uri(LightValues.LifxBaseUrl);
+        client.Timeout = TimeSpan.FromSeconds(LightValues.RequestTimeoutSeconds);
+
+        if (!string.IsNullOrWhiteSpace(_Token))
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _Token);
     });
 
     return services;

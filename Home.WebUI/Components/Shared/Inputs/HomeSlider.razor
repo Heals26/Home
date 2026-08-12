@@ -1,4 +1,6 @@
-@* Range slider for continuous values (brightness, temperature, volume). Use @bind-Value for two-way binding. *@
+@* Range slider for continuous values (brightness, temperature, volume). Use @bind-Value for two-way binding.
+   ValueChanged fires continuously while dragging; ValueCommitted fires once on release, for callers
+   that need to avoid hammering a remote service on every pixel of travel. *@
 
 <div class="flex flex-col gap-2 @this.Class">
     @if (!string.IsNullOrEmpty(this.Label))
@@ -15,12 +17,14 @@
            value="@this.Value"
            disabled="@this.Disabled"
            @oninput="this.OnInputChanged"
+           @onchange="this.OnCommitted"
            class="w-full h-2 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-teal-500 disabled:opacity-50" />
 </div>
 
 @code {
     [Parameter] public double Value { get; set; }
     [Parameter] public EventCallback<double> ValueChanged { get; set; }
+    [Parameter] public EventCallback<double> ValueCommitted { get; set; }
     [Parameter] public string? Label { get; set; }
     [Parameter] public string Unit { get; set; } = string.Empty;
     [Parameter] public double Min { get; set; } = 0;
@@ -33,5 +37,11 @@
     {
         if (double.TryParse(e.Value?.ToString(), out var _Value))
             await this.ValueChanged.InvokeAsync(_Value);
+    }
+
+    private async Task OnCommitted(ChangeEventArgs e)
+    {
+        if (this.ValueCommitted.HasDelegate && double.TryParse(e.Value?.ToString(), out var _Value))
+            await this.ValueCommitted.InvokeAsync(_Value);
     }
 }

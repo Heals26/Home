@@ -104,6 +104,24 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// For a dependency we do not control being down — the caller can reasonably retry, which is
+    /// what separates this from a 500.
+    /// </summary>
+    protected Task ServiceUnavailableAsync(string errorMessage, CancellationToken cancellationToken)
+    {
+        this.Result = new ObjectResult(new ProblemDetails()
+        {
+            Detail = errorMessage,
+            Status = (int)HttpStatusCode.ServiceUnavailable,
+            Title = "A dependency is unavailable.",
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.4",
+        })
+        { StatusCode = (int)HttpStatusCode.ServiceUnavailable };
+
+        return Task.CompletedTask;
+    }
+
     protected Task UnauthorisedAsync(HomeAuthorisationFailure failure, CancellationToken cancellation)
     {
         this.Result = new UnauthorizedResult();

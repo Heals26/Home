@@ -45,6 +45,15 @@ dotnet user-secrets set "apiBaseUrl" "http://localhost:57175/api/" --project Hom
 Startup throws `InvalidOperationException: API base URL is not configured.` without it. The value
 must be an absolute URI and should end in a trailing slash.
 
+### Optional: a LIFX token for the Lights page
+
+```bash
+dotnet user-secrets set "lifxApiToken" "<token from https://cloud.lifx.com/settings>" --project Home.WebApi
+```
+
+Without it the API still starts and `/lights` renders a "lights unavailable" state — the token is
+only needed to actually drive bulbs.
+
 ### Then
 
 ```bash

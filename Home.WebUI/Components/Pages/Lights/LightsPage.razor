@@ -1,0 +1,244 @@
+@page "/lights"
+@using System.Globalization
+
+<CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
+    <div class="flex flex-col h-full">
+        <HomeTopBar Title="Lights" ShowBack BackHref="/">
+            <ActionsContent>
+                <HomeButton Size="sm" Variant="ghost" OnClick="this.LoadLightsAsync" Disabled="this.m_Loading">
+                    <span class="home-icon home-icon-refresh h-4 w-4 mr-1 inline-block"></span>
+                    Refresh
+                </HomeButton>
+            </ActionsContent>
+        </HomeTopBar>
+
+        <div class="flex-1 p-4 app-scrollable">
+            @if (this.m_Lights == null && this.m_Loading)
+            {
+                <HomeLoader Class="py-16" />
+            }
+            else if (this.m_Unavailable)
+            {
+                <HomeEmptyState Title="Lights unavailable"
+                                Subtitle="The LIFX service could not be reached. Check the hub is online and the API token is configured.">
+                    <ActionContent>
+                        <HomeButton OnClick="this.LoadLightsAsync">Try Again</HomeButton>
+                    </ActionContent>
+                </HomeEmptyState>
+            }
+            else if (this.m_Lights == null || this.m_Lights.Count == 0)
+            {
+                <HomeEmptyState Title="No lights found"
+                                Subtitle="No LIFX bulbs are registered against this account." />
+            }
+            else
+            {
+                <div class="max-w-3xl mx-auto flex flex-col gap-6">
+                    @foreach (var _Group in this.m_Lights.GroupBy(l => l.GroupName))
+                    {
+                        <section>
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest">@_Group.Key</h2>
+                                <div class="flex gap-2">
+                                    <HomeButton Size="sm" Variant="ghost" OnClick="() => this.SetGroupPowerAsync(_Group.Key, false)">All Off</HomeButton>
+                                    <HomeButton Size="sm" Variant="ghost" OnClick="() => this.SetGroupPowerAsync(_Group.Key, true)">All On</HomeButton>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                                @foreach (var _Light in _Group)
+                                {
+                                    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                                        <div class="flex items-center gap-3">
+                                            <span class="h-10 w-10 rounded-full shrink-0 border border-zinc-700"
+                                                  style="background: @SwatchFor(_Light)"></span>
+
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-sm font-semibold text-zinc-50 truncate">@_Light.Label</p>
+                                                <p class="text-xs text-zinc-500">
+                                                    @(!_Light.IsConnected ? "Offline" : _Light.IsOn ? $"On · {Percent(_Light.Brightness)}%" : "Off")
+                                                </p>
+                                            </div>
+
+                                            <HomeToggle Value="_Light.IsOn"
+                                                        Disabled="!_Light.IsConnected"
+                                                        ValueChanged="on => this.SetPowerAsync(_Light, on)" />
+                                        </div>
+
+                                        @if (_Light.IsConnected && _Light.IsOn)
+                                        {
+                                            <div class="mt-4 pt-4 border-t border-zinc-800 flex flex-col gap-4">
+                                                <HomeSlider Label="Brightness"
+                                                            Unit="%"
+                                                            Min="1"
+                                                            Max="100"
+                                                            Value="Percent(_Light.Brightness)"
+                                                            ValueChanged="v => _Light.Brightness = v / 100d"
+                                                            ValueCommitted="v => this.SetBrightnessAsync(_Light, v / 100d)" />
+
+                                                <div>
+                                                    <p class="text-sm font-medium text-zinc-300 mb-2">Colour</p>
+                                                    <div class="flex flex-wrap gap-2">
+                                                        @foreach (var _Preset in s_Presets)
+                                                        {
+                                                            <button type="button"
+                                                                    title="@_Preset.Name"
+                                                                    aria-label="@_Preset.Name"
+                                                                    class="h-11 w-11 rounded-lg border border-zinc-700 hover:border-zinc-500 active:scale-95 transition-all"
+                                                                    style="background: @_Preset.Css"
+                                                                    @onclick="() => this.ApplyPresetAsync(_Light, _Preset)"></button>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </section>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</CascadingValue>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />
+
+@code {
+
+    #region Records
+
+    private record ColourPreset(string Name, double Hue, double Saturation, int Kelvin, string Css);
+
+    #endregion Records
+
+    #region Fields
+
+    // Kelvin presets carry Saturation 0; the API drives saturation to zero whenever kelvin is set.
+    private static readonly ColourPreset[] s_Presets =
+    [
+        new("Warm White", 0, 0, 2700, "#ffd9a0"),
+        new("Neutral White", 0, 0, 4000, "#ffe9cc"),
+        new("Cool White", 0, 0, 6500, "#e8f1ff"),
+        new("Red", 0, 1, 0, "hsl(0, 90%, 55%)"),
+        new("Orange", 30, 1, 0, "hsl(30, 90%, 55%)"),
+        new("Yellow", 55, 1, 0, "hsl(55, 90%, 55%)"),
+        new("Green", 120, 1, 0, "hsl(120, 70%, 45%)"),
+        new("Teal", 175, 1, 0, "hsl(175, 80%, 45%)"),
+        new("Blue", 220, 1, 0, "hsl(220, 90%, 55%)"),
+        new("Purple", 280, 1, 0, "hsl(280, 70%, 55%)"),
+        new("Pink", 320, 1, 0, "hsl(320, 85%, 60%)")
+    ];
+
+    private CancellationTokenHandler m_CancellationTokenHandler = new();
+    private ErrorHandler? m_ErrorHandler;
+    private List<LightDto>? m_Lights;
+    private bool m_Loading;
+    private bool m_Unavailable;
+
+    #endregion Fields
+
+    #region Properties
+
+    [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
+
+    #endregion Properties
+
+    #region Lifecycle Methods
+
+    protected override async Task OnInitializedAsync()
+        => await this.LoadLightsAsync();
+
+    #endregion Lifecycle Methods
+
+    #region Methods
+
+    private static int Percent(double value)
+        => (int)Math.Round(Math.Clamp(value, 0d, 1d) * 100d);
+
+    // Approximates the bulb's current colour for the status dot. Saturation 0 means the bulb is
+    // showing white, so fall back to a warm tone rather than rendering grey.
+    private static string SwatchFor(LightDto light)
+    {
+        if (!light.IsConnected || !light.IsOn)
+            return "#3f3f46";
+
+        var _Lightness = 35 + (Math.Clamp(light.Brightness, 0d, 1d) * 35d);
+
+        return light.Saturation <= 0.01
+            ? $"hsl(40, 55%, {_Lightness.ToString("0", CultureInfo.InvariantCulture)}%)"
+            : $"hsl({light.Hue.ToString("0", CultureInfo.InvariantCulture)}, {Percent(light.Saturation)}%, {_Lightness.ToString("0", CultureInfo.InvariantCulture)}%)";
+    }
+
+    private async Task LoadLightsAsync()
+    {
+        this.m_Loading = true;
+        this.m_Unavailable = false;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetLightsWebAppResponse>(
+            null!, ApiProvider.GetLights(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_Loading = false;
+
+        if (_Result == null)
+        {
+            this.m_Unavailable = this.m_Lights == null;
+            return;
+        }
+
+        this.m_Lights = _Result.Lights;
+    }
+
+    private Task SetPowerAsync(LightDto light, bool isOn)
+    {
+        light.IsOn = isOn;
+        return this.SendAsync(light, new() { IsOn = new(isOn) });
+    }
+
+    private Task SetBrightnessAsync(LightDto light, double brightness)
+    {
+        light.Brightness = brightness;
+        return this.SendAsync(light, new() { Brightness = new(brightness) });
+    }
+
+    private Task ApplyPresetAsync(LightDto light, ColourPreset preset)
+    {
+        light.Hue = preset.Hue;
+        light.Saturation = preset.Saturation;
+        light.Kelvin = preset.Kelvin;
+
+        var _Request = preset.Kelvin > 0
+            ? new SetLightStateWebAppRequest() { Kelvin = new(preset.Kelvin) }
+            : new SetLightStateWebAppRequest() { Hue = new(preset.Hue), Saturation = new(preset.Saturation) };
+
+        return this.SendAsync(light, _Request);
+    }
+
+    private async Task SetGroupPowerAsync(string groupName, bool isOn)
+    {
+        if (this.m_Lights == null)
+            return;
+
+        foreach (var _Light in this.m_Lights.Where(l => l.GroupName == groupName && l.IsConnected).ToList())
+            await this.SetPowerAsync(_Light, isOn);
+    }
+
+    // The UI is updated before the call so the tablet feels instant. If the call fails the light
+    // list is reloaded, which snaps the control back to whatever the bulb actually did.
+    private async Task SendAsync(LightDto light, SetLightStateWebAppRequest request)
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<SetLightStateWebAppRequest, bool>(
+            request, ApiProvider.SetLightState(light.ID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != true)
+            await this.LoadLightsAsync();
+    }
+
+    #endregion Methods
+
+}
