@@ -56,6 +56,29 @@ They're harmless but they are dead tables. Either drop them in a migration, or u
 thing the API can't give you — per-household display order, friendlier room names, favourites.
 That's a decision for Mitch, not a cleanup.
 
+### The EF model has drifted from the migrations — blocks new migrations
+
+**Read this before running `dotnet ef migrations add`.** The entity model and the last migration
+snapshot disagree about tables nothing recent has touched. Any new migration sweeps the difference
+up and will try to apply it.
+
+The largest piece: `Activity.Household` exists on the entity and in `ActivityConfiguration`, but the
+only migration mentioning `Activity` is `InitialCommit` (Sept 2025). A generated migration therefore
+wants to `AddColumn HouseholdID … nullable: false, defaultValue: 0L` on `Activity` **and** add an FK
+to `Household` — which fails, or orphans rows, on a populated table with no household 0.
+
+Also queued up in that same drift:
+
+- `Activity.StateID` / `StatusID` / `UserID` become nullable.
+- Duplicate shadow columns `ActivityStateID` and `ActivityStatusID` get dropped.
+- `ActivityContent`'s FK column is renamed to `RegionID`.
+- `Note.CreatedOnUTC`'s default timestamp is regenerated (harmless churn, reappears every time).
+
+This predates the Lights work — Stage 1 of Lights shipped **without** a migration for exactly this
+reason, so the new `Light` columns are not in any database yet. Resolving it means deciding, against
+real data, whether those Activity columns are safe to drop and what `HouseholdID` should backfill
+to. That is a decision, not a cleanup.
+
 ### Configuration lives entirely outside the repo
 
 `Home.WebApi` has no `appsettings.json`. `databaseConnectionString`, `lifxApiToken` (API) and
