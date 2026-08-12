@@ -39,7 +39,7 @@ SetupSecrets(_Builder);
 SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
 SetupLights(_Builder.Services, _Builder.Configuration);
-SetupEntityFramework(_Builder.Services, _Builder.Configuration, _Builder.Environment);
+SetupEntityFramework(_Builder.Services, _Builder.Configuration);
 
 SetupAuthentication(_Builder.Services);
 SetupAuthorisation(_Builder.Services);
@@ -151,53 +151,32 @@ static IServiceCollection SetupAuthorisation(IServiceCollection services)
     return services;
 }
 
-static IServiceCollection SetupEntityFramework(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
+// SQL Server everywhere. There used to be a SQLite branch for a "Tablet" environment, but the
+// migrations have always been SQL Server-shaped and fail on SQLite, so that path could never
+// build a schema. A tablet points at the same server as everything else; LocalDB covers dev.
+static IServiceCollection SetupEntityFramework(IServiceCollection services, IConfiguration configuration)
 {
     var _ConnectionString = configuration["databaseConnectionString"];
 
-    if (environment.IsEnvironment("Tablet"))
+    _ = services.AddDbContext<IPersistenceContext, PersistenceContext>(options =>
     {
-        _ = services.AddDbContext<IPersistenceContext, PersistenceContext>(options =>
+        _ = options.UseSqlServer(_ConnectionString, o =>
         {
-            _ = options.UseSqlite(_ConnectionString, o =>
-            {
-                _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                _ = o.MigrationsHistoryTable("__EFMigrationsHistory");
-            })
-            .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
-        });
-        _ = services.AddDbContext<IAuditPersistenceContext, AuditPersistenceContext>(options =>
-        {
-            _ = options.UseSqlite(_ConnectionString, o =>
-            {
-                _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                _ = o.MigrationsHistoryTable("__EFMigrationsHistory");
-            })
-            .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
-        });
-    }
-    else
-    {
-        _ = services.AddDbContext<IPersistenceContext, PersistenceContext>(options =>
-        {
-            _ = options.UseSqlServer(_ConnectionString, o =>
-            {
-                _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
-            })
-            .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
-        });
+            _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
+        })
+        .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
+    });
 
-        _ = services.AddDbContext<IAuditPersistenceContext, AuditPersistenceContext>(options =>
+    _ = services.AddDbContext<IAuditPersistenceContext, AuditPersistenceContext>(options =>
+    {
+        _ = options.UseSqlServer(_ConnectionString, o =>
         {
-            _ = options.UseSqlServer(_ConnectionString, o =>
-            {
-                _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
-            })
-            .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
-        });
-    }
+            _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
+        })
+        .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
+    });
 
     return services;
 }

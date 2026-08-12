@@ -56,28 +56,16 @@ They're harmless but they are dead tables. Either drop them in a migration, or u
 thing the API can't give you — per-household display order, friendlier room names, favourites.
 That's a decision for Mitch, not a cleanup.
 
-### The EF model has drifted from the migrations — blocks new migrations
+### Model drift was resolved by `AddLightStateAndHouseholdScoping` — check before assuming
 
-**Read this before running `dotnet ef migrations add`.** The entity model and the last migration
-snapshot disagree about tables nothing recent has touched. Any new migration sweeps the difference
-up and will try to apply it.
+`Activity.Household` had existed on the entity since around Sept 2025 without ever being migrated,
+along with duplicate `ActivityStateID` / `ActivityStatusID` shadow columns and a stale
+`ActivityContent` FK column name. The 12 Aug 2026 migration swept all of that up together with the
+Light changes, which was safe only because no database had any rows in it.
 
-The largest piece: `Activity.Household` exists on the entity and in `ActivityConfiguration`, but the
-only migration mentioning `Activity` is `InitialCommit` (Sept 2025). A generated migration therefore
-wants to `AddColumn HouseholdID … nullable: false, defaultValue: 0L` on `Activity` **and** add an FK
-to `Household` — which fails, or orphans rows, on a populated table with no household 0.
-
-Also queued up in that same drift:
-
-- `Activity.StateID` / `StatusID` / `UserID` become nullable.
-- Duplicate shadow columns `ActivityStateID` and `ActivityStatusID` get dropped.
-- `ActivityContent`'s FK column is renamed to `RegionID`.
-- `Note.CreatedOnUTC`'s default timestamp is regenerated (harmless churn, reappears every time).
-
-This predates the Lights work — Stage 1 of Lights shipped **without** a migration for exactly this
-reason, so the new `Light` columns are not in any database yet. Resolving it means deciding, against
-real data, whether those Activity columns are safe to drop and what `HouseholdID` should backfill
-to. That is a decision, not a cleanup.
+The lesson worth keeping: **`Note.CreatedOnUTC` has a `defaultValue` that regenerates on every
+scaffold**, so every future migration will contain a spurious `AlterColumn` for it. Delete that
+operation before committing, or the noise compounds.
 
 ### Configuration lives entirely outside the repo
 

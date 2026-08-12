@@ -27,14 +27,19 @@ misleading MSB3073.
 
 ### 2. Give the API a database connection string
 
-`Home.WebApi` has no `appsettings.json`. It reads `databaseConnectionString` from user secrets:
+`Home.WebApi` has no `appsettings.json`. It reads `databaseConnectionString` from user secrets.
+SQL Server only — there is no SQLite path. For local development, LocalDB ships with the SQL Server
+tooling and needs no service running:
 
 ```bash
-dotnet user-secrets set "databaseConnectionString" "<your connection string>" --project Home.WebApi
+dotnet user-secrets set "databaseConnectionString" "Server=(localdb)\MSSQLLocalDB;Database=Home;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True" --project Home.WebApi
 ```
 
-SQL Server by default. Running under `ASPNETCORE_ENVIRONMENT=Tablet` switches both DbContexts to
-SQLite instead — that's the mode intended for a wall-mounted tablet running standalone.
+Then create the schema:
+
+```bash
+dotnet ef database update --project Home.Persistence --context PersistenceContext --startup-project Home.WebApi
+```
 
 ### 3. Give the WebUI the API's address
 
