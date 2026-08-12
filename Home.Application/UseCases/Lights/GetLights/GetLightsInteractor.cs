@@ -1,8 +1,14 @@
 using CleanArchitecture.Mediator;
-using Home.Application.Services.Lights;
+using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
+using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.Lights.GetLights;
 
+/// <summary>
+/// Served entirely from Home's own records — opening the Lights page costs no provider calls.
+/// State is whatever the last sync or command wrote; SyncLights refreshes it.
+/// </summary>
 internal class GetLightsInteractor : IInteractor<GetLightsInputPort, IGetLightsOutputPort>
 {
 
@@ -14,14 +20,21 @@ internal class GetLightsInteractor : IInteractor<GetLightsInputPort, IGetLightsO
         ServiceFactory serviceFactory,
         CancellationToken cancellationToken)
     {
-        var _LightService = serviceFactory.GetService<ILightService>();
+        var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
 
-        var _Lights = await _LightService.GetLightsAsync(cancellationToken);
+        var _Household = _AuthorisationService.GetHousehold();
 
-        if (_Lights == null)
-            await outputPort.PresentLightsUnavailableAsync(cancellationToken);
-        else
-            await outputPort.PresentLightsAsync(_Lights, cancellationToken);
+        var _Groups = _PersistenceContext.GetEntities<LightGroup>()
+            .Where(g => g.Location.Household.HouseholdID == _Household.HouseholdID)
+            .Select(g => new { Group = g, g.Lights })
+            .ToList()
+            .Select(g => g.Group)
+            .OrderBy(g => g.Sequence)
+            .ThenBy(g => g.Name)
+            .ToList();
+
+        await outputPort.PresentLightsAsync(_Groups, cancellationToken);
     }
 
     #endregion Methods

@@ -8,9 +8,9 @@ public class GetLightsWebAppResponse
     #region Properties
 
     /// <summary>
-    /// Every light on the account, ordered by group then label.
+    /// Every group with its lights, in display order, served from Home's own records.
     /// </summary>
-    public List<LightDto> Lights { get; set; } = [];
+    public List<LightGroupDto> Groups { get; set; } = [];
 
     #endregion Properties
 

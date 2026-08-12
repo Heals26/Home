@@ -11,11 +11,6 @@ public class LightDto
     public double Brightness { get; set; }
 
     /// <summary>
-    /// The name of the LIFX group the light belongs to.
-    /// </summary>
-    public string GroupName { get; set; } = string.Empty;
-
-    /// <summary>
     /// 0 to 360.
     /// </summary>
     public double Hue { get; set; }
@@ -49,6 +44,11 @@ public class LightDto
     /// 0.0 to 1.0. Zero means the bulb is showing white at <see cref="Kelvin"/>.
     /// </summary>
     public double Saturation { get; set; }
+
+    /// <summary>
+    /// When Home last refreshed this state from the provider.
+    /// </summary>
+    public DateTime StateUpdatedUTC { get; set; }
 
     #endregion Properties
 

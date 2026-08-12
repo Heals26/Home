@@ -1,4 +1,4 @@
-﻿namespace Home.Domain.Entities;
+namespace Home.Domain.Entities;
 
 public class LightLocation
 {
@@ -10,6 +10,7 @@ public class LightLocation
     public string Name { get; set; }
 
     public ICollection<LightGroup> Groups { get; set; }
+    public Household Household { get; set; }
 
     #endregion Properties
 

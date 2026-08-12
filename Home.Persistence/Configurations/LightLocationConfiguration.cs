@@ -1,4 +1,4 @@
-﻿using Home.Domain;
+using Home.Domain;
 using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -24,6 +24,14 @@ public class LightLocationConfiguration : IEntityTypeConfiguration<LightLocation
 
         _ = entity.Property(e => e.Name)
             .HasMaxLength(250)
+            .IsRequired();
+
+        _ = entity.Property<long>("HouseholdID");
+        _ = entity.HasOne(e => e.Household)
+            .WithMany(e => e.LightLocations)
+            .HasConstraintName("FK_LightLocation_Household")
+            .HasForeignKey("HouseholdID")
+            .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
     }
 

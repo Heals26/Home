@@ -9,6 +9,7 @@ public class Household
     public string Name { get; set; }
 
     public ICollection<Activity> Activities { get; set; }
+    public ICollection<LightLocation> LightLocations { get; set; }
     public ICollection<Recipe> Recipes { get; set; }
     public ICollection<ShoppingList> ShoppingLists { get; set; }
     public ICollection<User> Members { get; set; }

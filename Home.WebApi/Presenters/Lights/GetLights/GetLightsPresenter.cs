@@ -1,6 +1,6 @@
 using AutoMapper;
-using Home.Application.Services.Lights;
 using Home.Application.UseCases.Lights.GetLights;
+using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
 using Home.WebApi.UseCases.Lights.GetLights;
 using Home.WebApi.UseCases.Lights.Models;
@@ -13,28 +13,28 @@ public class GetLightsPresenter(IMapper mapper)
 
     #region Methods
 
-    Task IGetLightsOutputPort.PresentLightsAsync(IReadOnlyList<LightSnapshot> lights, CancellationToken cancellationToken)
+    Task IGetLightsOutputPort.PresentLightsAsync(IReadOnlyList<LightGroup> groups, CancellationToken cancellationToken)
         => this.OkAsync(new GetLightsApiResponse()
         {
-            Lights = [.. lights
-                .OrderBy(l => l.GroupName)
-                .ThenBy(l => l.Label)
-                .Select(l => new LightDto()
+            Groups = [.. groups.Select(g => new LightGroupDto()
+            {
+                LightGroupID = g.LightGroupID,
+                Name = g.Name,
+                Sequence = g.Sequence,
+                Lights = [.. g.Lights.OrderBy(l => l.Name).Select(l => new LightDto()
                 {
                     ID = l.ID,
-                    Label = l.Label,
-                    GroupName = l.GroupName,
+                    Label = l.Name,
                     IsConnected = l.IsConnected,
                     IsOn = l.IsOn,
                     Brightness = l.Brightness,
                     Hue = l.Hue,
                     Saturation = l.Saturation,
-                    Kelvin = l.Kelvin
+                    Kelvin = l.Kelvin,
+                    StateUpdatedUTC = l.StateUpdatedUTC
                 })]
+            })]
         }, cancellationToken);
-
-    Task IGetLightsOutputPort.PresentLightsUnavailableAsync(CancellationToken cancellationToken)
-        => this.ServiceUnavailableAsync("The lighting service could not be reached", cancellationToken);
 
     #endregion Methods
 

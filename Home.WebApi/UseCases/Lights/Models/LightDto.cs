@@ -11,11 +11,6 @@ public class LightDto
     public double Brightness { get; set; }
 
     /// <summary>
-    /// The name of the LIFX group the light belongs to, e.g. "Living Room".
-    /// </summary>
-    public string GroupName { get; set; }
-
-    /// <summary>
     /// 0 to 360.
     /// </summary>
     public double Hue { get; set; }
@@ -49,6 +44,11 @@ public class LightDto
     /// 0.0 to 1.0. Zero means white, in which case Kelvin is what matters.
     /// </summary>
     public double Saturation { get; set; }
+
+    /// <summary>
+    /// When Home last refreshed this state from the provider. Lets the UI show how stale it is.
+    /// </summary>
+    public DateTime StateUpdatedUTC { get; set; }
 
     #endregion Properties
 

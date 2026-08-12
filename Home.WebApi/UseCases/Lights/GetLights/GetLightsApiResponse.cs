@@ -8,9 +8,10 @@ public class GetLightsApiResponse
     #region Properties
 
     /// <summary>
-    /// Every light on the account, ordered by group then label.
+    /// Every group in the household with its lights, in display order. Served from Home's own
+    /// records — call the sync endpoint to refresh them from the provider.
     /// </summary>
-    public List<LightDto> Lights { get; set; } = [];
+    public List<LightGroupDto> Groups { get; set; } = [];
 
     #endregion Properties
 

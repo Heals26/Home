@@ -5,48 +5,43 @@
     <div class="flex flex-col h-full">
         <HomeTopBar Title="Lights" ShowBack BackHref="/">
             <ActionsContent>
-                <HomeButton Size="sm" Variant="ghost" OnClick="this.LoadLightsAsync" Disabled="this.m_Loading">
+                <HomeButton Size="sm" Variant="ghost" OnClick="this.SyncLightsAsync" Loading="this.m_Syncing">
                     <span class="home-icon home-icon-refresh h-4 w-4 mr-1 inline-block"></span>
-                    Refresh
+                    Sync
                 </HomeButton>
             </ActionsContent>
         </HomeTopBar>
 
         <div class="flex-1 p-4 app-scrollable">
-            @if (this.m_Lights == null && this.m_Loading)
+            @if (this.m_Groups == null)
             {
                 <HomeLoader Class="py-16" />
             }
-            else if (this.m_Unavailable)
+            else if (this.m_Groups.Count == 0)
             {
-                <HomeEmptyState Title="Lights unavailable"
-                                Subtitle="The LIFX service could not be reached. Check the hub is online and the API token is configured.">
+                <HomeEmptyState Title="No lights yet"
+                                Subtitle="Sync to pull your bulbs in from LIFX. You can regroup and rename them here afterwards.">
                     <ActionContent>
-                        <HomeButton OnClick="this.LoadLightsAsync">Try Again</HomeButton>
+                        <HomeButton OnClick="this.SyncLightsAsync" Loading="this.m_Syncing">Sync Now</HomeButton>
                     </ActionContent>
                 </HomeEmptyState>
-            }
-            else if (this.m_Lights == null || this.m_Lights.Count == 0)
-            {
-                <HomeEmptyState Title="No lights found"
-                                Subtitle="No LIFX bulbs are registered against this account." />
             }
             else
             {
                 <div class="max-w-3xl mx-auto flex flex-col gap-6">
-                    @foreach (var _Group in this.m_Lights.GroupBy(l => l.GroupName))
+                    @foreach (var _Group in this.m_Groups)
                     {
                         <section>
                             <div class="flex items-center justify-between mb-3 px-1">
-                                <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest">@_Group.Key</h2>
+                                <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest">@_Group.Name</h2>
                                 <div class="flex gap-2">
-                                    <HomeButton Size="sm" Variant="ghost" OnClick="() => this.SetGroupPowerAsync(_Group.Key, false)">All Off</HomeButton>
-                                    <HomeButton Size="sm" Variant="ghost" OnClick="() => this.SetGroupPowerAsync(_Group.Key, true)">All On</HomeButton>
+                                    <HomeButton Size="sm" Variant="ghost" OnClick="() => this.SetGroupPowerAsync(_Group, false)">All Off</HomeButton>
+                                    <HomeButton Size="sm" Variant="ghost" OnClick="() => this.SetGroupPowerAsync(_Group, true)">All On</HomeButton>
                                 </div>
                             </div>
 
                             <div class="flex flex-col gap-3">
-                                @foreach (var _Light in _Group)
+                                @foreach (var _Light in _Group.Lights)
                                 {
                                     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
                                         <div class="flex items-center gap-3">
@@ -97,6 +92,11 @@
                             </div>
                         </section>
                     }
+
+                    @if (this.m_LastSynced != null)
+                    {
+                        <p class="text-xs text-zinc-600 text-center pb-2">Last synced @this.m_LastSynced</p>
+                    }
                 </div>
             }
         </div>
@@ -133,9 +133,9 @@
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
     private ErrorHandler? m_ErrorHandler;
-    private List<LightDto>? m_Lights;
-    private bool m_Loading;
-    private bool m_Unavailable;
+    private List<LightGroupDto>? m_Groups;
+    private string? m_LastSynced;
+    private bool m_Syncing;
 
     #endregion Fields
 
@@ -157,39 +157,53 @@
     private static int Percent(double value)
         => (int)Math.Round(Math.Clamp(value, 0d, 1d) * 100d);
 
-    // Approximates the bulb's current colour for the status dot. Saturation 0 means the bulb is
-    // showing white, so fall back to a warm tone rather than rendering grey.
+    // Approximates the bulb's colour for the status dot. Saturation 0 means the bulb is showing
+    // white, so fall back to a warm tone rather than rendering grey.
     private static string SwatchFor(LightDto light)
     {
         if (!light.IsConnected || !light.IsOn)
             return "#3f3f46";
 
-        var _Lightness = 35 + (Math.Clamp(light.Brightness, 0d, 1d) * 35d);
+        var _Lightness = (35 + (Math.Clamp(light.Brightness, 0d, 1d) * 35d))
+            .ToString("0", CultureInfo.InvariantCulture);
 
         return light.Saturation <= 0.01
-            ? $"hsl(40, 55%, {_Lightness.ToString("0", CultureInfo.InvariantCulture)}%)"
-            : $"hsl({light.Hue.ToString("0", CultureInfo.InvariantCulture)}, {Percent(light.Saturation)}%, {_Lightness.ToString("0", CultureInfo.InvariantCulture)}%)";
+            ? $"hsl(40, 55%, {_Lightness}%)"
+            : $"hsl({light.Hue.ToString("0", CultureInfo.InvariantCulture)}, {Percent(light.Saturation)}%, {_Lightness}%)";
     }
 
+    // Free — this reads Home's own records, not LIFX.
     private async Task LoadLightsAsync()
     {
-        this.m_Loading = true;
-        this.m_Unavailable = false;
-
         var _Result = await this.ApiAccess.SendRequestAsync<object, GetLightsWebAppResponse>(
             null!, ApiProvider.GetLights(),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        this.m_Loading = false;
+        if (_Result != null)
+            this.m_Groups = _Result.Groups;
+    }
+
+    private async Task SyncLightsAsync()
+    {
+        if (this.m_Syncing)
+            return;
+
+        this.m_Syncing = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, SyncLightsWebAppResponse>(
+            null!, ApiProvider.SyncLights(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_Syncing = false;
 
         if (_Result == null)
-        {
-            this.m_Unavailable = this.m_Lights == null;
             return;
-        }
 
-        this.m_Lights = _Result.Lights;
+        this.m_LastSynced = DateTime.Now.ToString("h:mm tt");
+
+        await this.LoadLightsAsync();
     }
 
     private Task SetPowerAsync(LightDto light, bool isOn)
@@ -217,17 +231,14 @@
         return this.SendAsync(light, _Request);
     }
 
-    private async Task SetGroupPowerAsync(string groupName, bool isOn)
+    private async Task SetGroupPowerAsync(LightGroupDto group, bool isOn)
     {
-        if (this.m_Lights == null)
-            return;
-
-        foreach (var _Light in this.m_Lights.Where(l => l.GroupName == groupName && l.IsConnected).ToList())
+        foreach (var _Light in group.Lights.Where(l => l.IsConnected).ToList())
             await this.SetPowerAsync(_Light, isOn);
     }
 
-    // The UI is updated before the call so the tablet feels instant. If the call fails the light
-    // list is reloaded, which snaps the control back to whatever the bulb actually did.
+    // The UI updates before the call so the tablet feels instant. On failure the list is reloaded,
+    // which snaps the control back to whatever Home last knew.
     private async Task SendAsync(LightDto light, SetLightStateWebAppRequest request)
     {
         var _Result = await this.ApiAccess.SendRequestAsync<SetLightStateWebAppRequest, bool>(
