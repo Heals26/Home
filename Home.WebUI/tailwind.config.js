@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  purge: [
+  // v3 renamed `purge` to `content`, and scanning is always on — there is no longer a
+  // NODE_ENV gate, so the output is only ever the classes this project actually uses.
+  content: [
     './**/*.razor',
     './**/*.html',
     './**/*.cshtml',
@@ -8,7 +10,9 @@ module.exports = {
     '!./obj/**/*',
     '!./bin/**/*'
   ],
-  darkMode: false,
+  // The app is dark-only by design — the palette below IS the dark palette and there is no
+  // toggle. 'class' means `dark:` variants never activate, since nothing sets the class.
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -46,11 +50,7 @@ module.exports = {
       },
     },
   },
-  variants: {
-    extend: {
-      scale: ['active'],
-      backgroundColor: ['active'],
-    },
-  },
+  // v2 needed `variants.extend` to opt into active: styles. v3 enables every variant by
+  // default, so the old block is gone — active:scale-95 and active:bg-* just work.
   plugins: [],
 }
