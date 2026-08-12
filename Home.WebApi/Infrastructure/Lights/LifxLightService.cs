@@ -89,6 +89,87 @@ internal class LifxLightService(HttpClient httpClient, ILogger<LifxLightService>
         return _Result;
     }
 
+    public async Task<LightCommandResult> StartEffectAsync(
+        IReadOnlyCollection<string> lightIDs,
+        LightEffectRequest effect,
+        CancellationToken cancellationToken)
+    {
+        if (lightIDs.Count == 0)
+            return LightCommandResult.Applied;
+
+        // "off" takes a different body from the running effects, so build them separately.
+        var _Path = effect.Kind switch
+        {
+            LightEffectKind.Breathe => "breathe",
+            LightEffectKind.Pulse => "pulse",
+            _ => "off"
+        };
+
+        var _Body = effect.Kind == LightEffectKind.Off
+            ? new Dictionary<string, object> { ["power_off"] = false }
+            : new Dictionary<string, object>
+            {
+                ["color"] = Format("hue", Math.Clamp(effect.Hue, 0d, 360d))
+                    + ' ' + Format("saturation", Math.Clamp(effect.Saturation, 0d, 1d)),
+                ["period"] = Math.Clamp(effect.PeriodSeconds, 0.1d, 3600d),
+                ["cycles"] = Math.Clamp(effect.Cycles, 1d, 1000d),
+                ["power_on"] = effect.PowerOn,
+                // Without this the bulb snaps back to its previous colour when the effect ends,
+                // which is what makes an effect feel like a notification rather than a state change.
+                ["persist"] = false
+            };
+
+        var _Payload = JsonSerializer.Serialize(_Body);
+        var _Result = LightCommandResult.Applied;
+
+        foreach (var _Chunk in Chunk(lightIDs, LightValues.MaxSelectorsPerRequest))
+        {
+            var _ChunkResult = await this.SendEffectAsync(_Chunk, _Path, _Payload, cancellationToken);
+
+            if (_ChunkResult == LightCommandResult.Unavailable)
+                return LightCommandResult.Unavailable;
+
+            if (_ChunkResult == LightCommandResult.LightNotFound)
+                _Result = LightCommandResult.LightNotFound;
+        }
+
+        return _Result;
+    }
+
+    private async Task<LightCommandResult> SendEffectAsync(
+        IReadOnlyList<string> lightIDs,
+        string effectPath,
+        string payload,
+        CancellationToken cancellationToken)
+    {
+        var _Selector = string.Join(',', lightIDs.Select(id => $"id:{Uri.EscapeDataString(id)}"));
+
+        try
+        {
+            using var _Content = new StringContent(payload, Encoding.UTF8, "application/json");
+            using var _Response = await httpClient.PostAsync(
+                $"lights/{_Selector}/effects/{effectPath}", _Content, cancellationToken);
+
+            if (_Response.StatusCode is HttpStatusCode.NotFound)
+                return LightCommandResult.LightNotFound;
+
+            if (!_Response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("LIFX returned {StatusCode} starting the {Effect} effect.",
+                    _Response.StatusCode, effectPath);
+
+                return LightCommandResult.Unavailable;
+            }
+
+            return LightCommandResult.Applied;
+        }
+        catch (Exception _Exception) when (_Exception is HttpRequestException or TaskCanceledException)
+        {
+            logger.LogWarning(_Exception, "Could not reach LIFX to start the {Effect} effect.", effectPath);
+            return LightCommandResult.Unavailable;
+        }
+    }
+
     private async Task<LightCommandResult> SendStateAsync(
         IReadOnlyList<string> lightIDs,
         string payload,

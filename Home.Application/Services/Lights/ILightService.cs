@@ -30,6 +30,14 @@ public interface ILightService
     /// </summary>
     Task<LightCommandResult> SetStateAsync(string lightID, LightStateChange change, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Starts, or with <see cref="LightEffectKind.Off"/> cancels, an effect across the given lights.
+    /// </summary>
+    Task<LightCommandResult> StartEffectAsync(
+        IReadOnlyCollection<string> lightIDs,
+        LightEffectRequest effect,
+        CancellationToken cancellationToken);
+
     #endregion Methods
 
 }

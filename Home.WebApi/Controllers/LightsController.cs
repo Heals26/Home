@@ -1,13 +1,16 @@
 using Home.Application.UseCases.Lights.GetLights;
 using Home.Application.UseCases.Lights.SetLightState;
+using Home.Application.UseCases.Lights.StartLightEffect;
 using Home.Application.UseCases.Lights.SyncLights;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.Lights.GetLights;
 using Home.WebApi.Presenters.Lights.SetLightState;
+using Home.WebApi.Presenters.Lights.StartLightEffect;
 using Home.WebApi.Presenters.Lights.SyncLights;
 using Home.WebApi.UseCases.Lights.GetLights;
 using Home.WebApi.UseCases.Lights.SetLightState;
+using Home.WebApi.UseCases.Lights.StartLightEffect;
 using Home.WebApi.UseCases.Lights.SyncLights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +33,20 @@ public class LightsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetLightsInputPort(), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpPost("effects")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IActionResult> StartLightEffect(
+        [FromServices] StartLightEffectPresenter presenter,
+        [FromBody] StartLightEffectApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new StartLightEffectInputPort(request.LightGroupID, request.Kind, request.Hue, request.Saturation, request.PeriodSeconds, request.Cycles), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
