@@ -50,31 +50,76 @@ internal class LifxLightService(HttpClient httpClient, ILogger<LifxLightService>
         }
     }
 
-    public async Task<LightCommandResult> SetStateAsync(
+    public Task<LightCommandResult> SetStateAsync(
         string lightID,
+        LightStateChange change,
+        CancellationToken cancellationToken)
+        => this.SetGroupStateAsync([lightID], change, cancellationToken);
+
+    /// <summary>
+    /// LIFX accepts up to <see cref="LightValues.MaxSelectorsPerRequest"/> comma-separated
+    /// selectors in one call, so a whole room costs one request rather than one per bulb. Larger
+    /// sets are chunked; a partial failure across chunks is reported as a failure overall.
+    /// </summary>
+    public async Task<LightCommandResult> SetGroupStateAsync(
+        IReadOnlyCollection<string> lightIDs,
         LightStateChange change,
         CancellationToken cancellationToken)
     {
         var _Body = BuildStateBody(change);
 
-        if (_Body.Count == 0)
+        if (_Body.Count == 0 || lightIDs.Count == 0)
             return LightCommandResult.Applied;
+
+        var _Payload = JsonSerializer.Serialize(_Body);
+        var _Result = LightCommandResult.Applied;
+
+        foreach (var _Chunk in Chunk(lightIDs, LightValues.MaxSelectorsPerRequest))
+        {
+            var _ChunkResult = await this.SendStateAsync(_Chunk, _Payload, cancellationToken);
+
+            // Unavailable outranks NotFound: one bulb missing matters less than the hub being down.
+            if (_ChunkResult == LightCommandResult.Unavailable)
+                return LightCommandResult.Unavailable;
+
+            if (_ChunkResult == LightCommandResult.LightNotFound)
+                _Result = LightCommandResult.LightNotFound;
+        }
+
+        return _Result;
+    }
+
+    private async Task<LightCommandResult> SendStateAsync(
+        IReadOnlyList<string> lightIDs,
+        string payload,
+        CancellationToken cancellationToken)
+    {
+        var _Selector = string.Join(',', lightIDs.Select(id => $"id:{Uri.EscapeDataString(id)}"));
 
         try
         {
-            using var _Content = new StringContent(
-                JsonSerializer.Serialize(_Body), Encoding.UTF8, "application/json");
-
-            using var _Response = await httpClient.PutAsync(
-                $"lights/id:{Uri.EscapeDataString(lightID)}/state", _Content, cancellationToken);
+            using var _Content = new StringContent(payload, Encoding.UTF8, "application/json");
+            using var _Response = await httpClient.PutAsync($"lights/{_Selector}/state", _Content, cancellationToken);
 
             if (_Response.StatusCode is HttpStatusCode.NotFound)
                 return LightCommandResult.LightNotFound;
 
+            // 429 means we have run out of the 120-per-minute budget. Treated as unavailable so the
+            // caller backs off rather than retrying into the same wall.
+            if (_Response.StatusCode is HttpStatusCode.TooManyRequests)
+            {
+                logger.LogWarning("LIFX rate limit hit; {Remaining} requests left, resets at {Reset}.",
+                    HeaderValue(_Response, "X-RateLimit-Remaining"),
+                    HeaderValue(_Response, "X-RateLimit-Reset"));
+
+                return LightCommandResult.Unavailable;
+            }
+
             if (!_Response.IsSuccessStatusCode)
             {
-                logger.LogWarning("LIFX returned {StatusCode} setting state on {LightID}.",
-                    _Response.StatusCode, lightID);
+                logger.LogWarning("LIFX returned {StatusCode} setting state on {LightCount} light(s).",
+                    _Response.StatusCode, lightIDs.Count);
+
                 return LightCommandResult.Unavailable;
             }
 
@@ -82,10 +127,32 @@ internal class LifxLightService(HttpClient httpClient, ILogger<LifxLightService>
         }
         catch (Exception _Exception) when (_Exception is HttpRequestException or TaskCanceledException)
         {
-            logger.LogWarning(_Exception, "Could not reach LIFX to set state on {LightID}.", lightID);
+            logger.LogWarning(_Exception, "Could not reach LIFX to set state on {LightCount} light(s).", lightIDs.Count);
             return LightCommandResult.Unavailable;
         }
     }
+
+    private static IEnumerable<IReadOnlyList<string>> Chunk(IReadOnlyCollection<string> source, int size)
+    {
+        var _Batch = new List<string>(size);
+
+        foreach (var _Item in source)
+        {
+            _Batch.Add(_Item);
+
+            if (_Batch.Count != size)
+                continue;
+
+            yield return _Batch;
+            _Batch = new List<string>(size);
+        }
+
+        if (_Batch.Count > 0)
+            yield return _Batch;
+    }
+
+    private static string HeaderValue(HttpResponseMessage response, string name)
+        => response.Headers.TryGetValues(name, out var _Values) ? string.Join(',', _Values) : "unknown";
 
     /// <summary>
     /// Only the properties that were actually set make it into the request, so adjusting

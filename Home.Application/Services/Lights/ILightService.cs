@@ -2,7 +2,7 @@ namespace Home.Application.Services.Lights;
 
 /// <summary>
 /// The boundary to whatever actually drives the bulbs. Implemented in the outer layer so the
-/// use cases never know LIFX exists.
+/// use cases never know which vendor is on the other end.
 /// </summary>
 public interface ILightService
 {
@@ -15,6 +15,15 @@ public interface ILightService
     /// normal Tuesday, not an exception.
     /// </summary>
     Task<IReadOnlyList<LightSnapshot>?> GetLightsAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Applies one partial state change to many lights at once. Implementations should address the
+    /// whole set in as few provider calls as possible rather than looping per light.
+    /// </summary>
+    Task<LightCommandResult> SetGroupStateAsync(
+        IReadOnlyCollection<string> lightIDs,
+        LightStateChange change,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Applies a partial state change to one light.
