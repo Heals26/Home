@@ -7,80 +7,60 @@ the `anthropic-skills` plugin at `code-review/references/csharp-blazor-style.md`
 Neither list is a licence to refactor. Fix an item when it is the task, or when you are already
 editing that exact code and the fix is a line or two. Otherwise mention it and move on.
 
-Last verified: 12 August 2026, against commit `8948006`.
+Last verified: 12 August 2026, against commit `30da990`.
 
 ---
 
 ## Part 1 — What the repo doesn't do
 
-### No tests
+### Test coverage is one slice deep
 
-Zero test projects. Nothing in `Home.Application` — where all the branching logic lives — has a unit
-test. Interactors are cleanly testable (`ServiceFactory` is a delegate, `IPersistenceContext` is an
-interface), so the barrier is starting, not design.
+`Home.Application.Tests` exists (xUnit + Moq + FluentAssertions) and covers the Recipes and Lights
+interactors — 19 tests. Everything else in `Home.Application` is untested: Activities, Shopping
+Lists, Users, OAuth, and all of the `EntityLogic` services. There are no tests at all for
+`Home.WebApi` presenters or `Home.WebUI` components.
 
-### No CI
+The pattern to copy is in `Infrastructure/TestServiceFactory.cs`: interactors have no constructor,
+so the `ServiceFactory` delegate is the only seam.
 
-`.github/workflows/` exists and is empty. Nothing builds or checks the repo on push.
+### 145 compiler warnings
 
-### 618 compiler warnings
-
-A clean `dotnet build` produces 618 warnings, 0 errors. Roughly:
+A clean `dotnet build` produces 145 warnings, 0 errors. Effectively all of them are nullable
+reference warnings:
 
 | Code | ~Count | Cause |
 |---|---|---|
-| `CS1591` | 469 | Missing XML docs. `Home.WebApi` sets `GenerateDocumentationFile` for Swagger but never documents its models and has no `NoWarn` |
 | `CS8618` | 115 | Non-nullable property never initialised — mostly domain entities and API models |
 | `CS8603` / `CS8601` / `CS8604` | 20 | Possible null return / assignment |
+| `CS8765` / `CS8767` | 4 | Nullability mismatch on an override or interface implementation |
 | `CS1998` | 2 | `async` with no `await` |
 
-Because of this, "no new warnings" is not currently an enforceable bar. The practical rule: don't
-introduce a *new category* of warning.
+The practical rule: **don't introduce a new *category* of warning.** Clearing the CS8618 backlog
+means either `required` modifiers or nullable annotations across the entity layer — a real piece of
+work, not a drive-by.
 
 ### `Home.WebApi` has nullable disabled
 
-Every other project sets `<Nullable>enable</Nullable>`. `Home.WebApi` sets `disable`. Turning it on
-would surface a large number of new warnings, so it is a deliberate-looking deferral rather than an
-oversight.
+Every other project sets `<Nullable>enable</Nullable>`. `Home.WebApi` sets `disable`, and suppresses
+`CS1591` because `GenerateDocumentationFile` is on for Swagger rather than for documentation
+coverage. Files that need nullable-aware contracts opt in with a `#nullable enable` at the top —
+`Infrastructure/Lights/LifxLightService.cs` is the example.
 
-### Vulnerable dependencies
+### The Light entities are now orphaned
 
-- **AutoMapper** — `NU1903`, high severity ([GHSA-rvv3-g6hj-g44x](https://github.com/advisories/GHSA-rvv3-g6hj-g44x)).
-  Both versions in use are affected, and there are two of them: `11.0.0` in `Home.Application`,
-  `13.0.1` in `Home.WebApi`.
-- **npm** — 4 high-severity advisories. Tailwind is pinned to `^2.2.19` (2021).
+`Light`, `LightGroup` and `LightLocation` have entities, EF configurations and migrations, and are
+referenced by nothing. The Lights feature proxies LIFX live rather than persisting topology, because
+LIFX already returns group and location with every bulb and is the source of truth for state.
 
-### The build needs an undocumented step
+They're harmless but they are dead tables. Either drop them in a migration, or use them for the
+thing the API can't give you — per-household display order, friendlier room names, favourites.
+That's a decision for Mitch, not a cleanup.
 
-`Home.WebUI.csproj:15` runs `npm run build:css` as a pre-build `Exec`. On a clean clone
-`node_modules` doesn't exist, `tailwindcss` isn't on PATH, the command exits 1, and the **whole
-solution build fails**. `cd Home.WebUI && npm install` fixes it. Nothing in the repo says so.
+### Configuration lives entirely outside the repo
 
-### `app.css` is a 4.4 MB generated file under version control
-
-`Home.WebUI/wwwroot/css/app.css` is the unpurged Tailwind output, committed. Tailwind 2's `purge`
-key only activates when `NODE_ENV=production`, which nothing sets — so every build regenerates the
-full utility set and dirties the working tree.
-
-### Configuration is undocumented
-
-`Home.WebApi` has no `appsettings.json`. It reads `databaseConnectionString` from user secrets
-(`UserSecretsId` `f6b1d435-a9e7-483c-bb25-be7f9fd4bdba`). A fresh clone cannot run the API and gets
-no hint why.
-
-### Dead code
-
-- `Home.Domain/Entities/RecipeRegiom.cs` — typo for `RecipeRegion`, holds one property, referenced
-  nowhere, not in any EF configuration or migration.
-- `Home.WebUI/Components/Layout/LightsLayout.razor` — empty stub. Its one style attribute is also
-  malformed: `style="border 1px black;"` is missing the colon.
-- `Home.WebUI/wwwroot/app.css` — 0 bytes. The real file is `wwwroot/css/app.css`.
-
-### The Lights feature is half-built
-
-`Light`, `LightGroup` and `LightLocation` have entities, EF configurations and migrations. They have
-no use cases, no controller and no UI. Either finish it or drop the entities — right now the schema
-carries tables nothing can reach.
+`Home.WebApi` has no `appsettings.json`. `databaseConnectionString`, `lifxApiToken` (API) and
+`apiBaseUrl` (WebUI) all come from user secrets. `CLAUDE.md` documents them; nothing validates them
+at startup beyond `apiBaseUrl`.
 
 ### Minor inconsistency
 
@@ -103,13 +83,13 @@ below the signature, composition over inheritance in components, kebab-case CSS 
 
 | Work rule | Home | Verified |
 |---|---|---|
-| Required parameters get `[EditorRequired]` | Never used | 0 of 76 `[Parameter]` declarations |
+| Required parameters get `[EditorRequired]` | Never used | 0 of 77 `[Parameter]` declarations |
 | Don't use cascading parameters | Core to the cancellation pattern | 6 files |
 | Code-behind `.razor.cs` for non-trivial logic | Everything is inline `@code` | 0 `.razor.cs`; 27 of 30 `.razor` have `@code`; `RecipeDetailPage.razor` has a 402-line block |
 | Component styles in co-located `.razor.css` | Tailwind utilities inline | 1 `.razor.css` in the whole project |
 | Global CSS is theme tokens only | `input.css` also holds the icon system and component classes | `@layer components` |
 | Chained calls: every call on its own line | First call stays on the source line | `_PersistenceContext.GetEntities<Recipe>()` then `.Where(...)` indented |
-| Booleans set by name only, not `="true"` | Uses the explicit form | `ShowBack="true"` ×4, `Propagation="true"`, `Default="true"` |
+| Booleans set by name only, not `="true"` | Mixed — newer code uses name-only | `ShowBack="true"` ×3, `Propagation="true"`, `Default="true"` |
 | Splatted attributes filter `class`/`style` | `HomeButton` builds its own `class` *and* splats `@attributes` unfiltered | `@attributes` sits after `class=`, so a splatted `class` wins |
 | Component parameters alphabetically ordered | Ordered by importance | `HomeButton`: `ChildContent`, `Variant`, `Size`, `Disabled`… |
 | `[Inject]` fields are private | No `[Inject]`; two services `@inject`-ed globally in `_Imports.razor` | Every component gets `ApiAccess` whether it needs it or not |

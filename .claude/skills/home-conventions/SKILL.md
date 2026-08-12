@@ -19,8 +19,9 @@ Dependencies point inwards. `Home.Domain` references nothing.
 | `Home.Domain` | EF entities, enumerations, domain services | Anaemic entities: properties only, no behaviour |
 | `Home.Application` | Input ports, interactors, output port interfaces, entity logic, validators | The use case layer. Interactors are `internal` |
 | `Home.Persistence` | `PersistenceContext`, EF configurations, migrations | SQL Server; WebApi can also run SQLite |
-| `Home.WebApi` | Controllers, presenters, API request/response models | Thin. Controllers only invoke the pipeline |
+| `Home.WebApi` | Controllers, presenters, API request/response models, external-service adapters | Thin. Controllers only invoke the pipeline |
 | `Home.WebUI` | Blazor Server components, DataAccess models, API providers | Tailwind, no MudBlazor |
+| `Home.Application.Tests` | xUnit + Moq + FluentAssertions (pinned to 7.x) | Interactors only, so far |
 
 Two solution filters exist: `API.slnf` (backend only) and `WebApp.slnf` (front end).
 
@@ -151,6 +152,24 @@ Read `references/use-case-slice.md`. It walks the seven files end to end with th
 each, using `GetRecipe` as the worked example. Do not improvise this — the pipeline wiring is
 convention-driven and easy to get subtly wrong.
 
+## Talking to something outside the database
+
+The Lights slice is the reference. An interface goes in `Home.Application/Services/{Thing}/`
+alongside the plain records it exchanges; the concrete adapter goes in
+`Home.WebApi/Infrastructure/{Thing}/` and is `internal`. The use cases never learn which vendor is
+on the other end.
+
+Two rules that fall out of that:
+
+- **An unreachable dependency is a return value, not an exception.** `ILightService` returns null or
+  a `LightCommandResult`, and the presenter turns that into a 503. Adapters catch
+  `HttpRequestException` / `TaskCanceledException` / `JsonException` themselves.
+- **The vendor's wire types stay in the adapter.** `LifxLight` never escapes
+  `Home.WebApi/Infrastructure/Lights/`; it is mapped to `LightSnapshot` at the boundary.
+
+Partial updates use `PropertyChangeTracker<T>` the same way `UpdateRecipe` does, so setting one
+property can't clobber another.
+
 ## Working on the Blazor front end
 
 Read `references/blazor-ui.md`. Covers the `Home*` component library, the Tailwind
@@ -178,7 +197,9 @@ dotnet ef migrations add [Explanation] --project Home.Persistence --context Pers
 ## Before you finish
 
 - Members alphabetised within regions, `#endregion` labels match.
-- No new compiler warnings **of a type the file doesn't already emit** — the repo carries 618
-  existing warnings, so "zero warnings" is not the bar yet. Don't add new categories.
-- Don't commit `Home.WebUI/wwwroot/css/app.css` regenerations as incidental diff noise; it is a
-  4.4 MB generated file (see `references/known-gaps.md`).
+- `dotnet test` passes.
+- No new compiler warnings **of a category the build doesn't already emit** — the repo carries ~145
+  nullable warnings, so "zero warnings" is not the bar yet, but a new code is a regression. If you
+  need a nullable annotation inside `Home.WebApi`, put `#nullable enable` at the top of that file
+  rather than letting `CS8632` appear.
+- `Home.WebUI/wwwroot/css/app.css` is generated and gitignored. Edit `wwwroot/css/input.css`.
