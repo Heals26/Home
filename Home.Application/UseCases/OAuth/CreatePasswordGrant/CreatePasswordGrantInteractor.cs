@@ -64,7 +64,7 @@ internal class CreatePasswordGrantInteractor : IInteractor<CreatePasswordGrantIn
         {
             AccessToken = _AccessToken,
             ClientApplication = _ClientApplication,
-            DateSetUTC = DateTime.UtcNow,
+            DateSetUTC = serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime,
             RefreshToken = _RefreshToken,
             Scopes = string.Join(",", [OAuthValues.WebAppScope.Name]),
             User = _User

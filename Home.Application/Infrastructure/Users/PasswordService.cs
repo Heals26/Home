@@ -5,7 +5,10 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Home.Application.Infrastructure.Users;
 
-public class PasswordService(IPersistenceContext persistenceContext, IPasswordHasher<User> passwordHasher) : IPasswordService
+public class PasswordService(
+    IPersistenceContext persistenceContext,
+    IPasswordHasher<User> passwordHasher,
+    TimeProvider timeProvider) : IPasswordService
 {
 
     #region Methods
@@ -13,7 +16,7 @@ public class PasswordService(IPersistenceContext persistenceContext, IPasswordHa
     void IPasswordService.SetPassword(User user, string password)
     {
         user.Password = passwordHasher.HashPassword(user, password);
-        user.PasswordLastChanged = DateTime.UtcNow;
+        user.PasswordLastChanged = timeProvider.GetUtcNow().UtcDateTime;
     }
 
     async Task<bool> IPasswordService.VerifyPasswordAsync(User user, string password, CancellationToken cancellationToken)

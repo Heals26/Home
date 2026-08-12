@@ -6,8 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Home.Application.Logic.Audits;
 
-public class ActivityAuditLogic(IAuthorisationService authorisationService, IPersistenceContext persistenceContext)
-    : AuditBase<Activity>(authorisationService, persistenceContext)
+public class ActivityAuditLogic(
+    IAuthorisationService authorisationService,
+    IPersistenceContext persistenceContext,
+    TimeProvider timeProvider)
+    : AuditBase<Activity>(authorisationService, persistenceContext, timeProvider)
 {
 
     #region Methods
@@ -15,7 +18,7 @@ public class ActivityAuditLogic(IAuthorisationService authorisationService, IPer
     protected override void AddEntity(Activity activity)
         => persistenceContext.Add(new Audit()
         {
-            ModifiedDateUTC = DateTime.UtcNow,
+            ModifiedDateUTC = this.NowUTC,
             User = this.GetUser(),
             Entity = ResourceTypeSE.Activity,
             EntityID = activity.ActivityID,
@@ -35,7 +38,7 @@ public class ActivityAuditLogic(IAuthorisationService authorisationService, IPer
     protected override void UpdateEntity(Activity entity)
         => persistenceContext.Add(new Audit()
         {
-            ModifiedDateUTC = DateTime.UtcNow,
+            ModifiedDateUTC = this.NowUTC,
             User = this.GetUser(),
             Entity = ResourceTypeSE.Activity,
             EntityID = entity.ActivityID,

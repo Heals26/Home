@@ -21,6 +21,7 @@ using Home.Domain.Services.Audits;
 using Home.Domain.Services.Users;
 using Home.Persistence.Database;
 using Home.WebApi;
+using Home.WebApi.Infrastructure.AutoMapper.Resolvers;
 using Home.WebApi.Infrastructure.Extensions;
 using Home.WebApi.Infrastructure.Filters;
 using Home.WebApi.Infrastructure.Lights;
@@ -186,6 +187,9 @@ static IServiceCollection SetupEntityFramework(IServiceCollection services, ICon
 static IServiceCollection SetupInfrastructure(IServiceCollection services)
 {
     _ = services.AddControllers();
+
+    // Open generic, so AutoMapper can close it per grant response when it resolves the resolver.
+    _ = services.AddTransient(typeof(TokenExpiresInResolver<>));
 
     _ = services.AddAutoMapper(cfg => { },
         Home.Application.AssemblyUtility.GetAssembly(),

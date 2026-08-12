@@ -6,8 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Home.Application.Logic.Audits;
 
-public class ShoppingListAuditLogic(IAuthorisationService authorisationService, IPersistenceContext persistenceContext)
-    : AuditBase<ShoppingList>(authorisationService, persistenceContext)
+public class ShoppingListAuditLogic(
+    IAuthorisationService authorisationService,
+    IPersistenceContext persistenceContext,
+    TimeProvider timeProvider)
+    : AuditBase<ShoppingList>(authorisationService, persistenceContext, timeProvider)
 {
 
     #region Methods
@@ -15,7 +18,7 @@ public class ShoppingListAuditLogic(IAuthorisationService authorisationService, 
     protected override void AddEntity(ShoppingList shoppingList)
         => persistenceContext.Add(new Audit()
         {
-            ModifiedDateUTC = DateTime.UtcNow,
+            ModifiedDateUTC = this.NowUTC,
             User = this.GetUser(),
             Entity = ResourceTypeSE.ShoppingCart,
             EntityID = shoppingList.ShoppingListID,
@@ -35,7 +38,7 @@ public class ShoppingListAuditLogic(IAuthorisationService authorisationService, 
     protected override void UpdateEntity(ShoppingList shoppingList)
         => persistenceContext.Add(new Audit()
         {
-            ModifiedDateUTC = DateTime.UtcNow,
+            ModifiedDateUTC = this.NowUTC,
             User = this.GetUser(),
             Entity = ResourceTypeSE.ShoppingCart,
             EntityID = shoppingList.ShoppingListID,

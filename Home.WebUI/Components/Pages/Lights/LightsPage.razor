@@ -141,7 +141,7 @@
         if (_Result == null)
             return;
 
-        this.m_LastSynced = DateTime.Now.ToString("h:mm tt");
+        this.m_LastSynced = this.TimeProvider.GetLocalNow().ToString("h:mm tt");
 
         await this.LoadLightsAsync();
     }

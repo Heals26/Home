@@ -7,6 +7,8 @@ using Home.WebApi.UseCases.OAuth;
 using Home.WebApi.UseCases.OAuth.CreatePasswordGrant;
 using Home.WebApi.UseCases.OAuth.CreateRefreshGrant;
 
+using Home.WebApi.Infrastructure.AutoMapper.Resolvers;
+
 namespace Home.WebApi.Infrastructure.AutoMapper;
 
 public class OAuthProfile : Profile
@@ -18,14 +20,14 @@ public class OAuthProfile : Profile
     {
         _ = this.CreateMap<OAuthApiRequest, CreatePasswordGrantInputPort>();
         _ = this.CreateMap<UserAuthentication, CreatePasswordGrantApiResponse>()
-            .ForMember(d => d.ExpiresIn, o => o.MapFrom(s => (long)(s.DateSetUTC.AddHours(1) - DateTime.UtcNow).TotalSeconds))
+            .ForMember(d => d.ExpiresIn, o => o.MapFrom<TokenExpiresInResolver<CreatePasswordGrantApiResponse>>())
             .ForMember(d => d.GrantType, o => o.MapFrom(s => OAuthValues.GrantTypePassword))
             .ForMember(d => d.Scope, o => o.MapFrom(s => string.Join(",", OAuthValues.WebAppScope.Name)))
             .ForMember(d => d.UserID, o => o.MapFrom(s => s.User.UserID));
 
         _ = this.CreateMap<OAuthApiRequest, CreateRefreshGrantInputPort>();
         _ = this.CreateMap<UserAuthentication, CreateRefreshGrantApiResponse>()
-            .ForMember(d => d.ExpiresIn, o => o.MapFrom(s => (long)(s.DateSetUTC.AddHours(1) - DateTime.UtcNow).TotalSeconds))
+            .ForMember(d => d.ExpiresIn, o => o.MapFrom<TokenExpiresInResolver<CreateRefreshGrantApiResponse>>())
             .ForMember(d => d.GrantType, o => o.MapFrom(s => OAuthValues.GrantTypeRefresh))
             .ForMember(d => d.Scope, o => o.MapFrom(s => string.Join(",", OAuthValues.WebAppScope.Name)))
             .ForMember(d => d.UserID, o => o.MapFrom(s => s.User.UserID));

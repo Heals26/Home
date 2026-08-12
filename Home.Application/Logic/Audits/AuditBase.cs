@@ -6,9 +6,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Home.Application.Logic.Audits;
 
-public abstract class AuditBase<TEntity>(IAuthorisationService authorisationService, IPersistenceContext persistenceContext)
+public abstract class AuditBase<TEntity>(
+    IAuthorisationService authorisationService,
+    IPersistenceContext persistenceContext,
+    TimeProvider timeProvider)
     : IAuditLogic<TEntity> where TEntity : class
 {
+
+    #region Properties
+
+    /// <summary>
+    /// Audit timestamps come from here rather than DateTime.UtcNow so they can be fixed in tests.
+    /// </summary>
+    protected DateTime NowUTC => timeProvider.GetUtcNow().UtcDateTime;
+
+    #endregion Properties
 
     #region Methods
 

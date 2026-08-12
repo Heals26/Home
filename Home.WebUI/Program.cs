@@ -45,6 +45,9 @@ _Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
 
     options.BaseAddress = new(_BaseUrlString);
 });
+// The BCL clock abstraction (.NET 8). Components read the time through this rather than
+// DateTime.Now, which also keeps "now" consistent across a single render.
+_Builder.Services.AddSingleton(TimeProvider.System);
 _Builder.Services.AddScoped<AuthorisationService>();
 _Builder.Services.AddScoped<IAuthorisationService>(sp => sp.GetRequiredService<AuthorisationService>());
 _Builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthorisationService>());

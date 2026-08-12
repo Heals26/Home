@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace Home.WebApi.Middleware;
 
-public class ApiAuditing(RequestDelegate next)
+public class ApiAuditing(RequestDelegate next, TimeProvider timeProvider)
 {
 
     #region Methods
@@ -15,7 +15,7 @@ public class ApiAuditing(RequestDelegate next)
     {
         var _AuditEntry = context.RequestServices.GetRequiredService<CreateApiAuditEntry>();
 
-        ApiAuditing.SetAuditEntryRequestData(_AuditEntry.RequestData, context);
+        ApiAuditing.SetAuditEntryRequestData(_AuditEntry.RequestData, context, timeProvider.GetUtcNow().UtcDateTime);
 
         // --------------------------------------------------------------------------------
         // Invoke next piece of Middleware in the request pipeline.
@@ -26,7 +26,7 @@ public class ApiAuditing(RequestDelegate next)
         // On Response Out
 
         // Set the Response Data.
-        ApiAuditing.SetAuditEntryResponseData(_AuditEntry.ResponseData, context);
+        ApiAuditing.SetAuditEntryResponseData(_AuditEntry.ResponseData, context, timeProvider.GetUtcNow().UtcDateTime);
 
         // Persist the Audit Entry.
         // Do not pollute the Audit Entries with heartbeat requests.
@@ -85,10 +85,13 @@ public class ApiAuditing(RequestDelegate next)
         }
     }
 
-    private static void SetAuditEntryRequestData(CreateApiAuditEntry.ApiAuditEntryRequestData requestData, HttpContext context)
+    private static void SetAuditEntryRequestData(
+        CreateApiAuditEntry.ApiAuditEntryRequestData requestData,
+        HttpContext context,
+        DateTime nowUTC)
     {
         requestData.RemoteIPAddress = context.Connection.RemoteIpAddress.ToString();
-        requestData.RequestReceivedOnUTC = DateTime.UtcNow;
+        requestData.RequestReceivedOnUTC = nowUTC;
         requestData.RequestUri = ApiAuditing.GetRequestAbsoluteUriString(context);
         requestData.UserAgent = TruncateUserAgent(context.Request.Headers["User-Agent"].ToString());
         var _Version = context.GetRequestedApiVersion()?.ToString();
@@ -105,10 +108,13 @@ public class ApiAuditing(RequestDelegate next)
         }
     }
 
-    private static void SetAuditEntryResponseData(CreateApiAuditEntry.ApiAuditEntryResponseData responseData, HttpContext context)
+    private static void SetAuditEntryResponseData(
+        CreateApiAuditEntry.ApiAuditEntryResponseData responseData,
+        HttpContext context,
+        DateTime nowUTC)
     {
         responseData.HttpResponseStatusCode = (short)context.Response.StatusCode;
-        responseData.ResponseSentOnUTC = DateTime.UtcNow;
+        responseData.ResponseSentOnUTC = nowUTC;
     }
 
     #endregion Methods

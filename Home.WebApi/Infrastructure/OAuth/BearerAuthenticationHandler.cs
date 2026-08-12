@@ -15,6 +15,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
     #region Fields
 
     private readonly IPersistenceContext m_PersistenceContext;
+    private readonly TimeProvider m_TimeProvider;
 
     #endregion Fields
 
@@ -24,9 +25,13 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        IPersistenceContext persistenceContext)
+        IPersistenceContext persistenceContext,
+        TimeProvider timeProvider)
         : base(options, logger, encoder)
-        => this.m_PersistenceContext = persistenceContext;
+    {
+        this.m_PersistenceContext = persistenceContext;
+        this.m_TimeProvider = timeProvider;
+    }
 
     #endregion Constructors
 
@@ -66,7 +71,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
                 return AuthenticateResult.Fail("Invalid Token");
             }
 
-            if (_AuthenticationMetadata.DateSetUTC.AddHours(1) < DateTime.UtcNow)
+            if (_AuthenticationMetadata.DateSetUTC.Add(FrameworkValues.AccessTokenLifetime) < this.m_TimeProvider.GetUtcNow().UtcDateTime)
             {
                 this.SetApiAuditEntry(null, nameof(TryValidateAuthorisationString), "Access token is invalid or has expired.");
                 return AuthenticateResult.Fail("Access token is invalid or has expired.");

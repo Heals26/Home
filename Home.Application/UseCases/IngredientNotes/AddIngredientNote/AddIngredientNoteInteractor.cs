@@ -36,7 +36,7 @@ internal class AddIngredientNoteInteractor : IInteractor<AddIngredientNoteInputP
         var _Note = new Note()
         {
             Content = inputPort.Content,
-            CreatedOnUTC = DateTime.UtcNow
+            CreatedOnUTC = serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime
         };
 
         _PersistenceContext.Add(_Note);
