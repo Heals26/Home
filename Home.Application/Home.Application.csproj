@@ -11,6 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Interactors are internal by convention; the test project needs to construct them. -->
+    <InternalsVisibleTo Include="Home.Application.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="15.1.1" />
     <PackageReference Include="CleanArchitecture.Mediator" Version="1.0.0-local" />
     <PackageReference Include="FluentValidation" Version="12.0.0" />
