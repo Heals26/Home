@@ -106,7 +106,26 @@ private static string GetRecipesBaseUrl()
     => $"{GetBaseApiUrl()}/Recipes";
 ```
 
-### 9. Non-nullable members get an initialiser
+### 9. Never read the clock directly
+
+`DateTime.UtcNow` and `DateTime.Now` appear nowhere outside migrations. Everything resolves
+`TimeProvider` (the .NET 8 abstraction) and calls `GetUtcNow().UtcDateTime` or `GetLocalNow()`.
+
+```csharp
+var _Now = serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime;   // interactor
+public class Thing(TimeProvider timeProvider)                                   // service
+@this.TimeProvider.GetLocalNow()                                                // Razor
+```
+
+Two traps worth knowing. A `static` helper cannot capture a primary-constructor parameter
+(`CS9105`) — pass the timestamp in instead. And an AutoMapper `Profile` is constructed without DI,
+so anything time-dependent goes in an `IValueResolver`, which is resolved from the container
+(`Infrastructure/AutoMapper/Resolvers/TokenExpiresInResolver.cs`).
+
+Tests get a `FakeTimeProvider` free from `TestServiceFactory`, fixed at
+`TestServiceFactory.DefaultNow`, so assert exact times rather than a tolerance window.
+
+### 10. Non-nullable members get an initialiser
 
 ```csharp
 public List<RecipeIngredientDto> Ingredients { get; set; } = [];
