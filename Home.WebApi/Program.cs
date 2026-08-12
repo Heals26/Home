@@ -29,6 +29,7 @@ using System.Text;
 
 var _Builder = WebApplication.CreateBuilder(args);
 
+SetupLogging(_Builder.Logging);
 SetupScopedServices(_Builder.Services);
 SetupScrutorServices(_Builder.Services);
 SetupSecrets(_Builder);
@@ -247,6 +248,11 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
 
     return services;
 }
+
+// AutoMapper 15+ is dual-licensed. This project sits well inside the free community tier, and a
+// missing licence key changes nothing at runtime other than a startup warning — so filter it out.
+static ILoggingBuilder SetupLogging(ILoggingBuilder logging)
+    => logging.AddFilter("LuckyPennySoftware.AutoMapper.License", LogLevel.None);
 
 static IServiceCollection SetupMediator(IServiceCollection services)
 {
