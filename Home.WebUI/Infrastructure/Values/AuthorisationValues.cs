@@ -1,6 +1,6 @@
 ﻿namespace Home.WebUI.Infrastructure.Values;
 
-public class AuthorisationValues
+public static class AuthorisationValues
 {
 
     #region Fields

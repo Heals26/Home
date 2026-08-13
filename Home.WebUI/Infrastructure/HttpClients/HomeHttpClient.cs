@@ -21,20 +21,21 @@ public class HomeHttpClient(
 
     #region Methods
 
-    public async Task<TResponse?> SendRequestAsync<TRequest, TResponse>(
+    public Task<TResponse?> SendRequestAsync<TRequest, TResponse>(
         TRequest request,
         ApiProviderHelper apiProvider,
         Action<ValidationProblemDetails> errors,
         CancellationToken cancellationToken)
+        => this.SendAsync<TRequest, TResponse>(request, apiProvider, errors, cancellationToken);
+
+    private static HttpRequestMessage BuildMessage<TRequest>(TRequest request, ApiProviderHelper apiProvider)
     {
-        var _HttpRequestMessage = new HttpRequestMessage(apiProvider.HttpMethod, apiProvider.Uri)
+        var _Message = new HttpRequestMessage(apiProvider.HttpMethod, apiProvider.Uri)
         {
             Content = apiProvider.RouteType.GetHttpRequestMessage(request)
         };
-
-        _HttpRequestMessage.Headers.Add("api-version", apiProvider.Version);
-
-        return await this.SendAsync<TResponse>(_HttpRequestMessage, errors, cancellationToken);
+        _Message.Headers.Add("api-version", apiProvider.Version);
+        return _Message;
     }
 
     private ValidationProblemDetails ConvertProblemDetailsToValidationProblemDetails(ProblemDetails problemDetails)
@@ -50,8 +51,9 @@ public class HomeHttpClient(
                 Errors = new Dictionary<string, string[]>()
             };
 
-    private async Task<TResponse?> SendAsync<TResponse>(
-        HttpRequestMessage httpMessage,
+    private async Task<TResponse?> SendAsync<TRequest, TResponse>(
+        TRequest request,
+        ApiProviderHelper apiProvider,
         Action<ValidationProblemDetails> errors,
         CancellationToken cancellationToken)
     {
@@ -59,18 +61,21 @@ public class HomeHttpClient(
         {
             var _Token = await authorisationService.GetTokenAsync();
             var _IsAuthenticated = _Token != null && !string.IsNullOrEmpty(_Token.AccessToken);
-            var _IsLoginEndpoint = httpMessage.RequestUri?.OriginalString.Contains(ApiProvider.GetOAuthToken().Uri, StringComparison.CurrentCultureIgnoreCase) ?? false;
+            var _IsLoginEndpoint = apiProvider.Uri.Contains(ApiProvider.GetOAuthToken().Uri, StringComparison.OrdinalIgnoreCase);
+
+            // Build a fresh HttpRequestMessage per attempt — they cannot be reused across calls
+            var _HttpRequestMessage = BuildMessage(request, apiProvider);
 
             if (_IsAuthenticated)
             {
-                httpMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _Token!.AccessToken);
+                _HttpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _Token!.AccessToken);
             }
             else if (_IsLoginEndpoint)
             {
                 var _BasicCredentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(
                     $"{configurationManager.GetValue<string>("OAuth:AccessToken:AccessToken")!}:{configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!}"));
 
-                httpMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", _BasicCredentials);
+                _HttpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", _BasicCredentials);
             }
             else
             {
@@ -79,14 +84,12 @@ public class HomeHttpClient(
                     Title = "Not signed in.",
                     Status = (int)HttpStatusCode.Unauthorized,
                     Detail = "Please sign in to access this resource.",
-                    Instance = httpMessage.RequestUri?.ToString(),
-                    Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
                     Errors = new Dictionary<string, string[]>()
                 });
                 return default;
             }
 
-            var _HttpResponse = await httpClient.SendAsync(httpMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
+            var _HttpResponse = await httpClient.SendAsync(_HttpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
             var _Content = await _HttpResponse.Content.ReadAsStringAsync(cancellationToken);
 
             if (_HttpResponse.IsSuccessStatusCode)
@@ -105,8 +108,6 @@ public class HomeHttpClient(
                             Title = "Not found.",
                             Status = (int)HttpStatusCode.NotFound,
                             Detail = "The requested resource could not be found. Ensure the API is running and the endpoint is correct.",
-                            Instance = string.Empty,
-                            Type = string.Empty,
                             Errors = new Dictionary<string, string[]>()
                         });
                     else
@@ -116,8 +117,10 @@ public class HomeHttpClient(
                     errors.Invoke(this.ConvertProblemDetailsToValidationProblemDetails(JsonSerializer.Deserialize<ProblemDetails>(_Content, JsonOptions.DefaultOptions)!));
                     return default;
                 case HttpStatusCode.Unauthorized:
+                    // Access token was rejected by the API — attempt a reactive refresh and retry once
                     if (await this.TryRefreshTokenAsync(errors, cancellationToken))
-                        return await this.SendAsync<TResponse>(httpMessage, errors, cancellationToken);
+                        return await this.SendAsync<TRequest, TResponse>(request, apiProvider, errors, cancellationToken);
+                    await authorisationService.SignOutAsync();
                     return default;
                 case HttpStatusCode.UnprocessableContent:
                     errors.Invoke(JsonSerializer.Deserialize<ValidationProblemDetails>(_Content, JsonOptions.DefaultOptions)!);
@@ -128,8 +131,6 @@ public class HomeHttpClient(
                         Title = "An error occurred.",
                         Status = (int)_HttpResponse.StatusCode,
                         Detail = $"The server returned an unexpected response ({(int)_HttpResponse.StatusCode}).",
-                        Instance = httpMessage.RequestUri?.ToString(),
-                        Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
                         Errors = new Dictionary<string, string[]>()
                     });
                     return default;
@@ -172,40 +173,33 @@ public class HomeHttpClient(
     {
         var _CurrentToken = await authorisationService.GetTokenAsync();
 
-        var _HttpRequestMessage = new HttpRequestMessage(ApiProvider.GetOAuthToken().HttpMethod, ApiProvider.GetOAuthToken().Uri)
-        {
-            Content = ApiProvider.GetOAuthToken().RouteType.GetHttpRequestMessage(new CreateRefreshGrantWebAppRequest()
+        var _HttpRequestMessage = BuildMessage(
+            new CreateRefreshGrantWebAppRequest()
             {
                 ClientID = configurationManager.GetValue<long>("OAuth:AccessToken:ClientID")!,
                 ClientSecret = configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!,
                 GrantType = configurationManager.GetValue<string>("OAuth:AccessToken:GrantType")!,
                 RefreshToken = _CurrentToken?.RefreshToken ?? string.Empty
-            })
-        };
+            },
+            ApiProvider.GetOAuthToken());
+
+        // The token endpoint authenticates the client application itself, not the user
+        var _BasicCredentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(
+            $"{configurationManager.GetValue<string>("OAuth:AccessToken:AccessToken")!}:{configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!}"));
+
+        _HttpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", _BasicCredentials);
 
         var _HttpResponse = await httpClient.SendAsync(_HttpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
 
         if (!_HttpResponse.IsSuccessStatusCode)
             return false;
 
-        var _Response = JsonSerializer.Deserialize<CreateRefreshGrantWebAppResponse>(await _HttpResponse.Content.ReadAsStringAsync(cancellationToken), JsonOptions.DefaultOptions);
-        if (_Response == null)
-        {
-            errors.Invoke(new ValidationProblemDetails()
-            {
-                Title = "Error",
-                Status = (int)HttpStatusCode.InternalServerError,
-                Detail = "An error occurred while refreshing the token.",
-                Instance = _HttpRequestMessage.RequestUri?.ToString(),
-                Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-                Errors = new Dictionary<string, string[]>()
-                {
-                    { "Error", new string[] { "An error occurred while refreshing the token." } }
-                }
-            });
+        var _Response = JsonSerializer.Deserialize<CreateRefreshGrantWebAppResponse>(
+            await _HttpResponse.Content.ReadAsStringAsync(cancellationToken),
+            JsonOptions.DefaultOptions);
 
+        if (_Response == null)
             return false;
-        }
 
         _ = await authorisationService.TryRefreshAsync(_Response, cancellationToken);
         return true;

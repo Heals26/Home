@@ -3,14 +3,21 @@
 @using Microsoft.AspNetCore.Components.Web
 
 <CascadingAuthenticationState>
+    @* Rendered outside AuthorizeRouteView so it fires during the Authorizing phase,
+       before the auth gate has resolved. Calls InitialiseAsync once JS is ready. *@
+    <AuthInitialiser />
+
     <Router AppAssembly="typeof(Program).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
                 <NotAuthorized>
                     <div>You are not authorized. Please <a href="@AuthorisationUriProvider.GetLoginUri()">log in</a>.</div>
-                    @* <RedirectToLogin /> *@
                 </NotAuthorized>
-                <Authorizing />
+                <Authorizing>
+                    <div class="min-h-screen bg-zinc-950 flex items-center justify-center">
+                        <HomeLoader />
+                    </div>
+                </Authorizing>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="routeData" Selector="h1" />
         </Found>
