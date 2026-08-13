@@ -60,12 +60,16 @@ must be an absolute URI and should end in a trailing slash.
 
 ### Optional: a LIFX token for the Lights page
 
+The normal path is the in-app **Settings page** — paste a token from
+https://cloud.lifx.com/settings and it is stored on the household row in SQL. The user secret
+remains as a developer fallback the household token overrides:
+
 ```bash
 dotnet user-secrets set "lifxApiToken" "<token from https://cloud.lifx.com/settings>" --project Home.WebApi
 ```
 
-Without it the API still starts and `/lights` renders a "lights unavailable" state — the token is
-only needed to actually drive bulbs.
+Without either, the API still starts and `/lights` renders a "lights unavailable" state — a token
+is only needed to actually drive bulbs.
 
 ### Then
 
