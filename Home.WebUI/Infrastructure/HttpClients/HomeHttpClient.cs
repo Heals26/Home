@@ -77,7 +77,7 @@ public class HomeHttpClient(
 
                 _HttpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", _BasicCredentials);
             }
-            else
+            else if (!apiProvider.AllowsAnonymous)
             {
                 errors.Invoke(new()
                 {

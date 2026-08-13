@@ -1,0 +1,55 @@
+﻿@attribute [AllowAnonymous]
+
+@page "/setup"
+
+<div class="min-h-screen bg-ink-950 flex items-center justify-center p-4 app-scrollable">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <h1 class="font-display text-5xl text-ink-50">Home</h1>
+            <p class="text-sm text-ink-400 mt-2">Set up your household</p>
+        </div>
+
+        <div class="bg-ink-900 rounded-2xl border border-ink-800 p-6">
+            @if (this.m_CheckingStatus)
+            {
+                <HomeLoader Class="py-8" />
+            }
+            else
+            {
+                <EditForm Model="this.m_Model" OnValidSubmit="this.HandleSubmitAsync">
+                    <div class="flex flex-col gap-4">
+                        <HomeTextInput Label="Household name"
+                                       @bind-Value="this.m_Model.HouseholdName"
+                                       Placeholder="e.g. The Healys" />
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <HomeTextInput Label="First name"
+                                           @bind-Value="this.m_Model.FirstName" />
+
+                            <HomeTextInput Label="Last name"
+                                           @bind-Value="this.m_Model.LastName" />
+                        </div>
+
+                        <HomeTextInput Label="Email"
+                                       Type="email"
+                                       @bind-Value="this.m_Model.Email"
+                                       Placeholder="You'll sign in with this" />
+
+                        <HomePasswordInput Label="Password"
+                                           @bind-Value="this.m_Model.Password" />
+
+                        <HomeButton Type="submit" Loading="this.m_IsLoading" Disabled="@(!this.CanSubmit())" Class="w-full mt-2">
+                            Create household
+                        </HomeButton>
+
+                        <p class="text-xs text-ink-500 text-center">
+                            This creates the household and its first member — everyone else joins from inside the app.
+                        </p>
+                    </div>
+                </EditForm>
+            }
+        </div>
+
+        <ErrorHandler @ref="this.m_ErrorHandler" />
+    </div>
+</div>

@@ -1,5 +1,7 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.DataAccess.Households.GetSetupStatus;
 using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
+using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 
 namespace Home.WebUI.Components.Pages.Authorisation;
@@ -13,8 +15,25 @@ public partial class Login
     private ErrorHandler? m_ErrorHandler;
     private bool m_IsLoading;
     private CreatePasswordGrantWebAppRequest m_Model = new();
+    private bool m_RequiresSetup;
 
     #endregion Fields
+
+    #region Lifecycle Methods
+
+    // A fresh install has nobody to sign in — quietly offer first-run setup instead.
+    // Any failure here just leaves the link hidden; the form still works.
+    protected override async Task OnInitializedAsync()
+    {
+        var _Status = await this.ApiAccess.SendRequestAsync<object, GetSetupStatusWebAppResponse>(
+            null!, ApiProvider.GetSetupStatus(),
+            _ => { },
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_RequiresSetup = _Status?.RequiresSetup == true;
+    }
+
+    #endregion Lifecycle Methods
 
     #region Methods
 

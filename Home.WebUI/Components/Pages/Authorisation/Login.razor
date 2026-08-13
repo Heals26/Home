@@ -31,6 +31,14 @@
             </EditForm>
         </div>
 
+        @if (this.m_RequiresSetup)
+        {
+            <p class="text-sm text-ink-400 text-center mt-6">
+                First time here?
+                <a href="/setup" class="text-ink-50 underline underline-offset-4 hover:text-white">Set up your household</a>
+            </p>
+        }
+
         <ErrorHandler @ref="this.m_ErrorHandler" />
     </div>
 </div>
