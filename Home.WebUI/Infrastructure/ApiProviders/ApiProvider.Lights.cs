@@ -23,6 +23,9 @@ public static partial class ApiProvider
     public static ApiProviderHelper SetLightState(string lightID)
         => new(HttpMethod.Patch, RouteType.Body, GetLightBaseUrl(lightID));
 
+    public static ApiProviderHelper StartLightEffect()
+        => new(HttpMethod.Post, RouteType.Body, $"{GetLightsBaseUrl()}/effects");
+
     public static ApiProviderHelper SyncLights()
         => new(HttpMethod.Post, RouteType.Route, $"{GetLightsBaseUrl()}/sync");
 

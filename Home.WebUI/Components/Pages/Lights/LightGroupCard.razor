@@ -1,26 +1,26 @@
-@* One room: its header controls act on the whole group in a single API call. *@
+﻿@* One room: its header controls act on the whole group in a single API call. *@
 
 <section>
     <div class="flex items-center justify-between mb-3 px-1 gap-2">
         @if (this.EditMode)
         {
-            <input class="flex-1 min-w-0"
+            <input class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                    value="@this.Group.Name"
                    maxlength="250"
                    @onchange="this.OnNameChanged" />
 
             <button type="button" title="Move up" aria-label="Move up"
-                    class="h-11 w-11 rounded-lg border border-zinc-700 text-zinc-400 hover:text-zinc-50 disabled:opacity-30"
+                    class="h-11 w-11 rounded-lg border border-ink-700 text-ink-400 hover:text-ink-50 disabled:opacity-30"
                     disabled="@this.IsFirst"
                     @onclick="() => this.OnMoved.InvokeAsync(-1)">↑</button>
 
             <button type="button" title="Move down" aria-label="Move down"
-                    class="h-11 w-11 rounded-lg border border-zinc-700 text-zinc-400 hover:text-zinc-50 disabled:opacity-30"
+                    class="h-11 w-11 rounded-lg border border-ink-700 text-ink-400 hover:text-ink-50 disabled:opacity-30"
                     disabled="@this.IsLast"
                     @onclick="() => this.OnMoved.InvokeAsync(1)">↓</button>
 
             <button type="button" title="Delete group" aria-label="Delete group"
-                    class="h-11 w-11 rounded-lg border border-zinc-700 text-zinc-500 hover:text-red-400 disabled:opacity-30"
+                    class="h-11 w-11 rounded-lg border border-ink-700 text-ink-500 hover:text-red-400 disabled:opacity-30"
                     disabled="@(this.Group.Lights.Count > 0)"
                     @onclick="() => this.OnDeleted.InvokeAsync()">
                 <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
@@ -28,9 +28,17 @@
         }
         else
         {
-            <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest">@this.Group.Name</h2>
+            <h2 class="text-xs font-semibold text-ink-500 uppercase tracking-widest">@this.Group.Name</h2>
 
             <div class="flex gap-2">
+                @if (this.Group.Lights.Any(l => l.IsConnected))
+                {
+                    <button type="button" title="Effects" aria-label="Effects"
+                            class="h-9 px-3 rounded-lg text-ink-400 hover:text-lights hover:bg-ink-800 transition-colors"
+                            @onclick="() => this.OnEffects.InvokeAsync()">
+                        <span class="home-icon home-icon-sparkles h-4 w-4 inline-block"></span>
+                    </button>
+                }
                 <HomeButton Size="sm" Variant="ghost" OnClick="() => this.OnGroupPower.InvokeAsync(false)">All Off</HomeButton>
                 <HomeButton Size="sm" Variant="ghost" OnClick="() => this.OnGroupPower.InvokeAsync(true)">All On</HomeButton>
             </div>
@@ -39,13 +47,13 @@
 
     @if (this.Group.Lights.Count == 0)
     {
-        <p class="text-xs text-zinc-600 px-1 pb-2">
+        <p class="text-xs text-ink-600 px-1 pb-2">
             No lights in this group@(this.EditMode ? "." : " — switch to Edit to move some here.")
         </p>
     }
     else
     {
-        <div class="flex flex-col gap-3">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
             @foreach (var _Light in this.Group.Lights)
             {
                 <LightControlCard Light="_Light"
@@ -60,37 +68,3 @@
         </div>
     }
 </section>
-
-@code {
-
-    #region Properties
-
-    [Parameter, EditorRequired] public LightGroupDto Group { get; set; } = default!;
-    [Parameter] public IReadOnlyList<LightGroupDto> AllGroups { get; set; } = [];
-    [Parameter] public bool EditMode { get; set; }
-    [Parameter] public bool IsFirst { get; set; }
-    [Parameter] public bool IsLast { get; set; }
-    [Parameter] public EventCallback<bool> OnGroupPower { get; set; }
-    [Parameter] public EventCallback<string> OnRenamed { get; set; }
-    [Parameter] public EventCallback<int> OnMoved { get; set; }
-    [Parameter] public EventCallback OnDeleted { get; set; }
-    [Parameter] public EventCallback<(LightDto Light, bool IsOn)> OnLightPower { get; set; }
-    [Parameter] public EventCallback<(LightDto Light, double Brightness)> OnLightBrightness { get; set; }
-    [Parameter] public EventCallback<(LightDto Light, ColourPreset Preset)> OnLightPreset { get; set; }
-    [Parameter] public EventCallback<(LightDto Light, long GroupID)> OnLightMoved { get; set; }
-
-    #endregion Properties
-
-    #region Methods
-
-    private async Task OnNameChanged(ChangeEventArgs e)
-    {
-        var _Name = e.Value?.ToString()?.Trim();
-
-        if (!string.IsNullOrWhiteSpace(_Name) && _Name != this.Group.Name)
-            await this.OnRenamed.InvokeAsync(_Name);
-    }
-
-    #endregion Methods
-
-}

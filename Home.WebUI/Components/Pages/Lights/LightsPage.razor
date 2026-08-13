@@ -1,8 +1,8 @@
-@page "/lights"
+﻿@page "/lights"
 
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
-    <div class="flex flex-col h-full">
-        <HomeTopBar Title="Lights" ShowBack BackHref="/">
+    <div class="flex flex-col h-full max-w-4xl mx-auto w-full">
+        <HomeTopBar Title="Lights" Eyebrow="Around the house" EyebrowClass="text-lights">
             <ActionsContent>
                 @if (this.m_Groups?.Count > 0)
                 {
@@ -20,7 +20,7 @@
             </ActionsContent>
         </HomeTopBar>
 
-        <div class="flex-1 p-4 app-scrollable">
+        <div class="flex-1 px-6 pb-6 app-scrollable">
             @if (this.m_Groups == null)
             {
                 <HomeLoader Class="py-16" />
@@ -30,13 +30,76 @@
                 <HomeEmptyState Title="No lights yet"
                                 Subtitle="Sync to pull your bulbs in from LIFX. You can regroup and rename them here afterwards.">
                     <ActionContent>
-                        <HomeButton OnClick="this.SyncLightsAsync" Loading="this.m_Syncing">Sync Now</HomeButton>
+                        <HomeButton OnClick="this.SyncLightsAsync" Loading="this.m_Syncing">Sync now</HomeButton>
                     </ActionContent>
                 </HomeEmptyState>
             }
             else
             {
-                <div class="max-w-3xl mx-auto flex flex-col gap-6">
+                <div class="flex flex-col gap-8">
+
+                    @* ── Scenes ────────────────────────────────────────── *@
+                    <section>
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <h2 class="text-xs font-semibold text-ink-500 uppercase tracking-widest">Scenes</h2>
+                            <HomeButton Size="sm" Variant="ghost" OnClick="this.OpenCaptureModal">
+                                <span class="home-icon home-icon-sparkles h-4 w-4 mr-1 inline-block"></span>
+                                Save current look
+                            </HomeButton>
+                        </div>
+
+                        @if (this.m_Scenes == null)
+                        {
+                            <div class="flex gap-2 animate-pulse">
+                                <div class="h-12 w-28 rounded-xl bg-ink-800"></div>
+                                <div class="h-12 w-28 rounded-xl bg-ink-800"></div>
+                            </div>
+                        }
+                        else if (this.m_Scenes.Count == 0)
+                        {
+                            <p class="text-sm text-ink-500 px-1">
+                                Get the room looking right, then save it as a scene to bring back any time.
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="flex flex-wrap gap-2">
+                                @foreach (var _Scene in this.m_Scenes)
+                                {
+                                    <div class="relative">
+                                        <button type="button"
+                                                class="flex items-center gap-2 min-h-[48px] rounded-xl border border-ink-700 bg-ink-900 hover:border-lights/60 active:scale-95 transition-all px-4 py-2 disabled:opacity-60"
+                                                disabled="@(this.m_ApplyingSceneID != null)"
+                                                @onclick="() => this.ApplySceneAsync(_Scene)">
+                                            @if (this.m_ApplyingSceneID == _Scene.LightSceneID)
+                                            {
+                                                <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin text-lights"></span>
+                                            }
+                                            else
+                                            {
+                                                <span class="home-icon home-icon-sparkles h-4 w-4 text-lights"></span>
+                                            }
+                                            <span class="text-sm font-medium text-ink-100">@_Scene.Name</span>
+                                            <span class="text-xs text-ink-500">@_Scene.LightCount</span>
+                                        </button>
+
+                                        @if (this.m_EditMode)
+                                        {
+                                            <button type="button"
+                                                    title="Delete scene"
+                                                    aria-label="@($"Delete {_Scene.Name}")"
+                                                    class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-ink-800 border border-ink-700 text-ink-400 hover:text-red-400 flex items-center justify-center"
+                                                    @onclick="() => this.DeleteSceneAsync(_Scene)">
+                                                <span class="home-icon home-icon-x h-3 w-3"></span>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </section>
+
+                    @* ── Rooms ─────────────────────────────────────────── *@
                     @foreach (var _Group in this.m_Groups)
                     {
                         <LightGroupCard Group="_Group"
@@ -48,6 +111,7 @@
                                         OnRenamed="name => this.RenameGroupAsync(_Group, name)"
                                         OnMoved="delta => this.MoveGroupAsync(_Group, delta)"
                                         OnDeleted="() => this.DeleteGroupAsync(_Group)"
+                                        OnEffects="() => this.OpenEffectsModal(_Group)"
                                         OnLightPower="a => this.SetPowerAsync(a.Light, a.IsOn)"
                                         OnLightBrightness="a => this.SetBrightnessAsync(a.Light, a.Brightness)"
                                         OnLightPreset="a => this.ApplyPresetAsync(a.Light, a.Preset)"
@@ -57,20 +121,70 @@
                     @if (this.m_EditMode)
                     {
                         <div class="flex gap-2">
-                            <input class="flex-1 min-w-0"
+                            <input class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 min-h-[48px]"
                                    maxlength="250"
                                    placeholder="New group name"
                                    @bind="this.m_NewGroupName"
                                    @bind:event="oninput" />
 
                             <HomeButton OnClick="this.CreateGroupAsync"
-                                        Disabled="@string.IsNullOrWhiteSpace(this.m_NewGroupName)">Add Group</HomeButton>
+                                        Disabled="@string.IsNullOrWhiteSpace(this.m_NewGroupName)">Add group</HomeButton>
                         </div>
                     }
 
+                    @* ── Schedules ─────────────────────────────────────── *@
+                    <section>
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <h2 class="text-xs font-semibold text-ink-500 uppercase tracking-widest">Schedules</h2>
+                            <HomeButton Size="sm" Variant="ghost" OnClick="this.OpenScheduleModal" Disabled="@(this.m_Scenes == null || this.m_Scenes.Count == 0)">
+                                <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
+                                Add schedule
+                            </HomeButton>
+                        </div>
+
+                        @if (this.m_Schedules == null)
+                        {
+                            <div class="h-14 rounded-2xl bg-ink-800 animate-pulse"></div>
+                        }
+                        else if (this.m_Schedules.Count == 0)
+                        {
+                            <p class="text-sm text-ink-500 px-1">
+                                @(this.m_Scenes?.Count > 0
+                                    ? "Fire a scene at the same time each day — wind-downs, wake-ups, dinner time."
+                                    : "Save a scene first, then schedule it to fire at the same time each day.")
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="flex flex-col gap-2">
+                                @foreach (var _Schedule in this.m_Schedules)
+                                {
+                                    <div class="flex items-center gap-3 bg-ink-900 border border-ink-800 rounded-2xl px-4 py-3">
+                                        <HomeToggle Value="_Schedule.IsEnabled"
+                                                    ValueChanged="on => this.ToggleScheduleAsync(_Schedule, on)" />
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-medium truncate @(_Schedule.IsEnabled ? "text-ink-50" : "text-ink-500")">@_Schedule.Name</p>
+                                            <p class="text-xs text-ink-500 truncate">
+                                                @_Schedule.SceneName · @FormatTime(_Schedule.TimeOfDay) · @FormatDays(_Schedule.DaysOfWeek)
+                                            </p>
+                                        </div>
+                                        @if (this.m_EditMode)
+                                        {
+                                            <button type="button" title="Delete schedule" aria-label="@($"Delete {_Schedule.Name}")"
+                                                    class="h-11 w-11 rounded-lg text-ink-500 hover:text-red-400 shrink-0"
+                                                    @onclick="() => this.DeleteScheduleAsync(_Schedule)">
+                                                <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </section>
+
                     @if (this.m_LastSynced != null)
                     {
-                        <p class="text-xs text-zinc-600 text-center pb-2">Last synced @this.m_LastSynced</p>
+                        <p class="text-xs text-ink-600 text-center pb-2">Last synced @this.m_LastSynced</p>
                     }
                 </div>
             }
@@ -78,213 +192,127 @@
     </div>
 </CascadingValue>
 
+@* ── Save-scene modal ─────────────────────────────────────────── *@
+<HomeModal @bind-Visible="this.m_ShowCaptureModal" Title="Save current look">
+    <ChildContent>
+        <div class="flex flex-col gap-4">
+            <HomeTextInput Label="Name" Placeholder="e.g. Movie night" @bind-Value="this.m_CaptureName" />
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-ink-300">Which lights</label>
+                <select class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+                        @bind="this.m_CaptureGroupID">
+                    <option value="0">All lights</option>
+                    @foreach (var _Group in this.m_Groups ?? [])
+                    {
+                        <option value="@_Group.LightGroupID">@_Group.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </ChildContent>
+    <FooterContent>
+        <div class="flex justify-end gap-2">
+            <HomeButton Variant="ghost" OnClick="() => this.m_ShowCaptureModal = false">Cancel</HomeButton>
+            <HomeButton OnClick="this.CaptureSceneAsync"
+                        Loading="this.m_Capturing"
+                        Disabled="@string.IsNullOrWhiteSpace(this.m_CaptureName)">Save scene</HomeButton>
+        </div>
+    </FooterContent>
+</HomeModal>
+
+@* ── Add-schedule modal ───────────────────────────────────────── *@
+<HomeModal @bind-Visible="this.m_ShowScheduleModal" Title="Add schedule">
+    <ChildContent>
+        <div class="flex flex-col gap-4">
+            <HomeTextInput Label="Name" Placeholder="e.g. Wind down" @bind-Value="this.m_ScheduleName" />
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-ink-300">Scene</label>
+                <select class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+                        @bind="this.m_ScheduleSceneID">
+                    <option value="0">Choose a scene</option>
+                    @foreach (var _Scene in this.m_Scenes ?? [])
+                    {
+                        <option value="@_Scene.LightSceneID">@_Scene.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-ink-300">Time</label>
+                <input type="time"
+                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+                       value="@this.m_ScheduleTime"
+                       @onchange="e => this.m_ScheduleTime = e.Value?.ToString() ?? string.Empty" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-ink-300">Days</label>
+                <div class="flex gap-1.5">
+                    @foreach (var _Day in ScheduleDays)
+                    {
+                        <button type="button"
+                                class="flex-1 min-h-[44px] rounded-lg border text-sm font-medium transition-colors @(this.IsDaySelected(_Day.Bit) ? "border-lights/60 bg-lights/10 text-lights" : "border-ink-700 text-ink-400 hover:text-ink-200")"
+                                @onclick="() => this.ToggleDay(_Day.Bit)">
+                            @_Day.Label
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </ChildContent>
+    <FooterContent>
+        <div class="flex justify-end gap-2">
+            <HomeButton Variant="ghost" OnClick="() => this.m_ShowScheduleModal = false">Cancel</HomeButton>
+            <HomeButton OnClick="this.CreateScheduleAsync"
+                        Loading="this.m_CreatingSchedule"
+                        Disabled="@(!this.CanCreateSchedule())">Add schedule</HomeButton>
+        </div>
+    </FooterContent>
+</HomeModal>
+
+@* ── Effects modal ────────────────────────────────────────────── *@
+<HomeModal @bind-Visible="this.m_ShowEffectsModal" Title="@($"Effects — {this.m_EffectsGroup?.Name}")">
+    <ChildContent>
+        <div class="flex flex-col gap-4">
+            <p class="text-sm text-ink-400">
+                Runs for a little while, then the lights go back to how they were.
+            </p>
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-ink-300">Effect</label>
+                <HomeSegmentedControl TValue="LightEffectKind"
+                                      @bind-Value="this.m_EffectKind"
+                                      Options="EffectOptions" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-ink-300">Colour</label>
+                <div class="flex flex-wrap gap-2">
+                    @foreach (var _Preset in ColourPreset.All.Where(p => !p.IsWhite))
+                    {
+                        <button type="button"
+                                title="@_Preset.Name"
+                                aria-label="@_Preset.Name"
+                                class="h-11 w-11 rounded-lg border transition-all active:scale-95 @(this.m_EffectPreset == _Preset ? "border-lights ring-2 ring-lights/40" : "border-ink-700 hover:border-ink-500")"
+                                style="background: @_Preset.Css"
+                                @onclick="() => this.m_EffectPreset = _Preset"></button>
+                    }
+                </div>
+            </div>
+        </div>
+    </ChildContent>
+    <FooterContent>
+        <div class="flex justify-between gap-2">
+            <HomeButton Variant="ghost" OnClick="this.StopEffectAsync" Loading="this.m_StoppingEffect">
+                <span class="home-icon home-icon-stop h-4 w-4 mr-1 inline-block"></span>
+                Stop
+            </HomeButton>
+            <HomeButton OnClick="this.StartEffectAsync"
+                        Loading="this.m_StartingEffect"
+                        Disabled="@(this.m_EffectPreset == null)">Start</HomeButton>
+        </div>
+    </FooterContent>
+</HomeModal>
+
 <ErrorHandler @ref="this.m_ErrorHandler" />
-
-@code {
-
-    #region Fields
-
-    private CancellationTokenHandler m_CancellationTokenHandler = new();
-    private ErrorHandler? m_ErrorHandler;
-    private List<LightGroupDto>? m_Groups;
-    private string? m_LastSynced;
-    private string m_NewGroupName = string.Empty;
-    private bool m_EditMode;
-    private bool m_Syncing;
-
-    #endregion Fields
-
-    #region Properties
-
-    [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
-
-    #endregion Properties
-
-    #region Lifecycle Methods
-
-    protected override async Task OnInitializedAsync()
-        => await this.LoadLightsAsync();
-
-    #endregion Lifecycle Methods
-
-    #region Methods
-
-    private void ToggleEditMode()
-        => this.m_EditMode = !this.m_EditMode;
-
-    // Free — this reads Home's own records, not the provider.
-    private async Task LoadLightsAsync()
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, GetLightsWebAppResponse>(
-            null!, ApiProvider.GetLights(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result != null)
-            this.m_Groups = _Result.Groups;
-    }
-
-    private async Task SyncLightsAsync()
-    {
-        if (this.m_Syncing)
-            return;
-
-        this.m_Syncing = true;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<object, SyncLightsWebAppResponse>(
-            null!, ApiProvider.SyncLights(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_Syncing = false;
-
-        if (_Result == null)
-            return;
-
-        this.m_LastSynced = this.TimeProvider.GetLocalNow().ToString("h:mm tt");
-
-        await this.LoadLightsAsync();
-    }
-
-    /* ---------- single light ---------- */
-
-    private Task SetPowerAsync(LightDto light, bool isOn)
-    {
-        light.IsOn = isOn;
-        return this.SendLightAsync(light, new() { IsOn = new(isOn) });
-    }
-
-    private Task SetBrightnessAsync(LightDto light, double brightness)
-    {
-        light.Brightness = brightness;
-        return this.SendLightAsync(light, new() { Brightness = new(brightness) });
-    }
-
-    private Task ApplyPresetAsync(LightDto light, ColourPreset preset)
-    {
-        light.Hue = preset.Hue;
-        light.Saturation = preset.Saturation;
-        light.Kelvin = preset.Kelvin;
-
-        var _Request = preset.IsWhite
-            ? new SetLightStateWebAppRequest() { Kelvin = new(preset.Kelvin) }
-            : new SetLightStateWebAppRequest() { Hue = new(preset.Hue), Saturation = new(preset.Saturation) };
-
-        return this.SendLightAsync(light, _Request);
-    }
-
-    // The UI updates before the call so the tablet feels instant. On failure the list is reloaded,
-    // which snaps the control back to whatever Home last knew.
-    private async Task SendLightAsync(LightDto light, SetLightStateWebAppRequest request)
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<SetLightStateWebAppRequest, bool>(
-            request, ApiProvider.SetLightState(light.ID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result != true)
-            await this.LoadLightsAsync();
-    }
-
-    /* ---------- whole group ---------- */
-
-    // One request for the whole room rather than one per bulb.
-    private async Task SetGroupPowerAsync(LightGroupDto group, bool isOn)
-    {
-        foreach (var _Light in group.Lights.Where(l => l.IsConnected))
-            _Light.IsOn = isOn;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<SetLightGroupStateWebAppRequest, bool>(
-            new() { IsOn = new(isOn) }, ApiProvider.SetLightGroupState(group.LightGroupID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result != true)
-            await this.LoadLightsAsync();
-    }
-
-    /* ---------- editing ---------- */
-
-    private async Task CreateGroupAsync()
-    {
-        var _Name = this.m_NewGroupName.Trim();
-
-        if (string.IsNullOrWhiteSpace(_Name))
-            return;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<CreateLightGroupWebAppRequest, CreateLightGroupWebAppResponse>(
-            new() { Name = _Name }, ApiProvider.CreateLightGroup(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result == null)
-            return;
-
-        this.m_NewGroupName = string.Empty;
-
-        await this.LoadLightsAsync();
-    }
-
-    private async Task RenameGroupAsync(LightGroupDto group, string name)
-    {
-        group.Name = name;
-
-        _ = await this.ApiAccess.SendRequestAsync<UpdateLightGroupWebAppRequest, bool>(
-            new() { Name = new(name) }, ApiProvider.UpdateLightGroup(group.LightGroupID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-    }
-
-    // Swaps sequence numbers with the neighbour, then persists both.
-    private async Task MoveGroupAsync(LightGroupDto group, int delta)
-    {
-        if (this.m_Groups == null)
-            return;
-
-        var _Index = this.m_Groups.IndexOf(group);
-        var _Target = _Index + delta;
-
-        if (_Index < 0 || _Target < 0 || _Target >= this.m_Groups.Count)
-            return;
-
-        var _Neighbour = this.m_Groups[_Target];
-
-        (group.Sequence, _Neighbour.Sequence) = (_Neighbour.Sequence, group.Sequence);
-
-        this.m_Groups[_Index] = _Neighbour;
-        this.m_Groups[_Target] = group;
-
-        foreach (var _Moved in new[] { group, _Neighbour })
-        {
-            _ = await this.ApiAccess.SendRequestAsync<UpdateLightGroupWebAppRequest, bool>(
-                new() { Sequence = new(_Moved.Sequence) }, ApiProvider.UpdateLightGroup(_Moved.LightGroupID),
-                e => this.m_ErrorHandler?.AddError(e),
-                this.m_CancellationTokenHandler.Token);
-        }
-    }
-
-    private async Task DeleteGroupAsync(LightGroupDto group)
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.DeleteLightGroup(group.LightGroupID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result == true)
-            await this.LoadLightsAsync();
-    }
-
-    private async Task MoveLightAsync(LightDto light, long lightGroupID)
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<AssignLightToGroupWebAppRequest, bool>(
-            new() { LightID = light.ID }, ApiProvider.AssignLightToGroup(lightGroupID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result == true)
-            await this.LoadLightsAsync();
-    }
-
-    #endregion Methods
-
-}

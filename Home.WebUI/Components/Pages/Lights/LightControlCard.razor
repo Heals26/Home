@@ -1,13 +1,13 @@
-@* One bulb: power, brightness, colour, and in edit mode the group it belongs to. *@
+﻿@* One bulb: power, brightness, colour, and in edit mode the group it belongs to. *@
 
-<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+<div class="bg-ink-900 border border-ink-800 rounded-2xl p-4">
     <div class="flex items-center gap-3">
-        <span class="h-10 w-10 rounded-full shrink-0 border border-zinc-700"
+        <span class="h-10 w-10 rounded-full shrink-0 border border-ink-700"
               style="background: @ColourPreset.SwatchFor(this.Light.IsConnected, this.Light.IsOn, this.Light.Brightness, this.Light.Hue, this.Light.Saturation)"></span>
 
         <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-zinc-50 truncate">@this.Light.Label</p>
-            <p class="text-xs text-zinc-500">@this.StatusText()</p>
+            <p class="text-sm font-semibold text-ink-50 truncate">@this.Light.Label</p>
+            <p class="text-xs text-ink-500">@this.StatusText()</p>
         </div>
 
         @if (!this.EditMode)
@@ -20,9 +20,9 @@
 
     @if (this.EditMode)
     {
-        <div class="mt-3 pt-3 border-t border-zinc-800">
-            <label class="text-xs font-medium text-zinc-400 block mb-1">Group</label>
-            <select class="w-full"
+        <div class="mt-3 pt-3 border-t border-ink-800">
+            <label class="text-xs font-medium text-ink-400 block mb-1">Group</label>
+            <select class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                     value="@this.GroupID"
                     @onchange="this.OnGroupSelected">
                 @foreach (var _Group in this.Groups)
@@ -34,7 +34,7 @@
     }
     else if (this.Light.IsConnected && this.Light.IsOn)
     {
-        <div class="mt-4 pt-4 border-t border-zinc-800 flex flex-col gap-4">
+        <div class="mt-4 pt-4 border-t border-ink-800 flex flex-col gap-4">
             <HomeSlider Label="Brightness"
                         Unit="%"
                         Min="1"
@@ -48,7 +48,7 @@
             @if (this.AvailablePresets().Any())
             {
                 <div>
-                    <p class="text-sm font-medium text-zinc-300 mb-2">
+                    <p class="text-sm font-medium text-ink-300 mb-2">
                         @(this.Light.HasColour ? "Colour" : "Warmth")
                     </p>
                     <div class="flex flex-wrap gap-2">
@@ -57,7 +57,7 @@
                             <button type="button"
                                     title="@_Preset.Name"
                                     aria-label="@_Preset.Name"
-                                    class="h-11 w-11 rounded-lg border transition-all active:scale-95 @(this.IsCurrent(_Preset) ? "border-teal-400 ring-2 ring-teal-400/40" : "border-zinc-700 hover:border-zinc-500")"
+                                    class="h-11 w-11 rounded-lg border transition-all active:scale-95 @(this.IsCurrent(_Preset) ? "border-lights ring-2 ring-lights/40" : "border-ink-700 hover:border-ink-500")"
                                     style="background: @_Preset.Css"
                                     @onclick="() => this.OnPresetSelected.InvokeAsync(_Preset)"></button>
                         }
@@ -67,67 +67,3 @@
         </div>
     }
 </div>
-
-@code {
-
-    #region Properties
-
-    [Parameter, EditorRequired] public LightDto Light { get; set; } = default!;
-    [Parameter, EditorRequired] public long GroupID { get; set; }
-    [Parameter] public bool EditMode { get; set; }
-    [Parameter] public IReadOnlyList<LightGroupDto> Groups { get; set; } = [];
-    [Parameter] public EventCallback<bool> OnPowerChanged { get; set; }
-    [Parameter] public EventCallback<double> OnBrightnessCommitted { get; set; }
-    [Parameter] public EventCallback<ColourPreset> OnPresetSelected { get; set; }
-    [Parameter] public EventCallback<long> OnGroupChanged { get; set; }
-
-    #endregion Properties
-
-    #region Methods
-
-    private static int Percent(double value)
-        => (int)Math.Round(Math.Clamp(value, 0d, 1d) * 100d);
-
-    private string StatusText()
-        => !this.Light.IsConnected ? "Offline"
-            : this.Light.IsOn ? $"On · {Percent(this.Light.Brightness)}%"
-            : "Off";
-
-    /// <summary>
-    /// Whites are filtered to the bulb's own kelvin range, so a preset it cannot reach is never
-    /// shown. A bulb reporting no range at all is assumed to manage the usual 2500-9000.
-    /// </summary>
-    private IEnumerable<ColourPreset> AvailablePresets()
-    {
-        var _Min = this.Light.MinKelvin > 0 ? this.Light.MinKelvin : 2500;
-        var _Max = this.Light.MaxKelvin > 0 ? this.Light.MaxKelvin : 9000;
-
-        foreach (var _Preset in ColourPreset.All)
-        {
-            if (_Preset.IsWhite)
-            {
-                if (this.Light.HasVariableColourTemp && _Preset.Kelvin >= _Min && _Preset.Kelvin <= _Max)
-                    yield return _Preset;
-            }
-            else if (this.Light.HasColour)
-            {
-                yield return _Preset;
-            }
-        }
-    }
-
-    // Marks the swatch the bulb is currently sitting on, so the card reflects reality.
-    private bool IsCurrent(ColourPreset preset)
-        => preset.IsWhite
-            ? this.Light.Saturation <= 0.01 && Math.Abs(this.Light.Kelvin - preset.Kelvin) < 250
-            : this.Light.Saturation > 0.01 && Math.Abs(this.Light.Hue - preset.Hue) < 12;
-
-    private async Task OnGroupSelected(ChangeEventArgs e)
-    {
-        if (long.TryParse(e.Value?.ToString(), out var _GroupID) && _GroupID != this.GroupID)
-            await this.OnGroupChanged.InvokeAsync(_GroupID);
-    }
-
-    #endregion Methods
-
-}
