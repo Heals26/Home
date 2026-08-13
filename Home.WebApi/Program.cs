@@ -240,18 +240,17 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
 
 static IServiceCollection SetupLights(IServiceCollection services, IConfiguration configuration)
 {
-    // No token configured is a valid state — the house just has no lights wired up yet. The
+    // No token anywhere is a valid state — the house just has no lights wired up yet. The
     // service reports the provider as unavailable rather than the API failing to start.
-    var _Token = configuration["lifxApiToken"];
+    // The token attaches per request via LifxAuthenticationHandler, so the household's stored
+    // token (Settings page) wins over the lifxApiToken user secret without a restart.
+    _ = services.AddTransient<LifxAuthenticationHandler>();
 
     _ = services.AddHttpClient<ILightService, LifxLightService>(client =>
     {
         client.BaseAddress = new Uri(LightValues.LifxBaseUrl);
         client.Timeout = TimeSpan.FromSeconds(LightValues.RequestTimeoutSeconds);
-
-        if (!string.IsNullOrWhiteSpace(_Token))
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _Token);
-    });
+    }).AddHttpMessageHandler<LifxAuthenticationHandler>();
 
     // Schedules only fire while this process is alive — see LightScheduleRunner.
     _ = services.AddHostedService<LightScheduleRunner>();

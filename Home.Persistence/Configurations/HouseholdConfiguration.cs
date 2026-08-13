@@ -18,6 +18,9 @@ public class HouseholdConfiguration : IEntityTypeConfiguration<Household>
         _ = entity.Property(e => e.HouseholdID)
             .ValueGeneratedOnAdd();
 
+        _ = entity.Property(e => e.LifxApiToken)
+            .HasMaxLength(500);
+
         _ = entity.Property(e => e.Name)
             .HasMaxLength(250)
             .IsRequired();

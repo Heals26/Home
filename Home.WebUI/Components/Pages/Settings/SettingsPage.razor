@@ -1,0 +1,117 @@
+﻿@page "/settings"
+
+<div class="flex flex-col h-full max-w-2xl mx-auto w-full">
+    <HomeTopBar Title="Settings" Eyebrow="This household" EyebrowClass="text-household" />
+
+    <div class="flex-1 px-6 pb-6 app-scrollable">
+        @if (this.m_Settings == null)
+        {
+            <HomeLoader Class="py-16" />
+        }
+        else
+        {
+            <div class="flex flex-col gap-6">
+
+                <HomeCard Title="Household" Subtitle="How this home shows up around the app.">
+                    <ChildContent>
+                        <div class="flex flex-col gap-4">
+                            <HomeTextInput Label="Name" Placeholder="e.g. The Healys" @bind-Value="this.m_Name" />
+                            <div class="flex items-center justify-end gap-3">
+                                @if (this.m_HouseholdSaved)
+                                {
+                                    <span class="text-sm text-shopping">Saved</span>
+                                }
+                                <HomeButton OnClick="this.SaveHouseholdAsync"
+                                            Loading="this.m_SavingHousehold"
+                                            Disabled="@string.IsNullOrWhiteSpace(this.m_Name)">Save</HomeButton>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </HomeCard>
+
+                <HomeCard Title="Location" Subtitle="Sets where sunrise and sunset happen for this home — light schedules will be able to follow the sun.">
+                    <ChildContent>
+                        <div class="flex flex-col gap-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-sm font-medium text-ink-300">Latitude</label>
+                                    <input type="number" step="any" min="-90" max="90"
+                                           class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+                                           @bind="this.m_Latitude" />
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-sm font-medium text-ink-300">Longitude</label>
+                                    <input type="number" step="any" min="-180" max="180"
+                                           class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+                                           @bind="this.m_Longitude" />
+                                </div>
+                            </div>
+                            <p class="text-xs text-ink-500">
+                                Decimal degrees — south and west are negative. Brisbane is roughly -27.47, 153.03.
+                            </p>
+                            <div class="flex items-center justify-end gap-3">
+                                @if (this.m_LocationSaved)
+                                {
+                                    <span class="text-sm text-shopping">Saved</span>
+                                }
+                                <HomeButton OnClick="this.SaveLocationAsync" Loading="this.m_SavingLocation">Save</HomeButton>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </HomeCard>
+
+                <HomeCard Title="Connections" Subtitle="Services this home is linked to.">
+                    <ChildContent>
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-center gap-3">
+                                <span class="home-icon home-icon-lightbulb h-5 w-5 text-lights"></span>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-ink-50">LIFX</p>
+                                    <p class="text-xs @(this.m_Settings.HasLifxApiToken ? "text-shopping" : "text-ink-500")">
+                                        @(this.m_Settings.HasLifxApiToken ? "Connected" : "Not connected")
+                                    </p>
+                                </div>
+                                @if (this.m_Settings.HasLifxApiToken)
+                                {
+                                    <HomeButton Size="sm" Variant="ghost" OnClick="this.DisconnectLifxAsync" Loading="this.m_SavingConnection">
+                                        Disconnect
+                                    </HomeButton>
+                                }
+                            </div>
+
+                            <HomePasswordInput Label="@(this.m_Settings.HasLifxApiToken ? "Replace token" : "API token")"
+                                               Placeholder="Paste a token from cloud.lifx.com/settings"
+                                               @bind-Value="this.m_LifxToken" />
+                            <p class="text-xs text-ink-500">
+                                The token is stored with this household's settings and never shown again.
+                            </p>
+                            <div class="flex items-center justify-end gap-3">
+                                @if (this.m_ConnectionSaved)
+                                {
+                                    <span class="text-sm text-shopping">Saved</span>
+                                }
+                                <HomeButton OnClick="this.SaveLifxTokenAsync"
+                                            Loading="this.m_SavingConnection"
+                                            Disabled="@string.IsNullOrWhiteSpace(this.m_LifxToken)">
+                                    @(this.m_Settings.HasLifxApiToken ? "Replace" : "Connect")
+                                </HomeButton>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </HomeCard>
+
+                <HomeCard Title="Account">
+                    <ChildContent>
+                        <div class="flex items-center justify-between gap-3">
+                            <p class="text-sm text-ink-400">Signing out returns this tablet to the login screen.</p>
+                            <HomeButton Variant="secondary" OnClick="this.SignOut">Sign out</HomeButton>
+                        </div>
+                    </ChildContent>
+                </HomeCard>
+
+            </div>
+        }
+    </div>
+</div>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />
