@@ -5,6 +5,30 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-13 — Components use .razor.cs code-behind
+
+Mitch: component logic lives in a `.razor.cs` partial class beside the markup so the C# language
+server can analyse it — inline `@code` blocks get little to no LSP support in most editors. Markup
+and directives (`@page`, `@inject`, `@typeparam`) stay in the `.razor`; everything else moves to
+the partial. Supersedes the earlier inline-`@code` convention.
+
+## 2026-08-13 — Household settings live in SQL, not user secrets
+
+Mitch: assume cloud-hosted SQL storage. Household-wide settings (name, latitude/longitude for
+future sunrise/sunset triggers, the LIFX API token) are stored on the household row and edited
+from the Settings page — setup must not be a CLI exercise. The token is write-only through the
+API: GET returns `HasLifxApiToken`, never the value. `lifxApiToken` in user secrets remains as a
+developer fallback when the household has no token stored.
+
+## 2026-08-13 — The design system: warm ink neutrals, Fraunces display, pillar hues
+
+The zinc/teal look was the stock "dark dashboard with a single accent" — indistinguishable from
+template output. Replaced with: warm stone neutrals (`ink` scale), Fraunces as an editorial
+display face over Inter UI text, light-on-dark primary buttons, and one hue per pillar
+(recipes apricot, shopping sage, week sky, lights amber) used for identity only — a family member
+navigates by colour without reading. The dashboard is a live "family board" (glance, don't
+navigate), and `HomeNavRail` keeps every page one tap from anywhere, so no screen is a dead end.
+
 ## 2026-08-13 — UI direction: upgrade, tablet-first, not generic
 
 Mitch: the UI should be "upgraded, not generic, functional, good UX, and won't make a user

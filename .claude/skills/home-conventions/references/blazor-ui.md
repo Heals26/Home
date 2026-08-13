@@ -6,15 +6,31 @@ library. Everything is either a `Home*` component or raw Tailwind utilities.
 
 ## Component layout
 
-`@code` blocks are **inline, at the bottom of the `.razor` file**. There are zero `.razor.cs`
-code-behind files in this repo. Inside `@code`, the same region discipline as C# applies:
+Logic lives in a **`.razor.cs` code-behind partial class** beside the markup (decided 13 Aug 2026 —
+inline `@code` gets no C# language-server support in most editors). The `.razor` file keeps markup
+and directives (`@page`, `@inject`, `@typeparam`, `@using`); everything else goes in the partial:
+
+```csharp
+// RecipesPage.razor.cs
+namespace Home.WebUI.Components.Pages.Recipes;
+
+public partial class RecipesPage
+{
+    ...
+}
+```
+
+Members injected via `_Imports.razor` (`ApiAccess`, `NavigationManager`, `TimeProvider`) are
+generated onto the component class, so the partial can use `this.ApiAccess` without declaring
+anything. Inside the partial, the same region discipline as C# applies:
 
 ```
 Records → Fields → Properties → Lifecycle Methods → Methods
 ```
 
-```razor
-@code {
+```csharp
+public partial class RecipesPage
+{
 
     #region Fields
 
@@ -130,22 +146,28 @@ bottom-right from `ValidationProblemDetails` returned by the API.
 
 ## Design system
 
-Dark only. `darkMode: false` in `tailwind.config.js` — the dark palette is the default palette, there
-is no light theme and no toggle.
+Dark only — the app lives on an always-on kitchen tablet, and dark IS the palette; there is no
+light theme and no toggle. Redesigned 13 Aug 2026: warm stone neutrals (the `ink` scale), an
+editorial display face, and one hue per pillar so colour encodes *place* in the app.
 
 | Token | Value |
 |---|---|
-| Page background | `zinc-950` `#09090b` |
-| Surface | `zinc-900` |
-| Raised surface / hover | `zinc-800` |
-| Border | `zinc-800`, hover `zinc-700` |
-| Primary text | `zinc-50` |
-| Muted text | `zinc-400`, dimmer `zinc-500` |
-| Accent | `teal-600` (hover `teal-500`, icons `teal-400`) |
+| Page background | `ink-950` `#0c0a09` |
+| Surface | `ink-900`, raised `ink-800` |
+| Border | `ink-800`, hover `ink-700` |
+| Primary text | `ink-50`, muted `ink-400`, dimmer `ink-500` |
+| Primary button | light-on-dark: `bg-ink-50 text-ink-950` |
+| Pillar hues | `recipes` apricot `#fb923c` · `shopping` sage `#a3b18a` · `week` sky `#7dd3fc` · `lights` amber `#fbbf24` · `household` neutral |
 | Danger | `red-600` (hover `red-500`) |
-| Font | Inter |
+| Display font | Fraunces (`font-display`) — page titles, greetings, modal titles |
+| Body font | Inter (`font-sans`) |
 
-Touch targets are sized for a phone: `min-h-[48px]` default, `36px` small, `56px` large.
+Pillar hues are for identity only — nav active states, eyebrows, icons, count pills — never for
+large surfaces. Page headers use `HomeTopBar` with `Eyebrow`/`EyebrowClass` naming the pillar.
+Persistent navigation is `HomeNavRail` (left rail on `md:`, bottom bar below), so pages don't
+need back-to-home buttons; `ShowBack` is only for drill-in pages like a recipe's detail.
+
+Touch targets are sized for fingers: `min-h-[48px]` default, `36px` small, `56px` large.
 `active:scale-95` on pressables.
 
 ## Styling rules
