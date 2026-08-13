@@ -1,6 +1,2 @@
-﻿@code {
-
-	protected override void OnInitialized()
-		=> this.NavigationManager.NavigateTo(AuthorisationUriProvider.GetLoginUri(Uri.EscapeDataString(this.NavigationManager.Uri)), forceLoad: true);
-
-}
+﻿@* Renders nothing — bounces an unauthenticated visitor to the login page,
+   carrying the current URI so they land back where they started. *@

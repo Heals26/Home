@@ -1,12 +1,12 @@
-<HomeCard>
+﻿<HomeCard>
     <TitleContent>
         @if (this.m_ShoppingList != null)
         {
-            <h2 class="text-base font-semibold text-zinc-50">@this.m_ShoppingList.Name</h2>
+            <h2 class="text-base font-semibold text-ink-50">@this.m_ShoppingList.Name</h2>
         }
         else
         {
-            <h2 class="text-base font-semibold text-zinc-400">No list selected</h2>
+            <h2 class="text-base font-semibold text-ink-400">No list selected</h2>
         }
     </TitleContent>
     <ActionsContent>
@@ -14,7 +14,7 @@
         {
             <HomeButton Size="sm" OnClick="this.OpenAddItemModal">
                 <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
-                Add Item
+                Add item
             </HomeButton>
         }
     </ActionsContent>
@@ -25,35 +25,35 @@
         }
         else if (!this.m_ShoppingList.Items.Any())
         {
-            <HomeEmptyState Title="List is empty" Subtitle="Add items to get started">
+            <HomeEmptyState Title="List is empty" Subtitle="Add the first thing you'll need">
                 <ActionContent>
-                    <HomeButton OnClick="this.OpenAddItemModal">Add Item</HomeButton>
+                    <HomeButton OnClick="this.OpenAddItemModal">Add item</HomeButton>
                 </ActionContent>
             </HomeEmptyState>
         }
         else
         {
-            <div class="divide-y divide-zinc-800 -mx-5">
+            <div class="divide-y divide-ink-800 -mx-5">
                 @foreach (var _Item in this.m_ShoppingList.Items.OrderBy(i => i.Name))
                 {
                     <div class="flex items-center gap-4 px-5 py-3">
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-zinc-50 truncate">@_Item.Name</p>
+                            <p class="text-sm font-medium text-ink-50 truncate">@_Item.Name</p>
                             @if (_Item.Cost.HasValue && _Item.Cost > 0)
                             {
-                                <p class="text-xs text-zinc-500">$@_Item.Cost.Value.ToString("F2")</p>
+                                <p class="text-xs text-ink-500">$@_Item.Cost.Value.ToString("F2")</p>
                             }
                         </div>
                         @if (_Item.Quantity.HasValue)
                         {
-                            <span class="text-sm text-zinc-400 shrink-0">qty @_Item.Quantity.Value</span>
+                            <span class="text-sm text-ink-400 shrink-0">qty @_Item.Quantity.Value</span>
                         }
                     </div>
                 }
             </div>
-            <div class="border-t border-zinc-800 pt-4 mt-4 flex justify-between items-center -mx-5 px-5 -mb-5 pb-5">
-                <span class="text-sm text-zinc-400">Total</span>
-                <span class="text-base font-semibold text-zinc-50">
+            <div class="border-t border-ink-800 pt-4 mt-4 flex justify-between items-center -mx-5 px-5 -mb-5 pb-5">
+                <span class="text-sm text-ink-400">Total</span>
+                <span class="text-base font-semibold text-ink-50">
                     $@this.m_ShoppingList.Items.Sum(i => (i.Cost ?? 0) * (i.Quantity ?? 1)).ToString("F2")
                 </span>
             </div>
@@ -61,7 +61,7 @@
     </ChildContent>
 </HomeCard>
 
-<HomeModal @bind-Visible="this.m_ShowAddItem" Title="Add Item">
+<HomeModal @bind-Visible="this.m_ShowAddItem" Title="Add item">
     <ChildContent>
         <EditForm Model="this.m_AddItemRequest" OnValidSubmit="this.AddItemAsync">
             <HomeTextInput Label="Name"
@@ -77,90 +77,10 @@
             </div>
             <div class="mt-4 flex justify-end gap-3">
                 <HomeButton Variant="ghost" OnClick="() => this.m_ShowAddItem = false">Cancel</HomeButton>
-                <HomeButton Type="submit" Loading="this.m_AddingItem">Add</HomeButton>
+                <HomeButton Type="submit" Loading="this.m_AddingItem">Add item</HomeButton>
             </div>
         </EditForm>
     </ChildContent>
 </HomeModal>
 
 <ErrorHandler @ref="this.m_ErrorHandler" />
-
-@code {
-
-    #region Fields
-
-    private ErrorHandler? m_ErrorHandler;
-    private GetShoppingListWebAppResponse? m_ShoppingList;
-    private CreateShoppingListItemWebAppRequest? m_AddItemRequest = new();
-    private bool m_ShowAddItem;
-    private bool m_AddingItem;
-    private string m_QuantityInput = string.Empty;
-    private string m_CostInput = string.Empty;
-
-    #endregion Fields
-
-    #region Properties
-
-    [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
-    [Parameter] public long? ShoppingListID { get; set; }
-
-    #endregion Properties
-
-    #region Lifecycle Methods
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (this.ShoppingListID.HasValue)
-            await this.LoadListAsync();
-        else
-            this.m_ShoppingList = null;
-    }
-
-    #endregion Lifecycle Methods
-
-    #region Methods
-
-    private void OpenAddItemModal()
-    {
-        this.m_AddItemRequest = new() { ShoppingListID = this.ShoppingListID!.Value };
-        this.m_QuantityInput = string.Empty;
-        this.m_CostInput = string.Empty;
-        this.m_ShowAddItem = true;
-    }
-
-    private async Task LoadListAsync()
-    {
-        this.m_ShoppingList = await this.ApiAccess.SendRequestAsync<object, GetShoppingListWebAppResponse>(
-            null!, ApiProvider.GetShoppingList(this.ShoppingListID!.Value),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.CancellationToken);
-    }
-
-    private async Task AddItemAsync()
-    {
-        if (this.m_AddingItem) return;
-        this.m_AddingItem = true;
-
-        this.m_AddItemRequest!.Quantity = decimal.TryParse(this.m_QuantityInput, out var _Qty) ? _Qty : null;
-        this.m_AddItemRequest!.Cost = decimal.TryParse(this.m_CostInput, out var _Cost) ? _Cost : null;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<CreateShoppingListItemWebAppRequest, CreateShoppingListItemWebAppResponse>(
-            this.m_AddItemRequest!,
-            ApiProvider.CreateShoppingListItem(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.CancellationToken);
-
-        this.m_AddingItem = false;
-
-        if (_Result == null)
-            return;
-
-        this.m_ShowAddItem = false;
-        this.m_AddItemRequest = new() { ShoppingListID = this.ShoppingListID!.Value };
-
-        await this.LoadListAsync();
-    }
-
-    #endregion Methods
-
-}

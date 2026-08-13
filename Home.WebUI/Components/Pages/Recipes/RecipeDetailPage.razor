@@ -1,4 +1,4 @@
-@page "/recipes/{RecipeID:long}"
+﻿@page "/recipes/{RecipeID:long}"
 
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
     <div class="flex flex-col h-full">
@@ -17,7 +17,7 @@
             </ActionsContent>
         </HomeTopBar>
 
-        <div class="flex-1 p-4 app-scrollable">
+        <div class="flex-1 px-6 pb-6 app-scrollable">
             @if (this.m_Recipe == null)
             {
                 <HomeLoader Class="py-16" />
@@ -29,7 +29,7 @@
                     @if (!string.IsNullOrWhiteSpace(this.m_Recipe.Url))
                     {
                         <a href="@this.m_Recipe.Url" target="_blank" rel="noopener noreferrer"
-                           class="inline-flex items-center gap-2 text-sm text-teal-400 hover:text-teal-300">
+                           class="inline-flex items-center gap-2 text-sm text-recipes hover:text-recipes/80">
                             <span class="home-icon home-icon-link h-4 w-4 inline-block"></span>
                             View source
                         </a>
@@ -46,27 +46,27 @@
                         <ChildContent>
                             @if (!this.m_Recipe.Ingredients.Any())
                             {
-                                <p class="text-sm text-zinc-500 py-2">No ingredients yet.</p>
+                                <p class="text-sm text-ink-500 py-2">No ingredients yet — add the first one.</p>
                             }
                             else
                             {
-                                <div class="divide-y divide-zinc-800 -mx-5 -mb-5">
+                                <div class="divide-y divide-ink-800 -mx-5 -mb-5">
                                     @foreach (var _Ingredient in this.m_Recipe.Ingredients)
                                     {
                                         <div class="flex items-center gap-3 px-5 py-3 group">
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-zinc-50 truncate">@_Ingredient.Name</p>
+                                                <p class="text-sm font-medium text-ink-50 truncate">@_Ingredient.Name</p>
                                                 @if (this.HasMeasurements(_Ingredient))
                                                 {
-                                                    <p class="text-xs text-zinc-500">@this.DescribeMeasurements(_Ingredient)</p>
+                                                    <p class="text-xs text-ink-500">@this.DescribeMeasurements(_Ingredient)</p>
                                                 }
                                             </div>
-                                            <button class="text-zinc-600 hover:text-zinc-200 transition-colors opacity-0 group-hover:opacity-100"
+                                            <button class="text-ink-600 hover:text-ink-200 transition-colors opacity-0 group-hover:opacity-100"
                                                     type="button" title="Edit"
                                                     @onclick="() => this.OpenEditIngredientModal(_Ingredient)">
                                                 <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
                                             </button>
-                                            <button class="text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                                                     type="button" title="Remove"
                                                     @onclick="() => this.RemoveIngredientAsync(_Ingredient.IngredientID)">
                                                 <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
@@ -89,7 +89,7 @@
                         <ChildContent>
                             @if (!this.m_Recipe.Steps.Any())
                             {
-                                <p class="text-sm text-zinc-500 py-2">No steps yet.</p>
+                                <p class="text-sm text-ink-500 py-2">No steps yet — write the first one.</p>
                             }
                             else
                             {
@@ -97,20 +97,20 @@
                                     @foreach (var _Step in this.m_Recipe.Steps.OrderBy(s => s.Sequence))
                                     {
                                         <li class="flex gap-3 group">
-                                            <span class="shrink-0 h-7 w-7 rounded-full bg-zinc-800 text-teal-400 text-sm font-semibold flex items-center justify-center">@_Step.Sequence</span>
+                                            <span class="shrink-0 h-7 w-7 rounded-full bg-ink-800 text-recipes text-sm font-semibold flex items-center justify-center">@_Step.Sequence</span>
                                             <div class="flex-1 min-w-0">
                                                 @if (!string.IsNullOrWhiteSpace(_Step.Title))
                                                 {
-                                                    <p class="text-sm font-semibold text-zinc-50">@_Step.Title</p>
+                                                    <p class="text-sm font-semibold text-ink-50">@_Step.Title</p>
                                                 }
-                                                <p class="text-sm text-zinc-300 whitespace-pre-wrap">@_Step.Content</p>
+                                                <p class="text-sm text-ink-300 whitespace-pre-wrap">@_Step.Content</p>
                                             </div>
-                                            <button class="text-zinc-600 hover:text-zinc-200 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                                            <button class="text-ink-600 hover:text-ink-200 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                                                     type="button" title="Edit"
                                                     @onclick="() => this.OpenEditStepModal(_Step)">
                                                 <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
                                             </button>
-                                            <button class="text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                                                     type="button" title="Remove"
                                                     @onclick="() => this.RemoveStepAsync(_Step.RecipeStepID)">
                                                 <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
@@ -133,19 +133,19 @@
                         <ChildContent>
                             @if (!this.m_Recipe.Notes.Any())
                             {
-                                <p class="text-sm text-zinc-500 py-2">No notes yet.</p>
+                                <p class="text-sm text-ink-500 py-2">No notes yet — jot down what worked.</p>
                             }
                             else
                             {
                                 <div class="flex flex-col gap-2 -mb-1">
                                     @foreach (var _Note in this.m_Recipe.Notes.OrderByDescending(n => n.CreatedOnUTC))
                                     {
-                                        <div class="flex items-start gap-3 bg-zinc-800/50 rounded-lg px-4 py-3 group">
+                                        <div class="flex items-start gap-3 bg-ink-800/50 rounded-lg px-4 py-3 group">
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm text-zinc-200 whitespace-pre-wrap">@_Note.Content</p>
-                                                <p class="text-xs text-zinc-600 mt-1">@_Note.CreatedOnUTC.ToLocalTime().ToString("d MMM yyyy")</p>
+                                                <p class="text-sm text-ink-200 whitespace-pre-wrap">@_Note.Content</p>
+                                                <p class="text-xs text-ink-600 mt-1">@_Note.CreatedOnUTC.ToLocalTime().ToString("d MMM yyyy")</p>
                                             </div>
-                                            <button class="text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                                                     type="button" title="Remove"
                                                     @onclick="() => this.RemoveNoteAsync(_Note.NoteID)">
                                                 <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
@@ -164,7 +164,7 @@
 </CascadingValue>
 
 @* Edit recipe modal *@
-<HomeModal @bind-Visible="this.m_ShowEditRecipe" Title="Edit Recipe">
+<HomeModal @bind-Visible="this.m_ShowEditRecipe" Title="Edit recipe">
     <ChildContent>
         <HomeTextInput Label="Recipe name" @bind-Value="this.m_EditName" Placeholder="Recipe name" />
         <div class="mt-3">
@@ -178,7 +178,7 @@
 </HomeModal>
 
 @* Ingredient modal (add + edit) *@
-<HomeModal @bind-Visible="this.m_ShowIngredient" Title="@(this.m_EditingIngredientID.HasValue ? "Edit Ingredient" : "Add Ingredient")">
+<HomeModal @bind-Visible="this.m_ShowIngredient" Title="@(this.m_EditingIngredientID.HasValue ? "Edit ingredient" : "Add ingredient")">
     <ChildContent>
         <HomeTextInput Label="Name" @bind-Value="this.m_IngName" Placeholder="e.g. Onion" />
         <div class="grid grid-cols-3 gap-3 mt-3">
@@ -194,14 +194,14 @@
 </HomeModal>
 
 @* Step modal (add + edit) *@
-<HomeModal @bind-Visible="this.m_ShowStep" Title="@(this.m_EditingStepID.HasValue ? "Edit Step" : "Add Step")">
+<HomeModal @bind-Visible="this.m_ShowStep" Title="@(this.m_EditingStepID.HasValue ? "Edit step" : "Add step")">
     <ChildContent>
         <HomeTextInput Label="Title (optional)" @bind-Value="this.m_StepTitle" Placeholder="e.g. Prepare the sauce" />
         <div class="mt-3 flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-zinc-300">Instructions</label>
+            <label class="text-sm font-medium text-ink-300">Instructions</label>
             <textarea @bind="this.m_StepContent" rows="4"
                       placeholder="Describe this step..."
-                      class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"></textarea>
+                      class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowStep = false">Cancel</HomeButton>
@@ -211,25 +211,25 @@
 </HomeModal>
 
 @* Note modal *@
-<HomeModal @bind-Visible="this.m_ShowNote" Title="Add Note">
+<HomeModal @bind-Visible="this.m_ShowNote" Title="Add note">
     <ChildContent>
         <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-zinc-300">Note</label>
+            <label class="text-sm font-medium text-ink-300">Note</label>
             <textarea @bind="this.m_NoteContent" rows="3"
                       placeholder="Write a note..."
-                      class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"></textarea>
+                      class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowNote = false">Cancel</HomeButton>
-            <HomeButton Loading="this.m_Saving" OnClick="this.SaveNoteAsync">Add</HomeButton>
+            <HomeButton Loading="this.m_Saving" OnClick="this.SaveNoteAsync">Add note</HomeButton>
         </div>
     </ChildContent>
 </HomeModal>
 
 @* Add to shopping list modal *@
-<HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add to Shopping List">
+<HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add to shopping list">
     <ChildContent>
-        <p class="text-sm text-zinc-400 mb-3">Add this recipe's ingredients to a shopping list.</p>
+        <p class="text-sm text-ink-400 mb-3">Add this recipe's ingredients to a shopping list.</p>
         @if (this.m_ShoppingLists == null)
         {
             <HomeLoader Class="py-6" />
@@ -238,25 +238,25 @@
         {
             @if (this.m_ShoppingLists.ShoppingLists.Any())
             {
-                <div class="divide-y divide-zinc-800 border border-zinc-800 rounded-lg overflow-hidden">
+                <div class="divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
                     @foreach (var _List in this.m_ShoppingLists.ShoppingLists)
                     {
                         <button type="button"
-                                class="w-full text-left px-4 py-3 hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                                class="w-full text-left px-4 py-3 hover:bg-ink-800 transition-colors disabled:opacity-50"
                                 disabled="@this.m_AddingToList"
                                 @onclick="() => this.AddToExistingListAsync(_List.ShoppingListID)">
-                            <p class="text-sm font-medium text-zinc-50">@_List.Name</p>
-                            <p class="text-xs text-zinc-500">@_List.ItemCount items</p>
+                            <p class="text-sm font-medium text-ink-50">@_List.Name</p>
+                            <p class="text-xs text-ink-500">@_List.ItemCount items</p>
                         </button>
                     }
                 </div>
             }
             else
             {
-                <p class="text-sm text-zinc-500">No shopping lists yet — create one below.</p>
+                <p class="text-sm text-ink-500">No shopping lists yet — create one below.</p>
             }
 
-            <div class="mt-4 pt-4 border-t border-zinc-800">
+            <div class="mt-4 pt-4 border-t border-ink-800">
                 <HomeTextInput Label="Or create a new list" @bind-Value="this.m_NewListName" Placeholder="e.g. Weekly shop" />
                 <div class="mt-3 flex justify-end">
                     <HomeButton Loading="this.m_AddingToList" OnClick="this.CreateListAndAddAsync">Create &amp; add</HomeButton>
@@ -267,406 +267,3 @@
 </HomeModal>
 
 <ErrorHandler @ref="this.m_ErrorHandler" />
-
-@code {
-
-    #region Fields
-
-    private CancellationTokenHandler m_CancellationTokenHandler = new();
-    private ErrorHandler? m_ErrorHandler;
-    private GetRecipeWebAppResponse? m_Recipe;
-
-    private bool m_Saving;
-
-    // Edit recipe
-    private bool m_ShowEditRecipe;
-    private string m_EditName = string.Empty;
-    private string m_EditUrl = string.Empty;
-
-    // Ingredient
-    private bool m_ShowIngredient;
-    private long? m_EditingIngredientID;
-    private string m_IngName = string.Empty;
-    private string m_IngQuantity = string.Empty;
-    private string m_IngVolume = string.Empty;
-    private string m_IngWeight = string.Empty;
-
-    // Step
-    private bool m_ShowStep;
-    private long? m_EditingStepID;
-    private string m_StepTitle = string.Empty;
-    private string m_StepContent = string.Empty;
-
-    // Note
-    private bool m_ShowNote;
-    private string m_NoteContent = string.Empty;
-
-    // Add to list
-    private bool m_ShowAddToList;
-    private GetShoppingListsWebAppResponse? m_ShoppingLists;
-    private string m_NewListName = string.Empty;
-    private bool m_AddingToList;
-
-    #endregion Fields
-
-    #region Properties
-
-    [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
-    [Parameter] public long RecipeID { get; set; }
-
-    #endregion Properties
-
-    #region Lifecycle Methods
-
-    protected override async Task OnParametersSetAsync()
-        => await this.LoadRecipeAsync();
-
-    #endregion Lifecycle Methods
-
-    #region Methods - Loading
-
-    private async Task LoadRecipeAsync()
-    {
-        this.m_Recipe = await this.ApiAccess.SendRequestAsync<object, GetRecipeWebAppResponse>(
-            null!, ApiProvider.GetRecipe(this.RecipeID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-    }
-
-    #endregion Methods - Loading
-
-    #region Methods - Recipe
-
-    private void OpenEditRecipeModal()
-    {
-        this.m_EditName = this.m_Recipe!.Name;
-        this.m_EditUrl = this.m_Recipe!.Url ?? string.Empty;
-        this.m_ShowEditRecipe = true;
-    }
-
-    private async Task SaveRecipeAsync()
-    {
-        if (this.m_Saving) return;
-        this.m_Saving = true;
-
-        var _Request = new UpdateRecipeWebAppRequest()
-        {
-            Name = new PropertyChangeTracker<string>(this.m_EditName),
-            Url = new PropertyChangeTracker<string>(this.m_EditUrl)
-        };
-
-        var _Result = await this.ApiAccess.SendRequestAsync<UpdateRecipeWebAppRequest, bool>(
-            _Request, ApiProvider.UpdateRecipe(this.RecipeID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_Saving = false;
-
-        if (_Result != true) return;
-
-        this.m_ShowEditRecipe = false;
-        await this.LoadRecipeAsync();
-    }
-
-    #endregion Methods - Recipe
-
-    #region Methods - Ingredients
-
-    private void OpenAddIngredientModal()
-    {
-        this.m_EditingIngredientID = null;
-        this.m_IngName = string.Empty;
-        this.m_IngQuantity = string.Empty;
-        this.m_IngVolume = string.Empty;
-        this.m_IngWeight = string.Empty;
-        this.m_ShowIngredient = true;
-    }
-
-    private void OpenEditIngredientModal(RecipeIngredientDto ingredient)
-    {
-        this.m_EditingIngredientID = ingredient.IngredientID;
-        this.m_IngName = ingredient.Name;
-        this.m_IngQuantity = ingredient.Quantity?.ToString() ?? string.Empty;
-        this.m_IngVolume = ingredient.Volume?.ToString() ?? string.Empty;
-        this.m_IngWeight = ingredient.Weight?.ToString() ?? string.Empty;
-        this.m_ShowIngredient = true;
-    }
-
-    private async Task SaveIngredientAsync()
-    {
-        if (this.m_Saving) return;
-        this.m_Saving = true;
-
-        bool _Result;
-
-        if (this.m_EditingIngredientID.HasValue)
-        {
-            var _Request = new UpdateRecipeIngredientWebAppRequest()
-            {
-                Name = new PropertyChangeTracker<string>(this.m_IngName),
-                Quantity = new PropertyChangeTracker<decimal?>(ParseDecimal(this.m_IngQuantity)),
-                Volume = new PropertyChangeTracker<decimal?>(ParseDecimal(this.m_IngVolume)),
-                Weight = new PropertyChangeTracker<decimal?>(ParseDecimal(this.m_IngWeight))
-            };
-
-            _Result = await this.ApiAccess.SendRequestAsync<UpdateRecipeIngredientWebAppRequest, bool>(
-                _Request, ApiProvider.UpdateRecipeIngredient(this.m_EditingIngredientID.Value),
-                e => this.m_ErrorHandler?.AddError(e),
-                this.m_CancellationTokenHandler.Token);
-        }
-        else
-        {
-            var _Request = new AddRecipeIngredientWebAppRequest()
-            {
-                Name = this.m_IngName,
-                Quantity = ParseDecimal(this.m_IngQuantity),
-                Volume = ParseDecimal(this.m_IngVolume),
-                Weight = ParseDecimal(this.m_IngWeight),
-                RecipeID = this.RecipeID
-            };
-
-            var _Response = await this.ApiAccess.SendRequestAsync<AddRecipeIngredientWebAppRequest, AddRecipeIngredientWebAppResponse>(
-                _Request, ApiProvider.AddRecipeIngredient(),
-                e => this.m_ErrorHandler?.AddError(e),
-                this.m_CancellationTokenHandler.Token);
-
-            _Result = _Response != null;
-        }
-
-        this.m_Saving = false;
-
-        if (!_Result) return;
-
-        this.m_ShowIngredient = false;
-        await this.LoadRecipeAsync();
-    }
-
-    private async Task RemoveIngredientAsync(long ingredientID)
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.RemoveRecipeIngredient(this.RecipeID, ingredientID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result == true)
-            await this.LoadRecipeAsync();
-    }
-
-    #endregion Methods - Ingredients
-
-    #region Methods - Steps
-
-    private void OpenAddStepModal()
-    {
-        this.m_EditingStepID = null;
-        this.m_StepTitle = string.Empty;
-        this.m_StepContent = string.Empty;
-        this.m_ShowStep = true;
-    }
-
-    private void OpenEditStepModal(RecipeStepDto step)
-    {
-        this.m_EditingStepID = step.RecipeStepID;
-        this.m_StepTitle = step.Title;
-        this.m_StepContent = step.Content;
-        this.m_ShowStep = true;
-    }
-
-    private async Task SaveStepAsync()
-    {
-        if (this.m_Saving) return;
-        this.m_Saving = true;
-
-        bool _Result;
-
-        if (this.m_EditingStepID.HasValue)
-        {
-            var _Existing = this.m_Recipe!.Steps.First(s => s.RecipeStepID == this.m_EditingStepID.Value);
-            var _Request = new UpdateRecipeStepWebAppRequest()
-            {
-                Content = new PropertyChangeTracker<string>(this.m_StepContent),
-                Title = new PropertyChangeTracker<string>(this.m_StepTitle),
-                Sequence = new PropertyChangeTracker<int>(_Existing.Sequence)
-            };
-
-            _Result = await this.ApiAccess.SendRequestAsync<UpdateRecipeStepWebAppRequest, bool>(
-                _Request, ApiProvider.UpdateRecipeStep(this.m_EditingStepID.Value),
-                e => this.m_ErrorHandler?.AddError(e),
-                this.m_CancellationTokenHandler.Token);
-        }
-        else
-        {
-            var _NextSequence = this.m_Recipe!.Steps.Any()
-                ? this.m_Recipe.Steps.Max(s => s.Sequence) + 1
-                : 1;
-
-            var _Request = new AddRecipeStepWebAppRequest()
-            {
-                Content = this.m_StepContent,
-                Title = this.m_StepTitle,
-                Sequence = _NextSequence,
-                RecipeID = this.RecipeID
-            };
-
-            var _Response = await this.ApiAccess.SendRequestAsync<AddRecipeStepWebAppRequest, AddRecipeStepWebAppResponse>(
-                _Request, ApiProvider.AddRecipeStep(),
-                e => this.m_ErrorHandler?.AddError(e),
-                this.m_CancellationTokenHandler.Token);
-
-            _Result = _Response != null;
-        }
-
-        this.m_Saving = false;
-
-        if (!_Result) return;
-
-        this.m_ShowStep = false;
-        await this.LoadRecipeAsync();
-    }
-
-    private async Task RemoveStepAsync(long recipeStepID)
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.RemoveRecipeStep(recipeStepID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result == true)
-            await this.LoadRecipeAsync();
-    }
-
-    #endregion Methods - Steps
-
-    #region Methods - Notes
-
-    private void OpenAddNoteModal()
-    {
-        this.m_NoteContent = string.Empty;
-        this.m_ShowNote = true;
-    }
-
-    private async Task SaveNoteAsync()
-    {
-        if (this.m_Saving) return;
-        this.m_Saving = true;
-
-        var _Request = new AddRecipeNoteWebAppRequest()
-        {
-            Content = this.m_NoteContent,
-            RecipeID = this.RecipeID
-        };
-
-        var _Response = await this.ApiAccess.SendRequestAsync<AddRecipeNoteWebAppRequest, AddRecipeNoteWebAppResponse>(
-            _Request, ApiProvider.AddRecipeNote(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_Saving = false;
-
-        if (_Response == null) return;
-
-        this.m_ShowNote = false;
-        await this.LoadRecipeAsync();
-    }
-
-    private async Task RemoveNoteAsync(long noteID)
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.RemoveRecipeNote(this.RecipeID, noteID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result == true)
-            await this.LoadRecipeAsync();
-    }
-
-    #endregion Methods - Notes
-
-    #region Methods - Add To Shopping List
-
-    private async Task OpenAddToListModal()
-    {
-        this.m_ShoppingLists = null;
-        this.m_NewListName = string.Empty;
-        this.m_ShowAddToList = true;
-
-        this.m_ShoppingLists = await this.ApiAccess.SendRequestAsync<object, GetShoppingListsWebAppResponse>(
-            null!, ApiProvider.GetShoppingLists(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-    }
-
-    private async Task AddToExistingListAsync(long shoppingListID)
-    {
-        if (this.m_AddingToList) return;
-        this.m_AddingToList = true;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.AddRecipeToShoppingList(shoppingListID, this.RecipeID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_AddingToList = false;
-
-        if (_Result == true)
-            this.m_ShowAddToList = false;
-    }
-
-    private async Task CreateListAndAddAsync()
-    {
-        if (this.m_AddingToList) return;
-        if (string.IsNullOrWhiteSpace(this.m_NewListName)) return;
-        this.m_AddingToList = true;
-
-        var _Created = await this.ApiAccess.SendRequestAsync<CreateShoppingListWebAppRequest, CreateShoppingListWebAppResponse>(
-            new CreateShoppingListWebAppRequest() { Name = this.m_NewListName },
-            ApiProvider.CreateShoppingList(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Created == null)
-        {
-            this.m_AddingToList = false;
-            return;
-        }
-
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.AddRecipeToShoppingList(_Created.ShoppingListID, this.RecipeID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_AddingToList = false;
-
-        if (_Result == true)
-            this.m_ShowAddToList = false;
-    }
-
-    #endregion Methods - Add To Shopping List
-
-    #region Helpers
-
-    private static decimal? ParseDecimal(string value)
-        => decimal.TryParse(value, out var _Parsed) ? _Parsed : null;
-
-    private bool HasMeasurements(RecipeIngredientDto ingredient)
-        => ingredient.Quantity.HasValue || ingredient.Volume.HasValue || ingredient.Weight.HasValue;
-
-    private string DescribeMeasurements(RecipeIngredientDto ingredient)
-    {
-        var _Parts = new List<string>();
-
-        if (ingredient.Quantity.HasValue)
-            _Parts.Add($"Qty {ingredient.Quantity.Value}");
-
-        if (ingredient.Volume.HasValue)
-            _Parts.Add($"Vol {ingredient.Volume.Value}");
-
-        if (ingredient.Weight.HasValue)
-            _Parts.Add($"Wt {ingredient.Weight.Value}");
-
-        return string.Join(" · ", _Parts);
-    }
-
-    #endregion Helpers
-
-}

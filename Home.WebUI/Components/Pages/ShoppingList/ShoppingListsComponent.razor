@@ -1,8 +1,8 @@
-<HomeCard Title="Lists">
+﻿<HomeCard Title="Lists">
     <ActionsContent>
         <HomeButton Size="sm" OnClick="this.OpenCreateModal">
             <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
-            New
+            New list
         </HomeButton>
     </ActionsContent>
     <ChildContent>
@@ -12,24 +12,24 @@
         }
         else if (!this.m_ShoppingLists.ShoppingLists.Any())
         {
-            <HomeEmptyState Title="No lists yet" Subtitle="Create your first shopping list">
+            <HomeEmptyState Title="No lists yet" Subtitle="Start a list for the next shop">
                 <ActionContent>
-                    <HomeButton OnClick="this.OpenCreateModal">Create List</HomeButton>
+                    <HomeButton OnClick="this.OpenCreateModal">New list</HomeButton>
                 </ActionContent>
             </HomeEmptyState>
         }
         else
         {
-            <div class="divide-y divide-zinc-800 -mx-5 -mb-5">
+            <div class="divide-y divide-ink-800 -mx-5 -mb-5">
                 @foreach (var _List in this.m_ShoppingLists.ShoppingLists)
                 {
-                    <div class="flex items-center gap-1 hover:bg-zinc-800 transition-colors group">
+                    <div class="flex items-center gap-1 hover:bg-ink-800 transition-colors group">
                         <button class="flex-1 text-left px-5 py-4"
                                 @onclick="() => this.SelectList(_List)">
-                            <p class="text-sm font-medium @(this.ShoppingListID == _List.ShoppingListID ? "text-white" : "text-zinc-50")">@_List.Name</p>
-                            <p class="text-xs text-zinc-500 mt-0.5">@_List.ItemCount items</p>
+                            <p class="text-sm font-medium @(this.ShoppingListID == _List.ShoppingListID ? "text-shopping" : "text-ink-50")">@_List.Name</p>
+                            <p class="text-xs text-ink-500 mt-0.5">@_List.ItemCount items</p>
                         </button>
-                        <button class="px-3 py-4 text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                        <button class="px-3 py-4 text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                                 type="button"
                                 title="Delete list"
                                 @onclick="() => this.DeleteShoppingListAsync(_List.ShoppingListID)">
@@ -42,7 +42,7 @@
     </ChildContent>
 </HomeCard>
 
-<HomeModal @bind-Visible="this.m_ShowCreate" Title="New Shopping List">
+<HomeModal @bind-Visible="this.m_ShowCreate" Title="New list">
     <ChildContent>
         <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateShoppingListAsync">
             <HomeTextInput Label="List name"
@@ -50,95 +50,10 @@
                            Placeholder="e.g. Weekly shop" />
             <div class="mt-4 flex justify-end gap-3">
                 <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
-                <HomeButton Type="submit" Loading="this.m_Creating">Create</HomeButton>
+                <HomeButton Type="submit" Loading="this.m_Creating">Add list</HomeButton>
             </div>
         </EditForm>
     </ChildContent>
 </HomeModal>
 
 <ErrorHandler @ref="this.m_ErrorHandler" />
-
-@code {
-
-    #region Fields
-
-    private ErrorHandler? m_ErrorHandler;
-    private CreateShoppingListWebAppRequest? m_CreateRequest = new();
-    private GetShoppingListsWebAppResponse? m_ShoppingLists;
-    private bool m_ShowCreate;
-    private bool m_Creating;
-
-    #endregion Fields
-
-    #region Properties
-
-    [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
-    [Parameter] public long? ShoppingListID { get; set; }
-    [Parameter] public EventCallback<long> ShoppingListIDChanged { get; set; }
-
-    #endregion Properties
-
-    #region Lifecycle Methods
-
-    protected override async Task OnInitializedAsync()
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, GetShoppingListsWebAppResponse>(
-            null!, ApiProvider.GetShoppingLists(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.CancellationToken);
-
-        if (_Result != null)
-            this.m_ShoppingLists = _Result;
-    }
-
-    #endregion Lifecycle Methods
-
-    #region Methods
-
-    private void OpenCreateModal()
-        => this.m_ShowCreate = true;
-
-    private void SelectList(GetShoppingListDto list)
-        => this.NavigationManager.NavigateTo($"/shopping-lists/{list.ShoppingListID}");
-
-    private async Task CreateShoppingListAsync()
-    {
-        if (this.m_Creating) return;
-        this.m_Creating = true;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<CreateShoppingListWebAppRequest, CreateShoppingListWebAppResponse>(
-            this.m_CreateRequest!,
-            ApiProvider.CreateShoppingList(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.CancellationToken);
-
-        this.m_Creating = false;
-
-        if (_Result == null)
-            return;
-
-        this.m_ShowCreate = false;
-        this.m_CreateRequest = new();
-
-        await this.OnInitializedAsync();
-    }
-
-    private async Task DeleteShoppingListAsync(long shoppingListID)
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.DeleteShoppingList(shoppingListID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.CancellationToken);
-
-        if (_Result != true)
-            return;
-
-        if (this.ShoppingListID == shoppingListID)
-            this.NavigationManager.NavigateTo("/shopping-lists");
-
-        await this.OnInitializedAsync();
-    }
-
-    #endregion Methods
-
-}

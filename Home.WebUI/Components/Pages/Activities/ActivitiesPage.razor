@@ -1,17 +1,17 @@
-@page "/activities"
+﻿@page "/activities"
 
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
     <div class="flex flex-col h-full">
-        <HomeTopBar Title="Activities" ShowBack="true" BackHref="/">
+        <HomeTopBar Title="This week" Eyebrow="Family board" EyebrowClass="text-week">
             <ActionsContent>
                 <HomeButton Size="sm" OnClick="this.OpenCreateModal">
                     <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
-                    New
+                    Add activity
                 </HomeButton>
             </ActionsContent>
         </HomeTopBar>
 
-        <div class="flex-1 min-h-0 p-4 overflow-x-auto app-scrollable">
+        <div class="flex-1 min-h-0 px-6 pb-6 overflow-x-auto app-scrollable">
             @if (this.m_Activities == null || this.m_States == null)
             {
                 <HomeLoader Class="py-16" />
@@ -22,39 +22,39 @@
                     @foreach (var _Column in this.GetColumns())
                     {
                         var _Cards = this.ActivitiesForState(_Column.StateID);
-                        <div class="flex flex-col w-72 shrink-0 bg-zinc-900/60 border border-zinc-800 rounded-xl max-h-full"
+                        <div class="flex flex-col w-72 shrink-0 bg-ink-900/60 border border-ink-800 rounded-xl max-h-full"
                              @ondragover:preventDefault="true"
                              @ondrop="() => this.OnDropAsync(_Column.StateID)">
-                            <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-800 shrink-0">
-                                <p class="text-sm font-semibold text-zinc-200">@_Column.Title</p>
-                                <span class="text-xs text-zinc-500 bg-zinc-800 rounded-full px-2 py-0.5">@_Cards.Count</span>
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-ink-800 shrink-0">
+                                <p class="text-sm font-semibold text-ink-200">@_Column.Title</p>
+                                <span class="text-xs text-week bg-week/10 rounded-full px-2 py-0.5">@_Cards.Count</span>
                             </div>
                             <div class="flex flex-col gap-2 p-3 overflow-y-auto app-scrollable">
                                 @foreach (var _Activity in _Cards)
                                 {
-                                    <div class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg p-3 cursor-pointer transition-colors"
+                                    <div class="bg-ink-800 hover:bg-ink-700 border border-ink-700 rounded-lg p-3 cursor-pointer transition-colors"
                                          draggable="true"
                                          @ondragstart="() => this.OnDragStart(_Activity)"
                                          @onclick="() => this.OpenEditModal(_Activity)">
-                                        <p class="text-sm font-medium text-zinc-50">@_Activity.Title</p>
+                                        <p class="text-sm font-medium text-ink-50">@_Activity.Title</p>
                                         <div class="flex items-center gap-3 mt-2">
                                             @if (_Activity.DueDateUTC.HasValue)
                                             {
-                                                <span class="inline-flex items-center gap-1 text-xs text-zinc-400">
+                                                <span class="inline-flex items-center gap-1 text-xs text-ink-400">
                                                     <span class="home-icon home-icon-calendar h-3.5 w-3.5 inline-block"></span>
                                                     @_Activity.DueDateUTC.Value.ToString("d MMM")
                                                 </span>
                                             }
                                             @if (!string.IsNullOrWhiteSpace(_Activity.AssignedTo))
                                             {
-                                                <span class="text-xs text-zinc-500 truncate">@_Activity.AssignedTo</span>
+                                                <span class="text-xs text-ink-500 truncate">@_Activity.AssignedTo</span>
                                             }
                                         </div>
                                     </div>
                                 }
                                 @if (!_Cards.Any())
                                 {
-                                    <p class="text-xs text-zinc-600 text-center py-6">Drop activities here</p>
+                                    <p class="text-xs text-ink-600 text-center py-6">Drop activities here</p>
                                 }
                             </div>
                         </div>
@@ -66,14 +66,14 @@
 </CascadingValue>
 
 @* Create activity modal *@
-<HomeModal @bind-Visible="this.m_ShowCreate" Title="New Activity">
+<HomeModal @bind-Visible="this.m_ShowCreate" Title="New activity">
     <ChildContent>
         <HomeTextInput Label="Title" @bind-Value="this.m_NewTitle" Placeholder="e.g. Mow the lawn" />
         <div class="grid grid-cols-2 gap-3 mt-3">
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-zinc-300">Column</label>
+                <label class="text-sm font-medium text-ink-300">Column</label>
                 <select @bind="this.m_NewStateID"
-                        class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-zinc-50 focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[48px]">
+                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
                     @foreach (var _State in this.m_States ?? [])
                     {
                         <option value="@_State.ActivityStateID">@_State.Name</option>
@@ -81,27 +81,27 @@
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-zinc-300">Due date (optional)</label>
+                <label class="text-sm font-medium text-ink-300">Due date (optional)</label>
                 <input type="date" @bind="this.m_NewDueDate"
-                       class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-zinc-50 focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[48px]" />
+                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
             </div>
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
-            <HomeButton Loading="this.m_Saving" OnClick="this.CreateActivityAsync">Create</HomeButton>
+            <HomeButton Loading="this.m_Saving" OnClick="this.CreateActivityAsync">Add activity</HomeButton>
         </div>
     </ChildContent>
 </HomeModal>
 
 @* Edit activity modal *@
-<HomeModal @bind-Visible="this.m_ShowEdit" Title="Edit Activity">
+<HomeModal @bind-Visible="this.m_ShowEdit" Title="Edit activity">
     <ChildContent>
         <HomeTextInput Label="Title" @bind-Value="this.m_EditTitle" Placeholder="Title" />
         <div class="grid grid-cols-2 gap-3 mt-3">
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-zinc-300">Column</label>
+                <label class="text-sm font-medium text-ink-300">Column</label>
                 <select @bind="this.m_EditStateID"
-                        class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-zinc-50 focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[48px]">
+                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
                     <option value="">Unassigned</option>
                     @foreach (var _State in this.m_States ?? [])
                     {
@@ -110,9 +110,9 @@
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-zinc-300">Due date</label>
+                <label class="text-sm font-medium text-ink-300">Due date</label>
                 <input type="date" @bind="this.m_EditDueDate"
-                       class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-zinc-50 focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[48px]" />
+                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
             </div>
         </div>
         <div class="mt-5 flex justify-between items-center">
@@ -126,246 +126,3 @@
 </HomeModal>
 
 <ErrorHandler @ref="this.m_ErrorHandler" />
-
-@code {
-
-    #region Fields
-
-    private CancellationTokenHandler m_CancellationTokenHandler = new();
-    private ErrorHandler? m_ErrorHandler;
-
-    private List<ActivityStateDto>? m_States;
-    private List<ActivitySummaryDto>? m_Activities;
-    private ActivitySummaryDto? m_DraggedActivity;
-
-    private bool m_Saving;
-
-    // Create
-    private bool m_ShowCreate;
-    private string m_NewTitle = string.Empty;
-    private DateTime? m_NewDueDate;
-    private long? m_NewStateID;
-
-    // Edit
-    private bool m_ShowEdit;
-    private ActivitySummaryDto? m_EditActivity;
-    private string m_EditTitle = string.Empty;
-    private DateTime? m_EditDueDate;
-    private long? m_EditStateID;
-
-    #endregion Fields
-
-    #region Properties
-
-    [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
-
-    #endregion Properties
-
-    #region Lifecycle Methods
-
-    protected override async Task OnInitializedAsync()
-    {
-        var _States = await this.ApiAccess.SendRequestAsync<object, GetActivityStatesWebAppResponse>(
-            null!, ApiProvider.GetActivityStates(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_States != null)
-            this.m_States = [.. _States.States];
-
-        await this.LoadActivitiesAsync();
-    }
-
-    #endregion Lifecycle Methods
-
-    #region Columns
-
-    private record ColumnVm(string Title, long? StateID);
-
-    private List<ColumnVm> GetColumns()
-    {
-        var _Columns = new List<ColumnVm>();
-
-        if (this.HasUnassigned())
-            _Columns.Add(new ColumnVm("Unassigned", null));
-
-        foreach (var _State in this.m_States ?? [])
-            _Columns.Add(new ColumnVm(_State.Name, _State.ActivityStateID));
-
-        return _Columns;
-    }
-
-    #endregion Columns
-
-    #region Methods - Loading
-
-    private async Task LoadActivitiesAsync()
-    {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, GetActivitiesWebAppResponse>(
-            null!, ApiProvider.GetActivities(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result != null)
-            this.m_Activities = [.. _Result.Activities];
-    }
-
-    private List<ActivitySummaryDto> ActivitiesForState(long? stateID)
-    {
-        if (this.m_Activities == null)
-            return [];
-
-        if (stateID == null)
-            return [.. this.m_Activities.Where(a => a.StateID == null || !this.IsKnownState(a.StateID.Value))];
-
-        return [.. this.m_Activities.Where(a => a.StateID == stateID)];
-    }
-
-    private bool IsKnownState(long stateID)
-        => this.m_States?.Any(s => s.ActivityStateID == stateID) ?? false;
-
-    private bool HasUnassigned()
-        => this.m_Activities?.Any(a => a.StateID == null || !this.IsKnownState(a.StateID.Value)) ?? false;
-
-    #endregion Methods - Loading
-
-    #region Methods - Drag & Drop
-
-    private void OnDragStart(ActivitySummaryDto activity)
-        => this.m_DraggedActivity = activity;
-
-    private async Task OnDropAsync(long? stateID)
-    {
-        var _Activity = this.m_DraggedActivity;
-        this.m_DraggedActivity = null;
-
-        if (_Activity == null || _Activity.StateID == stateID)
-            return;
-
-        await this.MoveActivityAsync(_Activity, stateID);
-    }
-
-    private async Task MoveActivityAsync(ActivitySummaryDto activity, long? stateID)
-    {
-        var _Request = BuildUpdateRequest(activity);
-        _Request.StateID = new PropertyChangeTracker<long?>(stateID);
-
-        var _Result = await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
-            _Request, ApiProvider.UpdateActivity(activity.ActivityID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Result == true)
-            await this.LoadActivitiesAsync();
-    }
-
-    #endregion Methods - Drag & Drop
-
-    #region Methods - Create
-
-    private void OpenCreateModal()
-    {
-        this.m_NewTitle = string.Empty;
-        this.m_NewDueDate = null;
-        this.m_NewStateID = this.m_States?.FirstOrDefault()?.ActivityStateID;
-        this.m_ShowCreate = true;
-    }
-
-    private async Task CreateActivityAsync()
-    {
-        if (this.m_Saving) return;
-        if (string.IsNullOrWhiteSpace(this.m_NewTitle)) return;
-        this.m_Saving = true;
-
-        var _Request = new CreateActivityWebAppRequest()
-        {
-            Title = this.m_NewTitle,
-            DueDateUTC = this.m_NewDueDate,
-            StateID = this.m_NewStateID
-        };
-
-        var _Response = await this.ApiAccess.SendRequestAsync<CreateActivityWebAppRequest, CreateActivityWebAppResponse>(
-            _Request, ApiProvider.CreateActivity(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_Saving = false;
-
-        if (_Response == null) return;
-
-        this.m_ShowCreate = false;
-        await this.LoadActivitiesAsync();
-    }
-
-    #endregion Methods - Create
-
-    #region Methods - Edit
-
-    private void OpenEditModal(ActivitySummaryDto activity)
-    {
-        this.m_EditActivity = activity;
-        this.m_EditTitle = activity.Title;
-        this.m_EditDueDate = activity.DueDateUTC?.Date;
-        this.m_EditStateID = activity.StateID;
-        this.m_ShowEdit = true;
-    }
-
-    private async Task SaveActivityAsync()
-    {
-        if (this.m_Saving || this.m_EditActivity == null) return;
-        this.m_Saving = true;
-
-        var _Request = BuildUpdateRequest(this.m_EditActivity);
-        _Request.Title = new PropertyChangeTracker<string>(this.m_EditTitle);
-        _Request.DueDateUTC = new PropertyChangeTracker<DateTime?>(this.m_EditDueDate);
-        _Request.StateID = new PropertyChangeTracker<long?>(this.m_EditStateID);
-
-        var _Result = await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
-            _Request, ApiProvider.UpdateActivity(this.m_EditActivity.ActivityID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_Saving = false;
-
-        if (_Result != true) return;
-
-        this.m_ShowEdit = false;
-        await this.LoadActivitiesAsync();
-    }
-
-    private async Task DeleteActivityAsync()
-    {
-        if (this.m_Saving || this.m_EditActivity == null) return;
-        this.m_Saving = true;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.DeleteActivity(this.m_EditActivity.ActivityID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_Saving = false;
-
-        if (_Result != true) return;
-
-        this.m_ShowEdit = false;
-        await this.LoadActivitiesAsync();
-    }
-
-    #endregion Methods - Edit
-
-    #region Helpers
-
-    private static UpdateActivityWebAppRequest BuildUpdateRequest(ActivitySummaryDto activity)
-        => new()
-        {
-            Title = new PropertyChangeTracker<string>(activity.Title),
-            DueDateUTC = new PropertyChangeTracker<DateTime?>(activity.DueDateUTC),
-            CompletedDateUTC = new PropertyChangeTracker<DateTime?>(activity.CompletedDateUTC),
-            StateID = new PropertyChangeTracker<long?>(activity.StateID),
-            StatusID = new PropertyChangeTracker<long?>(activity.StatusID),
-            UserID = new PropertyChangeTracker<long?>(activity.AssignedToUserID)
-        };
-
-    #endregion Helpers
-
-}

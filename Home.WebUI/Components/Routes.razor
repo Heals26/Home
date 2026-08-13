@@ -11,10 +11,10 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
                 <NotAuthorized>
-                    <div>You are not authorized. Please <a href="@AuthorisationUriProvider.GetLoginUri()">log in</a>.</div>
+                    <RedirectToLogin />
                 </NotAuthorized>
                 <Authorizing>
-                    <div class="min-h-screen bg-zinc-950 flex items-center justify-center">
+                    <div class="min-h-screen bg-ink-950 flex items-center justify-center">
                         <HomeLoader />
                     </div>
                 </Authorizing>

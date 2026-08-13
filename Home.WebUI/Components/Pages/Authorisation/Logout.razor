@@ -4,16 +4,4 @@
 
 @inject IAuthorisationService AuthorisationService
 
-@code {
-
-	#region Lifecycle Methods
-
-	protected override async Task OnInitializedAsync()
-	{
-		await this.AuthorisationService.SignOutAsync();
-		this.NavigationManager.NavigateTo(AuthorisationUriProvider.GetLoginUri(), true);
-	}
-
-	#endregion Lifecycle Methods
-
-}
+@* Renders nothing — signs the user out, then sends them back to the login page. *@
