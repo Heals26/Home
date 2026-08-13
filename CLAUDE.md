@@ -4,6 +4,14 @@ A .NET 8 clean-architecture household app — recipes, shopping lists, activitie
 LIFX light control. Blazor Server front end over a REST API, built on the
 `CleanArchitecture.Mediator` input-port / interactor / output-port pattern.
 
+## What this is for, and why things are the way they are
+
+**`.claude/VISION.md`** is the product north star — a family organiser on a kitchen tablet. Read it
+before deciding what to build or how anything should look. **`.claude/DECISIONS.md`** is the dated
+log of every significant decision and its reason — read it before re-litigating anything, and add
+an entry whenever a real decision gets made. These two files exist so work can move between
+machines and sessions without losing the plot.
+
 ## Conventions
 
 **Read `.claude/skills/home-conventions/` before writing code here.** It documents the naming
