@@ -3,7 +3,7 @@
 <div class="@this.GetClasses()">
     @if (this.Title != null || this.TitleContent != null || this.ActionsContent != null)
     {
-        <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-ink-800">
             <div>
                 @if (this.TitleContent != null)
                 {
@@ -11,11 +11,11 @@
                 }
                 else if (this.Title != null)
                 {
-                    <h2 class="text-base font-semibold text-zinc-50">@this.Title</h2>
+                    <h2 class="text-base font-semibold text-ink-50">@this.Title</h2>
                 }
                 @if (this.Subtitle != null)
                 {
-                    <p class="text-sm text-zinc-400 mt-0.5">@this.Subtitle</p>
+                    <p class="text-sm text-ink-400 mt-0.5">@this.Subtitle</p>
                 }
             </div>
             @if (this.ActionsContent != null)
@@ -41,5 +41,5 @@
     [Parameter] public string? Class { get; set; }
 
     private string GetClasses()
-        => $"bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden {this.Class}";
+        => $"bg-ink-900 rounded-2xl border border-ink-800 overflow-hidden {this.Class}";
 }

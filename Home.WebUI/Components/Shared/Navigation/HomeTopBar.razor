@@ -1,37 +1,33 @@
-@* Top navigation bar with optional back button, title, subtitle and actions slot. *@
+﻿@* Page header: eyebrow (the pillar's name in its hue), display-face title, optional back
+   button for detail pages, and an actions slot. The nav rail carries top-level wayfinding,
+   so ShowBack is only for drill-in pages. *@
 
-<header class="flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800 shrink-0 min-h-[64px]">
-    <div class="flex items-center gap-3 min-w-0">
+<header class="flex items-end justify-between gap-3 px-6 pt-6 pb-4 shrink-0">
+    <div class="flex items-center gap-2 min-w-0">
         @if (this.ShowBack)
         {
-            <button class="p-2 -ml-2 text-zinc-400 hover:text-zinc-50 rounded-lg transition-colors shrink-0"
+            <button class="p-2 -ml-2 mb-0.5 text-ink-400 hover:text-ink-50 rounded-lg transition-colors shrink-0 min-h-[44px] min-w-[44px]"
                     @onclick="this.GoBack">
                 <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
             </button>
         }
         <div class="min-w-0">
-            <h1 class="text-base font-semibold text-zinc-50 truncate">@this.Title</h1>
+            @if (!string.IsNullOrEmpty(this.Eyebrow))
+            {
+                <p class="text-xs font-semibold uppercase tracking-widest truncate @this.EyebrowClass">@this.Eyebrow</p>
+            }
+            <h1 class="font-display text-3xl text-ink-50 truncate mt-0.5">@this.Title</h1>
             @if (!string.IsNullOrEmpty(this.Subtitle))
             {
-                <p class="text-xs text-zinc-500 truncate">@this.Subtitle</p>
+                <p class="text-sm text-ink-500 truncate mt-0.5">@this.Subtitle</p>
             }
         </div>
     </div>
     @if (this.ActionsContent != null)
     {
-        <div class="flex items-center gap-2 shrink-0 ml-3">
+        <div class="flex items-center gap-2 shrink-0 pb-1">
             @this.ActionsContent
         </div>
     }
 </header>
 
-@code {
-    [Parameter] public string Title { get; set; } = string.Empty;
-    [Parameter] public string? Subtitle { get; set; }
-    [Parameter] public bool ShowBack { get; set; } = true;
-    [Parameter] public string BackHref { get; set; } = "/";
-    [Parameter] public RenderFragment? ActionsContent { get; set; }
-
-    private void GoBack()
-        => this.NavigationManager.NavigateTo(this.BackHref);
-}

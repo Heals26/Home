@@ -4,16 +4,3 @@
    is available (OnAfterRenderAsync firstRender). Placed outside AuthorizeRouteView
    so it fires while the Authorizing slot is still showing. *@
 
-@code {
-
-    #region Lifecycle Methods
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-            await this.AuthorisationService.InitialiseAsync();
-    }
-
-    #endregion Lifecycle Methods
-
-}

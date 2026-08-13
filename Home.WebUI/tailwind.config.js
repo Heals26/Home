@@ -16,33 +16,37 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        zinc: {
-          50: '#fafafa',
-          100: '#f4f4f5',
-          200: '#e4e4e7',
-          300: '#d4d4d8',
-          400: '#a1a1aa',
-          500: '#71717a',
-          600: '#52525b',
-          700: '#3f3f46',
-          800: '#27272a',
-          900: '#18181b',
-          950: '#09090b',
+        // Warm near-black neutrals (Tailwind stone) — the page is "ink", surfaces are "char".
+        // Kept under the `ink` name so the intent is readable in markup.
+        ink: {
+          50:  '#fafaf9',
+          100: '#f5f5f4',
+          200: '#e7e5e4',
+          300: '#d6d3d1',
+          400: '#a8a29e',
+          500: '#78716c',
+          600: '#57534e',
+          700: '#44403c',
+          800: '#292524',
+          900: '#1c1917',
+          950: '#0c0a09',
         },
-        teal: {
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6',
-          600: '#0d9488',
-        },
+        // One hue per pillar, used for identity (nav, eyebrows, icons) — not for surfaces.
+        // Colour encodes *place* in the app, so a family member can navigate by it.
+        recipes:  { DEFAULT: '#fb923c', dim: '#c2410c' },   // apricot
+        shopping: { DEFAULT: '#a3b18a', dim: '#588157' },   // sage
+        week:     { DEFAULT: '#7dd3fc', dim: '#0369a1' },   // sky
+        lights:   { DEFAULT: '#fbbf24', dim: '#b45309' },   // lamplight amber
+        household:{ DEFAULT: '#d6d3d1', dim: '#78716c' },   // settings stays neutral
         surface: {
-          DEFAULT: '#18181b',
-          raised: '#27272a',
-          overlay: '#09090b',
+          DEFAULT: '#1c1917',
+          raised: '#292524',
+          overlay: '#0c0a09',
         }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
       },
       minHeight: {
         '12': '3rem',

@@ -6,8 +6,8 @@
     @if (!string.IsNullOrEmpty(this.Label))
     {
         <div class="flex justify-between items-center">
-            <label class="text-sm font-medium text-zinc-300">@this.Label</label>
-            <span class="text-sm font-semibold text-teal-400">@this.Value@this.Unit</span>
+            <label class="text-sm font-medium text-ink-300">@this.Label</label>
+            <span class="text-sm font-semibold text-lights tabular-nums">@this.Value@this.Unit</span>
         </div>
     }
     <input type="range"
@@ -18,7 +18,7 @@
            disabled="@this.Disabled"
            @oninput="this.OnInputChanged"
            @onchange="this.OnCommitted"
-           class="w-full h-2 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-teal-500 disabled:opacity-50" />
+           class="w-full h-2 bg-ink-700 rounded-full appearance-none cursor-pointer disabled:opacity-50" />
 </div>
 
 @code {

@@ -3,7 +3,7 @@
 <div class="flex flex-col gap-1.5 @this.Class">
     @if (!string.IsNullOrEmpty(this.Label))
     {
-        <label class="text-sm font-medium text-zinc-300">@this.Label</label>
+        <label class="text-sm font-medium text-ink-300">@this.Label</label>
     }
     <input type="@this.Type"
            value="@this.Value"
@@ -32,8 +32,8 @@
 
     private string GetInputClasses()
     {
-        var _Base = "w-full bg-zinc-800 border rounded-lg px-4 py-3 text-sm text-zinc-50 placeholder-zinc-500 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]";
-        var _Border = string.IsNullOrEmpty(this.Error) ? "border-zinc-700" : "border-red-500";
+        var _Base = "w-full bg-ink-800 border rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 transition-colors focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]";
+        var _Border = string.IsNullOrEmpty(this.Error) ? "border-ink-700" : "border-red-500";
         return $"{_Base} {_Border}";
     }
 }

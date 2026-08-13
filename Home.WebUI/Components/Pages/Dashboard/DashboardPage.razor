@@ -1,74 +1,175 @@
-@page "/"
+﻿@page "/"
 @page "/home"
 
-<div class="flex flex-col h-full bg-zinc-950">
-    @* Header *@
-    <header class="flex items-center justify-between px-6 py-5 shrink-0">
-        <div>
-            <p class="text-xs font-medium text-zinc-500 uppercase tracking-widest">Home</p>
-            <h1 class="text-2xl font-bold text-zinc-50 mt-0.5">Good @this.GetGreeting()</h1>
-        </div>
-        <div class="text-right">
-            <p class="text-sm text-zinc-400">@this.TimeProvider.GetLocalNow().ToString("dddd")</p>
-            <p class="text-xs text-zinc-600">@this.TimeProvider.GetLocalNow().ToString("d MMMM")</p>
-        </div>
+@* The family board — the tablet's idle face. Everything here is a glance, not a task:
+   each tile shows live content and navigates to its pillar. Failures degrade to a
+   single quiet banner, never a stack of toasts. *@
+
+<div class="min-h-full max-w-5xl mx-auto px-6 pt-8 pb-6">
+    <header class="mb-8">
+        <p class="text-sm font-medium text-ink-400 tracking-wide">@this.TimeProvider.GetLocalNow().ToString("dddd d MMMM")</p>
+        <h1 class="font-display text-5xl md:text-6xl text-ink-50 mt-1">Good @this.GetGreeting().</h1>
     </header>
 
-    @* Tiles grid *@
-    <div class="flex-1 px-4 pb-6 app-scrollable">
-        <div class="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
-
-            <HomeNavTile Href="/shopping-lists" Label="Shopping Lists" Subtitle="Manage your lists">
-                <IconContent>
-                    <span class="home-icon home-icon-shopping-list h-10 w-10 inline-block"></span>
-                </IconContent>
-            </HomeNavTile>
-
-            <HomeNavTile Href="/recipes" Label="Recipes" Subtitle="Browse &amp; cook">
-                <IconContent>
-                    <span class="home-icon home-icon-book h-10 w-10 inline-block"></span>
-                </IconContent>
-            </HomeNavTile>
-
-            <HomeNavTile Href="/activities" Label="Activities" Subtitle="Kanban board">
-                <IconContent>
-                    <span class="home-icon home-icon-board h-10 w-10 inline-block"></span>
-                </IconContent>
-            </HomeNavTile>
-
-            <HomeNavTile Href="/lights" Label="Lights" Subtitle="Control the house">
-                <IconContent>
-                    <span class="home-icon home-icon-lightbulb h-10 w-10 inline-block"></span>
-                </IconContent>
-            </HomeNavTile>
-
-            <HomeNavTile Href="/settings" Label="Settings" Subtitle="Coming soon" Class="opacity-50 pointer-events-none">
-                <IconContent>
-                    <span class="home-icon home-icon-cog h-10 w-10 inline-block"></span>
-                </IconContent>
-            </HomeNavTile>
-
+    @if (this.m_LoadFailed)
+    {
+        <div class="mb-6 rounded-xl border border-ink-800 bg-ink-900 px-4 py-3 text-sm text-ink-400">
+            Some things couldn't load. Pull to refresh, or check the server is running.
         </div>
+    }
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        @* ── This week ─────────────────────────────────────────────── *@
+        <a href="/activities" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <span class="flex items-center gap-2 text-week">
+                    <span class="home-icon home-icon-board h-5 w-5"></span>
+                    <span class="text-xs font-semibold uppercase tracking-widest">This week</span>
+                </span>
+                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+            </div>
+
+            @if (this.m_Activities == null)
+            {
+                <div class="space-y-3 py-1 animate-pulse">
+                    <div class="h-4 rounded bg-ink-800"></div>
+                    <div class="h-4 rounded bg-ink-800 w-3/4"></div>
+                    <div class="h-4 rounded bg-ink-800 w-1/2"></div>
+                </div>
+            }
+            else if (!this.UpcomingActivities().Any())
+            {
+                <p class="text-sm text-ink-500 py-2">Nothing planned. Tap to add something for the week.</p>
+            }
+            else
+            {
+                <div class="divide-y divide-ink-800/60">
+                    @foreach (var _Activity in this.UpcomingActivities())
+                    {
+                        <div class="flex items-center gap-3 py-2.5">
+                            <span class="w-14 shrink-0 text-center text-xs font-semibold rounded-md py-1 @this.DayChipClasses(_Activity)">
+                                @DayChip(_Activity, this.TimeProvider.GetLocalNow().Date)
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm text-ink-100 truncate">@_Activity.Title</p>
+                                @if (!string.IsNullOrEmpty(_Activity.AssignedTo))
+                                {
+                                    <p class="text-xs text-ink-500 truncate">@_Activity.AssignedTo</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </a>
+
+        @* ── Shopping ──────────────────────────────────────────────── *@
+        <a href="/shopping-lists" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <span class="flex items-center gap-2 text-shopping">
+                    <span class="home-icon home-icon-shopping-list h-5 w-5"></span>
+                    <span class="text-xs font-semibold uppercase tracking-widest">Shopping</span>
+                </span>
+                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+            </div>
+
+            @if (this.m_ShoppingLists == null)
+            {
+                <div class="space-y-3 py-1 animate-pulse">
+                    <div class="h-4 rounded bg-ink-800"></div>
+                    <div class="h-4 rounded bg-ink-800 w-2/3"></div>
+                </div>
+            }
+            else if (this.m_ShoppingLists.Count == 0)
+            {
+                <p class="text-sm text-ink-500 py-2">No lists yet. Tap to start one.</p>
+            }
+            else
+            {
+                <div class="divide-y divide-ink-800/60">
+                    @foreach (var _List in this.m_ShoppingLists.Take(4))
+                    {
+                        <div class="flex items-center justify-between gap-3 py-2.5">
+                            <p class="text-sm text-ink-100 truncate">@_List.Name</p>
+                            <span class="shrink-0 text-xs font-semibold text-shopping bg-shopping/10 rounded-full px-2.5 py-1">
+                                @_List.ItemCount @(_List.ItemCount == 1 ? "item" : "items")
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+        </a>
+
+        @* ── Lights ────────────────────────────────────────────────── *@
+        <a href="/lights" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <span class="flex items-center gap-2 text-lights">
+                    <span class="home-icon home-icon-lightbulb h-5 w-5"></span>
+                    <span class="text-xs font-semibold uppercase tracking-widest">Lights</span>
+                </span>
+                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+            </div>
+
+            @if (this.m_LightGroups == null)
+            {
+                <div class="space-y-3 py-1 animate-pulse">
+                    <div class="h-4 rounded bg-ink-800 w-2/3"></div>
+                    <div class="h-4 rounded bg-ink-800 w-1/2"></div>
+                </div>
+            }
+            else if (this.m_LightGroups.Count == 0)
+            {
+                <p class="text-sm text-ink-500 py-2">No lights synced yet. Tap to set them up.</p>
+            }
+            else
+            {
+                <div class="flex flex-wrap gap-2 py-1">
+                    @foreach (var _Group in this.m_LightGroups.Where(g => g.Lights.Count > 0))
+                    {
+                        var _OnCount = _Group.Lights.Count(l => l.IsConnected && l.IsOn);
+                        <span class="flex items-center gap-2 text-sm rounded-full border px-3 py-1.5 @(_OnCount > 0 ? "border-lights/40 text-ink-100" : "border-ink-800 text-ink-500")">
+                            <span class="h-2 w-2 rounded-full @(_OnCount > 0 ? "bg-lights" : "bg-ink-700")"></span>
+                            @_Group.Name@(_OnCount > 0 ? $" · {_OnCount} on" : "")
+                        </span>
+                    }
+                </div>
+            }
+        </a>
+
+        @* ── Recipes ───────────────────────────────────────────────── *@
+        <a href="/recipes" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <span class="flex items-center gap-2 text-recipes">
+                    <span class="home-icon home-icon-book h-5 w-5"></span>
+                    <span class="text-xs font-semibold uppercase tracking-widest">Recipes</span>
+                </span>
+                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+            </div>
+
+            @if (this.m_Recipes == null)
+            {
+                <div class="space-y-3 py-1 animate-pulse">
+                    <div class="h-4 rounded bg-ink-800 w-3/4"></div>
+                    <div class="h-4 rounded bg-ink-800 w-1/2"></div>
+                </div>
+            }
+            else if (this.m_Recipes.Count == 0)
+            {
+                <p class="text-sm text-ink-500 py-2">No recipes saved yet. Tap to add the first one.</p>
+            }
+            else
+            {
+                <div class="divide-y divide-ink-800/60">
+                    @foreach (var _Recipe in this.m_Recipes.Take(3))
+                    {
+                        <p class="text-sm text-ink-100 truncate py-2.5">@_Recipe.Name</p>
+                    }
+                </div>
+                <p class="text-xs text-ink-500 mt-2">@this.m_Recipes.Count in the book</p>
+            }
+        </a>
+
     </div>
 </div>
 
-@code {
-
-    #region Methods
-
-    private string GetGreeting()
-    {
-        var _Hour = this.TimeProvider.GetLocalNow().Hour;
-
-        if (_Hour < 12)
-            return "morning";
-
-        if (_Hour < 17)
-            return "afternoon";
-
-        return "evening";
-    }
-
-    #endregion Methods
-
-}

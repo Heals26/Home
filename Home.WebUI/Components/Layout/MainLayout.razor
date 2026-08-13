@@ -1,7 +1,13 @@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
-<div class="flex flex-col h-screen bg-zinc-950">
-    <main class="flex-1 app-scrollable">
+<div class="flex h-screen bg-ink-950">
+    <AuthorizeView>
+        <Authorized>
+            <HomeNavRail />
+        </Authorized>
+    </AuthorizeView>
+
+    <main class="flex-1 min-w-0 app-scrollable pb-20 md:pb-0">
         <ErrorBoundary>
             <ChildContent>
                 @Body
@@ -9,11 +15,9 @@
             <ErrorContent Context="ex">
                 <div class="p-6 text-red-400">
                     <p class="font-semibold">Something went wrong</p>
-                    <p class="text-sm text-zinc-400 mt-1">@ex.Message</p>
+                    <p class="text-sm text-ink-400 mt-1">@ex.Message</p>
                 </div>
             </ErrorContent>
         </ErrorBoundary>
     </main>
 </div>
-
-@code { }
