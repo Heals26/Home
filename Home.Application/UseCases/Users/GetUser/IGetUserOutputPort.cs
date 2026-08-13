@@ -8,8 +8,8 @@ public interface IGetUserOutputPort : IAuthenticationFailureOutputPort
 
     #region Methods
 
+    Task PresentUserAsync(User? user, CancellationToken cancellationToken);
     Task PresentUserNotFoundAsync(long userID, CancellationToken cancellationToken);
-    Task PresentUserAsync(User user, CancellationToken cancellationToken);
 
     #endregion Methods
 

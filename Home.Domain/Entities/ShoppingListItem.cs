@@ -8,13 +8,13 @@ public class ShoppingListItem
     public long ShoppingListItemID { get; set; }
     public decimal? Cost { get; set; }
     public bool InBasket { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public decimal? Quantity { get; set; }
     public long Sequence { get; set; }
     public decimal? Volume { get; set; }
     public decimal? Weight { get; set; }
 
-    public ShoppingList ShoppingList { get; set; }
+    public ShoppingList ShoppingList { get; set; } = null!;
 
     #endregion Properties
 

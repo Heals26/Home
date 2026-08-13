@@ -12,12 +12,6 @@ public struct PropertyChangeTracker<TProperty>
 
     #region Constructors
 
-    public PropertyChangeTracker()
-    {
-        this.m_Value = default;
-        this.m_HasBeenSet = false;
-    }
-
     public PropertyChangeTracker(TProperty property)
     {
         this.m_Value = property;

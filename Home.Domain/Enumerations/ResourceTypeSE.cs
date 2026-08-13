@@ -22,10 +22,10 @@ public class ResourceTypeSE : BaseEnumeration
     #region Methods
 
     public static implicit operator ResourceTypeSE(string name)
-        => FromName<ResourceTypeSE>(name);
+        => FromName<ResourceTypeSE>(name) ?? throw new ArgumentException($"'{name}' is not a recognised {nameof(ResourceTypeSE)} name.", nameof(name));
 
     public static implicit operator ResourceTypeSE(long value)
-        => FromValue<ResourceTypeSE>(value);
+        => FromValue<ResourceTypeSE>(value) ?? throw new ArgumentException($"'{value}' is not a recognised {nameof(ResourceTypeSE)} value.", nameof(value));
 
     #endregion Methods
 

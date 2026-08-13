@@ -37,7 +37,7 @@ public class AuditConfiguration : IEntityTypeConfiguration<Audit>
             .IsRequired()
             .HasConversion(
             v => v.Value,
-            v => BaseEnumeration.FromValue<ResourceTypeSE>(v));
+            v => (ResourceTypeSE)v);
 
         _ = entity.HasIndex(e => new { e.Entity, e.EntityID })
             .HasDatabaseName("IX_Audit_Entity_EntityID");

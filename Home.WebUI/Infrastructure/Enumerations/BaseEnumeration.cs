@@ -19,7 +19,7 @@ public class BaseEnumeration : IComparable
 
     #region Properties
 
-    public string Name { get; }
+    public string Name { get; } = string.Empty;
 
     public long Value { get; }
 
@@ -27,16 +27,18 @@ public class BaseEnumeration : IComparable
 
     #region Methods
 
-    public int CompareTo(object other)
-        => this.Value.CompareTo(((BaseEnumeration)other).Value);
+    public int CompareTo(object? other)
+        => other is BaseEnumeration _Enumeration
+            ? this.Value.CompareTo(_Enumeration.Value)
+            : 1;
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         var _Enumeration = obj as BaseEnumeration;
         if (_Enumeration == null)
             return false;
 
-        var _TypeMatches = this.GetType().Equals(obj.GetType());
+        var _TypeMatches = this.GetType().Equals(_Enumeration.GetType());
         var _ValueMatches = this.Value.Equals(_Enumeration.Value);
 
         return _TypeMatches && _ValueMatches;

@@ -9,7 +9,7 @@ public interface IAuditPersistenceContext
 
     #region Methods
 
-    void Add<TEntity>(TEntity entity);
+    void Add<TEntity>(TEntity entity) where TEntity : class;
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 
     #endregion Methods

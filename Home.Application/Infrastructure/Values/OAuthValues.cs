@@ -31,10 +31,10 @@ public class OAuthValues : BaseEnumeration
     #region Methods
 
     public static implicit operator OAuthValues(string name)
-        => FromName<OAuthValues>(name);
+        => FromName<OAuthValues>(name) ?? throw new ArgumentException($"'{name}' is not a recognised {nameof(OAuthValues)} name.", nameof(name));
 
     public static implicit operator OAuthValues(long value)
-        => FromValue<OAuthValues>(value);
+        => FromValue<OAuthValues>(value) ?? throw new ArgumentException($"'{value}' is not a recognised {nameof(OAuthValues)} value.", nameof(value));
 
     #endregion Methods
 

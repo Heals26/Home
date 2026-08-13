@@ -10,15 +10,15 @@ public class LightScene
     #region Properties
 
     public long LightSceneID { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Display order on the Lights page.
     /// </summary>
     public int Sequence { get; set; }
 
-    public Household Household { get; set; }
-    public ICollection<LightSceneState> States { get; set; }
+    public Household Household { get; set; } = null!;
+    public ICollection<LightSceneState> States { get; set; } = [];
 
     #endregion Properties
 

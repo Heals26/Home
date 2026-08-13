@@ -22,7 +22,7 @@ internal class GetAssignedActivitiesInteractor : IInteractor<GetAssignedActiviti
         var _User = _AuthorisationService.GetUser();
 
         var _Activities = _PersistenceContext.GetEntities<Activity>()
-            .Where(a => a.User.UserID == _User.UserID)
+            .Where(a => a.User != null && a.User.UserID == _User.UserID)
             .ToList();
 
         await output.PresentAssignedActivitiesAsync(_Activities, cancellationToken);

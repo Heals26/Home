@@ -8,8 +8,8 @@ public class RecipeIngredient
     public long IngredientID { get; set; }
     public long RecipeID { get; set; }
 
-    public Ingredient Ingredient { get; set; }
-    public Recipe Recipe { get; set; }
+    public Ingredient Ingredient { get; set; } = null!;
+    public Recipe Recipe { get; set; } = null!;
 
     #endregion Properties
 

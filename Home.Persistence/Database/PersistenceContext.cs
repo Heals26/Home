@@ -21,7 +21,7 @@ public class PersistenceContext(DbContextOptions<PersistenceContext> options) : 
     EntityEntry IPersistenceContext.Entity<TEntity>(TEntity entity)
         => base.Entry(entity);
 
-    TEntity IPersistenceContext.Find<TEntity>(object entityID, params object[] additionalEntityIDs)
+    TEntity? IPersistenceContext.Find<TEntity>(object entityID, params object[] additionalEntityIDs) where TEntity : class
         => base.Find<TEntity>([entityID, .. additionalEntityIDs]);
 
     IQueryable<TEntity> IPersistenceContext.GetEntities<TEntity>()

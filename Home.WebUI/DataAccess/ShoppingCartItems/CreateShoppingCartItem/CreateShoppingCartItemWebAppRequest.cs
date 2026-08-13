@@ -7,7 +7,7 @@ public class CreateShoppingCartItemWebAppRequest
 
     public int Cost { get; set; }
     public bool InBasket { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int Quantity { get; set; }
 
     #endregion Properties

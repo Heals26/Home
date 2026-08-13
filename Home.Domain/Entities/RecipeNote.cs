@@ -8,8 +8,8 @@ public class RecipeNote
     public long NoteID { get; set; }
     public long RecipeID { get; set; }
 
-    public Recipe Recipe { get; set; }
-    public Note Note { get; set; }
+    public Recipe Recipe { get; set; } = null!;
+    public Note Note { get; set; } = null!;
 
     #endregion Properties
 

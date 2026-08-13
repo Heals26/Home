@@ -41,7 +41,7 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
     bool IShoppingListLogic.DoesShoppingListItemExist(long shoppingListItemID)
         => persistenceContext.DoesEntityExist<ShoppingListItem>(shoppingListItemID);
 
-    ShoppingListItem IShoppingListLogic.GetItem(long shoppingListItemID)
+    ShoppingListItem? IShoppingListLogic.GetItem(long shoppingListItemID)
         => persistenceContext.Find<ShoppingListItem>(shoppingListItemID);
 
     IQueryable<ShoppingListItem> IShoppingListLogic.GetItems(long shoppingListID)

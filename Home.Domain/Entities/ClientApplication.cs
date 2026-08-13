@@ -7,9 +7,9 @@ public class ClientApplication
 
     public long ClientApplicationID { get; set; }
 
-    public string AccessToken { get; set; }
-    public string Name { get; set; }
-    public string Secret { get; set; }
+    public string AccessToken { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Secret { get; set; } = string.Empty;
 
     #endregion Properties
 

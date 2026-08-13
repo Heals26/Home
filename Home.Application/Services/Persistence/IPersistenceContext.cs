@@ -10,8 +10,8 @@ public interface IPersistenceContext
     void Add<TEntity>(TEntity entity) where TEntity : class;
     void AddRange<TEntity>(ICollection<TEntity> entities) where TEntity : class;
     bool DoesEntityExist<TEntity>(long entityID) where TEntity : class;
-    EntityEntry Entity<TEntity>(TEntity entity);
-    TEntity Find<TEntity>(object entityID, params object[] additionalEntityIDs) where TEntity : class;
+    EntityEntry Entity<TEntity>(TEntity entity) where TEntity : class;
+    TEntity? Find<TEntity>(object entityID, params object[] additionalEntityIDs) where TEntity : class;
     IQueryable<TEntity> GetEntities<TEntity>() where TEntity : class;
     void Remove<TEntity>(TEntity entity) where TEntity : class;
     void RemoveRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class;

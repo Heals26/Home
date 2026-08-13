@@ -14,6 +14,11 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
 
     #region Properties
 
+    /// <summary>
+    /// Exposed for derived presenters that map entities to API responses.
+    /// </summary>
+    protected IMapper Mapper { get; } = mapper;
+
     public bool PresentedSuccessfully { get; private set; }
 
     public IActionResult Result { get; private set; }

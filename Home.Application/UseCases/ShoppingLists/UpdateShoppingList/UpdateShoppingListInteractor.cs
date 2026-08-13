@@ -19,7 +19,7 @@ internal class UpdateShoppingListInteractor : IInteractor<UpdateShoppingListInpu
 
         var _ShoppingList = _PersistenceContext.Find<ShoppingList>(inputPort.ShoppingListID);
 
-        if (inputPort.Name.HasBeenSet)
+        if (_ShoppingList != null && inputPort.Name.HasBeenSet)
             _ShoppingList.Name = inputPort.Name.Value;
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);

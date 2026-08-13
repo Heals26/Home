@@ -7,8 +7,8 @@ public class RecipeStep
 
     public long RecipeStepID { get; set; }
 
-    public string Content { get; set; }
-    public string Title { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
     public int Sequence { get; set; }
 
     #endregion Properties

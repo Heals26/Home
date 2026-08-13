@@ -11,16 +11,16 @@ public class CreatePasswordGrantWebAppRequest
     public long ClientID { get; set; }
 
     [JsonPropertyName("client_secret")]
-    public string ClientSecret { get; set; }
+    public string ClientSecret { get; set; } = string.Empty;
 
     [JsonPropertyName("grant_type")]
-    public string GrantType { get; set; }
+    public string GrantType { get; set; } = string.Empty;
 
     [JsonPropertyName("password")]
     public string? Password { get; set; }
 
     [JsonPropertyName("scope")]
-    public string Scope { get; set; }
+    public string Scope { get; set; } = string.Empty;
 
     [JsonPropertyName("username")]
     public string? Username { get; set; }

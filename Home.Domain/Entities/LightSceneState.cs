@@ -17,8 +17,8 @@ public class LightSceneState
     public int Kelvin { get; set; }
     public double Saturation { get; set; }
 
-    public Light Light { get; set; }
-    public LightScene Scene { get; set; }
+    public Light Light { get; set; } = null!;
+    public LightScene Scene { get; set; } = null!;
 
     #endregion Properties
 

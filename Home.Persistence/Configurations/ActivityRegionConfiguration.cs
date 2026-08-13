@@ -21,7 +21,7 @@ public class ActivityRegionConfiguration : IEntityTypeConfiguration<ActivityRegi
             .IsRequired()
             .HasConversion(
                 v => v.Value,
-                v => BaseEnumeration.FromValue<RegionSE>(v));
+                v => (RegionSE)v);
 
         _ = entity.Property(e => e.Sequence)
             .IsRequired();

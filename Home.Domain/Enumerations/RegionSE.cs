@@ -20,10 +20,10 @@ public class RegionSE : BaseEnumeration
     #region Methods
 
     public static implicit operator RegionSE(string name)
-        => FromName<RegionSE>(name);
+        => FromName<RegionSE>(name) ?? throw new ArgumentException($"'{name}' is not a recognised {nameof(RegionSE)} name.", nameof(name));
 
     public static implicit operator RegionSE(long value)
-        => FromValue<RegionSE>(value);
+        => FromValue<RegionSE>(value) ?? throw new ArgumentException($"'{value}' is not a recognised {nameof(RegionSE)} value.", nameof(value));
 
     #endregion Methods
 

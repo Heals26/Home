@@ -22,11 +22,11 @@ public class CreateApiAuditEntry
 
         #region Properties
 
-        public string ActionName { get; set; }
+        public string ActionName { get; set; } = string.Empty;
 
         public long? CreatedResourceID { get; set; }
 
-        public string Details { get; set; }
+        public string Details { get; set; } = string.Empty;
 
         #endregion Properties
 
@@ -39,7 +39,7 @@ public class CreateApiAuditEntry
 
         public long? UserID { get; set; }
         public long? ClientApplicationID { get; set; }
-        public string ClientName { get; set; }
+        public string ClientName { get; set; } = string.Empty;
 
         #endregion Properties
 
@@ -50,12 +50,12 @@ public class CreateApiAuditEntry
 
         #region Properties
 
-        public string RemoteIPAddress { get; set; }
-        public string RequestBody { get; set; }
+        public string RemoteIPAddress { get; set; } = string.Empty;
+        public string RequestBody { get; set; } = string.Empty;
         public DateTime RequestReceivedOnUTC { get; set; }
-        public string RequestUri { get; set; }
-        public string UserAgent { get; set; }
-        public string Version { get; set; }
+        public string RequestUri { get; set; } = string.Empty;
+        public string UserAgent { get; set; } = string.Empty;
+        public string Version { get; set; } = string.Empty;
 
         #endregion Properties
 

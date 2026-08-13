@@ -51,7 +51,8 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor, IPer
         if (_UserIDValue == null || !long.TryParse(_UserIDValue, out var _UserID))
             throw new UnauthorizedAccessException("User identity claim is missing or invalid.");
 
-        return persistenceContext.Find<User>(_UserID);
+        return persistenceContext.Find<User>(_UserID)
+            ?? throw new UnauthorizedAccessException("User identity claim does not match a known user.");
     }
 
     #endregion Methods

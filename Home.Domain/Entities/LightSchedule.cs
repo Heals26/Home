@@ -25,7 +25,7 @@ public class LightSchedule
     /// </summary>
     public DateTime? LastRunUTC { get; set; }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Local time of day to fire at. Stored as local rather than UTC so a schedule set for 7pm
@@ -38,7 +38,7 @@ public class LightSchedule
     /// deliberately no direct Household link. Two routes to the same household would give SQL
     /// Server two cascade paths to this table, which it rejects.
     /// </summary>
-    public LightScene Scene { get; set; }
+    public LightScene Scene { get; set; } = null!;
 
     #endregion Properties
 

@@ -14,19 +14,19 @@ public class Activity
 
     public DateTime? CompletedDateUTC { get; set; }
     public DateTime? DueDateUTC { get; set; }
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// Tracking of who did what
     /// </summary>
-    public ICollection<Audit> Audits { get; set; }
+    public ICollection<Audit> Audits { get; set; } = [];
 
-    public Household Household { get; set; }
+    public Household Household { get; set; } = null!;
 
     /// <summary>
     /// The region where the content sits
     /// </summary>
-    public ICollection<ActivityRegion> Regions { get; set; }
+    public ICollection<ActivityRegion> Regions { get; set; } = [];
 
     /// <summary>
     /// Todo, Refining, Progressing, Blocked, Testing, Done

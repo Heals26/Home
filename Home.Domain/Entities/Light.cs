@@ -6,10 +6,10 @@ public class Light
     #region Properties
 
     public long LightID { get; set; }
-    public string ID { get; set; }
-    public string Name { get; set; }
+    public string ID { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
-    public LightGroup Group { get; set; }
+    public LightGroup Group { get; set; } = null!;
 
     #endregion Properties
 
@@ -33,7 +33,7 @@ public class Light
     /// <summary>
     /// The hardware's own name, e.g. "LIFX A19". Shown so a user can tell two bulbs apart.
     /// </summary>
-    public string ProductName { get; set; }
+    public string ProductName { get; set; } = string.Empty;
 
     #endregion Capabilities
 

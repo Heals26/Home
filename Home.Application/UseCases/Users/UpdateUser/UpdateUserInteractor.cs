@@ -24,12 +24,16 @@ internal class UpdateUserInteractor : IInteractor<UpdateUserInputPort, IUpdateUs
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<User>>();
 
         var _User = _PersistenceContext.Find<User>(inputPort.UserID);
-        _ = _Mapper.Map(inputPort, _User);
 
-        if (inputPort.Password.HasBeenSet)
-            _PasswordServive.SetPassword(_User, inputPort.Password);
+        if (_User != null)
+        {
+            _ = _Mapper.Map(inputPort, _User);
 
-        _AuditLogic.UpdateAudit(_User);
+            if (inputPort.Password.HasBeenSet)
+                _PasswordServive.SetPassword(_User, inputPort.Password);
+
+            _AuditLogic.UpdateAudit(_User);
+        }
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

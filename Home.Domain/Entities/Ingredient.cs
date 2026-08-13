@@ -6,13 +6,13 @@ public class Ingredient
     #region Properties
 
     public long IngredientID { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public decimal? Quantity { get; set; }
     public decimal? Volume { get; set; }
     public decimal? Weight { get; set; }
 
-    public ICollection<IngredientNote> Notes { get; set; }
-    public ICollection<RecipeIngredient> Recipes { get; set; }
+    public ICollection<IngredientNote> Notes { get; set; } = [];
+    public ICollection<RecipeIngredient> Recipes { get; set; } = [];
 
     #endregion Properties
 

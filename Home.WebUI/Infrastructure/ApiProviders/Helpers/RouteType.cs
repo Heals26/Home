@@ -56,10 +56,10 @@ public class RouteType : BaseEnumeration
     }
 
     public static implicit operator RouteType(string name)
-        => FromName<RouteType>(name);
+        => FromName<RouteType>(name) ?? throw new ArgumentException($"'{name}' is not a recognised {nameof(RouteType)} name.", nameof(name));
 
     public static implicit operator RouteType(long value)
-        => FromValue<RouteType>(value);
+        => FromValue<RouteType>(value) ?? throw new ArgumentException($"'{value}' is not a recognised {nameof(RouteType)} value.", nameof(value));
 
     #endregion Methods
 
