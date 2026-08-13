@@ -5,6 +5,17 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-13 — Registration is first-run only
+
+`POST api/Households/register` (anonymous) creates the household and its first member in one
+step, and refuses with 409 the moment any user exists — the login page offers "Set up your
+household" only while `setup-status` says the database is empty. Reason: a fresh install must be
+usable without CLI or Swagger, but an open registration endpoint on a possibly-internet-facing
+app is a hole. Additional family members are added from inside the app (CreateUser API exists;
+a Members section in Settings is the obvious future home — no UI yet). No auth bypass was added
+for local use: sessions persist via refresh tokens, and a bypass flag would be a foot-gun given
+cloud hosting is still an open option.
+
 ## 2026-08-13 — Components use .razor.cs code-behind
 
 Mitch: component logic lives in a `.razor.cs` partial class beside the markup so the C# language
