@@ -1,4 +1,4 @@
-@* Surface card with optional title, subtitle and actions slot. *@
+﻿@* Surface card with optional title, subtitle and actions slot. *@
 
 <div class="@this.GetClasses()">
     @if (this.Title != null || this.TitleContent != null || this.ActionsContent != null)
@@ -30,16 +30,3 @@
         @this.ChildContent
     </div>
 </div>
-
-@code {
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public RenderFragment? TitleContent { get; set; }
-    [Parameter] public RenderFragment? ActionsContent { get; set; }
-    [Parameter] public string? Title { get; set; }
-    [Parameter] public string? Subtitle { get; set; }
-    [Parameter] public bool Padded { get; set; } = true;
-    [Parameter] public string? Class { get; set; }
-
-    private string GetClasses()
-        => $"bg-ink-900 rounded-2xl border border-ink-800 overflow-hidden {this.Class}";
-}

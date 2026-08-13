@@ -1,4 +1,4 @@
-@* Modal dialog — slides up on mobile/tablet, centred on desktop. Use @bind-Visible for two-way binding. *@
+﻿@* Modal dialog — slides up on mobile/tablet, centred on desktop. Use @bind-Visible for two-way binding. *@
 
 @if (this.Visible)
 {
@@ -30,15 +30,4 @@
             }
         </div>
     </div>
-}
-
-@code {
-    [Parameter] public bool Visible { get; set; }
-    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
-    [Parameter] public string Title { get; set; } = string.Empty;
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public RenderFragment? FooterContent { get; set; }
-
-    private async Task CloseAsync()
-        => await this.VisibleChanged.InvokeAsync(false);
 }

@@ -1,4 +1,4 @@
-@* Empty state display for lists and pages with no data. *@
+﻿@* Empty state display for lists and pages with no data. *@
 
 <div class="flex flex-col items-center justify-center py-16 px-6 text-center @this.Class">
     @if (this.IconContent != null)
@@ -19,11 +19,3 @@
         </div>
     }
 </div>
-
-@code {
-    [Parameter] public string Title { get; set; } = "Nothing here yet";
-    [Parameter] public string? Subtitle { get; set; }
-    [Parameter] public RenderFragment? IconContent { get; set; }
-    [Parameter] public RenderFragment? ActionContent { get; set; }
-    [Parameter] public string? Class { get; set; }
-}

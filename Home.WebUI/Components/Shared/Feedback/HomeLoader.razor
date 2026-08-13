@@ -1,4 +1,4 @@
-@* Loading spinner. Sizes: sm, md (default), lg. *@
+﻿@* Loading spinner. Sizes: sm, md (default), lg. *@
 
 <div class="flex items-center justify-center @this.Class">
     <span class="inline-block border-2 border-ink-700 border-t-ink-200 rounded-full animate-spin @this.GetSizeClass()"></span>
@@ -7,16 +7,3 @@
         <span class="ml-3 text-sm text-ink-400">@this.Label</span>
     }
 </div>
-
-@code {
-    [Parameter] public string Size { get; set; } = "md";
-    [Parameter] public string? Label { get; set; }
-    [Parameter] public string? Class { get; set; }
-
-    private string GetSizeClass() => this.Size switch
-    {
-        "sm" => "h-4 w-4",
-        "lg" => "h-10 w-10",
-        _    => "h-6 w-6"
-    };
-}
