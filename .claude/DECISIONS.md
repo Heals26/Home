@@ -5,6 +5,102 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-14 — Every interactor is scoped to the caller's household
+
+Roughly forty interactors loaded entities by raw ID (`Find<T>(id)`), so any authenticated user
+could read, change or delete another household's recipes, lists, activities, members and notes
+by guessing IDs. Every lookup now filters through the entity's ownership path to
+`IAuthorisationService.GetHousehold()` (e.g. `i.ShoppingList.Household.HouseholdID`), and each
+interactor keeps its previous not-found/no-op behaviour so nothing leaks which IDs exist. Found
+in the same sweep: CreateUser saved members with **no household at all** (orphans invisible to
+every scoped query — now attached to the caller's household), and UpdateShoppingListItem never
+called SaveChangesAsync and dereferenced an unloaded navigation, so item updates could never
+persist. Rule for later: any interactor that takes an ID must scope it to the household — an
+unscoped `Find` is a cross-household hole, not a shortcut.
+
+## 2026-08-14 — Live cross-device updates go through a hub on the API, not in-process events
+
+Mitch: don't assume one Blazor Server instance (Azure auto-scale), and client satisfaction beats
+battery when they conflict. So change notifications relay through `ChangeNotificationsHub` on
+the API: pages publish after successful mutations, every device in the household sees the change
+instantly, and the background light sync pushes too — a wall-switched light now appears without
+anyone tapping Sync. Security: the hub derives the SignalR group from the caller's authenticated
+claims — a client can neither choose nor spoof a household. Sockets: one shared WebSocket per
+household per WebUI instance (never per circuit — the historical TCP-exhaustion trap), WebSockets
+only so it can never degrade into long-polling churn, closed when the last subscriber leaves; all
+connections are server-to-server, so devices carry nothing extra. The dashboard's poll dropped to
+a five-minute fallback for hub outages. If hosting lands on Azure with API scale-out, Azure
+SignalR Service is a one-line `.AddAzureSignalR()` swap.
+
+## 2026-08-14 — Meal planning is the connective tissue, not a fifth pillar
+
+`MealPlanEntry` (a recipe on a calendar day, reached through the recipe to keep one cascade
+path) powers /meal-plan, the dashboard's "Tonight" hero tile, and "add week to list" — which
+funnels the planned window's ingredients into a shopping list server-side, deduplicating a
+recipe planned twice (doubling quantities is the shop's decision, not the app's). Reason: the
+vision's dashboard question "what's for dinner" had no answer anywhere, and this makes recipes,
+shopping and the board reinforce each other rather than stay three separate mini-apps.
+
+## 2026-08-14 — Recipe import reads JSON-LD only, and fails honestly
+
+POST api/Recipes/Import fetches a page and reads the schema.org Recipe most cooking sites embed
+as JSON-LD (`JsonLdRecipeImportService`, regex + System.Text.Json, no scraping packages). If a
+page carries no structured recipe, the import returns a 422 with a plain explanation instead of
+guessing at HTML — a wrong-looking import erodes trust faster than a failed one. Ingredient
+lines stay whole ("2 cups flour") because splitting quantities reliably is a losing game.
+
+## 2026-08-14 — The board stays fresh by itself: background sync, sun triggers, auto-refresh
+
+The bulb-list reconcile moved out of SyncLightsInteractor into shared `ILightSyncLogic`, and a
+second hosted runner (`LightStateSyncRunner`, five-minute tick) refreshes every tokened
+household's bulbs — so a light switched at the wall shows up without anyone pressing Sync. The
+dashboard re-reads Home's own records every sixty seconds (free — no provider calls) and now
+disposes its `CancellationTokenHandler`, which pages historically never did. Light schedules
+gained sunrise/sunset triggers (`Trigger` + `OffsetMinutes`, Almanac `SunCalculator`, household
+lat/long) — the "follow the sun" promise the Settings page copy was already making. Both
+runners keep the existing single-token background limitation, noted in LifxAuthenticationHandler.
+
+## 2026-08-14 — Members surfaced, assignment shipped, avatar-switching deferred
+
+The Settings page grew a Members card over the existing CreateUser/new GetUsers slices, and
+activities now expose the assignee end-to-end (the domain, DB and API always supported it — no
+UI ever sent it). Passwordless tap-your-avatar user switching was deliberately NOT built: it
+weakens auth on a possibly-internet-facing app, and the first-run registration entry already
+rejected auth bypasses. It needs its own decision (per-user PIN? device-trusted sessions?).
+
+## 2026-08-14 — Kitchen-mode details: cook screen, family notes, trolley ticking
+
+/recipes/{id}/cook shows one step at a time in display type with tap-to-start timers parsed
+from the step text ("simmer 20 minutes" becomes a button) and holds the tablet awake via the
+Screen Wake Lock API (wwwroot/js/cook.js — everything degrades silently). The dashboard gained
+anonymous pinned family notes (`Announcement` — the board belongs to the household, not a
+member). Shopping list rows are now tap-to-tick using the long-dormant `InBasket` column, with
+a running "in the trolley" total against the list total. EF migrations can now be generated
+while the API is running via `PersistenceContextDesignTimeFactory`
+(`--startup-project Home.Persistence`); `Database.Migrate()` still applies them at API startup.
+
+## 2026-08-14 — PropertyChangeTracker crosses the wire through a JsonConverter
+
+Saving the LIFX token failed with "Name cannot be empty": System.Text.Json deserialised every
+tracker property through its `Value` setter, which flips `HasBeenSet` to true — so a partial
+update arrived with *all four* settings marked as set (Name as a set-to-null, failing NotEmpty;
+worse, a name-only save would have cleared the location and token). Both `PropertyChangeTracker`
+structs now carry `[JsonConverter(typeof(PropertyChangeTrackerJsonConverterFactory))]`, which
+writes `{hasBeenSet, value}` and on read returns `default` unless `hasBeenSet` is true. Rule for
+later: never let a tracker round-trip through property-by-property deserialisation; the converter
+is the only wire path, and `Home.Application.Tests/Infrastructure/ChangeTrackers` pins it.
+
+## 2026-08-14 — Form inputs declare autocomplete, and labels are wired to their controls
+
+`HomeTextInput`/`HomePasswordInput` now render a per-instance `id` their label points at, plus
+optional `Name`, `AutoComplete` and `InputMode` parameters, and `aria-invalid`/`aria-describedby`
+when showing an error. Conventions: login is `username`/`current-password`; setup uses
+`given-name`/`family-name`/`email`/`new-password`; secrets that are not login passwords (the LIFX
+token) use `new-password` so a password manager never autofills the household login into them;
+fields a browser might mistake for personal data (anything labelled "Name") get `off`; numeric
+text fields get `InputMode` so tablets show the right keyboard. Raw `<select>`/`<textarea>`/date
+and time inputs get explicit `id`/`for` pairs.
+
 ## 2026-08-13 — Registration is first-run only
 
 `POST api/Households/register` (anonymous) creates the household and its first member in one
