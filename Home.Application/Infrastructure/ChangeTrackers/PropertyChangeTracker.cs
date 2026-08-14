@@ -1,5 +1,8 @@
-﻿namespace Home.Application.Infrastructure.ChangeTrackers;
+﻿using System.Text.Json.Serialization;
 
+namespace Home.Application.Infrastructure.ChangeTrackers;
+
+[JsonConverter(typeof(PropertyChangeTrackerJsonConverterFactory))]
 public struct PropertyChangeTracker<TProperty>
 {
 
