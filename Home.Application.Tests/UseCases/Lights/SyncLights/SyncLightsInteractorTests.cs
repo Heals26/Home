@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Home.Application.Infrastructure.Lights;
+using Home.Application.Services.EntityLogic.Lights;
 using Home.Application.Services.Lights;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
@@ -81,14 +83,20 @@ public class SyncLightsInteractorTests
             .Setup(c => c.Add(It.IsAny<LightLocation>()))
             .Callback<LightLocation>(this.m_Added.Add);
 
+        // The interactor delegates the reconcile to the real LightSyncLogic, so these tests
+        // still exercise the genuine seeding, grouping and removal behaviour end to end.
+        var _TestServiceFactory = new TestServiceFactory()
+            .With(this.m_PersistenceContext.Object)
+            .With(this.m_AuthorisationService.Object)
+            .With(this.m_LightService.Object);
+
+        _ = _TestServiceFactory.With<ILightSyncLogic>(
+            new LightSyncLogic(this.m_LightService.Object, this.m_PersistenceContext.Object, _TestServiceFactory.Time));
+
         return new SyncLightsInteractor().HandleAsync(
             new SyncLightsInputPort(),
             this.m_OutputPort.Object,
-            new TestServiceFactory()
-                .With(this.m_PersistenceContext.Object)
-                .With(this.m_AuthorisationService.Object)
-                .With(this.m_LightService.Object)
-                .Build(),
+            _TestServiceFactory.Build(),
             CancellationToken.None);
     }
 

@@ -1,4 +1,4 @@
-using Home.Application.UseCases.LightSchedules.CreateLightSchedule;
+﻿using Home.Application.UseCases.LightSchedules.CreateLightSchedule;
 using Home.Application.UseCases.LightSchedules.DeleteLightSchedule;
 using Home.Application.UseCases.LightSchedules.GetLightSchedules;
 using Home.Application.UseCases.LightSchedules.UpdateLightSchedule;
@@ -32,7 +32,7 @@ public class LightSchedulesController : BaseController
         [FromBody] CreateLightScheduleApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new CreateLightScheduleInputPort(request.Name, request.LightSceneID, request.TimeOfDay, request.DaysOfWeek), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new CreateLightScheduleInputPort(request.Name, request.LightSceneID, request.Trigger, request.TimeOfDay, request.OffsetMinutes, request.DaysOfWeek), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

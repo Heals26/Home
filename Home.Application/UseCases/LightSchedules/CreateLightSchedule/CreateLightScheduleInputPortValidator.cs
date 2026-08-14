@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Home.Application.Infrastructure.Validation;
 
 namespace Home.Application.UseCases.LightSchedules.CreateLightSchedule;
@@ -15,9 +15,14 @@ public class CreateLightScheduleInputPortValidator : BaseValidator<CreateLightSc
         // Seven bits, and at least one of them set — zero would be a schedule that never fires.
         _ = this.RuleFor(r => r.DaysOfWeek).InclusiveBetween(1, 127);
 
+        // Twelve hours either side covers any sensible "before dawn" or "after dark" intent.
+        _ = this.RuleFor(r => r.OffsetMinutes).InclusiveBetween(-720, 720);
+
         _ = this.RuleFor(r => r.TimeOfDay)
             .Must(t => t >= TimeSpan.Zero && t < TimeSpan.FromDays(1))
             .WithMessage("Time of day must fall within a single day.");
+
+        _ = this.RuleFor(r => r.Trigger).IsInEnum();
     }
 
     #endregion Constructors

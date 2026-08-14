@@ -1,15 +1,18 @@
 ﻿using Home.Application.UseCases.Users.CreateUser;
 using Home.Application.UseCases.Users.DeleteUser;
 using Home.Application.UseCases.Users.GetUser;
+using Home.Application.UseCases.Users.GetUsers;
 using Home.Application.UseCases.Users.UpdateUser;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.Users.CreateUser;
 using Home.WebApi.Presenters.Users.DeleteUser;
 using Home.WebApi.Presenters.Users.GetUser;
+using Home.WebApi.Presenters.Users.GetUsers;
 using Home.WebApi.Presenters.Users.UpdateUser;
 using Home.WebApi.UseCases.Users.CreateUser;
 using Home.WebApi.UseCases.Users.GetUser;
+using Home.WebApi.UseCases.Users.GetUsers;
 using Home.WebApi.UseCases.Users.UpdateUser;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +61,18 @@ public class UsersController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetUserInputPort(userID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [Version1]
+    [HttpGet]
+    [ProducesResponseType<GetUsersApiResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUsers(
+        [FromServices] GetUsersPresenter presenter,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new GetUsersInputPort(), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

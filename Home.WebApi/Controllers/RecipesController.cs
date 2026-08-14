@@ -1,7 +1,8 @@
-using Home.Application.UseCases.Recipes.CreateRecipe;
+﻿using Home.Application.UseCases.Recipes.CreateRecipe;
 using Home.Application.UseCases.Recipes.DeleteRecipe;
 using Home.Application.UseCases.Recipes.GetRecipe;
 using Home.Application.UseCases.Recipes.GetRecipes;
+using Home.Application.UseCases.Recipes.ImportRecipe;
 using Home.Application.UseCases.Recipes.UpdateRecipe;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
@@ -9,10 +10,12 @@ using Home.WebApi.Presenters.Recipes.CreateRecipe;
 using Home.WebApi.Presenters.Recipes.DeleteRecipe;
 using Home.WebApi.Presenters.Recipes.GetRecipe;
 using Home.WebApi.Presenters.Recipes.GetRecipes;
+using Home.WebApi.Presenters.Recipes.ImportRecipe;
 using Home.WebApi.Presenters.Recipes.UpdateRecipe;
 using Home.WebApi.UseCases.Recipes.CreateRecipe;
 using Home.WebApi.UseCases.Recipes.GetRecipe;
 using Home.WebApi.UseCases.Recipes.GetRecipes;
+using Home.WebApi.UseCases.Recipes.ImportRecipe;
 using Home.WebApi.UseCases.Recipes.UpdateRecipe;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +73,18 @@ public class RecipesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetRecipesInputPort(), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpPost("Import")]
+    [ProducesResponseType<ImportRecipeApiResponse>(StatusCodes.Status201Created)]
+    public async Task<IActionResult> ImportRecipe(
+        [FromServices] ImportRecipePresenter presenter,
+        [FromBody] ImportRecipeApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new ImportRecipeInputPort(request.Url), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

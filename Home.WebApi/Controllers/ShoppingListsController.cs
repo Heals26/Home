@@ -1,4 +1,5 @@
-using Home.Application.UseCases.ShoppingListItems.GetShoppingListItems;
+﻿using Home.Application.UseCases.ShoppingListItems.GetShoppingListItems;
+using Home.Application.UseCases.ShoppingLists.AddMealPlanToShoppingList;
 using Home.Application.UseCases.ShoppingLists.AddRecipeToShoppingList;
 using Home.Application.UseCases.ShoppingLists.CreateShoppingList;
 using Home.Application.UseCases.ShoppingLists.DeleteShoppingList;
@@ -8,6 +9,7 @@ using Home.Application.UseCases.ShoppingLists.UpdateShoppingList;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.ShoppingListItems.GetShoppingListItems;
+using Home.WebApi.Presenters.ShoppingLists.AddMealPlanToShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.AddRecipeToShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.CreateShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.DeleteShoppingList;
@@ -15,6 +17,7 @@ using Home.WebApi.Presenters.ShoppingLists.GetShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.GetShoppingLists;
 using Home.WebApi.Presenters.ShoppingLists.UpdateShoppingList;
 using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItems;
+using Home.WebApi.UseCases.ShoppingLists.AddMealPlanToShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.CreateShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.GetShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.GetShoppingLists;
@@ -31,6 +34,19 @@ public class ShoppingListsController : BaseController
 {
 
     #region Methods
+
+    [HttpPost("{shoppingListID}/MealPlan")]
+    [ProducesResponseType<AddMealPlanToShoppingListApiResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> AddMealPlanToShoppingList(
+        [FromServices] AddMealPlanToShoppingListPresenter presenter,
+        [FromRoute] long shoppingListID,
+        [FromBody] AddMealPlanToShoppingListApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new AddMealPlanToShoppingListInputPort(request.FromDate, shoppingListID, request.ToDate), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
 
     [HttpPost("{shoppingListID}/Recipes/{recipeID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

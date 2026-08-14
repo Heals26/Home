@@ -13,6 +13,7 @@ using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Lights;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.RecipeImports;
 using Home.Application.Services.Security;
 using Home.Application.Services.Validation;
 using Home.Application.UseCases.ApiAuditing;
@@ -22,10 +23,12 @@ using Home.Domain.Services.Users;
 using Home.Persistence.Database;
 using Home.WebApi;
 using Home.WebApi.Infrastructure.AutoMapper.Resolvers;
+using Home.WebApi.Infrastructure.ChangeNotifications;
 using Home.WebApi.Infrastructure.Extensions;
 using Home.WebApi.Infrastructure.Filters;
 using Home.WebApi.Infrastructure.Lights;
 using Home.WebApi.Infrastructure.OAuth;
+using Home.WebApi.Infrastructure.RecipeImports;
 using Home.WebApi.Infrastructure.Values;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -42,6 +45,7 @@ SetupSecrets(_Builder);
 SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
 SetupLights(_Builder.Services, _Builder.Configuration);
+SetupRecipeImports(_Builder.Services);
 SetupEntityFramework(_Builder.Services, _Builder.Configuration);
 
 SetupAuthentication(_Builder.Services);
@@ -79,6 +83,7 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     _ = app.UseEndpoints(e =>
     {
         _ = e.MapControllers();
+        _ = e.MapHub<ChangeNotificationsHub>("/hubs/changes");
     });
 
     using var _Scope = app.Services.CreateScope();
@@ -187,6 +192,7 @@ static IServiceCollection SetupEntityFramework(IServiceCollection services, ICon
 static IServiceCollection SetupInfrastructure(IServiceCollection services)
 {
     _ = services.AddControllers();
+    _ = services.AddSignalR();
 
     // Open generic, so AutoMapper can close it per grant response when it resolves the resolver.
     _ = services.AddTransient(typeof(TokenExpiresInResolver<>));
@@ -255,6 +261,23 @@ static IServiceCollection SetupLights(IServiceCollection services, IConfiguratio
     // Schedules only fire while this process is alive — see LightScheduleRunner.
     _ = services.AddHostedService<LightScheduleRunner>();
 
+    // Keeps bulb state fresh so the board notices a wall switch — see LightStateSyncRunner.
+    _ = services.AddHostedService<LightStateSyncRunner>();
+
+    return services;
+}
+
+// Recipe pages are fetched with an explicit user agent — several big cooking sites refuse
+// the default HttpClient one outright. The import only reads embedded JSON-LD, never HTML.
+static IServiceCollection SetupRecipeImports(IServiceCollection services)
+{
+    _ = services.AddHttpClient<IRecipeImportService, JsonLdRecipeImportService>(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(15);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; HomeRecipeImport/1.0)");
+        client.DefaultRequestHeaders.Accept.ParseAdd("text/html");
+    });
+
     return services;
 }
 
@@ -306,6 +329,7 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
     _ = services
         .AddScoped<IActivityLogic, ActivityLogic>()
         .AddScoped<ILightSceneLogic, LightSceneLogic>()
+        .AddScoped<ILightSyncLogic, LightSyncLogic>()
         .AddScoped<IRecipeLogic, RecipeLogic>()
         .AddScoped<IShoppingListLogic, ShoppingListLogic>();
 

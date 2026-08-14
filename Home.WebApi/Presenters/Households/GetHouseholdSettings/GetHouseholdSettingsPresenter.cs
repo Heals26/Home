@@ -16,6 +16,7 @@ public class GetHouseholdSettingsPresenter(IMapper mapper)
         => this.OkAsync(new GetHouseholdSettingsApiResponse()
         {
             HasLifxApiToken = !string.IsNullOrEmpty(household.LifxApiToken),
+            HouseholdID = household.HouseholdID,
             Latitude = household.Latitude,
             Longitude = household.Longitude,
             Name = household.Name

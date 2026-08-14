@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.LightSchedules.GetLightSchedules;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -21,7 +21,9 @@ public class GetLightSchedulesPresenter(IMapper mapper)
                 LightScheduleID = s.LightScheduleID,
                 Name = s.Name,
                 IsEnabled = s.IsEnabled,
+                Trigger = s.Trigger,
                 TimeOfDay = s.TimeOfDay,
+                OffsetMinutes = s.OffsetMinutes,
                 DaysOfWeek = s.DaysOfWeek,
                 LastRunUTC = s.LastRunUTC,
                 LightSceneID = s.Scene.LightSceneID,

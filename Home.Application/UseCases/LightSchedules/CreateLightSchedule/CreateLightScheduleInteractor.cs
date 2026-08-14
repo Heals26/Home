@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -37,7 +37,9 @@ internal class CreateLightScheduleInteractor
         {
             Name = inputPort.Name.Trim(),
             Scene = _Scene,
+            Trigger = inputPort.Trigger,
             TimeOfDay = inputPort.TimeOfDay,
+            OffsetMinutes = inputPort.OffsetMinutes,
             DaysOfWeek = inputPort.DaysOfWeek,
             IsEnabled = true
         };
