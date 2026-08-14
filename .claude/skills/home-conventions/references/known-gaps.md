@@ -63,9 +63,11 @@ along with duplicate `ActivityStateID` / `ActivityStatusID` shadow columns and a
 `ActivityContent` FK column name. The 12 Aug 2026 migration swept all of that up together with the
 Light changes, which was safe only because no database had any rows in it.
 
-The lesson worth keeping: **`Note.CreatedOnUTC` has a `defaultValue` that regenerates on every
-scaffold**, so every future migration will contain a spurious `AlterColumn` for it. Delete that
-operation before committing, or the noise compounds.
+A related wart is fixed: `Note.CreatedOnUTC` used to have a `HasDefaultValue(DateTime.UtcNow)`
+that regenerated on every scaffold, putting a spurious `AlterColumn` in every migration.
+`RemoveNoteCreatedOnUTCDefault` (14 Aug 2026) dropped the default — the interactors set the value
+from `TimeProvider`. If a migration scaffolded before that date is floating around uncommitted,
+its stray `AlterColumn` on `Note.CreatedOnUTC` still needs deleting by hand.
 
 ### Configuration lives entirely outside the repo
 

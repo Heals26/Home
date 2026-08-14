@@ -5,6 +5,18 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-14 — `Note.CreatedOnUTC` has no database default; the application is the only clock
+
+`NoteConfiguration` used to call `HasDefaultValue(DateTime.UtcNow)`, which froze a scaffold-time
+clock reading into the model, so every new migration re-captured it and emitted a spurious
+`AlterColumn` on `Note.CreatedOnUTC` (known-gaps had said to hand-delete the operation each time).
+The default is now gone entirely — `RemoveNoteCreatedOnUTCDefault` absorbs the change — rather
+than replaced with `GETUTCDATE()`, because both Note-creating interactors already set the value
+from `TimeProvider` and a database-side default would be a second clock that bypasses
+`FakeTimeProvider` in tests and silently fills in a forgotten assignment. Consequence: any new
+code path that inserts a `Note` must set `CreatedOnUTC` itself, same as every other timestamp in
+the app.
+
 ## 2026-08-13 — Registration is first-run only
 
 `POST api/Households/register` (anonymous) creates the household and its first member in one

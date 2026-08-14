@@ -22,7 +22,6 @@ public class NoteConfiguration : IEntityTypeConfiguration<Note>
             .IsRequired();
 
         _ = entity.Property(e => e.CreatedOnUTC)
-            .HasDefaultValue(DateTime.UtcNow)
             .IsRequired();
 
         _ = entity.Ignore(e => e.Audits);
