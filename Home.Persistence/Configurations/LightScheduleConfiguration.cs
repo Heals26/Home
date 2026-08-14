@@ -1,4 +1,4 @@
-using Home.Domain;
+﻿using Home.Domain;
 using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -21,7 +21,9 @@ public class LightScheduleConfiguration : IEntityTypeConfiguration<LightSchedule
         _ = entity.Property(e => e.DaysOfWeek);
         _ = entity.Property(e => e.IsEnabled);
         _ = entity.Property(e => e.LastRunUTC);
+        _ = entity.Property(e => e.OffsetMinutes);
         _ = entity.Property(e => e.TimeOfDay);
+        _ = entity.Property(e => e.Trigger);
 
         _ = entity.Property(e => e.Name)
             .HasMaxLength(250)
