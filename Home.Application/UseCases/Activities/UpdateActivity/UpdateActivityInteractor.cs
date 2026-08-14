@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 
@@ -17,9 +18,13 @@ internal class UpdateActivityInteractor : IInteractor<UpdateActivityInputPort, I
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<Activity>>();
 
-        var _Activity = _PersistenceContext.Find<Activity>(inputPort.ActivityID);
+        var _Household = _AuthorisationService.GetHousehold();
+
+        var _Activity = _PersistenceContext.GetEntities<Activity>()
+            .SingleOrDefault(a => a.ActivityID == inputPort.ActivityID && a.Household.HouseholdID == _Household.HouseholdID);
 
         if (_Activity == null)
         {
@@ -48,7 +53,8 @@ internal class UpdateActivityInteractor : IInteractor<UpdateActivityInputPort, I
 
         if (inputPort.UserID.HasBeenSet)
             _Activity.User = inputPort.UserID.Value.HasValue
-                ? _PersistenceContext.Find<User>(inputPort.UserID.Value.Value)
+                ? _PersistenceContext.GetEntities<User>()
+                    .SingleOrDefault(u => u.UserID == inputPort.UserID.Value.Value && u.Household.HouseholdID == _Household.HouseholdID)
                 : null;
 
         _AuditLogic.UpdateAudit(_Activity);

@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
-using Home.Application.Services.EntityLogic.ShoppingLists;
+﻿using CleanArchitecture.Mediator;
+using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.ShoppingListItems.GetShoppingListItem;
@@ -15,9 +16,15 @@ internal class GetShoppingListItemInteractor : IInteractor<GetShoppingListItemIn
         ServiceFactory serviceFactory,
         CancellationToken cancellationToken)
     {
-        var _ShoppingListLogic = serviceFactory.GetService<IShoppingListLogic>();
+        var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
 
-        var _Item = _ShoppingListLogic.GetItem(inputPort.ShoppingListItemID);
+        var _Household = _AuthorisationService.GetHousehold();
+
+        var _Item = _PersistenceContext.GetEntities<ShoppingListItem>()
+            .Where(i => i.ShoppingListItemID == inputPort.ShoppingListItemID
+                && i.ShoppingList.Household.HouseholdID == _Household.HouseholdID)
+            .SingleOrDefault();
 
         if (_Item == null)
             await outputPort.PresentShoppingListItemNotFoundAsync(inputPort.ShoppingListItemID, cancellationToken);

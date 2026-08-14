@@ -1,6 +1,7 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 
@@ -18,11 +19,15 @@ internal class CreateShoppingListItemInteractor : IInteractor<CreateShoppingList
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<ShoppingList>>();
         var _ShoppingListLogic = serviceFactory.GetService<IShoppingListLogic>();
 
+        var _Household = _AuthorisationService.GetHousehold();
+
         var _ShoppingList = _PersistenceContext.GetEntities<ShoppingList>()
-            .Where(sl => sl.ShoppingListID == inputPort.ShoppingListID)
+            .Where(sl => sl.ShoppingListID == inputPort.ShoppingListID
+                && sl.Household.HouseholdID == _Household.HouseholdID)
             .Select(sl => new
             {
                 ShoppingList = sl,

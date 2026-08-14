@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.RecipeIngredients.AddRecipeIngredient;
@@ -16,9 +17,13 @@ internal class AddRecipeIngredientInteractor : IInteractor<AddRecipeIngredientIn
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+
+        var _Household = _AuthorisationService.GetHousehold();
 
         var _Recipe = _PersistenceContext.GetEntities<Recipe>()
-            .Where(r => r.RecipeID == inputPort.RecipeID)
+            .Where(r => r.RecipeID == inputPort.RecipeID
+                && r.Household.HouseholdID == _Household.HouseholdID)
             .Select(r => new
             {
                 Recipe = r,

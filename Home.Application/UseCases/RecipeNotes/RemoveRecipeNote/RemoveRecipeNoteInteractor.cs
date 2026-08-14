@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.RecipeNotes.RemoveRecipeNote;
@@ -16,9 +17,13 @@ internal class RemoveRecipeNoteInteractor : IInteractor<RemoveRecipeNoteInputPor
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+
+        var _Household = _AuthorisationService.GetHousehold();
 
         var _Link = _PersistenceContext.GetEntities<RecipeNote>()
-            .Where(rn => rn.RecipeID == inputPort.RecipeID && rn.NoteID == inputPort.NoteID)
+            .Where(rn => rn.RecipeID == inputPort.RecipeID && rn.NoteID == inputPort.NoteID
+                && rn.Recipe.Household.HouseholdID == _Household.HouseholdID)
             .SingleOrDefault();
 
         if (_Link == null)

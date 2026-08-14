@@ -1,6 +1,7 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.EntityLogic.Activities;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 
@@ -18,11 +19,15 @@ internal class CreateActivityContentInteractor : IInteractor<CreateActivityConte
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<Activity>>();
         var _ActivityLogic = serviceFactory.GetService<IActivityLogic>();
 
+        var _Household = _AuthorisationService.GetHousehold();
+
         var _Region = _PersistenceContext.GetEntities<ActivityRegion>()
-            .Where(r => r.ActivityRegionID == inputPort.ActivityRegionID)
+            .Where(r => r.ActivityRegionID == inputPort.ActivityRegionID
+                && r.Activity.Household.HouseholdID == _Household.HouseholdID)
             .Select(r => new
             {
                 Region = r,

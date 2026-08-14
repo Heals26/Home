@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.ShoppingLists.UpdateShoppingList;
@@ -16,8 +17,14 @@ internal class UpdateShoppingListInteractor : IInteractor<UpdateShoppingListInpu
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
 
-        var _ShoppingList = _PersistenceContext.Find<ShoppingList>(inputPort.ShoppingListID);
+        var _Household = _AuthorisationService.GetHousehold();
+
+        var _ShoppingList = _PersistenceContext.GetEntities<ShoppingList>()
+            .Where(sl => sl.ShoppingListID == inputPort.ShoppingListID
+                && sl.Household.HouseholdID == _Household.HouseholdID)
+            .SingleOrDefault();
 
         if (_ShoppingList != null && inputPort.Name.HasBeenSet)
             _ShoppingList.Name = inputPort.Name.Value;

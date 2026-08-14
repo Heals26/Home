@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Application.Tests.Infrastructure;
 using Home.Application.UseCases.Recipes.GetRecipe;
 using Home.Domain.Entities;
@@ -13,7 +14,9 @@ public class GetRecipeInteractorTests
     #region Fields
 
     private readonly Mock<IPersistenceContext> m_PersistenceContext = new();
+    private readonly Mock<IAuthorisationService> m_AuthorisationService = new();
     private readonly Mock<IGetRecipeOutputPort> m_OutputPort = new();
+    private static readonly Household s_Household = new() { HouseholdID = 42 };
 
     #endregion Fields
 
@@ -25,6 +28,7 @@ public class GetRecipeInteractorTests
             RecipeID = recipeID,
             Name = name,
             Url = "https://example.test/bolognese",
+            Household = s_Household,
             Ingredients = [],
             Notes = [],
             Steps = []
@@ -32,12 +36,14 @@ public class GetRecipeInteractorTests
 
     private Task HandleAsync(long requestedRecipeID, params Recipe[] stored)
     {
+        _ = this.m_AuthorisationService.Setup(a => a.GetHousehold()).Returns(s_Household);
         _ = this.m_PersistenceContext
             .Setup(c => c.GetEntities<Recipe>())
             .Returns(stored.AsQueryable());
 
         var _ServiceFactory = new TestServiceFactory()
             .With(this.m_PersistenceContext.Object)
+            .With(this.m_AuthorisationService.Object)
             .Build();
 
         return new GetRecipeInteractor().HandleAsync(
@@ -104,6 +110,7 @@ public class GetRecipeInteractorTests
     {
         using var _Source = new CancellationTokenSource();
 
+        _ = this.m_AuthorisationService.Setup(a => a.GetHousehold()).Returns(s_Household);
         _ = this.m_PersistenceContext
             .Setup(c => c.GetEntities<Recipe>())
             .Returns(new[] { BuildRecipe(7) }.AsQueryable());
@@ -111,7 +118,10 @@ public class GetRecipeInteractorTests
         await new GetRecipeInteractor().HandleAsync(
             new GetRecipeInputPort(7),
             this.m_OutputPort.Object,
-            new TestServiceFactory().With(this.m_PersistenceContext.Object).Build(),
+            new TestServiceFactory()
+                .With(this.m_PersistenceContext.Object)
+                .With(this.m_AuthorisationService.Object)
+                .Build(),
             _Source.Token);
 
         this.m_OutputPort.Verify(

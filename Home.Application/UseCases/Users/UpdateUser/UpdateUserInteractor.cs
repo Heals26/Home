@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 using Home.Domain.Services.Users;
@@ -19,11 +20,15 @@ internal class UpdateUserInteractor : IInteractor<UpdateUserInputPort, IUpdateUs
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _Mapper = serviceFactory.GetService<IMapper>();
         var _PasswordServive = serviceFactory.GetService<IPasswordService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<User>>();
 
-        var _User = _PersistenceContext.Find<User>(inputPort.UserID);
+        var _Household = _AuthorisationService.GetHousehold();
+
+        var _User = _PersistenceContext.GetEntities<User>()
+            .SingleOrDefault(u => u.UserID == inputPort.UserID && u.Household.HouseholdID == _Household.HouseholdID);
 
         if (_User != null)
         {

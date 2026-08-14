@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 
@@ -17,9 +18,13 @@ internal class DeleteActivityInteractor : IInteractor<DeleteActivityInputPort, I
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<Activity>>();
 
-        var _Activity = _PersistenceContext.Find<Activity>(input.ActivityID);
+        var _Household = _AuthorisationService.GetHousehold();
+
+        var _Activity = _PersistenceContext.GetEntities<Activity>()
+            .SingleOrDefault(a => a.ActivityID == input.ActivityID && a.Household.HouseholdID == _Household.HouseholdID);
 
         if (_Activity != null)
         {

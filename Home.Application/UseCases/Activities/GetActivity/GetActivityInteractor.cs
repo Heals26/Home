@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.Activities.GetActivity;
@@ -16,9 +17,12 @@ internal class GetActivityInteractor : IInteractor<GetActivityInputPort, IGetAct
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+
+        var _Household = _AuthorisationService.GetHousehold();
 
         var _Activity = _PersistenceContext.GetEntities<Activity>()
-            .Where(a => a.ActivityID == inputPort.ActivityID)
+            .Where(a => a.ActivityID == inputPort.ActivityID && a.Household.HouseholdID == _Household.HouseholdID)
             .Select(a => new
             {
                 Activity = a,

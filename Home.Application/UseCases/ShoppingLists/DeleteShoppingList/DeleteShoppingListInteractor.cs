@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 
@@ -17,10 +18,14 @@ internal class DeleteShoppingListInteractor : IInteractor<DeleteShoppingListInpu
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<ShoppingList>>();
 
+        var _Household = _AuthorisationService.GetHousehold();
+
         _PersistenceContext.GetEntities<ShoppingList>()
-            .Where(sl => sl.ShoppingListID == input.ShoppingListID)
+            .Where(sl => sl.ShoppingListID == input.ShoppingListID
+                && sl.Household.HouseholdID == _Household.HouseholdID)
             .ToList()
             .ForEach(sl =>
             {

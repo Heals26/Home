@@ -1,6 +1,7 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.ShoppingLists.AddRecipeToShoppingList;
@@ -17,10 +18,14 @@ internal class AddRecipeToShoppingListInteractor : IInteractor<AddRecipeToShoppi
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _RecipeLogic = serviceFactory.GetService<IRecipeLogic>();
 
+        var _Household = _AuthorisationService.GetHousehold();
+
         var _Recipe = _PersistenceContext.GetEntities<Recipe>()
-            .Where(r => r.RecipeID == inputPort.RecipeID)
+            .Where(r => r.RecipeID == inputPort.RecipeID
+                && r.Household.HouseholdID == _Household.HouseholdID)
             .Select(r => new
             {
                 Recipe = r,
@@ -40,7 +45,8 @@ internal class AddRecipeToShoppingListInteractor : IInteractor<AddRecipeToShoppi
         }
 
         var _ShoppingList = _PersistenceContext.GetEntities<ShoppingList>()
-            .Where(sl => sl.ShoppingListID == inputPort.ShoppingListID)
+            .Where(sl => sl.ShoppingListID == inputPort.ShoppingListID
+                && sl.Household.HouseholdID == _Household.HouseholdID)
             .Select(sl => new
             {
                 ShoppingList = sl,

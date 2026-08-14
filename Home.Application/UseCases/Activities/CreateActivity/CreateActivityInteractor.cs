@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -21,9 +21,11 @@ internal class CreateActivityInteractor : IInteractor<CreateActivityInputPort, I
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<Activity>>();
 
+        var _Household = _AuthorisationService.GetHousehold();
+
         var _Activity = new Activity()
         {
-            Household = _AuthorisationService.GetHousehold(),
+            Household = _Household,
             Title = inputPort.Title,
             DueDateUTC = inputPort.DueDateUTC,
             Audits = [],
@@ -35,7 +37,8 @@ internal class CreateActivityInteractor : IInteractor<CreateActivityInputPort, I
                 ? _PersistenceContext.Find<ActivityStatus>(inputPort.StatusID.Value)
                 : null,
             User = inputPort.UserID.HasValue
-                ? _PersistenceContext.Find<User>(inputPort.UserID.Value)
+                ? _PersistenceContext.GetEntities<User>()
+                    .SingleOrDefault(u => u.UserID == inputPort.UserID.Value && u.Household.HouseholdID == _Household.HouseholdID)
                 : null,
         };
 

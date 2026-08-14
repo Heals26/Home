@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
+using Home.Application.Services.Security;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.ActivityRegions.DeleteActivityRegion;
@@ -16,8 +17,14 @@ internal class DeleteActivityRegionInteractor : IInteractor<DeleteActivityRegion
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
 
-        var _ActivityRegion = _PersistenceContext.Find<ActivityRegion>(inputPort.ActivityRegionID);
+        var _Household = _AuthorisationService.GetHousehold();
+
+        var _ActivityRegion = _PersistenceContext.GetEntities<ActivityRegion>()
+            .Where(r => r.ActivityRegionID == inputPort.ActivityRegionID
+                && r.Activity.Household.HouseholdID == _Household.HouseholdID)
+            .SingleOrDefault();
 
         if (_ActivityRegion == null)
         {

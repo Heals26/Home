@@ -1,4 +1,4 @@
-using Home.Application.Services.EntityLogic.ShoppingLists;
+﻿using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
 using Home.Application.UseCases.ShoppingListItems.CreateShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
@@ -54,14 +54,12 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
             .Where(sli => sli.ShoppingListItemID == inputPort.ShoppingListItemID)
             .Select(sli => new
             {
-                ShoppingListItem = sli
+                ShoppingListItem = sli,
+                sli.ShoppingList,
+                sli.ShoppingList.Items
             })
             .Single()
             .ShoppingListItem;
-
-        _ = persistenceContext.GetEntities<ShoppingList>()
-            .Where(sl => sl.ShoppingListID == _ShoppingListItem.ShoppingList.ShoppingListID)
-            .ToList();
 
         if (inputPort.Cost.HasBeenSet)
             _ShoppingListItem.Cost = inputPort.Cost.Value;
