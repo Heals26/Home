@@ -18,12 +18,13 @@ using Home.WebUI.DataAccess.LightSchedules.Models;
 using Home.WebUI.DataAccess.LightSchedules.UpdateLightSchedule;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
+using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Lights;
 
-public partial class LightsPage
+public partial class LightsPage : IDisposable
 {
 
     #region Records
@@ -36,6 +37,7 @@ public partial class LightsPage
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
     private ErrorHandler? m_ErrorHandler;
+    private IDisposable? m_ChangeSubscription;
     private List<LightGroupDto>? m_Groups;
     private List<LightSceneDto>? m_Scenes;
     private List<LightScheduleDto>? m_Schedules;
@@ -55,9 +57,29 @@ public partial class LightsPage
     private bool m_ShowScheduleModal;
     private string m_ScheduleName = string.Empty;
     private long m_ScheduleSceneID;
+    private LightScheduleTrigger m_ScheduleTrigger = LightScheduleTrigger.Time;
     private string m_ScheduleTime = "19:00";
+    private int m_ScheduleOffsetMinutes;
     private int m_ScheduleDays;
     private bool m_CreatingSchedule;
+
+    private static readonly List<HomeSegmentedControl<LightScheduleTrigger>.SegmentOption> TriggerOptions =
+    [
+        new("At a time", LightScheduleTrigger.Time),
+        new("Sunrise", LightScheduleTrigger.Sunrise),
+        new("Sunset", LightScheduleTrigger.Sunset),
+    ];
+
+    private static readonly (string Label, int Minutes)[] OffsetOptions =
+    [
+        ("1 hour before", -60),
+        ("30 min before", -30),
+        ("15 min before", -15),
+        ("Right on it", 0),
+        ("15 min after", 15),
+        ("30 min after", 30),
+        ("1 hour after", 60),
+    ];
 
     // Effects
     private bool m_ShowEffectsModal;
@@ -96,14 +118,40 @@ public partial class LightsPage
     #region Lifecycle Methods
 
     protected override async Task OnInitializedAsync()
-        => await Task.WhenAll(
+    {
+        await Task.WhenAll(
             this.LoadLightsAsync(),
             this.LoadScenesAsync(),
             this.LoadSchedulesAsync());
 
+        this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
+            this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
+    }
+
+    public void Dispose()
+    {
+        this.m_ChangeSubscription?.Dispose();
+        this.m_CancellationTokenHandler.Dispose();
+    }
+
     #endregion Lifecycle Methods
 
     #region Methods
+
+    private async Task OnHouseholdChangedAsync(ChangeArea area)
+    {
+        if (area != ChangeArea.Lights)
+            return;
+
+        await this.InvokeAsync(async () =>
+        {
+            await Task.WhenAll(this.LoadLightsAsync(), this.LoadScenesAsync(), this.LoadSchedulesAsync());
+            this.StateHasChanged();
+        });
+    }
+
+    private async Task PublishLightsChangedAsync()
+        => await this.ChangeBroadcaster.PublishAsync(ChangeArea.Lights, this.m_CancellationTokenHandler.Token);
 
     private void ToggleEditMode()
         => this.m_EditMode = !this.m_EditMode;
@@ -163,6 +211,7 @@ public partial class LightsPage
 
         // A sync can add or drop bulbs, which also changes what scenes cover.
         await Task.WhenAll(this.LoadLightsAsync(), this.LoadScenesAsync());
+        await this.PublishLightsChangedAsync();
     }
 
     /* ---------- scenes ---------- */
@@ -181,8 +230,11 @@ public partial class LightsPage
 
         this.m_ApplyingSceneID = null;
 
-        if (_Result == true)
-            await this.LoadLightsAsync();
+        if (_Result != true)
+            return;
+
+        await this.LoadLightsAsync();
+        await this.PublishLightsChangedAsync();
     }
 
     private void OpenCaptureModal()
@@ -217,6 +269,7 @@ public partial class LightsPage
         this.m_ShowCaptureModal = false;
 
         await this.LoadScenesAsync();
+        await this.PublishLightsChangedAsync();
     }
 
     // Deleting a scene also deletes any schedule that fires it, so both lists reload.
@@ -227,8 +280,11 @@ public partial class LightsPage
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        if (_Result == true)
-            await Task.WhenAll(this.LoadScenesAsync(), this.LoadSchedulesAsync());
+        if (_Result != true)
+            return;
+
+        await Task.WhenAll(this.LoadScenesAsync(), this.LoadSchedulesAsync());
+        await this.PublishLightsChangedAsync();
     }
 
     /* ---------- schedules ---------- */
@@ -237,7 +293,9 @@ public partial class LightsPage
     {
         this.m_ScheduleName = string.Empty;
         this.m_ScheduleSceneID = 0;
+        this.m_ScheduleTrigger = LightScheduleTrigger.Time;
         this.m_ScheduleTime = "19:00";
+        this.m_ScheduleOffsetMinutes = 0;
         this.m_ScheduleDays = 0;
         this.m_ShowScheduleModal = true;
     }
@@ -252,7 +310,7 @@ public partial class LightsPage
         => !string.IsNullOrWhiteSpace(this.m_ScheduleName)
             && this.m_ScheduleSceneID != 0
             && this.m_ScheduleDays != 0
-            && TimeSpan.TryParse(this.m_ScheduleTime, out _);
+            && (this.m_ScheduleTrigger != LightScheduleTrigger.Time || TimeSpan.TryParse(this.m_ScheduleTime, out _));
 
     private async Task CreateScheduleAsync()
     {
@@ -266,7 +324,11 @@ public partial class LightsPage
             {
                 Name = this.m_ScheduleName.Trim(),
                 LightSceneID = this.m_ScheduleSceneID,
-                TimeOfDay = TimeSpan.Parse(this.m_ScheduleTime),
+                Trigger = this.m_ScheduleTrigger,
+                TimeOfDay = this.m_ScheduleTrigger == LightScheduleTrigger.Time
+                    ? TimeSpan.Parse(this.m_ScheduleTime)
+                    : TimeSpan.Zero,
+                OffsetMinutes = this.m_ScheduleTrigger == LightScheduleTrigger.Time ? 0 : this.m_ScheduleOffsetMinutes,
                 DaysOfWeek = this.m_ScheduleDays
             },
             ApiProvider.CreateLightSchedule(),
@@ -281,6 +343,7 @@ public partial class LightsPage
         this.m_ShowScheduleModal = false;
 
         await this.LoadSchedulesAsync();
+        await this.PublishLightsChangedAsync();
     }
 
     // The UI flips first so the toggle feels instant; a failed call reloads the truth.
@@ -295,7 +358,12 @@ public partial class LightsPage
             this.m_CancellationTokenHandler.Token);
 
         if (_Result != true)
+        {
             await this.LoadSchedulesAsync();
+            return;
+        }
+
+        await this.PublishLightsChangedAsync();
     }
 
     private async Task DeleteScheduleAsync(LightScheduleDto schedule)
@@ -305,12 +373,30 @@ public partial class LightsPage
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        if (_Result == true)
-            await this.LoadSchedulesAsync();
+        if (_Result != true)
+            return;
+
+        await this.LoadSchedulesAsync();
+        await this.PublishLightsChangedAsync();
     }
 
     private static string FormatTime(TimeSpan timeOfDay)
         => DateTime.MinValue.Add(timeOfDay).ToString("h:mm tt");
+
+    private static string FormatTrigger(LightScheduleDto schedule)
+    {
+        if (schedule.Trigger == LightScheduleTrigger.Time)
+            return FormatTime(schedule.TimeOfDay);
+
+        var _Event = schedule.Trigger == LightScheduleTrigger.Sunrise ? "sunrise" : "sunset";
+
+        return schedule.OffsetMinutes switch
+        {
+            0 => $"At {_Event}",
+            < 0 => $"{Math.Abs(schedule.OffsetMinutes)} min before {_Event}",
+            > 0 => $"{schedule.OffsetMinutes} min after {_Event}"
+        };
+    }
 
     private static string FormatDays(int daysOfWeek)
     {
@@ -418,7 +504,12 @@ public partial class LightsPage
             this.m_CancellationTokenHandler.Token);
 
         if (_Result != true)
+        {
             await this.LoadLightsAsync();
+            return;
+        }
+
+        await this.PublishLightsChangedAsync();
     }
 
     /* ---------- whole group ---------- */
@@ -435,7 +526,12 @@ public partial class LightsPage
             this.m_CancellationTokenHandler.Token);
 
         if (_Result != true)
+        {
             await this.LoadLightsAsync();
+            return;
+        }
+
+        await this.PublishLightsChangedAsync();
     }
 
     /* ---------- editing ---------- */
@@ -458,6 +554,7 @@ public partial class LightsPage
         this.m_NewGroupName = string.Empty;
 
         await this.LoadLightsAsync();
+        await this.PublishLightsChangedAsync();
     }
 
     private async Task RenameGroupAsync(LightGroupDto group, string name)
@@ -468,6 +565,8 @@ public partial class LightsPage
             new() { Name = new(name) }, ApiProvider.UpdateLightGroup(group.LightGroupID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
+
+        await this.PublishLightsChangedAsync();
     }
 
     // Swaps sequence numbers with the neighbour, then persists both.
@@ -496,6 +595,8 @@ public partial class LightsPage
                 e => this.m_ErrorHandler?.AddError(e),
                 this.m_CancellationTokenHandler.Token);
         }
+
+        await this.PublishLightsChangedAsync();
     }
 
     private async Task DeleteGroupAsync(LightGroupDto group)
@@ -505,8 +606,11 @@ public partial class LightsPage
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        if (_Result == true)
-            await this.LoadLightsAsync();
+        if (_Result != true)
+            return;
+
+        await this.LoadLightsAsync();
+        await this.PublishLightsChangedAsync();
     }
 
     private async Task MoveLightAsync(LightDto light, long lightGroupID)
@@ -516,8 +620,11 @@ public partial class LightsPage
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        if (_Result == true)
-            await this.LoadLightsAsync();
+        if (_Result != true)
+            return;
+
+        await this.LoadLightsAsync();
+        await this.PublishLightsChangedAsync();
     }
 
     #endregion Methods

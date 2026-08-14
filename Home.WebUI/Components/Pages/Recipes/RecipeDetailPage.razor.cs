@@ -12,17 +12,19 @@ using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
+using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Recipes;
 
-public partial class RecipeDetailPage
+public partial class RecipeDetailPage : IDisposable
 {
 
     #region Fields
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
     private ErrorHandler? m_ErrorHandler;
+    private IDisposable? m_ChangeSubscription;
     private GetRecipeWebAppResponse? m_Recipe;
 
     private bool m_Saving;
@@ -67,8 +69,18 @@ public partial class RecipeDetailPage
 
     #region Lifecycle Methods
 
+    protected override async Task OnInitializedAsync()
+        => this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
+            this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
+
     protected override async Task OnParametersSetAsync()
         => await this.LoadRecipeAsync();
+
+    public void Dispose()
+    {
+        this.m_ChangeSubscription?.Dispose();
+        this.m_CancellationTokenHandler.Dispose();
+    }
 
     #endregion Lifecycle Methods
 
@@ -82,6 +94,24 @@ public partial class RecipeDetailPage
             null!, ApiProvider.GetRecipe(this.RecipeID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
+    }
+
+    private async Task OnHouseholdChangedAsync(ChangeArea area)
+    {
+        if (area != ChangeArea.Recipes)
+            return;
+
+        await this.InvokeAsync(async () =>
+        {
+            await this.LoadRecipeAsync();
+            this.StateHasChanged();
+        });
+    }
+
+    private async Task ReloadAndPublishAsync()
+    {
+        await this.LoadRecipeAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Recipes, this.m_CancellationTokenHandler.Token);
     }
 
     // Recipe
@@ -114,7 +144,7 @@ public partial class RecipeDetailPage
         if (_Result != true) return;
 
         this.m_ShowEditRecipe = false;
-        await this.LoadRecipeAsync();
+        await this.ReloadAndPublishAsync();
     }
 
     // Ingredients
@@ -185,7 +215,7 @@ public partial class RecipeDetailPage
         if (!_Result) return;
 
         this.m_ShowIngredient = false;
-        await this.LoadRecipeAsync();
+        await this.ReloadAndPublishAsync();
     }
 
     private async Task RemoveIngredientAsync(long ingredientID)
@@ -196,7 +226,7 @@ public partial class RecipeDetailPage
             this.m_CancellationTokenHandler.Token);
 
         if (_Result == true)
-            await this.LoadRecipeAsync();
+            await this.ReloadAndPublishAsync();
     }
 
     // Steps
@@ -266,7 +296,7 @@ public partial class RecipeDetailPage
         if (!_Result) return;
 
         this.m_ShowStep = false;
-        await this.LoadRecipeAsync();
+        await this.ReloadAndPublishAsync();
     }
 
     private async Task RemoveStepAsync(long recipeStepID)
@@ -277,7 +307,7 @@ public partial class RecipeDetailPage
             this.m_CancellationTokenHandler.Token);
 
         if (_Result == true)
-            await this.LoadRecipeAsync();
+            await this.ReloadAndPublishAsync();
     }
 
     // Notes
@@ -309,7 +339,7 @@ public partial class RecipeDetailPage
         if (_Response == null) return;
 
         this.m_ShowNote = false;
-        await this.LoadRecipeAsync();
+        await this.ReloadAndPublishAsync();
     }
 
     private async Task RemoveNoteAsync(long noteID)
@@ -320,7 +350,7 @@ public partial class RecipeDetailPage
             this.m_CancellationTokenHandler.Token);
 
         if (_Result == true)
-            await this.LoadRecipeAsync();
+            await this.ReloadAndPublishAsync();
     }
 
     // Add to shopping list
@@ -349,8 +379,11 @@ public partial class RecipeDetailPage
 
         this.m_AddingToList = false;
 
-        if (_Result == true)
-            this.m_ShowAddToList = false;
+        if (_Result != true)
+            return;
+
+        this.m_ShowAddToList = false;
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.m_CancellationTokenHandler.Token);
     }
 
     private async Task CreateListAndAddAsync()
@@ -378,8 +411,11 @@ public partial class RecipeDetailPage
 
         this.m_AddingToList = false;
 
-        if (_Result == true)
-            this.m_ShowAddToList = false;
+        if (_Result != true)
+            return;
+
+        this.m_ShowAddToList = false;
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.m_CancellationTokenHandler.Token);
     }
 
     // Helpers

@@ -58,12 +58,29 @@
 
 <HomeModal @bind-Visible="this.m_ShowCreate" Title="New recipe">
     <ChildContent>
+        <div class="mb-4 pb-4 border-b border-ink-800">
+            <HomeTextInput Label="Import from a web page"
+                           Type="url"
+                           AutoComplete="off"
+                           @bind-Value="this.m_ImportUrl"
+                           Placeholder="Paste a recipe URL" />
+            <p class="text-xs text-ink-500 mt-1.5">Reads the name, ingredients and steps straight from the site.</p>
+            <div class="mt-3 flex justify-end">
+                <HomeButton Loading="this.m_Importing"
+                            Disabled="@string.IsNullOrWhiteSpace(this.m_ImportUrl)"
+                            OnClick="this.ImportRecipeAsync">Import</HomeButton>
+            </div>
+        </div>
+
         <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateRecipeAsync">
             <HomeTextInput Label="Recipe name"
+                           AutoComplete="off"
                            @bind-Value="this.m_CreateRequest!.Name"
                            Placeholder="e.g. Spaghetti Bolognese" />
             <div class="mt-3">
                 <HomeTextInput Label="Source URL (optional)"
+                               Type="url"
+                               AutoComplete="off"
                                @bind-Value="this.m_CreateRequest!.Url"
                                Placeholder="https://..." />
             </div>

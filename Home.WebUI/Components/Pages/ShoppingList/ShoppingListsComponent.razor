@@ -46,6 +46,7 @@
     <ChildContent>
         <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateShoppingListAsync">
             <HomeTextInput Label="List name"
+                           AutoComplete="off"
                            @bind-Value="this.m_CreateRequest!.Name"
                            Placeholder="e.g. Weekly shop" />
             <div class="mt-4 flex justify-end gap-3">

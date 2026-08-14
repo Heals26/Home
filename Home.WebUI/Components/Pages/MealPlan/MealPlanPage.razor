@@ -1,0 +1,163 @@
+@page "/meal-plan"
+
+@* The week's dinners. One row per day: glance for tonight, tap + to plan, and push the
+   whole week's ingredients onto a shopping list in one go. *@
+
+<CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
+    <div class="flex flex-col h-full max-w-3xl mx-auto w-full">
+        <HomeTopBar Title="Meals" Eyebrow="What's for dinner" EyebrowClass="text-recipes">
+            <ActionsContent>
+                <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenAddToListModal"
+                            Disabled="@(this.m_Entries == null || this.m_Entries.Count == 0)">
+                    <span class="home-icon home-icon-shopping-list h-4 w-4 mr-1 inline-block"></span>
+                    Add week to list
+                </HomeButton>
+            </ActionsContent>
+        </HomeTopBar>
+
+        <div class="px-6 pb-3 flex items-center justify-between">
+            <div class="flex items-center gap-1">
+                <button type="button" aria-label="Previous week"
+                        class="h-11 w-11 rounded-lg text-ink-400 hover:text-ink-50 hover:bg-ink-900 transition-colors"
+                        @onclick="() => this.MoveWeekAsync(-7)">
+                    <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
+                </button>
+                <button type="button" aria-label="Next week"
+                        class="h-11 w-11 rounded-lg text-ink-400 hover:text-ink-50 hover:bg-ink-900 transition-colors"
+                        @onclick="() => this.MoveWeekAsync(7)">
+                    <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block"></span>
+                </button>
+            </div>
+            <p class="text-sm font-medium text-ink-300">@this.WeekLabel()</p>
+            @if (this.IsCurrentWeek())
+            {
+                <span class="text-xs text-ink-600 w-16 text-right">This week</span>
+            }
+            else
+            {
+                <button type="button" class="text-xs text-ink-300 underline underline-offset-4 hover:text-ink-50 w-16 text-right"
+                        @onclick="() => this.GoToTodayAsync()">Today</button>
+            }
+        </div>
+
+        <div class="flex-1 px-6 pb-6 app-scrollable">
+            @if (this.m_Entries == null)
+            {
+                <HomeLoader Class="py-16" />
+            }
+            else
+            {
+                <div class="flex flex-col gap-2">
+                    @foreach (var _Day in this.WeekDays())
+                    {
+                        var _IsToday = _Day == this.TimeProvider.GetLocalNow().Date;
+                        <div class="flex items-center gap-3 rounded-2xl border px-4 py-3 min-h-[64px] @(_IsToday ? "border-recipes/40 bg-ink-900" : "border-ink-800 bg-ink-900/60")">
+                            <div class="w-16 shrink-0">
+                                <p class="text-xs font-semibold uppercase tracking-widest @(_IsToday ? "text-recipes" : "text-ink-500")">@_Day.ToString("ddd")</p>
+                                <p class="text-sm text-ink-300">@_Day.ToString("d MMM")</p>
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-wrap items-center gap-2">
+                                @foreach (var _Entry in this.EntriesFor(_Day))
+                                {
+                                    <span class="flex items-center gap-1 max-w-full rounded-full border border-ink-700 bg-ink-800 pl-3 pr-1 py-1">
+                                        <a href="/recipes/@_Entry.RecipeID" class="text-sm text-ink-100 truncate hover:underline underline-offset-4">@_Entry.RecipeName</a>
+                                        <button type="button" aria-label="@($"Remove {_Entry.RecipeName}")"
+                                                class="h-8 w-8 rounded-full text-ink-500 hover:text-red-400"
+                                                @onclick="() => this.DeleteEntryAsync(_Entry)">
+                                            <span class="home-icon home-icon-x h-3.5 w-3.5 inline-block"></span>
+                                        </button>
+                                    </span>
+                                }
+                                @if (!this.EntriesFor(_Day).Any())
+                                {
+                                    <span class="text-sm text-ink-600">Nothing planned</span>
+                                }
+                            </div>
+                            <button type="button" aria-label="@($"Plan a meal for {_Day:dddd d MMMM}")"
+                                    class="h-11 w-11 shrink-0 rounded-lg border border-ink-700 text-ink-400 hover:text-ink-50 hover:border-ink-500 active:scale-95 transition-all"
+                                    @onclick="() => this.OpenPickerAsync(_Day)">
+                                <span class="home-icon home-icon-plus h-4 w-4 inline-block"></span>
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</CascadingValue>
+
+@* Recipe picker *@
+<HomeModal @bind-Visible="this.m_ShowPicker" Title="@($"Plan for {this.m_PickerDate:dddd d MMMM}")">
+    <ChildContent>
+        @if (this.m_Recipes == null)
+        {
+            <HomeLoader Class="py-6" />
+        }
+        else if (this.m_Recipes.Count == 0)
+        {
+            <p class="text-sm text-ink-500">No recipes in the book yet — add one on the Recipes page first.</p>
+        }
+        else
+        {
+            <div class="max-h-80 app-scrollable divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
+                @foreach (var _Recipe in this.m_Recipes)
+                {
+                    <button type="button"
+                            class="w-full text-left px-4 py-3 min-h-[48px] hover:bg-ink-800 transition-colors disabled:opacity-50"
+                            disabled="@this.m_Planning"
+                            @onclick="() => this.PlanRecipeAsync(_Recipe.RecipeID)">
+                        <p class="text-sm font-medium text-ink-50">@_Recipe.Name</p>
+                    </button>
+                }
+            </div>
+        }
+    </ChildContent>
+</HomeModal>
+
+@* Add the visible week to a shopping list *@
+<HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add week to shopping list">
+    <ChildContent>
+        <p class="text-sm text-ink-400 mb-3">Adds the ingredients of every meal planned this week.</p>
+        @if (this.m_AddedRecipeCount != null)
+        {
+            <p class="text-sm text-shopping mb-3">Added ingredients from @this.m_AddedRecipeCount @(this.m_AddedRecipeCount == 1 ? "recipe" : "recipes").</p>
+        }
+        @if (this.m_ShoppingLists == null)
+        {
+            <HomeLoader Class="py-6" />
+        }
+        else
+        {
+            @if (this.m_ShoppingLists.Any())
+            {
+                <div class="divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
+                    @foreach (var _List in this.m_ShoppingLists)
+                    {
+                        <button type="button"
+                                class="w-full text-left px-4 py-3 min-h-[48px] hover:bg-ink-800 transition-colors disabled:opacity-50"
+                                disabled="@this.m_AddingToList"
+                                @onclick="() => this.AddWeekToListAsync(_List.ShoppingListID)">
+                            <p class="text-sm font-medium text-ink-50">@_List.Name</p>
+                            <p class="text-xs text-ink-500">@_List.ItemCount items</p>
+                        </button>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-sm text-ink-500">No shopping lists yet — create one below.</p>
+            }
+
+            <div class="mt-4 pt-4 border-t border-ink-800">
+                <HomeTextInput Label="Or create a new list" AutoComplete="off" @bind-Value="this.m_NewListName" Placeholder="e.g. Weekly shop" />
+                <div class="mt-3 flex justify-end">
+                    <HomeButton Loading="this.m_AddingToList"
+                                Disabled="@string.IsNullOrWhiteSpace(this.m_NewListName)"
+                                OnClick="this.CreateListAndAddWeekAsync">Create &amp; add</HomeButton>
+                </div>
+            </div>
+        }
+    </ChildContent>
+</HomeModal>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />

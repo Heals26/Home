@@ -7,6 +7,8 @@
             <input class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                    value="@this.Group.Name"
                    maxlength="250"
+                   autocomplete="off"
+                   aria-label="Group name"
                    @onchange="this.OnNameChanged" />
 
             <button type="button" title="Move up" aria-label="Move up"

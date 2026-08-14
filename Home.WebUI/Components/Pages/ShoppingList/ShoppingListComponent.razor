@@ -34,11 +34,19 @@
         else
         {
             <div class="divide-y divide-ink-800 -mx-5">
-                @foreach (var _Item in this.m_ShoppingList.Items.OrderBy(i => i.Name))
+                @foreach (var _Item in this.m_ShoppingList.Items.OrderBy(i => i.InBasket).ThenBy(i => i.Name))
                 {
-                    <div class="flex items-center gap-4 px-5 py-3">
+                    <button type="button"
+                            class="w-full flex items-center gap-4 px-5 py-3 min-h-[56px] text-left hover:bg-ink-800/50 transition-colors"
+                            @onclick="() => this.ToggleItemAsync(_Item)">
+                        <span class="h-6 w-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors @(_Item.InBasket ? "border-shopping bg-shopping/20" : "border-ink-600")">
+                            @if (_Item.InBasket)
+                            {
+                                <span class="home-icon home-icon-check h-3.5 w-3.5 text-shopping"></span>
+                            }
+                        </span>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-ink-50 truncate">@_Item.Name</p>
+                            <p class="text-sm font-medium truncate @(_Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@_Item.Name</p>
                             @if (_Item.Cost.HasValue && _Item.Cost > 0)
                             {
                                 <p class="text-xs text-ink-500">$@_Item.Cost.Value.ToString("F2")</p>
@@ -46,15 +54,24 @@
                         </div>
                         @if (_Item.Quantity.HasValue)
                         {
-                            <span class="text-sm text-ink-400 shrink-0">qty @_Item.Quantity.Value</span>
+                            <span class="text-sm shrink-0 @(_Item.InBasket ? "text-ink-600" : "text-ink-400")">qty @_Item.Quantity.Value</span>
                         }
-                    </div>
+                    </button>
                 }
             </div>
             <div class="border-t border-ink-800 pt-4 mt-4 flex justify-between items-center -mx-5 px-5 -mb-5 pb-5">
-                <span class="text-sm text-ink-400">Total</span>
+                <span class="text-sm text-ink-400">
+                    @if (this.TrolleyTotal() > 0)
+                    {
+                        <span class="text-shopping font-medium">$@this.TrolleyTotal().ToString("F2") in the trolley</span>
+                    }
+                    else
+                    {
+                        <span>Total</span>
+                    }
+                </span>
                 <span class="text-base font-semibold text-ink-50">
-                    $@this.m_ShoppingList.Items.Sum(i => (i.Cost ?? 0) * (i.Quantity ?? 1)).ToString("F2")
+                    $@this.ListTotal().ToString("F2")
                 </span>
             </div>
         }
@@ -65,13 +82,18 @@
     <ChildContent>
         <EditForm Model="this.m_AddItemRequest" OnValidSubmit="this.AddItemAsync">
             <HomeTextInput Label="Name"
+                           AutoComplete="off"
                            @bind-Value="this.m_AddItemRequest!.Name"
                            Placeholder="e.g. Milk" />
             <div class="grid grid-cols-2 gap-3 mt-3">
                 <HomeTextInput Label="Quantity"
+                               AutoComplete="off"
+                               InputMode="numeric"
                                @bind-Value="this.m_QuantityInput"
                                Placeholder="e.g. 2" />
                 <HomeTextInput Label="Cost ($)"
+                               AutoComplete="off"
+                               InputMode="decimal"
                                @bind-Value="this.m_CostInput"
                                Placeholder="e.g. 3.50" />
             </div>

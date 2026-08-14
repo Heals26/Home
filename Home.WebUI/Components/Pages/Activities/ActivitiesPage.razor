@@ -47,7 +47,10 @@
                                             }
                                             @if (!string.IsNullOrWhiteSpace(_Activity.AssignedTo))
                                             {
-                                                <span class="text-xs text-ink-500 truncate">@_Activity.AssignedTo</span>
+                                                <span class="inline-flex items-center gap-1.5 min-w-0">
+                                                    <span class="h-5 w-5 shrink-0 rounded-full bg-week/15 text-week text-[10px] font-semibold flex items-center justify-center">@Initials(_Activity.AssignedTo)</span>
+                                                    <span class="text-xs text-ink-500 truncate">@_Activity.AssignedTo</span>
+                                                </span>
                                             }
                                         </div>
                                     </div>
@@ -68,11 +71,11 @@
 @* Create activity modal *@
 <HomeModal @bind-Visible="this.m_ShowCreate" Title="New activity">
     <ChildContent>
-        <HomeTextInput Label="Title" @bind-Value="this.m_NewTitle" Placeholder="e.g. Mow the lawn" />
+        <HomeTextInput Label="Title" AutoComplete="off" @bind-Value="this.m_NewTitle" Placeholder="e.g. Mow the lawn" />
         <div class="grid grid-cols-2 gap-3 mt-3">
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-ink-300">Column</label>
-                <select @bind="this.m_NewStateID"
+                <label for="activity-new-state" class="text-sm font-medium text-ink-300">Column</label>
+                <select id="activity-new-state" @bind="this.m_NewStateID"
                         class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
                     @foreach (var _State in this.m_States ?? [])
                     {
@@ -81,10 +84,21 @@
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-ink-300">Due date (optional)</label>
-                <input type="date" @bind="this.m_NewDueDate"
+                <label for="activity-new-due-date" class="text-sm font-medium text-ink-300">Due date (optional)</label>
+                <input id="activity-new-due-date" type="date" autocomplete="off" @bind="this.m_NewDueDate"
                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
             </div>
+        </div>
+        <div class="flex flex-col gap-1.5 mt-3">
+            <label for="activity-new-assignee" class="text-sm font-medium text-ink-300">Assign to</label>
+            <select id="activity-new-assignee" @bind="this.m_NewUserID"
+                    class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
+                <option value="">Anyone</option>
+                @foreach (var _User in this.m_Users ?? [])
+                {
+                    <option value="@_User.UserID">@_User.FullName</option>
+                }
+            </select>
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
@@ -96,11 +110,11 @@
 @* Edit activity modal *@
 <HomeModal @bind-Visible="this.m_ShowEdit" Title="Edit activity">
     <ChildContent>
-        <HomeTextInput Label="Title" @bind-Value="this.m_EditTitle" Placeholder="Title" />
+        <HomeTextInput Label="Title" AutoComplete="off" @bind-Value="this.m_EditTitle" Placeholder="Title" />
         <div class="grid grid-cols-2 gap-3 mt-3">
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-ink-300">Column</label>
-                <select @bind="this.m_EditStateID"
+                <label for="activity-edit-state" class="text-sm font-medium text-ink-300">Column</label>
+                <select id="activity-edit-state" @bind="this.m_EditStateID"
                         class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
                     <option value="">Unassigned</option>
                     @foreach (var _State in this.m_States ?? [])
@@ -110,10 +124,21 @@
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-ink-300">Due date</label>
-                <input type="date" @bind="this.m_EditDueDate"
+                <label for="activity-edit-due-date" class="text-sm font-medium text-ink-300">Due date</label>
+                <input id="activity-edit-due-date" type="date" autocomplete="off" @bind="this.m_EditDueDate"
                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
             </div>
+        </div>
+        <div class="flex flex-col gap-1.5 mt-3">
+            <label for="activity-edit-assignee" class="text-sm font-medium text-ink-300">Assign to</label>
+            <select id="activity-edit-assignee" @bind="this.m_EditUserID"
+                    class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
+                <option value="">Anyone</option>
+                @foreach (var _User in this.m_Users ?? [])
+                {
+                    <option value="@_User.UserID">@_User.FullName</option>
+                }
+            </select>
         </div>
         <div class="mt-5 flex justify-between items-center">
             <HomeButton Variant="danger" Size="sm" Loading="this.m_Saving" OnClick="this.DeleteActivityAsync">Delete</HomeButton>

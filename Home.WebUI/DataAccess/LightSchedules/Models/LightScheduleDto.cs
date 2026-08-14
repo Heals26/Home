@@ -36,14 +36,24 @@ public class LightScheduleDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// Minutes relative to the sun event for sunrise and sunset triggers; negative is before.
+    /// </summary>
+    public int OffsetMinutes { get; set; }
+
+    /// <summary>
     /// The name of the scene this schedule applies.
     /// </summary>
     public string SceneName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Local time of day the schedule fires at.
+    /// Local time of day the schedule fires at, when the trigger is a fixed time.
     /// </summary>
     public TimeSpan TimeOfDay { get; set; }
+
+    /// <summary>
+    /// What starts the schedule: a fixed time, sunrise, or sunset.
+    /// </summary>
+    public LightScheduleTrigger Trigger { get; set; }
 
     #endregion Properties
 

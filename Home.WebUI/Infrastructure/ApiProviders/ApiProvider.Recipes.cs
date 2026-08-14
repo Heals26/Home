@@ -1,4 +1,4 @@
-using Home.WebUI.Infrastructure.ApiProviders.Helpers;
+﻿using Home.WebUI.Infrastructure.ApiProviders.Helpers;
 
 namespace Home.WebUI.Infrastructure.ApiProviders;
 
@@ -28,6 +28,9 @@ public static partial class ApiProvider
 
     public static ApiProviderHelper GetRecipes()
         => new(HttpMethod.Get, RouteType.Route, GetRecipesBaseUrl());
+
+    public static ApiProviderHelper ImportRecipe()
+        => new(HttpMethod.Post, RouteType.Body, $"{GetRecipesBaseUrl()}/Import");
 
     public static ApiProviderHelper UpdateRecipe(long recipeID)
         => new(HttpMethod.Patch, RouteType.Body, GetRecipeBaseUrl(recipeID));

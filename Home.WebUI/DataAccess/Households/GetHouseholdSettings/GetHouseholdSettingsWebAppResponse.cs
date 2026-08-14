@@ -11,6 +11,11 @@ public class GetHouseholdSettingsWebAppResponse
     public bool HasLifxApiToken { get; set; }
 
     /// <summary>
+    /// The caller's own household — scopes live change notifications between devices.
+    /// </summary>
+    public long HouseholdID { get; set; }
+
+    /// <summary>
     /// The household's latitude in decimal degrees, used for future sunrise and
     /// sunset triggers. Null when the household hasn't set a location.
     /// </summary>

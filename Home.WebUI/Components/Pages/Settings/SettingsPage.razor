@@ -15,7 +15,7 @@
                 <HomeCard Title="Household" Subtitle="How this home shows up around the app.">
                     <ChildContent>
                         <div class="flex flex-col gap-4">
-                            <HomeTextInput Label="Name" Placeholder="e.g. The Healys" @bind-Value="this.m_Name" />
+                            <HomeTextInput Label="Name" Name="household-name" AutoComplete="off" Placeholder="e.g. The Healys" @bind-Value="this.m_Name" />
                             <div class="flex items-center justify-end gap-3">
                                 @if (this.m_HouseholdSaved)
                                 {
@@ -29,19 +29,50 @@
                     </ChildContent>
                 </HomeCard>
 
-                <HomeCard Title="Location" Subtitle="Sets where sunrise and sunset happen for this home — light schedules will be able to follow the sun.">
+                <HomeCard Title="Members" Subtitle="Everyone who can sign in to this household.">
+                    <ChildContent>
+                        <div class="flex flex-col gap-3">
+                            @if (this.m_Users == null)
+                            {
+                                <HomeLoader Class="py-4" />
+                            }
+                            else
+                            {
+                                <div class="divide-y divide-ink-800">
+                                    @foreach (var _User in this.m_Users)
+                                    {
+                                        <div class="flex items-center gap-3 py-2.5">
+                                            <span class="h-9 w-9 shrink-0 rounded-full bg-ink-800 text-ink-300 text-xs font-semibold flex items-center justify-center">@Initials(_User.FullName)</span>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-sm font-medium text-ink-50 truncate">@_User.FullName</p>
+                                                <p class="text-xs text-ink-500 truncate">@_User.Email</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="flex justify-end">
+                                    <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenAddMemberModal">Add member</HomeButton>
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </HomeCard>
+
+                <HomeCard Title="Location" Subtitle="Sets where sunrise and sunset happen for this home — light schedules can follow the sun.">
                     <ChildContent>
                         <div class="flex flex-col gap-4">
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-1.5">
-                                    <label class="text-sm font-medium text-ink-300">Latitude</label>
-                                    <input type="number" step="any" min="-90" max="90"
+                                    <label for="settings-latitude" class="text-sm font-medium text-ink-300">Latitude</label>
+                                    <input id="settings-latitude" type="number" step="any" min="-90" max="90"
+                                           name="latitude" autocomplete="off" inputmode="decimal"
                                            class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                                            @bind="this.m_Latitude" />
                                 </div>
                                 <div class="flex flex-col gap-1.5">
-                                    <label class="text-sm font-medium text-ink-300">Longitude</label>
-                                    <input type="number" step="any" min="-180" max="180"
+                                    <label for="settings-longitude" class="text-sm font-medium text-ink-300">Longitude</label>
+                                    <input id="settings-longitude" type="number" step="any" min="-180" max="180"
+                                           name="longitude" autocomplete="off" inputmode="decimal"
                                            class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                                            @bind="this.m_Longitude" />
                                 </div>
@@ -80,6 +111,8 @@
                             </div>
 
                             <HomePasswordInput Label="@(this.m_Settings.HasLifxApiToken ? "Replace token" : "API token")"
+                                               Name="lifx-api-token"
+                                               AutoComplete="new-password"
                                                Placeholder="Paste a token from cloud.lifx.com/settings"
                                                @bind-Value="this.m_LifxToken" />
                             <p class="text-xs text-ink-500">
@@ -113,5 +146,39 @@
         }
     </div>
 </div>
+
+@* Add-member modal *@
+<HomeModal @bind-Visible="this.m_ShowAddMember" Title="Add a member">
+    <ChildContent>
+        <div class="flex flex-col gap-4">
+            <div class="grid grid-cols-2 gap-3">
+                <HomeTextInput Label="First name"
+                               Name="given-name"
+                               AutoComplete="given-name"
+                               @bind-Value="this.m_MemberFirstName" />
+                <HomeTextInput Label="Last name"
+                               Name="family-name"
+                               AutoComplete="family-name"
+                               @bind-Value="this.m_MemberLastName" />
+            </div>
+            <HomeTextInput Label="Email"
+                           Type="email"
+                           Name="email"
+                           AutoComplete="email"
+                           @bind-Value="this.m_MemberEmail"
+                           Placeholder="They'll sign in with this" />
+            <HomePasswordInput Label="Password"
+                               Name="new-password"
+                               AutoComplete="new-password"
+                               @bind-Value="this.m_MemberPassword" />
+            <div class="flex justify-end gap-3">
+                <HomeButton Variant="ghost" OnClick="() => this.m_ShowAddMember = false">Cancel</HomeButton>
+                <HomeButton Loading="this.m_AddingMember"
+                            Disabled="@(!this.CanAddMember())"
+                            OnClick="this.AddMemberAsync">Add member</HomeButton>
+            </div>
+        </div>
+    </ChildContent>
+</HomeModal>
 
 <ErrorHandler @ref="this.m_ErrorHandler" />

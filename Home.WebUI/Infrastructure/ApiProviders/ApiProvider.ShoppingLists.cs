@@ -1,4 +1,4 @@
-using Home.WebUI.Infrastructure.ApiProviders.Helpers;
+﻿using Home.WebUI.Infrastructure.ApiProviders.Helpers;
 
 namespace Home.WebUI.Infrastructure.ApiProviders;
 
@@ -16,6 +16,9 @@ public static partial class ApiProvider
     #endregion Bases
 
     #region Methods
+
+    public static ApiProviderHelper AddMealPlanToShoppingList(long shoppingListID)
+        => new(HttpMethod.Post, RouteType.Body, $"{GetShoppingListBaseUrl(shoppingListID)}/MealPlan");
 
     public static ApiProviderHelper CreateShoppingList()
         => new(HttpMethod.Post, RouteType.Body, GetShoppingListsBaseUrl());

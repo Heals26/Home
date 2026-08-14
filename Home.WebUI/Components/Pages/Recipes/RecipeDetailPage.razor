@@ -6,6 +6,13 @@
             <ActionsContent>
                 @if (this.m_Recipe != null)
                 {
+                    @if (this.m_Recipe.Steps.Count > 0 || this.m_Recipe.Ingredients.Count > 0)
+                    {
+                        <HomeButton Size="sm" OnClick="@(() => this.NavigationManager.NavigateTo($"/recipes/{this.RecipeID}/cook"))">
+                            <span class="home-icon home-icon-utensils h-4 w-4 mr-1 inline-block"></span>
+                            Cook
+                        </HomeButton>
+                    }
                     <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenAddToListModal">
                         <span class="home-icon home-icon-shopping-list h-4 w-4 mr-1 inline-block"></span>
                         Add to list
@@ -166,9 +173,9 @@
 @* Edit recipe modal *@
 <HomeModal @bind-Visible="this.m_ShowEditRecipe" Title="Edit recipe">
     <ChildContent>
-        <HomeTextInput Label="Recipe name" @bind-Value="this.m_EditName" Placeholder="Recipe name" />
+        <HomeTextInput Label="Recipe name" AutoComplete="off" @bind-Value="this.m_EditName" Placeholder="Recipe name" />
         <div class="mt-3">
-            <HomeTextInput Label="Source URL (optional)" @bind-Value="this.m_EditUrl" Placeholder="https://..." />
+            <HomeTextInput Label="Source URL (optional)" Type="url" AutoComplete="off" @bind-Value="this.m_EditUrl" Placeholder="https://..." />
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowEditRecipe = false">Cancel</HomeButton>
@@ -180,11 +187,11 @@
 @* Ingredient modal (add + edit) *@
 <HomeModal @bind-Visible="this.m_ShowIngredient" Title="@(this.m_EditingIngredientID.HasValue ? "Edit ingredient" : "Add ingredient")">
     <ChildContent>
-        <HomeTextInput Label="Name" @bind-Value="this.m_IngName" Placeholder="e.g. Onion" />
+        <HomeTextInput Label="Name" AutoComplete="off" @bind-Value="this.m_IngName" Placeholder="e.g. Onion" />
         <div class="grid grid-cols-3 gap-3 mt-3">
-            <HomeTextInput Label="Quantity" @bind-Value="this.m_IngQuantity" Placeholder="e.g. 2" />
-            <HomeTextInput Label="Volume" @bind-Value="this.m_IngVolume" Placeholder="e.g. 250" />
-            <HomeTextInput Label="Weight" @bind-Value="this.m_IngWeight" Placeholder="e.g. 500" />
+            <HomeTextInput Label="Quantity" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_IngQuantity" Placeholder="e.g. 2" />
+            <HomeTextInput Label="Volume" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_IngVolume" Placeholder="e.g. 250" />
+            <HomeTextInput Label="Weight" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_IngWeight" Placeholder="e.g. 500" />
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowIngredient = false">Cancel</HomeButton>
@@ -196,10 +203,10 @@
 @* Step modal (add + edit) *@
 <HomeModal @bind-Visible="this.m_ShowStep" Title="@(this.m_EditingStepID.HasValue ? "Edit step" : "Add step")">
     <ChildContent>
-        <HomeTextInput Label="Title (optional)" @bind-Value="this.m_StepTitle" Placeholder="e.g. Prepare the sauce" />
+        <HomeTextInput Label="Title (optional)" AutoComplete="off" @bind-Value="this.m_StepTitle" Placeholder="e.g. Prepare the sauce" />
         <div class="mt-3 flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-ink-300">Instructions</label>
-            <textarea @bind="this.m_StepContent" rows="4"
+            <label for="recipe-step-content" class="text-sm font-medium text-ink-300">Instructions</label>
+            <textarea id="recipe-step-content" @bind="this.m_StepContent" rows="4"
                       placeholder="Describe this step..."
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
         </div>
@@ -214,8 +221,8 @@
 <HomeModal @bind-Visible="this.m_ShowNote" Title="Add note">
     <ChildContent>
         <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-ink-300">Note</label>
-            <textarea @bind="this.m_NoteContent" rows="3"
+            <label for="recipe-note-content" class="text-sm font-medium text-ink-300">Note</label>
+            <textarea id="recipe-note-content" @bind="this.m_NoteContent" rows="3"
                       placeholder="Write a note..."
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
         </div>
@@ -257,7 +264,7 @@
             }
 
             <div class="mt-4 pt-4 border-t border-ink-800">
-                <HomeTextInput Label="Or create a new list" @bind-Value="this.m_NewListName" Placeholder="e.g. Weekly shop" />
+                <HomeTextInput Label="Or create a new list" AutoComplete="off" @bind-Value="this.m_NewListName" Placeholder="e.g. Weekly shop" />
                 <div class="mt-3 flex justify-end">
                     <HomeButton Loading="this.m_AddingToList" OnClick="this.CreateListAndAddAsync">Create &amp; add</HomeButton>
                 </div>

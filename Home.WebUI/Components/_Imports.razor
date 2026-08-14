@@ -1,4 +1,8 @@
+﻿@using Home.WebUI.DataAccess.MealPlanEntries.CreateMealPlanEntry
+@using Home.WebUI.DataAccess.MealPlanEntries.GetMealPlanEntries
+@using Home.WebUI.DataAccess.MealPlanEntries.Models
 @using Home.WebUI.DataAccess.ShoppingListItems.CreateShoppingListItem
+@using Home.WebUI.DataAccess.ShoppingLists.AddMealPlanToShoppingList
 @using Home.WebUI.DataAccess.ShoppingLists.CreateShoppingList
 @using Home.WebUI.DataAccess.ShoppingLists.GetShoppingList
 @using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists
@@ -6,6 +10,7 @@
 @using Home.WebUI.DataAccess.Recipes.CreateRecipe
 @using Home.WebUI.DataAccess.Recipes.GetRecipe
 @using Home.WebUI.DataAccess.Recipes.GetRecipes
+@using Home.WebUI.DataAccess.Recipes.ImportRecipe
 @using Home.WebUI.DataAccess.Recipes.Models
 @using Home.WebUI.DataAccess.Recipes.UpdateRecipe
 @using Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient
@@ -37,6 +42,7 @@
 @using Home.WebUI.Infrastructure.ApiProviders
 @using Home.WebUI.Infrastructure.CancellationTokens
 @using Home.WebUI.Infrastructure.ChangeTrackers
+@using Home.WebUI.Infrastructure.Services.ChangeNotifications
 @using Home.WebUI.Infrastructure.Services.HttpClients
 @using Home.WebUI.Infrastructure.UriProvider
 @using Home.WebUI.Infrastructure.Values
@@ -63,6 +69,7 @@
 
 @attribute [Authorize]
 
+@inject IChangeBroadcaster ChangeBroadcaster
 @inject IHomeHttpClient ApiAccess
 @inject NavigationManager NavigationManager
 @inject TimeProvider TimeProvider

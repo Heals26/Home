@@ -1,0 +1,105 @@
+﻿@page "/recipes/{RecipeID:long}/cook"
+
+@inject IJSRuntime JS
+
+@* Cooking mode: one step at a time in big type, giant wet-finger targets, tap-to-start
+   timers read out of the step text, and the screen held awake while the page is open. *@
+
+<div class="flex flex-col h-full max-w-3xl mx-auto w-full">
+    <HomeTopBar Title="@(this.m_Recipe?.Name ?? "Cooking")"
+                Eyebrow="Cooking"
+                EyebrowClass="text-recipes"
+                ShowBack="true"
+                BackHref="@($"/recipes/{this.RecipeID}")" />
+
+    <div class="flex-1 min-h-0 px-6 pb-6 flex flex-col">
+        @if (this.m_Recipe == null)
+        {
+            <HomeLoader Class="py-16" />
+        }
+        else
+        {
+            @* Active timers stay visible whatever step is showing. *@
+            @if (this.m_Timers.Count > 0)
+            {
+                <div class="flex flex-wrap gap-2 mb-4">
+                    @foreach (var _Timer in this.m_Timers)
+                    {
+                        <button type="button"
+                                aria-label="@($"Dismiss {_Timer.Label} timer")"
+                                class="flex items-center gap-2 rounded-full border px-4 py-2 min-h-[44px] text-sm font-semibold transition-colors @(_Timer.IsFinished ? "border-recipes bg-recipes/20 text-recipes animate-pulse" : "border-ink-700 bg-ink-800 text-ink-100")"
+                                @onclick="() => this.DismissTimer(_Timer)">
+                            <span class="home-icon home-icon-clock h-4 w-4 inline-block"></span>
+                            @(_Timer.IsFinished ? $"{_Timer.Label} — done!" : $"{_Timer.Label} · {this.Remaining(_Timer)}")
+                        </button>
+                    }
+                </div>
+            }
+
+            <p class="text-xs font-semibold uppercase tracking-widest text-ink-500 mb-3">
+                @this.StepLabel()
+            </p>
+
+            <div class="flex-1 min-h-0 app-scrollable bg-ink-900 border border-ink-800 rounded-2xl p-6 md:p-8">
+                @if (this.OnIngredients())
+                {
+                    <h2 class="font-display text-3xl text-ink-50 mb-5">Everything you'll need</h2>
+                    <ul class="flex flex-col gap-3">
+                        @foreach (var _Ingredient in this.m_Recipe.Ingredients)
+                        {
+                            <li class="flex items-baseline gap-3 text-xl text-ink-100">
+                                <span class="h-2 w-2 rounded-full bg-recipes shrink-0 translate-y-[-2px]"></span>
+                                <span>@_Ingredient.Name@(IngredientAmount(_Ingredient))</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else if (this.CurrentStep() is { } _Step)
+                {
+                    @if (!string.IsNullOrWhiteSpace(_Step.Title))
+                    {
+                        <h2 class="font-display text-3xl text-ink-50 mb-4">@_Step.Title</h2>
+                    }
+                    <p class="text-xl md:text-2xl leading-relaxed text-ink-100 whitespace-pre-line">@_Step.Content</p>
+
+                    @if (this.CurrentStepDurations().Any())
+                    {
+                        <div class="flex flex-wrap gap-2 mt-6">
+                            @foreach (var _Minutes in this.CurrentStepDurations())
+                            {
+                                <HomeButton Size="sm" Variant="secondary" OnClick="() => this.StartTimer(_Minutes)">
+                                    <span class="home-icon home-icon-clock h-4 w-4 mr-1 inline-block"></span>
+                                    Start @FormatMinutes(_Minutes) timer
+                                </HomeButton>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-4 shrink-0">
+                <HomeButton Variant="secondary" Size="lg"
+                            Disabled="@(this.m_StepIndex == 0)"
+                            OnClick="() => this.m_StepIndex--">
+                    <span class="home-icon home-icon-chevron-left h-5 w-5 mr-1 inline-block"></span>
+                    Back
+                </HomeButton>
+                @if (this.IsLastStep())
+                {
+                    <HomeButton Size="lg" OnClick="@(() => this.NavigationManager.NavigateTo($"/recipes/{this.RecipeID}"))">
+                        Done
+                    </HomeButton>
+                }
+                else
+                {
+                    <HomeButton Size="lg" OnClick="() => this.m_StepIndex++">
+                        Next
+                        <span class="home-icon home-icon-chevron-right h-5 w-5 ml-1 inline-block"></span>
+                    </HomeButton>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />

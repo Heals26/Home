@@ -124,6 +124,8 @@
                             <input class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 min-h-[48px]"
                                    maxlength="250"
                                    placeholder="New group name"
+                                   autocomplete="off"
+                                   aria-label="New group name"
                                    @bind="this.m_NewGroupName"
                                    @bind:event="oninput" />
 
@@ -165,7 +167,7 @@
                                         <div class="min-w-0 flex-1">
                                             <p class="text-sm font-medium truncate @(_Schedule.IsEnabled ? "text-ink-50" : "text-ink-500")">@_Schedule.Name</p>
                                             <p class="text-xs text-ink-500 truncate">
-                                                @_Schedule.SceneName · @FormatTime(_Schedule.TimeOfDay) · @FormatDays(_Schedule.DaysOfWeek)
+                                                @_Schedule.SceneName · @FormatTrigger(_Schedule) · @FormatDays(_Schedule.DaysOfWeek)
                                             </p>
                                         </div>
                                         @if (this.m_EditMode)
@@ -196,10 +198,11 @@
 <HomeModal @bind-Visible="this.m_ShowCaptureModal" Title="Save current look">
     <ChildContent>
         <div class="flex flex-col gap-4">
-            <HomeTextInput Label="Name" Placeholder="e.g. Movie night" @bind-Value="this.m_CaptureName" />
+            <HomeTextInput Label="Name" AutoComplete="off" Placeholder="e.g. Movie night" @bind-Value="this.m_CaptureName" />
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-ink-300">Which lights</label>
-                <select class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+                <label for="scene-capture-group" class="text-sm font-medium text-ink-300">Which lights</label>
+                <select id="scene-capture-group"
+                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                         @bind="this.m_CaptureGroupID">
                     <option value="0">All lights</option>
                     @foreach (var _Group in this.m_Groups ?? [])
@@ -224,11 +227,12 @@
 <HomeModal @bind-Visible="this.m_ShowScheduleModal" Title="Add schedule">
     <ChildContent>
         <div class="flex flex-col gap-4">
-            <HomeTextInput Label="Name" Placeholder="e.g. Wind down" @bind-Value="this.m_ScheduleName" />
+            <HomeTextInput Label="Name" AutoComplete="off" Placeholder="e.g. Wind down" @bind-Value="this.m_ScheduleName" />
 
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-ink-300">Scene</label>
-                <select class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+                <label for="schedule-scene" class="text-sm font-medium text-ink-300">Scene</label>
+                <select id="schedule-scene"
+                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                         @bind="this.m_ScheduleSceneID">
                     <option value="0">Choose a scene</option>
                     @foreach (var _Scene in this.m_Scenes ?? [])
@@ -239,12 +243,38 @@
             </div>
 
             <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-ink-300">Time</label>
-                <input type="time"
-                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
-                       value="@this.m_ScheduleTime"
-                       @onchange="e => this.m_ScheduleTime = e.Value?.ToString() ?? string.Empty" />
+                <label class="text-sm font-medium text-ink-300">When</label>
+                <HomeSegmentedControl TValue="LightScheduleTrigger"
+                                      Options="TriggerOptions"
+                                      @bind-Value="this.m_ScheduleTrigger" />
             </div>
+
+            @if (this.m_ScheduleTrigger == LightScheduleTrigger.Time)
+            {
+                <div class="flex flex-col gap-1.5">
+                    <label for="schedule-time" class="text-sm font-medium text-ink-300">Time</label>
+                    <input id="schedule-time" type="time"
+                           class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+                           value="@this.m_ScheduleTime"
+                           @onchange="e => this.m_ScheduleTime = e.Value?.ToString() ?? string.Empty" />
+                </div>
+            }
+            else
+            {
+                <div class="flex flex-col gap-1.5">
+                    <label for="schedule-offset" class="text-sm font-medium text-ink-300">
+                        How close to @(this.m_ScheduleTrigger == LightScheduleTrigger.Sunrise ? "sunrise" : "sunset")
+                    </label>
+                    <select id="schedule-offset" @bind="this.m_ScheduleOffsetMinutes"
+                            class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]">
+                        @foreach (var _Offset in OffsetOptions)
+                        {
+                            <option value="@_Offset.Minutes">@_Offset.Label</option>
+                        }
+                    </select>
+                    <p class="text-xs text-ink-500">Follows the sun for this home's location, set on the Settings page.</p>
+                </div>
+            }
 
             <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-medium text-ink-300">Days</label>

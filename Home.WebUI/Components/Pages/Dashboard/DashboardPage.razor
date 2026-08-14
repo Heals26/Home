@@ -20,6 +20,37 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+        @* ── Tonight ───────────────────────────────────────────────── *@
+        <a href="/meal-plan" class="group md:col-span-2 bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+            <div class="flex items-center justify-between mb-2">
+                <span class="flex items-center gap-2 text-recipes">
+                    <span class="home-icon home-icon-utensils h-5 w-5"></span>
+                    <span class="text-xs font-semibold uppercase tracking-widest">Tonight</span>
+                </span>
+                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+            </div>
+
+            @if (this.m_MealPlanEntries == null)
+            {
+                <div class="h-9 rounded bg-ink-800 w-1/2 animate-pulse"></div>
+            }
+            else if (this.TonightsMeals().Any())
+            {
+                <p class="font-display text-3xl md:text-4xl text-ink-50 truncate">
+                    @string.Join(" · ", this.TonightsMeals().Select(m => m.RecipeName))
+                </p>
+                @if (this.TomorrowsMeals().Any())
+                {
+                    <p class="text-sm text-ink-500 mt-2 truncate">Tomorrow: @string.Join(" · ", this.TomorrowsMeals().Select(m => m.RecipeName))</p>
+                }
+            }
+            else
+            {
+                <p class="font-display text-3xl md:text-4xl text-ink-500">Nothing planned yet.</p>
+                <p class="text-sm text-ink-500 mt-2">Tap to plan the week's dinners.</p>
+            }
+        </a>
+
         @* ── This week ─────────────────────────────────────────────── *@
         <a href="/activities" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
             <div class="flex items-center justify-between mb-3">
@@ -169,6 +200,54 @@
                 <p class="text-xs text-ink-500 mt-2">@this.m_Recipes.Count in the book</p>
             }
         </a>
+
+        @* ── Family notes ──────────────────────────────────────────── *@
+        <div class="md:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+                <span class="flex items-center gap-2 text-household">
+                    <span class="home-icon home-icon-note h-5 w-5"></span>
+                    <span class="text-xs font-semibold uppercase tracking-widest">Family notes</span>
+                </span>
+            </div>
+
+            @if (this.m_Announcements == null)
+            {
+                <div class="h-4 rounded bg-ink-800 w-1/3 animate-pulse"></div>
+            }
+            else
+            {
+                <div class="flex flex-wrap gap-2 mb-3">
+                    @foreach (var _Note in this.m_Announcements)
+                    {
+                        <span class="flex items-center gap-1 max-w-full rounded-full border border-ink-700 bg-ink-800 pl-3 pr-1 py-1">
+                            <span class="text-sm text-ink-100 truncate">@_Note.Content</span>
+                            <button type="button" aria-label="Remove note"
+                                    class="h-8 w-8 rounded-full text-ink-500 hover:text-red-400"
+                                    @onclick="() => this.DeleteAnnouncementAsync(_Note)">
+                                <span class="home-icon home-icon-x h-3.5 w-3.5 inline-block"></span>
+                            </button>
+                        </span>
+                    }
+                    @if (this.m_Announcements.Count == 0)
+                    {
+                        <span class="text-sm text-ink-600 py-1.5">Nothing pinned — leave the family a note.</span>
+                    }
+                </div>
+                <div class="flex gap-2">
+                    <input class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 min-h-[48px]"
+                           maxlength="500"
+                           placeholder="e.g. Bin night tonight"
+                           autocomplete="off"
+                           aria-label="New family note"
+                           @bind="this.m_NewAnnouncement"
+                           @bind:event="oninput"
+                           @onkeydown="this.OnAnnouncementKeyDown" />
+                    <HomeButton OnClick="this.PostAnnouncementAsync"
+                                Loading="this.m_PostingAnnouncement"
+                                Disabled="@string.IsNullOrWhiteSpace(this.m_NewAnnouncement)">Pin it</HomeButton>
+                </div>
+            }
+        </div>
 
     </div>
 </div>

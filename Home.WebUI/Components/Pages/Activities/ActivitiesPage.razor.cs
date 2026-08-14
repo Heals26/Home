@@ -4,14 +4,17 @@ using Home.WebUI.DataAccess.Activities.GetActivities;
 using Home.WebUI.DataAccess.Activities.Models;
 using Home.WebUI.DataAccess.Activities.UpdateActivity;
 using Home.WebUI.DataAccess.ActivityStates.GetActivityStates;
+using Home.WebUI.DataAccess.Users.GetUsers;
+using Home.WebUI.DataAccess.Users.Models;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
+using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Activities;
 
-public partial class ActivitiesPage
+public partial class ActivitiesPage : IDisposable
 {
 
     #region Records
@@ -24,9 +27,11 @@ public partial class ActivitiesPage
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
     private ErrorHandler? m_ErrorHandler;
+    private IDisposable? m_ChangeSubscription;
 
     private List<ActivityStateDto>? m_States;
     private List<ActivitySummaryDto>? m_Activities;
+    private List<UserSummaryDto>? m_Users;
     private ActivitySummaryDto? m_DraggedActivity;
 
     private bool m_Saving;
@@ -36,6 +41,7 @@ public partial class ActivitiesPage
     private string m_NewTitle = string.Empty;
     private DateTime? m_NewDueDate;
     private long? m_NewStateID;
+    private long? m_NewUserID;
 
     // Edit
     private bool m_ShowEdit;
@@ -43,6 +49,7 @@ public partial class ActivitiesPage
     private string m_EditTitle = string.Empty;
     private DateTime? m_EditDueDate;
     private long? m_EditStateID;
+    private long? m_EditUserID;
 
     #endregion Fields
 
@@ -64,12 +71,33 @@ public partial class ActivitiesPage
         if (_States != null)
             this.m_States = [.. _States.States];
 
-        await this.LoadActivitiesAsync();
+        await Task.WhenAll(this.LoadActivitiesAsync(), this.LoadUsersAsync());
+
+        this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
+            this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
+    }
+
+    public void Dispose()
+    {
+        this.m_ChangeSubscription?.Dispose();
+        this.m_CancellationTokenHandler.Dispose();
     }
 
     #endregion Lifecycle Methods
 
     #region Methods
+
+    private async Task OnHouseholdChangedAsync(ChangeArea area)
+    {
+        if (area != ChangeArea.Activities && area != ChangeArea.Users)
+            return;
+
+        await this.InvokeAsync(async () =>
+        {
+            await Task.WhenAll(this.LoadActivitiesAsync(), this.LoadUsersAsync());
+            this.StateHasChanged();
+        });
+    }
 
     // Columns
 
@@ -97,6 +125,17 @@ public partial class ActivitiesPage
 
         if (_Result != null)
             this.m_Activities = [.. _Result.Activities];
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetUsersWebAppResponse>(
+            null!, ApiProvider.GetUsers(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != null)
+            this.m_Users = [.. _Result.Users];
     }
 
     private List<ActivitySummaryDto> ActivitiesForState(long? stateID)
@@ -142,8 +181,11 @@ public partial class ActivitiesPage
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        if (_Result == true)
-            await this.LoadActivitiesAsync();
+        if (_Result != true)
+            return;
+
+        await this.LoadActivitiesAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
     }
 
     // Create
@@ -153,6 +195,7 @@ public partial class ActivitiesPage
         this.m_NewTitle = string.Empty;
         this.m_NewDueDate = null;
         this.m_NewStateID = this.m_States?.FirstOrDefault()?.ActivityStateID;
+        this.m_NewUserID = null;
         this.m_ShowCreate = true;
     }
 
@@ -166,7 +209,8 @@ public partial class ActivitiesPage
         {
             Title = this.m_NewTitle,
             DueDateUTC = this.m_NewDueDate,
-            StateID = this.m_NewStateID
+            StateID = this.m_NewStateID,
+            UserID = this.m_NewUserID
         };
 
         var _Response = await this.ApiAccess.SendRequestAsync<CreateActivityWebAppRequest, CreateActivityWebAppResponse>(
@@ -180,6 +224,7 @@ public partial class ActivitiesPage
 
         this.m_ShowCreate = false;
         await this.LoadActivitiesAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
     }
 
     // Edit
@@ -190,6 +235,7 @@ public partial class ActivitiesPage
         this.m_EditTitle = activity.Title;
         this.m_EditDueDate = activity.DueDateUTC?.Date;
         this.m_EditStateID = activity.StateID;
+        this.m_EditUserID = activity.AssignedToUserID;
         this.m_ShowEdit = true;
     }
 
@@ -202,6 +248,7 @@ public partial class ActivitiesPage
         _Request.Title = new PropertyChangeTracker<string>(this.m_EditTitle);
         _Request.DueDateUTC = new PropertyChangeTracker<DateTime?>(this.m_EditDueDate);
         _Request.StateID = new PropertyChangeTracker<long?>(this.m_EditStateID);
+        _Request.UserID = new PropertyChangeTracker<long?>(this.m_EditUserID);
 
         var _Result = await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
             _Request, ApiProvider.UpdateActivity(this.m_EditActivity.ActivityID),
@@ -214,6 +261,7 @@ public partial class ActivitiesPage
 
         this.m_ShowEdit = false;
         await this.LoadActivitiesAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
     }
 
     private async Task DeleteActivityAsync()
@@ -232,9 +280,22 @@ public partial class ActivitiesPage
 
         this.m_ShowEdit = false;
         await this.LoadActivitiesAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
     }
 
     // Helpers
+
+    private static string Initials(string name)
+    {
+        var _Parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        return _Parts.Length switch
+        {
+            0 => "?",
+            1 => _Parts[0][..1].ToUpperInvariant(),
+            _ => $"{char.ToUpperInvariant(_Parts[0][0])}{char.ToUpperInvariant(_Parts[^1][0])}"
+        };
+    }
 
     private static UpdateActivityWebAppRequest BuildUpdateRequest(ActivitySummaryDto activity)
         => new()

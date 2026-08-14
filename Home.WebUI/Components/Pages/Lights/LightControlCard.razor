@@ -21,8 +21,9 @@
     @if (this.EditMode)
     {
         <div class="mt-3 pt-3 border-t border-ink-800">
-            <label class="text-xs font-medium text-ink-400 block mb-1">Group</label>
-            <select class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
+            <label for="@($"light-group-{this.Light.ID}")" class="text-xs font-medium text-ink-400 block mb-1">Group</label>
+            <select id="@($"light-group-{this.Light.ID}")"
+                    class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                     value="@this.GroupID"
                     @onchange="this.OnGroupSelected">
                 @foreach (var _Group in this.Groups)

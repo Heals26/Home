@@ -1,7 +1,9 @@
-using Home.WebUI.Components;
+﻿using Home.WebUI.Components;
 using Microsoft.AspNetCore.DataProtection;
+using Home.WebUI.Infrastructure.ChangeNotifications;
 using Home.WebUI.Infrastructure.HttpClients;
 using Home.WebUI.Infrastructure.Security;
+using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.UriProvider;
@@ -51,6 +53,11 @@ _Builder.Services.AddSingleton(TimeProvider.System);
 _Builder.Services.AddScoped<AuthorisationService>();
 _Builder.Services.AddScoped<IAuthorisationService>(sp => sp.GetRequiredService<AuthorisationService>());
 _Builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthorisationService>());
+
+// Live cross-device updates: the broker is the process-wide fan-out between circuits, and
+// each circuit talks to it through a broadcaster that pins the caller's own household.
+_Builder.Services.AddSingleton<IChangeBroker, ChangeBroker>();
+_Builder.Services.AddScoped<IChangeBroadcaster, ChangeBroadcaster>();
 
 var _App = _Builder.Build();
 
