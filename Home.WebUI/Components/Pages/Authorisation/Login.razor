@@ -17,10 +17,14 @@
             <EditForm Model="this.m_Model" OnValidSubmit="this.HandleSubmitAsync">
                 <div class="flex flex-col gap-4">
                     <HomeTextInput Label="Username"
+                                   Name="username"
+                                   AutoComplete="username"
                                    @bind-Value="this.m_Model.Username"
                                    Placeholder="Enter your username" />
 
                     <HomePasswordInput Label="Password"
+                                       Name="password"
+                                       AutoComplete="current-password"
                                        @bind-Value="this.m_Model.Password"
                                        Placeholder="Enter your password" />
 

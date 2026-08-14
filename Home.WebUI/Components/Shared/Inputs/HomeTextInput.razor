@@ -3,16 +3,22 @@
 <div class="flex flex-col gap-1.5 @this.Class">
     @if (!string.IsNullOrEmpty(this.Label))
     {
-        <label class="text-sm font-medium text-ink-300">@this.Label</label>
+        <label for="@this.m_InputID" class="text-sm font-medium text-ink-300">@this.Label</label>
     }
-    <input type="@this.Type"
+    <input id="@this.m_InputID"
+           type="@this.Type"
+           name="@this.Name"
+           autocomplete="@this.AutoComplete"
+           inputmode="@this.InputMode"
            value="@this.Value"
            placeholder="@this.Placeholder"
            disabled="@this.Disabled"
+           aria-invalid="@(string.IsNullOrEmpty(this.Error) ? null : "true")"
+           aria-describedby="@(string.IsNullOrEmpty(this.Error) ? null : this.ErrorID)"
            @oninput="this.OnInputChanged"
            class="@this.GetInputClasses()" />
     @if (!string.IsNullOrEmpty(this.Error))
     {
-        <span class="text-xs text-red-400">@this.Error</span>
+        <span id="@this.ErrorID" class="text-xs text-red-400">@this.Error</span>
     }
 </div>

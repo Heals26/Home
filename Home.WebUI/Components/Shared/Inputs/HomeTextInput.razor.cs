@@ -5,12 +5,31 @@ namespace Home.WebUI.Components.Shared.Inputs;
 public partial class HomeTextInput
 {
 
+    #region Fields
+
+    private readonly string m_InputID = $"home-input-{Guid.NewGuid():N}";
+
+    #endregion Fields
+
     #region Properties
 
+    /// <summary>
+    /// The HTML autocomplete token, e.g. "username", "email", "given-name", or "off".
+    /// </summary>
+    [Parameter] public string? AutoComplete { get; set; }
     [Parameter] public string? Class { get; set; }
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public string? Error { get; set; }
+    private string ErrorID => $"{this.m_InputID}-error";
+    /// <summary>
+    /// The virtual keyboard hint, e.g. "numeric" or "decimal".
+    /// </summary>
+    [Parameter] public string? InputMode { get; set; }
     [Parameter] public string? Label { get; set; }
+    /// <summary>
+    /// The HTML name attribute — browsers use it alongside autocomplete to match saved values.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
     [Parameter] public string? Placeholder { get; set; }
     [Parameter] public string Type { get; set; } = "text";
     [Parameter] public string Value { get; set; } = string.Empty;
