@@ -1,3 +1,10 @@
-namespace Home.WebApi.UseCases.Recipes.CreateRecipe;
+﻿namespace Home.WebApi.UseCases.Recipes.CreateRecipe;
 
-public record CreateRecipeApiRequest(string Name, string Url);
+public record CreateRecipeApiRequest(
+    long? Complexity,
+    int? CookMinutes,
+    string ImageUrl,
+    string Name,
+    int? PrepMinutes,
+    int? Servings,
+    string Url);

@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -30,10 +30,18 @@ internal class GetMealPlanEntriesInteractor
             .Where(e => e.Recipe.Household.HouseholdID == _Household.HouseholdID
                 && e.Date >= _FromDate
                 && e.Date <= _ToDate)
-            .Select(e => new { Entry = e, e.Recipe })
+            .Select(e => new
+            {
+                Entry = e,
+                e.MealSlot,
+                e.Recipe
+            })
             .ToList()
             .Select(e => e.Entry)
             .OrderBy(e => e.Date)
+            // Entries planned before the household defined its meals sit after the ones that
+            // know which meal they are.
+            .ThenBy(e => e.MealSlot == null ? int.MaxValue : e.MealSlot.Sequence)
             .ThenBy(e => e.MealPlanEntryID)
             .ToList();
 

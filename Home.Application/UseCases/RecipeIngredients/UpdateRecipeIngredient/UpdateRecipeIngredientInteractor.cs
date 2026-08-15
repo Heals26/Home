@@ -32,17 +32,14 @@ internal class UpdateRecipeIngredientInteractor : IInteractor<UpdateRecipeIngred
             return;
         }
 
+        if (inputPort.Amount.HasBeenSet)
+            _Ingredient.Amount = inputPort.Amount.Value;
+
         if (inputPort.Name.HasBeenSet)
             _Ingredient.Name = inputPort.Name.Value;
 
-        if (inputPort.Quantity.HasBeenSet)
-            _Ingredient.Quantity = inputPort.Quantity.Value;
-
-        if (inputPort.Volume.HasBeenSet)
-            _Ingredient.Volume = inputPort.Volume.Value;
-
-        if (inputPort.Weight.HasBeenSet)
-            _Ingredient.Weight = inputPort.Weight.Value;
+        if (inputPort.Unit.HasBeenSet)
+            _Ingredient.Unit = inputPort.Unit.Value;
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

@@ -61,7 +61,7 @@ internal class AddRecipeToShoppingListInteractor : IInteractor<AddRecipeToShoppi
             return;
         }
 
-        _RecipeLogic.AddIngredientsToShoppingList(_Recipe, _ShoppingList);
+        _RecipeLogic.AddIngredientsToShoppingList(_Recipe, _ShoppingList, inputPort.IngredientIDs);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

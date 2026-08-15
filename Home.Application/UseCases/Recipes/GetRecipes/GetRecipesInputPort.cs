@@ -1,5 +1,5 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 
 namespace Home.Application.UseCases.Recipes.GetRecipes;
 
-public record GetRecipesInputPort() : IInputPort<IGetRecipesOutputPort>;
+public record GetRecipesInputPort(long? MealSlotID) : IInputPort<IGetRecipesOutputPort>;

@@ -1,3 +1,3 @@
-namespace Home.WebApi.UseCases.ShoppingLists.AddMealPlanToShoppingList;
+﻿namespace Home.WebApi.UseCases.ShoppingLists.AddMealPlanToShoppingList;
 
-public record AddMealPlanToShoppingListApiRequest(DateTime FromDate, DateTime ToDate);
+public record AddMealPlanToShoppingListApiRequest(DateTime FromDate, long? MealSlotID, DateTime ToDate);

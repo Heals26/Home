@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.MealPlanEntries.GetMealPlanEntries;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -20,6 +20,8 @@ public class GetMealPlanEntriesPresenter(IMapper mapper)
             {
                 Date = e.Date,
                 MealPlanEntryID = e.MealPlanEntryID,
+                MealSlotID = e.MealSlot?.MealSlotID,
+                MealSlotName = e.MealSlot?.Name ?? string.Empty,
                 RecipeID = e.Recipe.RecipeID,
                 RecipeName = e.Recipe.Name
             })]

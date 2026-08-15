@@ -1,9 +1,8 @@
-using Home.Application.Infrastructure.ChangeTrackers;
+﻿using Home.Application.Infrastructure.ChangeTrackers;
 
 namespace Home.WebApi.UseCases.RecipeIngredients.UpdateRecipeIngredient;
 
 public record UpdateRecipeIngredientApiRequest(
+    PropertyChangeTracker<decimal?> Amount,
     PropertyChangeTracker<string> Name,
-    PropertyChangeTracker<decimal?> Quantity,
-    PropertyChangeTracker<decimal?> Volume,
-    PropertyChangeTracker<decimal?> Weight);
+    PropertyChangeTracker<long?> Unit);

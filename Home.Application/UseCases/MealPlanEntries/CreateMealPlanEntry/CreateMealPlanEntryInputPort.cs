@@ -1,5 +1,6 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 
 namespace Home.Application.UseCases.MealPlanEntries.CreateMealPlanEntry;
 
-public record CreateMealPlanEntryInputPort(DateTime Date, long RecipeID) : IInputPort<ICreateMealPlanEntryOutputPort>;
+public record CreateMealPlanEntryInputPort(DateTime Date, long? MealSlotID, long RecipeID)
+    : IInputPort<ICreateMealPlanEntryOutputPort>;

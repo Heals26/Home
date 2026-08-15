@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Home.Application.Infrastructure.Validation;
 
 namespace Home.Application.UseCases.MealPlanEntries.CreateMealPlanEntry;
@@ -12,6 +12,10 @@ public class CreateMealPlanEntryInputPortValidator : BaseValidator<CreateMealPla
     {
         _ = this.RuleFor(r => r.Date)
             .NotEmpty();
+
+        _ = this.RuleFor(r => r.MealSlotID)
+            .GreaterThan(0)
+            .When(r => r.MealSlotID != null);
 
         _ = this.RuleFor(r => r.RecipeID)
             .GreaterThan(0);

@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -21,10 +21,16 @@ internal class CreateRecipeInteractor : IInteractor<CreateRecipeInputPort, ICrea
 
         var _Recipe = new Recipe()
         {
+            Complexity = inputPort.Complexity,
+            CookMinutes = inputPort.CookMinutes,
             Household = _AuthorisationService.GetHousehold(),
+            ImageUrl = string.IsNullOrWhiteSpace(inputPort.ImageUrl) ? null : inputPort.ImageUrl.Trim(),
             Ingredients = [],
+            MealSlots = [],
             Name = inputPort.Name,
             Notes = [],
+            PrepMinutes = inputPort.PrepMinutes,
+            Servings = inputPort.Servings,
             Steps = [],
             Url = inputPort.Url
         };

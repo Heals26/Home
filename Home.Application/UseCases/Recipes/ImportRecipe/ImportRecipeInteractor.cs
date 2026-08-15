@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.RecipeImports;
 using Home.Application.Services.Security;
@@ -31,10 +31,15 @@ internal class ImportRecipeInteractor : IInteractor<ImportRecipeInputPort, IImpo
 
         var _Recipe = new Recipe()
         {
+            CookMinutes = _Imported.CookMinutes,
             Household = _AuthorisationService.GetHousehold(),
+            ImageUrl = _Imported.ImageUrl,
             Ingredients = [],
+            MealSlots = [],
             Name = _Imported.Name,
             Notes = [],
+            PrepMinutes = _Imported.PrepMinutes,
+            Servings = _Imported.Servings,
             Steps = [],
             Url = inputPort.Url
         };

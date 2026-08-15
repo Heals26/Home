@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
@@ -48,7 +48,9 @@ internal class AddMealPlanToShoppingListInteractor
         var _Recipes = _PersistenceContext.GetEntities<MealPlanEntry>()
             .Where(e => e.Recipe.Household.HouseholdID == _Household.HouseholdID
                 && e.Date >= _FromDate
-                && e.Date <= _ToDate)
+                && e.Date <= _ToDate
+                && (inputPort.MealSlotID == null
+                    || (e.MealSlot != null && e.MealSlot.MealSlotID == inputPort.MealSlotID)))
             .Select(e => new
             {
                 e.Recipe,
@@ -60,7 +62,7 @@ internal class AddMealPlanToShoppingListInteractor
             .ToList();
 
         foreach (var _Recipe in _Recipes)
-            _RecipeLogic.AddIngredientsToShoppingList(_Recipe, _ShoppingList);
+            _RecipeLogic.AddIngredientsToShoppingList(_Recipe, _ShoppingList, null);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

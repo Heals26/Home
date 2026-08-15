@@ -1,4 +1,4 @@
-using Home.Application.UseCases.RecipeIngredients.AddRecipeIngredient;
+﻿using Home.Application.UseCases.RecipeIngredients.AddRecipeIngredient;
 using Home.Application.UseCases.RecipeIngredients.GetRecipeIngredient;
 using Home.Application.UseCases.RecipeIngredients.RemoveRecipeIngredient;
 using Home.Application.UseCases.RecipeIngredients.UpdateRecipeIngredient;
@@ -32,7 +32,7 @@ public class RecipeIngredientsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new AddRecipeIngredientInputPort(request.Name, request.Quantity, request.RecipeID, request.Volume, request.Weight),
+            new AddRecipeIngredientInputPort(request.Amount, request.Name, request.RecipeID, request.Unit),
             presenter,
             this.ServiceFactory,
             cancellationToken);
@@ -74,7 +74,7 @@ public class RecipeIngredientsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new UpdateRecipeIngredientInputPort(ingredientID, request.Name, request.Quantity, request.Volume, request.Weight),
+            new UpdateRecipeIngredientInputPort(request.Amount, ingredientID, request.Name, request.Unit),
             presenter,
             this.ServiceFactory,
             cancellationToken);

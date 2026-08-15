@@ -18,12 +18,14 @@ using Home.WebApi.Presenters.ShoppingLists.GetShoppingLists;
 using Home.WebApi.Presenters.ShoppingLists.UpdateShoppingList;
 using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItems;
 using Home.WebApi.UseCases.ShoppingLists.AddMealPlanToShoppingList;
+using Home.WebApi.UseCases.ShoppingLists.AddRecipeToShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.CreateShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.GetShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.GetShoppingLists;
 using Home.WebApi.UseCases.ShoppingLists.UpdateShoppingList;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Home.WebApi.Controllers;
 
@@ -43,20 +45,25 @@ public class ShoppingListsController : BaseController
         [FromBody] AddMealPlanToShoppingListApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new AddMealPlanToShoppingListInputPort(request.FromDate, shoppingListID, request.ToDate), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new AddMealPlanToShoppingListInputPort(request.FromDate, request.MealSlotID, shoppingListID, request.ToDate), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
 
+    /// <summary>
+    /// The body is optional, and absent means the whole recipe — so it is read through a null
+    /// check rather than assumed to be there.
+    /// </summary>
     [HttpPost("{shoppingListID}/Recipes/{recipeID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> AddRecipeToShoppingList(
         [FromServices] AddRecipeToShoppingListPresenter presenter,
         [FromRoute] long shoppingListID,
         [FromRoute] long recipeID,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] AddRecipeToShoppingListApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new AddRecipeToShoppingListInputPort(recipeID, shoppingListID), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new AddRecipeToShoppingListInputPort(request?.IngredientIDs, recipeID, shoppingListID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

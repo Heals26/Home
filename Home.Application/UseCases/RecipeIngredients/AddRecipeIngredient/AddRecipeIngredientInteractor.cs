@@ -40,10 +40,9 @@ internal class AddRecipeIngredientInteractor : IInteractor<AddRecipeIngredientIn
 
         var _Ingredient = new Ingredient()
         {
+            Amount = inputPort.Amount,
             Name = inputPort.Name,
-            Quantity = inputPort.Quantity,
-            Volume = inputPort.Volume,
-            Weight = inputPort.Weight
+            Unit = inputPort.Unit
         };
 
         _PersistenceContext.Add(_Ingredient);

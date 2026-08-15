@@ -1,6 +1,10 @@
+﻿using CleanArchitecture.Mediator;
+using Home.Application.Services.Validation;
+
 namespace Home.Application.UseCases.RecipeIngredients.AddRecipeIngredient;
 
 public interface IAddRecipeIngredientOutputPort
+    : IInputPortValidationFailureOutputPort<HomeInputPortValidationFailure>
 {
 
     #region Methods

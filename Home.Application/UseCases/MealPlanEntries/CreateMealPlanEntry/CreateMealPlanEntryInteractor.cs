@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -33,9 +33,26 @@ internal class CreateMealPlanEntryInteractor
             return;
         }
 
+        MealSlot? _MealSlot = null;
+
+        if (inputPort.MealSlotID != null)
+        {
+            _MealSlot = _PersistenceContext.GetEntities<MealSlot>()
+                .Where(ms => ms.MealSlotID == inputPort.MealSlotID
+                    && ms.Household.HouseholdID == _Household.HouseholdID)
+                .SingleOrDefault();
+
+            if (_MealSlot == null)
+            {
+                await outputPort.PresentMealSlotNotFoundAsync(inputPort.MealSlotID.Value, cancellationToken);
+                return;
+            }
+        }
+
         var _Entry = new MealPlanEntry()
         {
             Date = inputPort.Date.Date,
+            MealSlot = _MealSlot,
             Recipe = _Recipe
         };
 

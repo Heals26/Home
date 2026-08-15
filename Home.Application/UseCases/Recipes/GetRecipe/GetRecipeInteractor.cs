@@ -31,6 +31,11 @@ internal class GetRecipeInteractor : IInteractor<GetRecipeInputPort, IGetRecipeO
                     RecipeIngredient = ri,
                     ri.Ingredient
                 }),
+                MealSlots = r.MealSlots.Select(rms => new
+                {
+                    RecipeMealSlot = rms,
+                    rms.MealSlot
+                }),
                 Notes = r.Notes.Select(rn => new
                 {
                     RecipeNote = rn,

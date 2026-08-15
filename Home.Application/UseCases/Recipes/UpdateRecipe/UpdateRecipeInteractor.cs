@@ -30,8 +30,26 @@ internal class UpdateRecipeInteractor : IInteractor<UpdateRecipeInputPort, IUpda
             return;
         }
 
+        if (inputPort.Complexity.HasBeenSet)
+            _Recipe.Complexity = inputPort.Complexity.Value;
+
+        if (inputPort.CookMinutes.HasBeenSet)
+            _Recipe.CookMinutes = inputPort.CookMinutes.Value;
+
+        // An empty address clears the picture rather than storing a blank one.
+        if (inputPort.ImageUrl.HasBeenSet)
+            _Recipe.ImageUrl = string.IsNullOrWhiteSpace(inputPort.ImageUrl.Value)
+                ? null
+                : inputPort.ImageUrl.Value.Trim();
+
         if (inputPort.Name.HasBeenSet)
             _Recipe.Name = inputPort.Name.Value;
+
+        if (inputPort.PrepMinutes.HasBeenSet)
+            _Recipe.PrepMinutes = inputPort.PrepMinutes.Value;
+
+        if (inputPort.Servings.HasBeenSet)
+            _Recipe.Servings = inputPort.Servings.Value;
 
         if (inputPort.Url.HasBeenSet)
             _Recipe.Url = inputPort.Url.Value;

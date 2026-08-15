@@ -1,8 +1,10 @@
-#nullable enable
+﻿#nullable enable
+using Home.Application.Infrastructure.Recipes;
 using Home.Application.Services.RecipeImports;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace Home.WebApi.Infrastructure.RecipeImports;
 
@@ -20,6 +22,7 @@ internal partial class JsonLdRecipeImportService(
     #region Fields
 
     private const int MaxContentBytes = 5 * 1024 * 1024;
+    private const int MaxImageUrlLength = 2048;
     private const int MaxIngredientLength = 200;
     private const int MaxNameLength = 250;
     private const int MaxStepTitleLength = 250;
@@ -92,6 +95,23 @@ internal partial class JsonLdRecipeImportService(
             : null;
     }
 
+    [GeneratedRegex("\\d+")]
+    private static partial Regex FirstNumber();
+
+    private static string? FirstScalar(JsonElement array)
+    {
+        foreach (var _Item in array.EnumerateArray())
+        {
+            if (_Item.ValueKind == JsonValueKind.String)
+                return _Item.GetString();
+
+            if (_Item.ValueKind == JsonValueKind.Number && _Item.TryGetInt32(out var _Number))
+                return _Number.ToString();
+        }
+
+        return null;
+    }
+
     private static bool IsRecipeType(JsonElement type)
     {
         if (type.ValueKind == JsonValueKind.String)
@@ -110,6 +130,39 @@ internal partial class JsonLdRecipeImportService(
 
     [GeneratedRegex("<script[^>]*type\\s*=\\s*[\"']application/ld\\+json[\"'][^>]*>(.*?)</script\\s*>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
     private static partial Regex JsonLdBlocks();
+
+    /// <summary>
+    /// An image arrives as an address, a list of addresses, or an ImageObject wrapping one —
+    /// and only an absolute http or https address is ever kept.
+    /// </summary>
+    private static string? ReadImageUrl(JsonElement node)
+    {
+        if (node.ValueKind == JsonValueKind.String)
+        {
+            var _Url = node.GetString()?.Trim();
+
+            return RecipeImageLogic.IsAWebAddress(_Url) && _Url!.Length <= MaxImageUrlLength
+                ? _Url
+                : null;
+        }
+
+        if (node.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var _Item in node.EnumerateArray())
+            {
+                var _Found = ReadImageUrl(_Item);
+
+                if (_Found != null)
+                    return _Found;
+            }
+
+            return null;
+        }
+
+        return node.ValueKind == JsonValueKind.Object && node.TryGetProperty("url", out var _UrlNode)
+            ? ReadImageUrl(_UrlNode)
+            : null;
+    }
 
     private static List<string> ReadIngredients(JsonElement recipe)
     {
@@ -203,6 +256,69 @@ internal partial class JsonLdRecipeImportService(
     }
 
     /// <summary>
+    /// Durations are meant to be ISO-8601 ("PT30M") but real pages emit "PT", "P1Y" and
+    /// "30 mins", all of which throw — an unreadable time is simply unknown.
+    /// </summary>
+    private static int? ReadMinutes(JsonElement recipe, string propertyName)
+    {
+        if (!recipe.TryGetProperty(propertyName, out var _Node))
+            return null;
+
+        var _Value = _Node.ValueKind switch
+        {
+            JsonValueKind.Array => FirstScalar(_Node),
+            JsonValueKind.String => _Node.GetString(),
+            _ => null
+        };
+
+        if (string.IsNullOrWhiteSpace(_Value))
+            return null;
+
+        try
+        {
+            var _Minutes = XmlConvert.ToTimeSpan(_Value.Trim()).TotalMinutes;
+
+            return _Minutes > 0 && _Minutes <= RecipeValues.MaximumMinutes
+                ? (int)Math.Round(_Minutes)
+                : null;
+        }
+        catch (Exception _Exception) when (_Exception is FormatException or OverflowException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// A yield is a number, "4", or "Serves 4 to 6" — the first number in it is the serving
+    /// count worth keeping.
+    /// </summary>
+    private static int? ReadServings(JsonElement recipe)
+    {
+        if (!recipe.TryGetProperty("recipeYield", out var _Node))
+            return null;
+
+        var _Value = _Node.ValueKind switch
+        {
+            JsonValueKind.Array => FirstScalar(_Node),
+            JsonValueKind.Number => _Node.TryGetInt32(out var _Yield) ? _Yield.ToString() : null,
+            JsonValueKind.String => _Node.GetString(),
+            _ => null
+        };
+
+        if (string.IsNullOrWhiteSpace(_Value))
+            return null;
+
+        var _Match = FirstNumber().Match(_Value);
+
+        return _Match.Success
+            && int.TryParse(_Match.Value, out var _Servings)
+            && _Servings > 0
+            && _Servings <= RecipeValues.MaximumServings
+                ? _Servings
+                : null;
+    }
+
+    /// <summary>
     /// Strips tags, decodes entities and collapses whitespace — recipe sites shove HTML into
     /// their JSON-LD more often than they should.
     /// </summary>
@@ -248,9 +364,17 @@ internal partial class JsonLdRecipeImportService(
 
             // A name alone is not a recipe — without a single ingredient or step the page
             // gave nothing worth importing.
-            return _Ingredients.Count == 0 && _Steps.Count == 0
-                ? null
-                : new ImportedRecipe(_Name, _Ingredients, _Steps);
+            if (_Ingredients.Count == 0 && _Steps.Count == 0)
+                return null;
+
+            return new ImportedRecipe(
+                ReadMinutes(_Recipe, "cookTime"),
+                _Recipe.TryGetProperty("image", out var _ImageNode) ? ReadImageUrl(_ImageNode) : null,
+                _Ingredients,
+                _Name,
+                ReadMinutes(_Recipe, "prepTime"),
+                ReadServings(_Recipe),
+                _Steps);
         }
         catch (JsonException)
         {

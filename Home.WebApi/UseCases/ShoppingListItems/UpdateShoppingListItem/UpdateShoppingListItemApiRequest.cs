@@ -1,4 +1,4 @@
-using Home.Application.Infrastructure.ChangeTrackers;
+﻿using Home.Application.Infrastructure.ChangeTrackers;
 
 namespace Home.WebApi.UseCases.ShoppingListItems.UpdateShoppingListItem;
 
@@ -6,11 +6,10 @@ namespace Home.WebApi.UseCases.ShoppingListItems.UpdateShoppingListItem;
 /// Updates the shopping list item
 /// </summary>
 public record UpdateShoppingListItemApiRequest(
+    PropertyChangeTracker<decimal?> Amount,
     PropertyChangeTracker<decimal?> Cost,
     PropertyChangeTracker<bool> InBasket,
     PropertyChangeTracker<string> Name,
-    PropertyChangeTracker<decimal?> Quantity,
-    long ShoppingListItemID,
     PropertyChangeTracker<long> Sequence,
-    PropertyChangeTracker<decimal?> Volume,
-    PropertyChangeTracker<decimal?> Weight);
+    long ShoppingListItemID,
+    PropertyChangeTracker<long?> Unit);

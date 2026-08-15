@@ -1,3 +1,3 @@
-namespace Home.WebApi.UseCases.MealPlanEntries.CreateMealPlanEntry;
+﻿namespace Home.WebApi.UseCases.MealPlanEntries.CreateMealPlanEntry;
 
-public record CreateMealPlanEntryApiRequest(DateTime Date, long RecipeID);
+public record CreateMealPlanEntryApiRequest(DateTime Date, long? MealSlotID, long RecipeID);

@@ -1,11 +1,10 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 
 namespace Home.Application.UseCases.RecipeIngredients.AddRecipeIngredient;
 
 public record AddRecipeIngredientInputPort(
+    decimal? Amount,
     string Name,
-    decimal? Quantity,
     long RecipeID,
-    decimal? Volume,
-    decimal? Weight)
+    long? Unit)
     : IInputPort<IAddRecipeIngredientOutputPort>;
