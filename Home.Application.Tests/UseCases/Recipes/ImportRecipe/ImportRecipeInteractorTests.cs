@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.RecipeImports;
 using Home.Application.Services.Security;
@@ -66,8 +66,12 @@ public class ImportRecipeInteractorTests
         await this.HandleAsync(
             "https://example.test/pad-thai",
             new ImportedRecipe(
-                "Pad Thai",
+                null,
+                null,
                 ["200 g rice noodles", "2 eggs"],
+                "Pad Thai",
+                null,
+                null,
                 [new ImportedRecipeStep("Prep", "Soak the noodles."), new ImportedRecipeStep(string.Empty, "Fry everything.")]));
 
         _Added.Should().NotBeNull();
@@ -93,7 +97,7 @@ public class ImportRecipeInteractorTests
 
         await this.HandleAsync(
             "https://example.test/pad-thai",
-            new ImportedRecipe("Pad Thai", ["Noodles"], []));
+            new ImportedRecipe(null, null, ["Noodles"], "Pad Thai", null, null, []));
 
         this.m_OutputPort.Verify(
             o => o.PresentRecipeImportedAsync(321, It.IsAny<CancellationToken>()),

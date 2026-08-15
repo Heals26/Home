@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
@@ -37,7 +37,7 @@ public class AddMealPlanToShoppingListInteractorTests
             .Build();
 
         return new AddMealPlanToShoppingListInteractor().HandleAsync(
-            new AddMealPlanToShoppingListInputPort(new DateTime(2026, 8, 17), shoppingListID, new DateTime(2026, 8, 23)),
+            new AddMealPlanToShoppingListInputPort(new DateTime(2026, 8, 17), null, shoppingListID, new DateTime(2026, 8, 23)),
             this.m_OutputPort.Object,
             _ServiceFactory,
             CancellationToken.None);
@@ -70,7 +70,7 @@ public class AddMealPlanToShoppingListInteractorTests
                 new MealPlanEntry() { MealPlanEntryID = 2, Date = new DateTime(2026, 8, 19), Recipe = _Recipe }
             ]);
 
-        this.m_RecipeLogic.Verify(l => l.AddIngredientsToShoppingList(_Recipe, _List), Times.Once);
+        this.m_RecipeLogic.Verify(l => l.AddIngredientsToShoppingList(_Recipe, _List, null), Times.Once);
         this.m_OutputPort.Verify(
             o => o.PresentMealPlanAddedToShoppingListAsync(1, It.IsAny<CancellationToken>()),
             Times.Once);
@@ -88,7 +88,7 @@ public class AddMealPlanToShoppingListInteractorTests
             [new MealPlanEntry() { MealPlanEntryID = 1, Date = new DateTime(2026, 8, 30), Recipe = _Recipe }]);
 
         this.m_RecipeLogic.Verify(
-            l => l.AddIngredientsToShoppingList(It.IsAny<Recipe>(), It.IsAny<ShoppingList>()),
+            l => l.AddIngredientsToShoppingList(It.IsAny<Recipe>(), It.IsAny<ShoppingList>(), It.IsAny<IReadOnlyCollection<long>?>()),
             Times.Never);
         this.m_OutputPort.Verify(
             o => o.PresentMealPlanAddedToShoppingListAsync(0, It.IsAny<CancellationToken>()),

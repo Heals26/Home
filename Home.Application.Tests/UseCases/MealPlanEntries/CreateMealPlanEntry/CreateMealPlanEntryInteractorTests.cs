@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Application.Tests.Infrastructure;
@@ -33,7 +33,7 @@ public class CreateMealPlanEntryInteractorTests
             .Build();
 
         return new CreateMealPlanEntryInteractor().HandleAsync(
-            new CreateMealPlanEntryInputPort(date, recipeID),
+            new CreateMealPlanEntryInputPort(date, null, recipeID),
             this.m_OutputPort.Object,
             _ServiceFactory,
             CancellationToken.None);

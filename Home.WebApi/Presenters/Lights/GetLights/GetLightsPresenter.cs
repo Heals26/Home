@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.Lights.GetLights;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -33,6 +33,8 @@ public class GetLightsPresenter(IMapper mapper)
                     Kelvin = l.Kelvin,
                     StateUpdatedUTC = l.StateUpdatedUTC,
                     HasColour = l.HasColour,
+                    HasMatrix = l.HasMatrix,
+                    HasMultizone = l.HasMultizone,
                     HasVariableColourTemp = l.HasVariableColourTemp,
                     MinKelvin = l.MinKelvin,
                     MaxKelvin = l.MaxKelvin,

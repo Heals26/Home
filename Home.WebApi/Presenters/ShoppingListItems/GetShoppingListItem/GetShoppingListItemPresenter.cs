@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.ShoppingListItems.GetShoppingListItem;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -14,12 +14,14 @@ public class GetShoppingListItemPresenter(IMapper mapper)
 
     Task IGetShoppingListItemOutputPort.PresentShoppingListItemAsync(ShoppingListItem shoppingListItem, CancellationToken cancellationToken)
         => this.OkAsync(new GetShoppingListItemApiResponse(
+            shoppingListItem.Amount,
             shoppingListItem.Cost,
             shoppingListItem.InBasket,
             shoppingListItem.Name,
             shoppingListItem.Quantity,
             shoppingListItem.Sequence,
             shoppingListItem.ShoppingListItemID,
+            shoppingListItem.Unit,
             shoppingListItem.Volume,
             shoppingListItem.Weight),
             cancellationToken);

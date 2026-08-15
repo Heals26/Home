@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.RecipeIngredients.GetRecipeIngredient;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -17,8 +17,10 @@ public class GetRecipeIngredientPresenter(IMapper mapper)
         => this.OkAsync(new GetRecipeIngredientApiResponse()
         {
             IngredientID = ingredient.IngredientID,
+            Amount = ingredient.Amount,
             Name = ingredient.Name,
             Quantity = ingredient.Quantity,
+            Unit = ingredient.Unit,
             Volume = ingredient.Volume,
             Weight = ingredient.Weight,
             Notes = [.. ingredient.Notes.Select(n => new IngredientNoteDto()

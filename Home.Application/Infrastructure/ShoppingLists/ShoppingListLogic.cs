@@ -25,14 +25,13 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
 
         return new ShoppingListItem()
         {
+            Amount = inputPort.Amount,
             Cost = inputPort.Cost,
             InBasket = inputPort.InBasket,
             Name = inputPort.Name,
-            Quantity = inputPort.Quantity,
             // Counting rather than taking the highest reuses a sequence after any deletion.
             Sequence = (_ShoppingList.Items?.Max(i => (long?)i.Sequence) ?? 0) + 1,
-            Volume = inputPort.Volume,
-            Weight = inputPort.Weight
+            Unit = inputPort.Unit
         };
     }
 
@@ -64,6 +63,9 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
             .Single()
             .ShoppingListItem;
 
+        if (inputPort.Amount.HasBeenSet)
+            _ShoppingListItem.Amount = inputPort.Amount.Value;
+
         if (inputPort.Cost.HasBeenSet)
             _ShoppingListItem.Cost = inputPort.Cost.Value;
 
@@ -73,14 +75,8 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
         if (inputPort.Name.HasBeenSet)
             _ShoppingListItem.Name = inputPort.Name.Value;
 
-        if (inputPort.Quantity.HasBeenSet)
-            _ShoppingListItem.Quantity = inputPort.Quantity.Value;
-
-        if (inputPort.Volume.HasBeenSet)
-            _ShoppingListItem.Volume = inputPort.Volume.Value;
-
-        if (inputPort.Weight.HasBeenSet)
-            _ShoppingListItem.Weight = inputPort.Weight.Value;
+        if (inputPort.Unit.HasBeenSet)
+            _ShoppingListItem.Unit = inputPort.Unit.Value;
 
         if (inputPort.Sequence.HasBeenSet)
         {

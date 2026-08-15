@@ -5,6 +5,52 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-15 — A household session is expected to last months, not an hour
+
+Mitch: "If I close the application or browser I have to relog back in. I should not have to."
+Three independent faults, all fixed together because fixing one alone changes nothing visible.
+(1) The refresh request sent `grant_type` read from the *sign-in* config key, so it always said
+`password`; the API routed it into the password branch and 401'd — **token refresh had never
+worked once**. (2) Any 401 was treated as fatal, so a 5xx, a timeout or an API that had not
+finished starting destroyed a valid refresh token; only an explicit 401/400 *from the token
+endpoint* may now sign anyone out. (3) Nothing refreshed at startup, so an expired access token
+meant the login page even with a good refresh token in storage — startup now refreshes before
+completing initialisation, so `AuthorizeRouteView` holds its Authorizing slot instead. Sessions
+carry an absolute expiry, refresh is serialised through one semaphore (the dashboard's six
+parallel loads previously raced and consumed each other's single-use token), and the data
+protection key ring is pinned with `SetApplicationName` so moving the folder no longer silently
+invalidates every device. Refresh tokens now live 90 days and slide. Rule: never let a transport
+failure reach `SignOutAsync`.
+
+## 2026-08-15 — Board columns belong to the household, and are named for a home
+
+`ActivityState` was a global lookup seeded with Todo/Refining/Progressing/Blocked/Testing/Done —
+software-process jargon on a family board, and the one table the 14 Aug isolation sweep could not
+scope. It now carries `HouseholdID`, `Sequence` and `IsComplete` (which column means finished, so
+a card moved there stops appearing on the dashboard). Existing columns were **renamed, not
+replaced**, so every card stayed where the family left it; new households get
+To do → Doing → Waiting on → Done from `IHouseholdSetupLogic`, which also seeds the meal slots.
+Seeding moved out of `Program.cs`: a global row is now unreachable by every scoped query.
+
+## 2026-08-15 — One "meal" vocabulary, not two
+
+`MealSlot` is household-defined and serves both jobs: which meal a `MealPlanEntry` is for
+(nullable one-to-many) and how the recipe book is filtered (`RecipeMealSlot`, many-to-many —
+pancakes are breakfast *and* dessert). Two separate concepts for "dinner" would have drifted
+apart in the family's head. `MealPlanEntry → MealSlot` is Restrict, not Cascade: the household is
+already reached through the recipe, and a second cascade path is rejected by SQL Server — refusing
+to delete a slot still holding a week of dinners is also the behaviour a family wants.
+
+## 2026-08-15 — Migrations against a live family database are additive and rehearsed
+
+The database now holds real data, so the earlier "no rows existed" safety net is gone. This
+migration drops **nothing**: measurement units arrived as new `Amount`/`Unit` columns beside the
+old unitless `Quantity`/`Volume`/`Weight`, which stay until the move is proven. It was rehearsed
+by restoring a copy of the live database and applying it there — which caught a real defect: the
+session-expiry backfill was conditional, and because the column default stamps the migration time
+the condition never matched, so every existing session would have been born expired. Rule for
+later: rehearse a data-moving migration against a restored copy, and read what it actually did.
+
 ## 2026-08-14 — Every interactor is scoped to the caller's household
 
 Roughly forty interactors loaded entities by raw ID (`Find<T>(id)`), so any authenticated user

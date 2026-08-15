@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Application.Tests.Infrastructure;
@@ -32,7 +32,7 @@ public class CreateRecipeInteractorTests
             .Build();
 
         return new CreateRecipeInteractor().HandleAsync(
-            new CreateRecipeInputPort(name, url),
+            new CreateRecipeInputPort(null, null, null, name, null, null, url),
             this.m_OutputPort.Object,
             _ServiceFactory,
             CancellationToken.None);

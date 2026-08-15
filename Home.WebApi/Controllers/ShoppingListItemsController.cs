@@ -1,4 +1,4 @@
-using Home.Application.UseCases.ShoppingListItems.CreateShoppingListItem;
+﻿using Home.Application.UseCases.ShoppingListItems.CreateShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.DeleteShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.GetShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
@@ -32,7 +32,7 @@ public class ShoppingListItemsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new CreateShoppingListItemInputPort(request.Cost, request.InBasket, request.Name, request.Quantity, request.ShoppingListID, request.Volume, request.Weight),
+            new CreateShoppingListItemInputPort(request.Amount, request.Cost, request.InBasket, request.Name, request.ShoppingListID, request.Unit),
             presenter,
             this.ServiceFactory,
             cancellationToken);
@@ -73,14 +73,13 @@ public class ShoppingListItemsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new UpdateShoppingListItemInputPort(
+            request.Amount,
             request.Cost,
             request.InBasket,
             request.Name,
-            request.Quantity,
-            shoppingListItemID,
             request.Sequence,
-            request.Volume,
-            request.Weight),
+            shoppingListItemID,
+            request.Unit),
             presenter,
             this.ServiceFactory,
             cancellationToken);

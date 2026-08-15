@@ -57,6 +57,17 @@ public class LightDto
     public bool HasColour { get; set; }
 
     /// <summary>
+    /// True when the hardware is a panel of individually addressable zones. Home still drives it
+    /// as one light; the UI says so rather than implying per-zone control it does not have.
+    /// </summary>
+    public bool HasMatrix { get; set; }
+
+    /// <summary>
+    /// True when the hardware is a strip of individually addressable zones.
+    /// </summary>
+    public bool HasMultizone { get; set; }
+
+    /// <summary>
     /// True when the bulb can change white temperature.
     /// </summary>
     public bool HasVariableColourTemp { get; set; }
