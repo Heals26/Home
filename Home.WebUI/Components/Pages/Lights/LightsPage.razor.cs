@@ -576,6 +576,23 @@ public partial class LightsPage : IDisposable
         return this.SendLightAsync(light, _Request);
     }
 
+    // Hue and saturation travel together: the wheel means nothing if only one of them lands.
+    private Task ApplyColourAsync(LightDto light, double hue, double saturation)
+    {
+        light.Hue = hue;
+        light.Saturation = saturation;
+
+        return this.SendLightAsync(light, new() { Hue = new(hue), Saturation = new(saturation) });
+    }
+
+    private Task ApplyKelvinAsync(LightDto light, int kelvin)
+    {
+        light.Kelvin = kelvin;
+        light.Saturation = 0d;
+
+        return this.SendLightAsync(light, new() { Kelvin = new(kelvin) });
+    }
+
     // The UI updates before the call so the tablet feels instant. On failure the list is reloaded,
     // which snaps the control back to whatever Home last knew.
     private async Task SendLightAsync(LightDto light, SetLightStateWebAppRequest request)

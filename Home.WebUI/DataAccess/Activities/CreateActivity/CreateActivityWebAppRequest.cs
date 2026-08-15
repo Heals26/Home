@@ -1,4 +1,4 @@
-namespace Home.WebUI.DataAccess.Activities.CreateActivity;
+﻿namespace Home.WebUI.DataAccess.Activities.CreateActivity;
 
 public class CreateActivityWebAppRequest
 {
@@ -9,6 +9,11 @@ public class CreateActivityWebAppRequest
     /// When the activity is due (UTC).
     /// </summary>
     public DateTime? DueDateUTC { get; set; }
+
+    /// <summary>
+    /// The time of day the activity is due, or null when only the day matters.
+    /// </summary>
+    public TimeSpan? DueTime { get; set; }
 
     /// <summary>
     /// The ID of the workflow state (kanban column) to place the activity in.

@@ -18,6 +18,8 @@ public partial class LightGroupCard
     [Parameter] public EventCallback OnEffects { get; set; }
     [Parameter] public EventCallback<bool> OnGroupPower { get; set; }
     [Parameter] public EventCallback<(LightDto Light, double Brightness)> OnLightBrightness { get; set; }
+    [Parameter] public EventCallback<(LightDto Light, double Hue, double Saturation)> OnLightColour { get; set; }
+    [Parameter] public EventCallback<(LightDto Light, int Kelvin)> OnLightKelvin { get; set; }
     [Parameter] public EventCallback<(LightDto Light, long GroupID)> OnLightMoved { get; set; }
     [Parameter] public EventCallback<(LightDto Light, bool IsOn)> OnLightPower { get; set; }
     [Parameter] public EventCallback<(LightDto Light, ColourPreset Preset)> OnLightPreset { get; set; }

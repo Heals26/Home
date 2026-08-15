@@ -20,6 +20,13 @@ public static partial class ApiProvider
     public static ApiProviderHelper AddMealPlanToShoppingList(long shoppingListID)
         => new(HttpMethod.Post, RouteType.Body, $"{GetShoppingListBaseUrl(shoppingListID)}/MealPlan");
 
+    /// <summary>
+    /// The same endpoint as <see cref="AddRecipeToShoppingList"/>, but sending a body so the
+    /// family can pick which ingredients they actually need.
+    /// </summary>
+    public static ApiProviderHelper AddRecipeIngredientsToShoppingList(long shoppingListID, long recipeID)
+        => new(HttpMethod.Post, RouteType.Body, $"{GetShoppingListBaseUrl(shoppingListID)}/Recipes/{recipeID}");
+
     public static ApiProviderHelper CreateShoppingList()
         => new(HttpMethod.Post, RouteType.Body, GetShoppingListsBaseUrl());
 

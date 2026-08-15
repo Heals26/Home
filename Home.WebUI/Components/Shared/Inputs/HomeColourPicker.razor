@@ -1,0 +1,33 @@
+﻿@* Colour picker — preset swatches for the common cases, native picker for anything else.
+   Emits a #RRGGBB value, which is what the API validates and what an inline style needs. *@
+
+<div class="flex flex-col gap-2 @this.Class">
+    @if (!string.IsNullOrEmpty(this.Label))
+    {
+        <label for="@this.m_InputID" class="text-sm font-medium text-ink-300">@this.Label</label>
+    }
+    <div class="flex flex-wrap items-center gap-2">
+        @foreach (var _Swatch in Swatches)
+        {
+            <button type="button"
+                    class="@this.GetSwatchClasses(_Swatch)"
+                    style="background-color:@_Swatch"
+                    title="@_Swatch"
+                    aria-label="@_Swatch"
+                    aria-pressed="@(this.IsSelected(_Swatch) ? "true" : "false")"
+                    @onclick="() => this.SelectAsync(_Swatch)">
+                @if (this.IsSelected(_Swatch))
+                {
+                    <span class="home-icon home-icon-check h-5 w-5 inline-block text-ink-950"></span>
+                }
+            </button>
+        }
+        <input id="@this.m_InputID"
+               type="color"
+               value="@this.Value"
+               title="Pick any other colour"
+               aria-label="Pick any other colour"
+               class="h-12 w-12 shrink-0 rounded-lg bg-ink-800 border border-dashed border-ink-600 p-1 cursor-pointer hover:border-ink-500 transition-colors"
+               @onchange="this.OnColourChangedAsync" />
+    </div>
+</div>

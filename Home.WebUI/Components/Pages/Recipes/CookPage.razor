@@ -1,5 +1,7 @@
 ﻿@page "/recipes/{RecipeID:long}/cook"
 
+@using Home.WebUI.Components.Shared.Content
+
 @inject IJSRuntime JS
 
 @* Cooking mode: one step at a time in big type, giant wet-finger targets, timers on tap —
@@ -71,7 +73,7 @@
                     {
                         <h2 class="font-display text-3xl text-ink-50 mb-4">@_Step.Title</h2>
                     }
-                    <p class="text-xl md:text-2xl leading-relaxed text-ink-100 whitespace-pre-line">@_Step.Content</p>
+                    <HomeMarkdown Content="@_Step.Content" Size="lg" />
 
                     @if (this.CurrentStepDurations().Any())
                     {

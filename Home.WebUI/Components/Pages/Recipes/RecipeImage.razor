@@ -1,0 +1,19 @@
+﻿@* A recipe's picture, or a calm placeholder. Imported recipes point at other people's servers,
+   so an address that no longer resolves has to look deliberate rather than broken. *@
+
+<div class="relative overflow-hidden bg-ink-800 @this.Class">
+    @if (this.ShowImage())
+    {
+        <img src="@this.ImageUrl"
+             alt="@this.Alt"
+             loading="lazy"
+             class="h-full w-full object-cover"
+             @onerror="this.OnLoadFailed" />
+    }
+    else
+    {
+        <div class="flex h-full w-full items-center justify-center">
+            <span class="home-icon home-icon-book inline-block text-ink-700 @this.IconClass"></span>
+        </div>
+    }
+</div>

@@ -1,0 +1,62 @@
+﻿@* The columns view. Drag works on a desktop; the chevrons are what actually gets used on the
+   tablet, so they stay 48px tall. *@
+
+<div class="flex gap-4 h-full min-h-0 items-start">
+    @for (var _Index = 0; _Index < this.m_Columns.Count; _Index++)
+    {
+        var _Column = this.m_Columns[_Index];
+        var _Previous = _Index > 0 ? this.m_Columns[_Index - 1] : null;
+        var _Next = _Index < this.m_Columns.Count - 1 ? this.m_Columns[_Index + 1] : null;
+        var _PreviousLabel = MoveLabel(_Previous, "Already in the first column");
+        var _NextLabel = MoveLabel(_Next, "Already in the last column");
+        var _Cards = this.CardsFor(_Column.StateID);
+
+        <div class="flex flex-col w-72 shrink-0 bg-ink-900/60 border border-ink-800 rounded-xl max-h-full"
+             data-board-drop-target=""
+             @ondrop="() => this.OnDropAsync(_Column.StateID)">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-ink-800 shrink-0">
+                <p class="text-sm font-semibold text-ink-200">@_Column.Title</p>
+                <span class="text-xs text-week bg-week/10 rounded-full px-2 py-0.5">@_Cards.Count</span>
+            </div>
+            <div class="flex flex-col gap-2 p-3 overflow-y-auto app-scrollable">
+                @foreach (var _Activity in _Cards)
+                {
+                    <ActivityCard Activity="_Activity"
+                                  Draggable="true"
+                                  OnDragStart="() => this.OnDragStart(_Activity)"
+                                  OnOpen="() => this.OnOpen.InvokeAsync(_Activity)">
+                        <FooterContent>
+                            <button type="button"
+                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 enabled:hover:bg-ink-700 enabled:active:scale-95 transition disabled:opacity-25"
+                                    disabled="@(_Previous == null || this.Saving)"
+                                    title="@_PreviousLabel"
+                                    aria-label="@_PreviousLabel"
+                                    @onclick="() => this.MoveToColumnAsync(_Activity, _Previous)">
+                                <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
+                            </button>
+                            <button type="button"
+                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 hover:bg-ink-700 active:scale-95 transition"
+                                    title="Edit @_Activity.Title"
+                                    aria-label="Edit @_Activity.Title"
+                                    @onclick="() => this.OnEdit.InvokeAsync(_Activity)">
+                                <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
+                            </button>
+                            <button type="button"
+                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 enabled:hover:bg-ink-700 enabled:active:scale-95 transition disabled:opacity-25"
+                                    disabled="@(_Next == null || this.Saving)"
+                                    title="@_NextLabel"
+                                    aria-label="@_NextLabel"
+                                    @onclick="() => this.MoveToColumnAsync(_Activity, _Next)">
+                                <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block"></span>
+                            </button>
+                        </FooterContent>
+                    </ActivityCard>
+                }
+                @if (_Cards.Count == 0)
+                {
+                    <p class="text-xs text-ink-600 text-center py-6">Nothing here yet</p>
+                }
+            </div>
+        </div>
+    }
+</div>

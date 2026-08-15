@@ -12,6 +12,9 @@
          framework already ships it for net8.0. The explicit 10.0.8 reference that used to sit
          here resolved its netstandard2.0 assets and dragged 10.x Microsoft.Extensions.* beside
          the 8.x framework copies. -->
+    <!-- Markdig renders recipe steps and notes. It is used from HomeMarkdown and nowhere else,
+         because that component is the only place allowed to turn text into markup. -->
+    <PackageReference Include="Markdig" Version="1.3.2" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.19" />
   </ItemGroup>
 

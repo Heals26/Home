@@ -1,12 +1,16 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
+using Home.WebUI.DataAccess.MealSlots.Models;
 using Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient;
 using Home.WebUI.DataAccess.RecipeIngredients.UpdateRecipeIngredient;
 using Home.WebUI.DataAccess.RecipeNotes.AddRecipeNote;
 using Home.WebUI.DataAccess.Recipes.GetRecipe;
 using Home.WebUI.DataAccess.Recipes.Models;
+using Home.WebUI.DataAccess.Recipes.SetRecipeMealSlots;
 using Home.WebUI.DataAccess.Recipes.UpdateRecipe;
 using Home.WebUI.DataAccess.RecipeSteps.AddRecipeStep;
 using Home.WebUI.DataAccess.RecipeSteps.UpdateRecipeStep;
+using Home.WebUI.DataAccess.ShoppingLists.AddRecipeToShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.CreateShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists;
 using Home.WebUI.Infrastructure.ApiProviders;
@@ -14,6 +18,7 @@ using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Microsoft.AspNetCore.Components;
+using System.Globalization;
 
 namespace Home.WebUI.Components.Pages.Recipes;
 
@@ -26,6 +31,7 @@ public partial class RecipeDetailPage : IDisposable
     private ErrorHandler? m_ErrorHandler;
     private IDisposable? m_ChangeSubscription;
     private GetRecipeWebAppResponse? m_Recipe;
+    private List<MealSlotDto> m_MealSlots = [];
 
     private bool m_Saving;
 
@@ -33,14 +39,19 @@ public partial class RecipeDetailPage : IDisposable
     private bool m_ShowEditRecipe;
     private string m_EditName = string.Empty;
     private string m_EditUrl = string.Empty;
+    private string m_EditImageUrl = string.Empty;
+    private string m_EditPrepMinutes = string.Empty;
+    private string m_EditCookMinutes = string.Empty;
+    private string m_EditServings = string.Empty;
+    private string m_EditComplexity = string.Empty;
+    private HashSet<long> m_EditMealSlotIDs = [];
 
     // Ingredient
     private bool m_ShowIngredient;
     private long? m_EditingIngredientID;
     private string m_IngName = string.Empty;
-    private string m_IngQuantity = string.Empty;
-    private string m_IngVolume = string.Empty;
-    private string m_IngWeight = string.Empty;
+    private string m_IngAmount = string.Empty;
+    private string m_IngUnit = string.Empty;
 
     // Step
     private bool m_ShowStep;
@@ -55,6 +66,7 @@ public partial class RecipeDetailPage : IDisposable
     // Add to list
     private bool m_ShowAddToList;
     private GetShoppingListsWebAppResponse? m_ShoppingLists;
+    private HashSet<long> m_SelectedIngredientIDs = [];
     private string m_NewListName = string.Empty;
     private bool m_AddingToList;
 
@@ -70,8 +82,12 @@ public partial class RecipeDetailPage : IDisposable
     #region Lifecycle Methods
 
     protected override async Task OnInitializedAsync()
-        => this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
+    {
+        await this.LoadMealSlotsAsync();
+
+        this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
             this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
+    }
 
     protected override async Task OnParametersSetAsync()
         => await this.LoadRecipeAsync();
@@ -94,6 +110,17 @@ public partial class RecipeDetailPage : IDisposable
             null!, ApiProvider.GetRecipe(this.RecipeID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
+    }
+
+    private async Task LoadMealSlotsAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetMealSlotsWebAppResponse>(
+            null!, ApiProvider.GetMealSlots(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != null)
+            this.m_MealSlots = [.. _Result.MealSlots.OrderBy(m => m.Sequence).ThenBy(m => m.Name)];
     }
 
     private async Task OnHouseholdChangedAsync(ChangeArea area)
@@ -119,10 +146,26 @@ public partial class RecipeDetailPage : IDisposable
     private void OpenEditRecipeModal()
     {
         this.m_EditName = this.m_Recipe!.Name;
-        this.m_EditUrl = this.m_Recipe!.Url ?? string.Empty;
+        this.m_EditUrl = this.m_Recipe.Url ?? string.Empty;
+        this.m_EditImageUrl = this.m_Recipe.ImageUrl ?? string.Empty;
+        this.m_EditPrepMinutes = this.m_Recipe.PrepMinutes?.ToString() ?? string.Empty;
+        this.m_EditCookMinutes = this.m_Recipe.CookMinutes?.ToString() ?? string.Empty;
+        this.m_EditServings = this.m_Recipe.Servings?.ToString() ?? string.Empty;
+        this.m_EditComplexity = this.m_Recipe.Complexity?.ToString() ?? string.Empty;
+        this.m_EditMealSlotIDs = [.. this.m_Recipe.MealSlots.Select(m => m.MealSlotID)];
         this.m_ShowEditRecipe = true;
     }
 
+    private void ToggleMealSlot(long mealSlotID)
+    {
+        if (!this.m_EditMealSlotIDs.Add(mealSlotID))
+            _ = this.m_EditMealSlotIDs.Remove(mealSlotID);
+    }
+
+    /// <summary>
+    /// Two calls, because the meals a recipe suits are a set the API replaces wholesale rather
+    /// than a property it patches.
+    /// </summary>
     private async Task SaveRecipeAsync()
     {
         if (this.m_Saving) return;
@@ -130,7 +173,12 @@ public partial class RecipeDetailPage : IDisposable
 
         var _Request = new UpdateRecipeWebAppRequest()
         {
+            Complexity = new PropertyChangeTracker<long?>(ParseLong(this.m_EditComplexity)),
+            CookMinutes = new PropertyChangeTracker<int?>(ParseInt(this.m_EditCookMinutes)),
+            ImageUrl = new PropertyChangeTracker<string>(this.m_EditImageUrl),
             Name = new PropertyChangeTracker<string>(this.m_EditName),
+            PrepMinutes = new PropertyChangeTracker<int?>(ParseInt(this.m_EditPrepMinutes)),
+            Servings = new PropertyChangeTracker<int?>(ParseInt(this.m_EditServings)),
             Url = new PropertyChangeTracker<string>(this.m_EditUrl)
         };
 
@@ -138,6 +186,15 @@ public partial class RecipeDetailPage : IDisposable
             _Request, ApiProvider.UpdateRecipe(this.RecipeID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
+
+        if (_Result == true)
+        {
+            _Result = await this.ApiAccess.SendRequestAsync<SetRecipeMealSlotsWebAppRequest, bool>(
+                new SetRecipeMealSlotsWebAppRequest() { MealSlotIDs = [.. this.m_EditMealSlotIDs] },
+                ApiProvider.SetRecipeMealSlots(this.RecipeID),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.m_CancellationTokenHandler.Token);
+        }
 
         this.m_Saving = false;
 
@@ -153,9 +210,8 @@ public partial class RecipeDetailPage : IDisposable
     {
         this.m_EditingIngredientID = null;
         this.m_IngName = string.Empty;
-        this.m_IngQuantity = string.Empty;
-        this.m_IngVolume = string.Empty;
-        this.m_IngWeight = string.Empty;
+        this.m_IngAmount = string.Empty;
+        this.m_IngUnit = MeasurementUnits.All[0].Value.ToString();
         this.m_ShowIngredient = true;
     }
 
@@ -163,9 +219,8 @@ public partial class RecipeDetailPage : IDisposable
     {
         this.m_EditingIngredientID = ingredient.IngredientID;
         this.m_IngName = ingredient.Name;
-        this.m_IngQuantity = ingredient.Quantity?.ToString() ?? string.Empty;
-        this.m_IngVolume = ingredient.Volume?.ToString() ?? string.Empty;
-        this.m_IngWeight = ingredient.Weight?.ToString() ?? string.Empty;
+        this.m_IngAmount = (ingredient.Amount ?? ingredient.Quantity)?.ToString() ?? string.Empty;
+        this.m_IngUnit = (ingredient.Unit ?? MeasurementUnits.All[0].Value).ToString();
         this.m_ShowIngredient = true;
     }
 
@@ -180,26 +235,24 @@ public partial class RecipeDetailPage : IDisposable
         {
             var _Request = new UpdateRecipeIngredientWebAppRequest()
             {
+                Amount = new PropertyChangeTracker<decimal?>(ParseDecimal(this.m_IngAmount)),
                 Name = new PropertyChangeTracker<string>(this.m_IngName),
-                Quantity = new PropertyChangeTracker<decimal?>(ParseDecimal(this.m_IngQuantity)),
-                Volume = new PropertyChangeTracker<decimal?>(ParseDecimal(this.m_IngVolume)),
-                Weight = new PropertyChangeTracker<decimal?>(ParseDecimal(this.m_IngWeight))
+                Unit = new PropertyChangeTracker<long?>(ParseLong(this.m_IngUnit))
             };
 
             _Result = await this.ApiAccess.SendRequestAsync<UpdateRecipeIngredientWebAppRequest, bool>(
                 _Request, ApiProvider.UpdateRecipeIngredient(this.m_EditingIngredientID.Value),
                 e => this.m_ErrorHandler?.AddError(e),
-                this.m_CancellationTokenHandler.Token);
+                this.m_CancellationTokenHandler.Token) == true;
         }
         else
         {
             var _Request = new AddRecipeIngredientWebAppRequest()
             {
+                Amount = ParseDecimal(this.m_IngAmount),
                 Name = this.m_IngName,
-                Quantity = ParseDecimal(this.m_IngQuantity),
-                Volume = ParseDecimal(this.m_IngVolume),
-                Weight = ParseDecimal(this.m_IngWeight),
-                RecipeID = this.RecipeID
+                RecipeID = this.RecipeID,
+                Unit = ParseLong(this.m_IngUnit)
             };
 
             var _Response = await this.ApiAccess.SendRequestAsync<AddRecipeIngredientWebAppRequest, AddRecipeIngredientWebAppResponse>(
@@ -267,7 +320,7 @@ public partial class RecipeDetailPage : IDisposable
             _Result = await this.ApiAccess.SendRequestAsync<UpdateRecipeStepWebAppRequest, bool>(
                 _Request, ApiProvider.UpdateRecipeStep(this.m_EditingStepID.Value),
                 e => this.m_ErrorHandler?.AddError(e),
-                this.m_CancellationTokenHandler.Token);
+                this.m_CancellationTokenHandler.Token) == true;
         }
         else
         {
@@ -359,6 +412,7 @@ public partial class RecipeDetailPage : IDisposable
     {
         this.m_ShoppingLists = null;
         this.m_NewListName = string.Empty;
+        this.m_SelectedIngredientIDs = [.. (this.m_Recipe?.Ingredients ?? []).Select(i => i.IngredientID)];
         this.m_ShowAddToList = true;
 
         this.m_ShoppingLists = await this.ApiAccess.SendRequestAsync<object, GetShoppingListsWebAppResponse>(
@@ -367,15 +421,30 @@ public partial class RecipeDetailPage : IDisposable
             this.m_CancellationTokenHandler.Token);
     }
 
+    private void ToggleIngredient(long ingredientID, ChangeEventArgs args)
+    {
+        if (args.Value is true)
+            _ = this.m_SelectedIngredientIDs.Add(ingredientID);
+        else
+            _ = this.m_SelectedIngredientIDs.Remove(ingredientID);
+    }
+
+    private bool AllIngredientsTicked()
+        => this.m_Recipe != null
+            && this.m_Recipe.Ingredients.Count > 0
+            && this.m_Recipe.Ingredients.All(i => this.m_SelectedIngredientIDs.Contains(i.IngredientID));
+
+    private void ToggleAllIngredients()
+        => this.m_SelectedIngredientIDs = this.AllIngredientsTicked()
+            ? []
+            : [.. (this.m_Recipe?.Ingredients ?? []).Select(i => i.IngredientID)];
+
     private async Task AddToExistingListAsync(long shoppingListID)
     {
-        if (this.m_AddingToList) return;
+        if (this.m_AddingToList || this.m_SelectedIngredientIDs.Count == 0) return;
         this.m_AddingToList = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.AddRecipeToShoppingList(shoppingListID, this.RecipeID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
+        var _Result = await this.SendIngredientsAsync(shoppingListID);
 
         this.m_AddingToList = false;
 
@@ -389,7 +458,7 @@ public partial class RecipeDetailPage : IDisposable
     private async Task CreateListAndAddAsync()
     {
         if (this.m_AddingToList) return;
-        if (string.IsNullOrWhiteSpace(this.m_NewListName)) return;
+        if (string.IsNullOrWhiteSpace(this.m_NewListName) || this.m_SelectedIngredientIDs.Count == 0) return;
         this.m_AddingToList = true;
 
         var _Created = await this.ApiAccess.SendRequestAsync<CreateShoppingListWebAppRequest, CreateShoppingListWebAppResponse>(
@@ -404,10 +473,7 @@ public partial class RecipeDetailPage : IDisposable
             return;
         }
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.AddRecipeToShoppingList(_Created.ShoppingListID, this.RecipeID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
+        var _Result = await this.SendIngredientsAsync(_Created.ShoppingListID);
 
         this.m_AddingToList = false;
 
@@ -418,29 +484,23 @@ public partial class RecipeDetailPage : IDisposable
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.m_CancellationTokenHandler.Token);
     }
 
+    private async Task<bool?> SendIngredientsAsync(long shoppingListID)
+        => await this.ApiAccess.SendRequestAsync<AddRecipeToShoppingListWebAppRequest, bool>(
+            new AddRecipeToShoppingListWebAppRequest() { IngredientIDs = [.. this.m_SelectedIngredientIDs] },
+            ApiProvider.AddRecipeIngredientsToShoppingList(shoppingListID, this.RecipeID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
     // Helpers
 
     private static decimal? ParseDecimal(string value)
-        => decimal.TryParse(value, out var _Parsed) ? _Parsed : null;
+        => decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;
 
-    private bool HasMeasurements(RecipeIngredientDto ingredient)
-        => ingredient.Quantity.HasValue || ingredient.Volume.HasValue || ingredient.Weight.HasValue;
+    private static int? ParseInt(string value)
+        => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;
 
-    private string DescribeMeasurements(RecipeIngredientDto ingredient)
-    {
-        var _Parts = new List<string>();
-
-        if (ingredient.Quantity.HasValue)
-            _Parts.Add($"Qty {ingredient.Quantity.Value}");
-
-        if (ingredient.Volume.HasValue)
-            _Parts.Add($"Vol {ingredient.Volume.Value}");
-
-        if (ingredient.Weight.HasValue)
-            _Parts.Add($"Wt {ingredient.Weight.Value}");
-
-        return string.Join(" · ", _Parts);
-    }
+    private static long? ParseLong(string value)
+        => long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;
 
     #endregion Methods
 

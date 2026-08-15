@@ -1,3 +1,5 @@
+﻿using Home.WebUI.DataAccess.Tags.Models;
+
 namespace Home.WebUI.DataAccess.Activities.Models;
 
 public class ActivitySummaryDto
@@ -31,6 +33,11 @@ public class ActivitySummaryDto
     public DateTime? DueDateUTC { get; set; }
 
     /// <summary>
+    /// The time of day the activity is due, or null when only the day matters.
+    /// </summary>
+    public TimeSpan? DueTime { get; set; }
+
+    /// <summary>
     /// The name of the workflow state (kanban column).
     /// </summary>
     public string? State { get; set; }
@@ -49,6 +56,11 @@ public class ActivitySummaryDto
     /// The ID of the status.
     /// </summary>
     public long? StatusID { get; set; }
+
+    /// <summary>
+    /// The labels on the card.
+    /// </summary>
+    public List<TagDto> Tags { get; set; } = [];
 
     /// <summary>
     /// The title of the activity.

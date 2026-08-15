@@ -1,4 +1,4 @@
-namespace Home.WebUI.DataAccess.MealPlanEntries.Models;
+﻿namespace Home.WebUI.DataAccess.MealPlanEntries.Models;
 
 public class MealPlanEntryDto
 {
@@ -14,6 +14,17 @@ public class MealPlanEntryDto
     /// The ID of the meal plan entry.
     /// </summary>
     public long MealPlanEntryID { get; set; }
+
+    /// <summary>
+    /// Which meal of the day this is for. Null on entries planned before the household
+    /// defined its meals.
+    /// </summary>
+    public long? MealSlotID { get; set; }
+
+    /// <summary>
+    /// What the household calls that meal.
+    /// </summary>
+    public string MealSlotName { get; set; } = string.Empty;
 
     /// <summary>
     /// The ID of the planned recipe.

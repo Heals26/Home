@@ -1,0 +1,79 @@
+﻿@* Week and day are the same thing at two zoom levels — a row of day lanes, each ordered with the
+   untimed items first. One component, so the two can never disagree about that ordering. *@
+
+<div class="flex gap-4 h-full min-h-0 items-start">
+    @{
+        var _Undated = ActivityBoardLogic.WithoutDueDate(this.Activities);
+    }
+
+    @if (_Undated.Count > 0)
+    {
+        <div class="@this.GetLaneClasses(false)">
+            <div class="px-4 py-3 border-b border-ink-800 shrink-0">
+                <p class="text-sm font-semibold text-ink-200">Anytime</p>
+                <p class="text-xs text-ink-500">No date set</p>
+            </div>
+            <div class="flex flex-col gap-2 p-3 overflow-y-auto app-scrollable">
+                @foreach (var _Activity in _Undated)
+                {
+                    <ActivityCard Activity="_Activity"
+                                  ShowDate="false"
+                                  OnOpen="() => this.OnOpen.InvokeAsync(_Activity)">
+                        <FooterContent>
+                            <button type="button"
+                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 hover:bg-ink-700 active:scale-95 transition"
+                                    title="Edit @_Activity.Title"
+                                    aria-label="Edit @_Activity.Title"
+                                    @onclick="() => this.OnEdit.InvokeAsync(_Activity)">
+                                <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
+                            </button>
+                        </FooterContent>
+                    </ActivityCard>
+                }
+            </div>
+        </div>
+    }
+
+    @foreach (var _Day in this.Days)
+    {
+        var _IsToday = _Day.Date == this.Today.Date;
+        var _Cards = ActivityBoardLogic.ForDay(this.Activities, _Day);
+
+        <div class="@this.GetLaneClasses(_IsToday)">
+            <div class="flex items-baseline justify-between gap-2 px-4 py-3 border-b border-ink-800 shrink-0">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold @(_IsToday ? "text-week" : "text-ink-200") truncate">
+                        @(this.Days.Count == 1 ? ActivityBoardLogic.DescribeLongDay(_Day) : ActivityBoardLogic.DescribeDay(_Day))
+                    </p>
+                    @if (this.Days.Count > 1)
+                    {
+                        <p class="text-xs text-ink-500">@ActivityBoardLogic.DescribeDate(_Day)</p>
+                    }
+                </div>
+                <span class="text-xs text-week bg-week/10 rounded-full px-2 py-0.5 shrink-0">@_Cards.Count</span>
+            </div>
+            <div class="flex flex-col gap-2 p-3 overflow-y-auto app-scrollable">
+                @foreach (var _Activity in _Cards)
+                {
+                    <ActivityCard Activity="_Activity"
+                                  ShowDate="false"
+                                  OnOpen="() => this.OnOpen.InvokeAsync(_Activity)">
+                        <FooterContent>
+                            <button type="button"
+                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 hover:bg-ink-700 active:scale-95 transition"
+                                    title="Edit @_Activity.Title"
+                                    aria-label="Edit @_Activity.Title"
+                                    @onclick="() => this.OnEdit.InvokeAsync(_Activity)">
+                                <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
+                            </button>
+                        </FooterContent>
+                    </ActivityCard>
+                }
+                @if (_Cards.Count == 0)
+                {
+                    <p class="text-xs text-ink-600 text-center py-6">Nothing on</p>
+                }
+            </div>
+        </div>
+    }
+</div>

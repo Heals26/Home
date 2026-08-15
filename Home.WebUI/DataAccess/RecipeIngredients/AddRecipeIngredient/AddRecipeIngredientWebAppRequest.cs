@@ -1,4 +1,4 @@
-namespace Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient;
+﻿namespace Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient;
 
 public class AddRecipeIngredientWebAppRequest
 {
@@ -6,14 +6,14 @@ public class AddRecipeIngredientWebAppRequest
     #region Properties
 
     /// <summary>
+    /// How much of the ingredient, in <see cref="Unit"/>.
+    /// </summary>
+    public decimal? Amount { get; set; }
+
+    /// <summary>
     /// The name of the ingredient.
     /// </summary>
     public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The quantity of the ingredient.
-    /// </summary>
-    public decimal? Quantity { get; set; }
 
     /// <summary>
     /// The ID of the recipe this ingredient belongs to.
@@ -21,14 +21,9 @@ public class AddRecipeIngredientWebAppRequest
     public long RecipeID { get; set; }
 
     /// <summary>
-    /// The volume of the ingredient.
+    /// The measurement the amount is in. Null means a plain count.
     /// </summary>
-    public decimal? Volume { get; set; }
-
-    /// <summary>
-    /// The weight of the ingredient.
-    /// </summary>
-    public decimal? Weight { get; set; }
+    public long? Unit { get; set; }
 
     #endregion Properties
 

@@ -1,15 +1,46 @@
 ﻿@page "/recipes"
 
+@using Home.WebUI.DataAccess.MealSlots.GetMealSlots
+@using Home.WebUI.DataAccess.MealSlots.Models
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+
+@inject ProtectedLocalStorage LocalStorage
+
+@* The book. Cards or a list, whichever this device was last left on, filtered by the meal the
+   household says a recipe suits. *@
+
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
     <div class="flex flex-col h-full">
         <HomeTopBar Title="Recipes" Eyebrow="The book" EyebrowClass="text-recipes">
             <ActionsContent>
+                <HomeSegmentedControl TValue="string"
+                                      Class="shrink-0"
+                                      Options="this.m_ViewOptions"
+                                      Value="@this.m_View"
+                                      ValueChanged="this.SetViewAsync" />
                 <HomeButton Size="sm" OnClick="this.OpenCreateModal">
                     <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
                     Add recipe
                 </HomeButton>
             </ActionsContent>
         </HomeTopBar>
+
+        @if (this.m_MealSlots.Count > 0)
+        {
+            <div class="px-6 pb-4 shrink-0">
+                <div class="flex gap-2 overflow-x-auto app-scrollable pb-1">
+                    <button type="button"
+                            class="shrink-0 rounded-full border px-4 min-h-[40px] text-sm font-medium transition-colors active:scale-95 @(this.m_MealSlotFilter == null ? "border-ink-50 bg-ink-50 text-ink-950" : "border-ink-800 bg-ink-900 text-ink-400 hover:text-ink-100 hover:border-ink-700")"
+                            @onclick="() => this.FilterByMealAsync(null)">All</button>
+                    @foreach (var _MealSlot in this.m_MealSlots)
+                    {
+                        <button type="button"
+                                class="shrink-0 rounded-full border px-4 min-h-[40px] text-sm font-medium transition-colors active:scale-95 @(this.m_MealSlotFilter == _MealSlot.MealSlotID ? "border-ink-50 bg-ink-50 text-ink-950" : "border-ink-800 bg-ink-900 text-ink-400 hover:text-ink-100 hover:border-ink-700")"
+                                @onclick="() => this.FilterByMealAsync(_MealSlot.MealSlotID)">@_MealSlot.Name</button>
+                    }
+                </div>
+            </div>
+        }
 
         <div class="flex-1 px-6 pb-6 app-scrollable">
             @if (this.m_Recipes == null)
@@ -18,32 +49,80 @@
             }
             else if (!this.m_Recipes.Recipes.Any())
             {
-                <HomeEmptyState Title="No recipes yet" Subtitle="Add your first recipe to get the book started">
+                <HomeEmptyState Title="@this.EmptyTitle()" Subtitle="@this.EmptySubtitle()">
                     <ActionContent>
-                        <HomeButton OnClick="this.OpenCreateModal">Add recipe</HomeButton>
+                        @if (this.m_MealSlotFilter == null)
+                        {
+                            <HomeButton OnClick="this.OpenCreateModal">Add recipe</HomeButton>
+                        }
+                        else
+                        {
+                            <HomeButton Variant="secondary" OnClick="() => this.FilterByMealAsync(null)">Show every recipe</HomeButton>
+                        }
                     </ActionContent>
                 </HomeEmptyState>
+            }
+            else if (this.m_View == "list")
+            {
+                <div class="max-w-3xl mx-auto flex flex-col gap-2">
+                    @foreach (var _Recipe in this.OrderedRecipes())
+                    {
+                        <div class="group flex items-center gap-4 rounded-2xl border border-ink-800 bg-ink-900 p-3 hover:border-ink-700 transition-all cursor-pointer"
+                             @onclick="() => this.OpenRecipe(_Recipe.RecipeID)">
+                            <RecipeImage ImageUrl="@_Recipe.ImageUrl"
+                                         Alt="@_Recipe.Name"
+                                         Class="h-16 w-16 shrink-0 rounded-xl"
+                                         IconClass="h-6 w-6" />
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-semibold text-ink-50 truncate">@_Recipe.Name</p>
+                                <RecipeSummaryStrip Class="mt-1"
+                                                    Complexity="_Recipe.Complexity"
+                                                    CookMinutes="_Recipe.CookMinutes"
+                                                    PrepMinutes="_Recipe.PrepMinutes"
+                                                    Servings="_Recipe.Servings" />
+                                @if (_Recipe.MealSlots.Any())
+                                {
+                                    <p class="text-xs text-ink-600 truncate mt-1">@this.DescribeMealSlots(_Recipe.MealSlots)</p>
+                                }
+                            </div>
+                            <button class="shrink-0 text-ink-600 hover:text-red-400 transition-colors p-2 min-h-[44px] min-w-[44px] opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                    type="button"
+                                    title="Delete recipe"
+                                    aria-label="@($"Delete {_Recipe.Name}")"
+                                    @onclick="() => this.DeleteRecipeAsync(_Recipe.RecipeID)"
+                                    @onclick:stopPropagation="true">
+                                <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
+                            </button>
+                        </div>
+                    }
+                </div>
             }
             else
             {
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
-                    @foreach (var _Recipe in this.m_Recipes.Recipes.OrderBy(r => r.Name))
+                    @foreach (var _Recipe in this.OrderedRecipes())
                     {
-                        <div class="group relative bg-ink-900 hover:bg-ink-800 border border-ink-800 hover:border-ink-700 rounded-xl p-5 transition-all cursor-pointer"
+                        <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-ink-800 bg-ink-900 hover:border-ink-700 transition-all cursor-pointer"
                              @onclick="() => this.OpenRecipe(_Recipe.RecipeID)">
-                            <div class="flex items-start gap-3">
-                                <span class="home-icon home-icon-book h-6 w-6 inline-block text-recipes shrink-0 mt-0.5"></span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-semibold text-ink-50 truncate">@_Recipe.Name</p>
-                                    @if (!string.IsNullOrWhiteSpace(_Recipe.Url))
-                                    {
-                                        <p class="text-xs text-ink-500 truncate mt-0.5">@_Recipe.Url</p>
-                                    }
-                                </div>
+                            <RecipeImage ImageUrl="@_Recipe.ImageUrl"
+                                         Alt="@_Recipe.Name"
+                                         Class="aspect-[4/3] w-full"
+                                         IconClass="h-10 w-10" />
+                            <div class="flex flex-1 flex-col gap-2 p-4">
+                                <p class="text-sm font-semibold text-ink-50 line-clamp-2">@_Recipe.Name</p>
+                                <RecipeSummaryStrip Complexity="_Recipe.Complexity"
+                                                    CookMinutes="_Recipe.CookMinutes"
+                                                    PrepMinutes="_Recipe.PrepMinutes"
+                                                    Servings="_Recipe.Servings" />
+                                @if (_Recipe.MealSlots.Any())
+                                {
+                                    <p class="text-xs text-ink-600 truncate">@this.DescribeMealSlots(_Recipe.MealSlots)</p>
+                                }
                             </div>
-                            <button class="absolute top-3 right-3 text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                            <button class="absolute top-2 right-2 rounded-lg bg-ink-950/70 p-2 min-h-[44px] min-w-[44px] text-ink-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                                     type="button"
                                     title="Delete recipe"
+                                    aria-label="@($"Delete {_Recipe.Name}")"
                                     @onclick="() => this.DeleteRecipeAsync(_Recipe.RecipeID)"
                                     @onclick:stopPropagation="true">
                                 <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
@@ -64,7 +143,7 @@
                            AutoComplete="off"
                            @bind-Value="this.m_ImportUrl"
                            Placeholder="Paste a recipe URL" />
-            <p class="text-xs text-ink-500 mt-1.5">Reads the name, ingredients and steps straight from the site.</p>
+            <p class="text-xs text-ink-500 mt-1.5">Reads the name, picture, times, ingredients and steps straight from the site.</p>
             <div class="mt-3 flex justify-end">
                 <HomeButton Loading="this.m_Importing"
                             Disabled="@string.IsNullOrWhiteSpace(this.m_ImportUrl)"

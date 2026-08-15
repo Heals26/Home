@@ -1,0 +1,12 @@
+﻿@* The only component in the app permitted to produce a MarkupString. Recipe steps and notes are
+   imported from arbitrary web pages, so the text is treated as hostile: raw HTML never survives
+   parsing, and every link, image and autolink address is checked against an allow-list of schemes
+   before it reaches the browser. Anything else is flattened to plain text.
+
+   The typography lives here as arbitrary variants rather than in a stylesheet because Tailwind
+   only scans .razor files — a class named in a code-behind is never emitted. *@
+
+@if (this.HasContent())
+{
+    <div class="@(this.Size == "lg" ? "text-xl md:text-2xl text-ink-100 leading-relaxed" : "text-sm text-ink-300 leading-relaxed") [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_strong]:text-ink-100 [&_em]:italic [&_a]:text-recipes [&_a]:underline [&_a]:underline-offset-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_li]:mb-1 [&_h1]:font-semibold [&_h1]:text-base [&_h1]:text-ink-50 [&_h1]:mb-1 [&_h2]:font-semibold [&_h2]:text-base [&_h2]:text-ink-50 [&_h2]:mb-1 [&_h3]:font-semibold [&_h3]:text-sm [&_h3]:text-ink-50 [&_h3]:mb-1 [&_code]:rounded [&_code]:bg-ink-800 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_pre]:mb-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-ink-800 [&_pre]:p-3 [&_blockquote]:border-l-2 [&_blockquote]:border-ink-700 [&_blockquote]:pl-3 [&_blockquote]:text-ink-400 [&_hr]:my-3 [&_hr]:border-ink-800 [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:mb-2 [&_th]:text-left [&_th]:text-ink-200 @this.Class">@this.m_Rendered</div>
+}

@@ -64,6 +64,8 @@
                                   Groups="this.AllGroups"
                                   OnPowerChanged="on => this.OnLightPower.InvokeAsync((_Light, on))"
                                   OnBrightnessCommitted="b => this.OnLightBrightness.InvokeAsync((_Light, b))"
+                                  OnColourCommitted="c => this.OnLightColour.InvokeAsync((_Light, c.Hue, c.Saturation))"
+                                  OnKelvinCommitted="k => this.OnLightKelvin.InvokeAsync((_Light, k))"
                                   OnPresetSelected="p => this.OnLightPreset.InvokeAsync((_Light, p))"
                                   OnGroupChanged="g => this.OnLightMoved.InvokeAsync((_Light, g))" />
             }

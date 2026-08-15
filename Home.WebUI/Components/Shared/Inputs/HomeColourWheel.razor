@@ -1,0 +1,73 @@
+﻿@* Arbitrary colour rather than the eleven presets: angle is hue, distance from the centre is
+   saturation. Everything here previews locally and only reaches the bulb on release. *@
+
+<div class="flex flex-col gap-4 @this.Class">
+
+    <HomeSlider Label="Brightness"
+                Unit="%"
+                Min="1"
+                Max="100"
+                Value="this.BrightnessPercent()"
+                ValueChanged="this.OnBrightnessPreview"
+                ValueCommitted="this.OnBrightnessRelease" />
+
+    @if (this.HasVariableColourTemp)
+    {
+        <HomeSlider Label="Warmth"
+                    Unit="K"
+                    Min="this.KelvinFloor()"
+                    Max="this.KelvinCeiling()"
+                    Step="50"
+                    Value="this.KelvinValue()"
+                    ValueChanged="this.OnKelvinPreview"
+                    ValueCommitted="this.OnKelvinRelease" />
+    }
+
+    @if (this.HasColour)
+    {
+        <div>
+            <button type="button"
+                    class="flex items-center gap-2 min-h-[44px] text-sm font-medium text-ink-300 hover:text-ink-50"
+                    aria-expanded="@(this.m_ShowWheel ? "true" : "false")"
+                    @onclick="this.ToggleWheel">
+                <span class="home-icon home-icon-palette h-4 w-4"></span>
+                <span>Colour wheel</span>
+                <span class="home-icon h-4 w-4 @(this.m_ShowWheel ? "home-icon-chevron-down" : "home-icon-chevron-right")"></span>
+            </button>
+
+            @if (this.m_ShowWheel)
+            {
+                <div class="mt-3 flex flex-col items-center gap-2">
+                    @* Sized in the same units as the viewBox, so a pointer offset needs no conversion. *@
+                    <svg viewBox="0 0 224 224" width="224" height="224" role="img"
+                         aria-label="Colour wheel — drag to pick a colour"
+                         class="touch-none select-none cursor-pointer"
+                         @onpointerdown="this.OnPointerDown"
+                         @onpointermove="this.OnPointerMove"
+                         @onpointerup="this.OnPointerRelease"
+                         @onpointerleave="this.OnPointerRelease"
+                         @onpointercancel="this.OnPointerRelease">
+                        <defs>
+                            <radialGradient id="@this.m_GradientID">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                            </radialGradient>
+                        </defs>
+
+                        @foreach (var _Wedge in Wedges)
+                        {
+                            <path d="@_Wedge.Path" fill="@_Wedge.Fill" />
+                        }
+
+                        <circle cx="112" cy="112" r="104" fill="url(#@this.m_GradientID)" />
+                        <circle cx="112" cy="112" r="104" fill="none" stroke="#292524" stroke-width="2" />
+                        <circle cx="@this.MarkerX()" cy="@this.MarkerY()" r="12"
+                                fill="@this.PreviewCss()" stroke="#fafaf9" stroke-width="3" />
+                    </svg>
+
+                    <p class="text-xs text-ink-500">Lands on the bulb when you let go.</p>
+                </div>
+            }
+        </div>
+    }
+</div>

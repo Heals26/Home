@@ -1,4 +1,4 @@
-using Home.WebUI.Infrastructure.ChangeTrackers;
+﻿using Home.WebUI.Infrastructure.ChangeTrackers;
 
 namespace Home.WebUI.DataAccess.Activities.UpdateActivity;
 
@@ -16,6 +16,11 @@ public class UpdateActivityWebAppRequest
     /// When the activity is due (UTC).
     /// </summary>
     public PropertyChangeTracker<DateTime?> DueDateUTC { get; set; }
+
+    /// <summary>
+    /// The time of day the activity is due, or null when only the day matters.
+    /// </summary>
+    public PropertyChangeTracker<TimeSpan?> DueTime { get; set; }
 
     /// <summary>
     /// The ID of the workflow state (kanban column).

@@ -1,0 +1,31 @@
+﻿@* The household's labels as tappable chips. The colour is chosen by the family at runtime, so it
+   can only ever be an inline style — never a class name. *@
+
+<div class="flex flex-col gap-1.5">
+    <p class="text-sm font-medium text-ink-300">Labels</p>
+    @if (this.Tags.Count == 0)
+    {
+        <p class="text-sm text-ink-600">No labels yet — add some under "Set up board".</p>
+    }
+    else
+    {
+        <div class="flex flex-wrap gap-2">
+            @foreach (var _Tag in this.Tags)
+            {
+                var _IsSelected = this.SelectedTagIDs.Contains(_Tag.TagID);
+
+                <button type="button"
+                        class="@GetChipClasses(_IsSelected)"
+                        style="background-color:@ActivityBoardLogic.SafeColour(_Tag.Colour)"
+                        aria-pressed="@(_IsSelected ? "true" : "false")"
+                        @onclick="() => this.OnToggle.InvokeAsync(_Tag.TagID)">
+                    @if (_IsSelected)
+                    {
+                        <span class="home-icon home-icon-check h-3.5 w-3.5 inline-block"></span>
+                    }
+                    @_Tag.Name
+                </button>
+            }
+        </div>
+    }
+</div>

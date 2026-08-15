@@ -1,0 +1,36 @@
+﻿@* The line under a recipe's name wherever it appears — the book, the detail page, the planner.
+   Anything the household hasn't filled in is simply left out rather than shown as unknown. *@
+
+@if (this.HasAnything())
+{
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 @this.Class">
+        @if (this.PrepMinutes is > 0)
+        {
+            <span class="inline-flex items-center gap-1 text-xs text-ink-400">
+                <span class="home-icon home-icon-clock h-3.5 w-3.5 inline-block"></span>
+                @RecipeDisplayLogic.DescribeMinutes(this.PrepMinutes.Value) prep
+            </span>
+        }
+        @if (this.CookMinutes is > 0)
+        {
+            <span class="inline-flex items-center gap-1 text-xs text-ink-400">
+                <span class="home-icon home-icon-utensils h-3.5 w-3.5 inline-block"></span>
+                @RecipeDisplayLogic.DescribeMinutes(this.CookMinutes.Value) cook
+            </span>
+        }
+        @if (this.Servings is > 0)
+        {
+            <span class="inline-flex items-center gap-1 text-xs text-ink-400">
+                <span class="home-icon home-icon-users h-3.5 w-3.5 inline-block"></span>
+                Serves @this.Servings
+            </span>
+        }
+        @if (!string.IsNullOrEmpty(this.ComplexityName()))
+        {
+            <span class="inline-flex items-center gap-1 text-xs text-recipes">
+                <span class="home-icon home-icon-sparkles h-3.5 w-3.5 inline-block"></span>
+                @this.ComplexityName()
+            </span>
+        }
+    </div>
+}

@@ -257,18 +257,9 @@ public partial class CookPage : IAsyncDisposable
 
     private static string IngredientAmount(RecipeIngredientDto ingredient)
     {
-        var _Parts = new List<string>();
+        var _Amount = RecipeDisplayLogic.DescribeAmount(ingredient);
 
-        if (ingredient.Quantity != null)
-            _Parts.Add($"{ingredient.Quantity:0.##}");
-
-        if (ingredient.Volume != null)
-            _Parts.Add($"{ingredient.Volume:0.##} ml");
-
-        if (ingredient.Weight != null)
-            _Parts.Add($"{ingredient.Weight:0.##} g");
-
-        return _Parts.Count == 0 ? string.Empty : $" — {string.Join(", ", _Parts)}";
+        return string.IsNullOrEmpty(_Amount) ? string.Empty : $" — {_Amount}";
     }
 
     #endregion Methods

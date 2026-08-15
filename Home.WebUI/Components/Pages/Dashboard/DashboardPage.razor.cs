@@ -10,6 +10,8 @@ using Home.WebUI.DataAccess.MealPlanEntries.GetMealPlanEntries;
 using Home.WebUI.DataAccess.MealPlanEntries.Models;
 using Home.WebUI.DataAccess.Recipes.GetRecipes;
 using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists;
+using Home.WebUI.DataAccess.Weather.GetWeather;
+using Home.WebUI.DataAccess.Weather.Models;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
@@ -18,6 +20,12 @@ namespace Home.WebUI.Components.Pages.Dashboard;
 
 public partial class DashboardPage : IDisposable
 {
+
+    #region Records
+
+    private sealed record MealSlotGroup(string Name, string Meals);
+
+    #endregion Records
 
     #region Fields
 
@@ -29,7 +37,9 @@ public partial class DashboardPage : IDisposable
     private ICollection<MealPlanEntryDto>? m_MealPlanEntries;
     private ICollection<GetRecipeDto>? m_Recipes;
     private ICollection<GetShoppingListDto>? m_ShoppingLists;
+    private GetWeatherWebAppResponse? m_Weather;
     private bool m_LoadFailed;
+    private bool m_WeatherFailed;
 
     // Family notes
     private string m_NewAnnouncement = string.Empty;
@@ -70,7 +80,8 @@ public partial class DashboardPage : IDisposable
             this.LoadLightsAsync(),
             this.LoadMealPlanAsync(),
             this.LoadRecipesAsync(),
-            this.LoadShoppingListsAsync());
+            this.LoadShoppingListsAsync(),
+            this.LoadWeatherAsync());
 
     private async Task RefreshLoopAsync()
     {
@@ -185,6 +196,19 @@ public partial class DashboardPage : IDisposable
         this.m_ShoppingLists = _Result?.ShoppingLists ?? [];
     }
 
+    // Weather rides the same five-minute sweep as everything else; the forecaster is cached
+    // server-side, so asking more often would only cost the tablet a request.
+    private async Task LoadWeatherAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetWeatherWebAppResponse>(
+            null!, ApiProvider.GetWeather(),
+            _ => { },
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_WeatherFailed = _Result == null;
+        this.m_Weather = _Result ?? this.m_Weather;
+    }
+
     private async Task OnAnnouncementKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
@@ -229,11 +253,30 @@ public partial class DashboardPage : IDisposable
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.Announcements, this.m_CancellationTokenHandler.Token);
     }
 
-    private IEnumerable<MealPlanEntryDto> TonightsMeals()
-        => (this.m_MealPlanEntries ?? []).Where(e => e.Date.Date == this.TimeProvider.GetLocalNow().Date);
+    /// <summary>
+    /// The tile names the meal rather than assuming everything planned today is dinner. The API
+    /// hands entries back in the household's own slot order but carries no start time, so leading
+    /// with the meal nearest the clock isn't possible yet — every slot planned today is listed
+    /// instead, in the order the day runs.
+    /// </summary>
+    private List<MealSlotGroup> TodaysMealsBySlot()
+        => [.. (this.m_MealPlanEntries ?? [])
+            .Where(e => e.Date.Date == this.TimeProvider.GetLocalNow().Date)
+            .GroupBy(e => string.IsNullOrWhiteSpace(e.MealSlotName) ? "Planned" : e.MealSlotName)
+            .Select(g => new MealSlotGroup(g.Key, string.Join(" · ", g.Select(e => e.RecipeName))))];
 
     private IEnumerable<MealPlanEntryDto> TomorrowsMeals()
         => (this.m_MealPlanEntries ?? []).Where(e => e.Date.Date == this.TimeProvider.GetLocalNow().Date.AddDays(1));
+
+    // Today's row leads the tile on its own, so the strip starts at tomorrow.
+    private WeatherDayDto? Today()
+        => this.m_Weather?.Forecast.FirstOrDefault();
+
+    private IEnumerable<WeatherDayDto> ForecastStrip()
+        => (this.m_Weather?.Forecast ?? []).Skip(1).Take(3);
+
+    private static string Temperature(double celsius)
+        => $"{(int)Math.Round(celsius)}°";
 
     private IEnumerable<ActivitySummaryDto> UpcomingActivities()
         => (this.m_Activities ?? [])

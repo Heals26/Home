@@ -1,5 +1,8 @@
 ﻿@page "/recipes/{RecipeID:long}"
 
+@using Home.WebUI.Components.Shared.Content
+@using Home.WebUI.DataAccess.MealSlots.Models
+
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
     <div class="flex flex-col h-full">
         <HomeTopBar Title="@(this.m_Recipe?.Name ?? "Recipe")" ShowBack="true" BackHref="/recipes">
@@ -33,14 +36,38 @@
             {
                 <div class="max-w-3xl mx-auto flex flex-col gap-4">
 
-                    @if (!string.IsNullOrWhiteSpace(this.m_Recipe.Url))
-                    {
-                        <a href="@this.m_Recipe.Url" target="_blank" rel="noopener noreferrer"
-                           class="inline-flex items-center gap-2 text-sm text-recipes hover:text-recipes/80">
-                            <span class="home-icon home-icon-link h-4 w-4 inline-block"></span>
-                            View source
-                        </a>
-                    }
+                    @* At a glance: the picture, the numbers, the meals it suits *@
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+                        <RecipeImage ImageUrl="@this.m_Recipe.ImageUrl"
+                                     Alt="@this.m_Recipe.Name"
+                                     Class="aspect-[4/3] w-full rounded-2xl sm:w-56 sm:shrink-0"
+                                     IconClass="h-10 w-10" />
+                        <div class="min-w-0 flex-1 flex flex-col gap-2">
+                            <RecipeSummaryStrip Complexity="this.m_Recipe.Complexity"
+                                                CookMinutes="this.m_Recipe.CookMinutes"
+                                                PrepMinutes="this.m_Recipe.PrepMinutes"
+                                                Servings="this.m_Recipe.Servings" />
+
+                            @if (this.m_Recipe.MealSlots.Any())
+                            {
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach (var _MealSlot in this.m_Recipe.MealSlots.OrderBy(m => m.Sequence))
+                                    {
+                                        <span class="rounded-full border border-ink-800 bg-ink-900 px-3 py-1 text-xs text-ink-300">@_MealSlot.Name</span>
+                                    }
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(this.m_Recipe.Url))
+                            {
+                                <a href="@this.m_Recipe.Url" target="_blank" rel="noopener noreferrer"
+                                   class="inline-flex items-center gap-2 text-sm text-recipes hover:text-recipes/80">
+                                    <span class="home-icon home-icon-link h-4 w-4 inline-block"></span>
+                                    View source
+                                </a>
+                            }
+                        </div>
+                    </div>
 
                     @* Ingredients *@
                     <HomeCard Title="Ingredients">
@@ -63,18 +90,20 @@
                                         <div class="flex items-center gap-3 px-5 py-3 group">
                                             <div class="flex-1 min-w-0">
                                                 <p class="text-sm font-medium text-ink-50 truncate">@_Ingredient.Name</p>
-                                                @if (this.HasMeasurements(_Ingredient))
+                                                @if (!string.IsNullOrEmpty(RecipeDisplayLogic.DescribeAmount(_Ingredient)))
                                                 {
-                                                    <p class="text-xs text-ink-500">@this.DescribeMeasurements(_Ingredient)</p>
+                                                    <p class="text-xs text-ink-500">@RecipeDisplayLogic.DescribeAmount(_Ingredient)</p>
                                                 }
                                             </div>
-                                            <button class="text-ink-600 hover:text-ink-200 transition-colors opacity-0 group-hover:opacity-100"
+                                            <button class="text-ink-600 hover:text-ink-200 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-2 min-h-[44px] min-w-[44px]"
                                                     type="button" title="Edit"
+                                                    aria-label="@($"Edit {_Ingredient.Name}")"
                                                     @onclick="() => this.OpenEditIngredientModal(_Ingredient)">
                                                 <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
                                             </button>
-                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-2 min-h-[44px] min-w-[44px]"
                                                     type="button" title="Remove"
+                                                    aria-label="@($"Remove {_Ingredient.Name}")"
                                                     @onclick="() => this.RemoveIngredientAsync(_Ingredient.IngredientID)">
                                                 <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
                                             </button>
@@ -110,15 +139,17 @@
                                                 {
                                                     <p class="text-sm font-semibold text-ink-50">@_Step.Title</p>
                                                 }
-                                                <p class="text-sm text-ink-300 whitespace-pre-wrap">@_Step.Content</p>
+                                                <HomeMarkdown Content="@_Step.Content" />
                                             </div>
-                                            <button class="text-ink-600 hover:text-ink-200 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                                            <button class="text-ink-600 hover:text-ink-200 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 shrink-0 p-2 min-h-[44px] min-w-[44px]"
                                                     type="button" title="Edit"
+                                                    aria-label="@($"Edit step {_Step.Sequence}")"
                                                     @onclick="() => this.OpenEditStepModal(_Step)">
                                                 <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
                                             </button>
-                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 shrink-0 p-2 min-h-[44px] min-w-[44px]"
                                                     type="button" title="Remove"
+                                                    aria-label="@($"Remove step {_Step.Sequence}")"
                                                     @onclick="() => this.RemoveStepAsync(_Step.RecipeStepID)">
                                                 <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
                                             </button>
@@ -149,11 +180,12 @@
                                     {
                                         <div class="flex items-start gap-3 bg-ink-800/50 rounded-lg px-4 py-3 group">
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm text-ink-200 whitespace-pre-wrap">@_Note.Content</p>
+                                                <HomeMarkdown Content="@_Note.Content" />
                                                 <p class="text-xs text-ink-600 mt-1">@_Note.CreatedOnUTC.ToLocalTime().ToString("d MMM yyyy")</p>
                                             </div>
-                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                                            <button class="text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 shrink-0 p-2 min-h-[44px] min-w-[44px]"
                                                     type="button" title="Remove"
+                                                    aria-label="Remove note"
                                                     @onclick="() => this.RemoveNoteAsync(_Note.NoteID)">
                                                 <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
                                             </button>
@@ -177,6 +209,44 @@
         <div class="mt-3">
             <HomeTextInput Label="Source URL (optional)" Type="url" AutoComplete="off" @bind-Value="this.m_EditUrl" Placeholder="https://..." />
         </div>
+        <div class="mt-3">
+            <HomeTextInput Label="Picture URL (optional)" Type="url" AutoComplete="off" @bind-Value="this.m_EditImageUrl" Placeholder="https://..." />
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mt-3">
+            <HomeTextInput Label="Prep (min)" AutoComplete="off" InputMode="numeric" @bind-Value="this.m_EditPrepMinutes" Placeholder="e.g. 15" />
+            <HomeTextInput Label="Cook (min)" AutoComplete="off" InputMode="numeric" @bind-Value="this.m_EditCookMinutes" Placeholder="e.g. 40" />
+            <HomeTextInput Label="Serves" AutoComplete="off" InputMode="numeric" @bind-Value="this.m_EditServings" Placeholder="e.g. 4" />
+        </div>
+
+        <div class="mt-3 flex flex-col gap-1.5">
+            <label for="recipe-complexity" class="text-sm font-medium text-ink-300">How involved</label>
+            <select id="recipe-complexity" @bind="this.m_EditComplexity"
+                    class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent">
+                <option value="">Not said</option>
+                @foreach (var _Complexity in RecipeComplexities.All)
+                {
+                    <option value="@_Complexity.Value">@_Complexity.Name</option>
+                }
+            </select>
+        </div>
+
+        @if (this.m_MealSlots.Count > 0)
+        {
+            <div class="mt-4">
+                <p class="text-sm font-medium text-ink-300 mb-2">Which meals does it suit?</p>
+                <div class="flex flex-wrap gap-2">
+                    @foreach (var _MealSlot in this.m_MealSlots)
+                    {
+                        <button type="button"
+                                aria-pressed="@this.m_EditMealSlotIDs.Contains(_MealSlot.MealSlotID)"
+                                class="rounded-full border px-4 min-h-[40px] text-sm font-medium transition-colors active:scale-95 @(this.m_EditMealSlotIDs.Contains(_MealSlot.MealSlotID) ? "border-ink-50 bg-ink-50 text-ink-950" : "border-ink-700 bg-ink-800 text-ink-300 hover:text-ink-50")"
+                                @onclick="() => this.ToggleMealSlot(_MealSlot.MealSlotID)">@_MealSlot.Name</button>
+                    }
+                </div>
+            </div>
+        }
+
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowEditRecipe = false">Cancel</HomeButton>
             <HomeButton Loading="this.m_Saving" OnClick="this.SaveRecipeAsync">Save</HomeButton>
@@ -188,10 +258,18 @@
 <HomeModal @bind-Visible="this.m_ShowIngredient" Title="@(this.m_EditingIngredientID.HasValue ? "Edit ingredient" : "Add ingredient")">
     <ChildContent>
         <HomeTextInput Label="Name" AutoComplete="off" @bind-Value="this.m_IngName" Placeholder="e.g. Onion" />
-        <div class="grid grid-cols-3 gap-3 mt-3">
-            <HomeTextInput Label="Quantity" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_IngQuantity" Placeholder="e.g. 2" />
-            <HomeTextInput Label="Volume" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_IngVolume" Placeholder="e.g. 250" />
-            <HomeTextInput Label="Weight" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_IngWeight" Placeholder="e.g. 500" />
+        <div class="grid grid-cols-2 gap-3 mt-3">
+            <HomeTextInput Label="Amount" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_IngAmount" Placeholder="e.g. 2" />
+            <div class="flex flex-col gap-1.5">
+                <label for="ingredient-unit" class="text-sm font-medium text-ink-300">Measurement</label>
+                <select id="ingredient-unit" @bind="this.m_IngUnit"
+                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent">
+                    @foreach (var _Unit in MeasurementUnits.All)
+                    {
+                        <option value="@_Unit.Value">@_Unit.Name</option>
+                    }
+                </select>
+            </div>
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowIngredient = false">Cancel</HomeButton>
@@ -206,9 +284,10 @@
         <HomeTextInput Label="Title (optional)" AutoComplete="off" @bind-Value="this.m_StepTitle" Placeholder="e.g. Prepare the sauce" />
         <div class="mt-3 flex flex-col gap-1.5">
             <label for="recipe-step-content" class="text-sm font-medium text-ink-300">Instructions</label>
-            <textarea id="recipe-step-content" @bind="this.m_StepContent" rows="4"
+            <textarea id="recipe-step-content" @bind="this.m_StepContent" rows="5"
                       placeholder="Describe this step..."
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
+            <p class="text-xs text-ink-500">Markdown works here — **bold**, *italic*, - bullet lists.</p>
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowStep = false">Cancel</HomeButton>
@@ -222,9 +301,10 @@
     <ChildContent>
         <div class="flex flex-col gap-1.5">
             <label for="recipe-note-content" class="text-sm font-medium text-ink-300">Note</label>
-            <textarea id="recipe-note-content" @bind="this.m_NoteContent" rows="3"
+            <textarea id="recipe-note-content" @bind="this.m_NoteContent" rows="4"
                       placeholder="Write a note..."
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
+            <p class="text-xs text-ink-500">Markdown works here — **bold**, *italic*, - bullet lists.</p>
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowNote = false">Cancel</HomeButton>
@@ -236,39 +316,77 @@
 @* Add to shopping list modal *@
 <HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add to shopping list">
     <ChildContent>
-        <p class="text-sm text-ink-400 mb-3">Add this recipe's ingredients to a shopping list.</p>
-        @if (this.m_ShoppingLists == null)
+        @if (this.m_Recipe == null || !this.m_Recipe.Ingredients.Any())
         {
-            <HomeLoader Class="py-6" />
+            <p class="text-sm text-ink-500">This recipe hasn't got any ingredients written down yet.</p>
         }
         else
         {
-            @if (this.m_ShoppingLists.ShoppingLists.Any())
-            {
-                <div class="divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
-                    @foreach (var _List in this.m_ShoppingLists.ShoppingLists)
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-medium text-ink-300">What do you still need?</p>
+                    <button type="button" class="text-xs text-ink-300 underline underline-offset-4 hover:text-ink-50 min-h-[36px] px-1"
+                            @onclick="this.ToggleAllIngredients">
+                        @(this.AllIngredientsTicked() ? "Untick all" : "Tick all")
+                    </button>
+                </div>
+                <div class="max-h-56 app-scrollable divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
+                    @foreach (var _Ingredient in this.m_Recipe.Ingredients)
                     {
-                        <button type="button"
-                                class="w-full text-left px-4 py-3 hover:bg-ink-800 transition-colors disabled:opacity-50"
-                                disabled="@this.m_AddingToList"
-                                @onclick="() => this.AddToExistingListAsync(_List.ShoppingListID)">
-                            <p class="text-sm font-medium text-ink-50">@_List.Name</p>
-                            <p class="text-xs text-ink-500">@_List.ItemCount items</p>
-                        </button>
+                        <label class="flex items-center gap-3 px-4 py-3 min-h-[48px] cursor-pointer hover:bg-ink-800/60 transition-colors">
+                            <input type="checkbox"
+                                   class="h-5 w-5 shrink-0 rounded border-ink-600 bg-ink-800 accent-ink-50"
+                                   checked="@this.m_SelectedIngredientIDs.Contains(_Ingredient.IngredientID)"
+                                   @onchange="e => this.ToggleIngredient(_Ingredient.IngredientID, e)" />
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm text-ink-50 truncate">@_Ingredient.Name</span>
+                                @if (!string.IsNullOrEmpty(RecipeDisplayLogic.DescribeAmount(_Ingredient)))
+                                {
+                                    <span class="block text-xs text-ink-500">@RecipeDisplayLogic.DescribeAmount(_Ingredient)</span>
+                                }
+                            </span>
+                        </label>
                     }
                 </div>
+            </div>
+
+            @if (this.m_ShoppingLists == null)
+            {
+                <HomeLoader Class="py-6" />
             }
             else
             {
-                <p class="text-sm text-ink-500">No shopping lists yet — create one below.</p>
-            }
+                @if (this.m_ShoppingLists.ShoppingLists.Any())
+                {
+                    <p class="text-sm font-medium text-ink-300 mb-2">Add them to</p>
+                    <div class="divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
+                        @foreach (var _List in this.m_ShoppingLists.ShoppingLists)
+                        {
+                            <button type="button"
+                                    class="w-full text-left px-4 py-3 min-h-[48px] hover:bg-ink-800 transition-colors disabled:opacity-50"
+                                    disabled="@(this.m_AddingToList || this.m_SelectedIngredientIDs.Count == 0)"
+                                    @onclick="() => this.AddToExistingListAsync(_List.ShoppingListID)">
+                                <p class="text-sm font-medium text-ink-50">@_List.Name</p>
+                                <p class="text-xs text-ink-500">@_List.ItemCount items</p>
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-sm text-ink-500">No shopping lists yet — create one below.</p>
+                }
 
-            <div class="mt-4 pt-4 border-t border-ink-800">
-                <HomeTextInput Label="Or create a new list" AutoComplete="off" @bind-Value="this.m_NewListName" Placeholder="e.g. Weekly shop" />
-                <div class="mt-3 flex justify-end">
-                    <HomeButton Loading="this.m_AddingToList" OnClick="this.CreateListAndAddAsync">Create &amp; add</HomeButton>
+                <div class="mt-4 pt-4 border-t border-ink-800">
+                    <HomeTextInput Label="Or create a new list" AutoComplete="off" @bind-Value="this.m_NewListName" Placeholder="e.g. Weekly shop" />
+                    <div class="mt-3 flex justify-end">
+                        <HomeButton Loading="this.m_AddingToList"
+                                    Disabled="@(string.IsNullOrWhiteSpace(this.m_NewListName) || this.m_SelectedIngredientIDs.Count == 0)"
+                                    DisabledReason="Name the list and tick at least one ingredient."
+                                    OnClick="this.CreateListAndAddAsync">Create &amp; add</HomeButton>
+                    </div>
                 </div>
-            </div>
+            }
         }
     </ChildContent>
 </HomeModal>

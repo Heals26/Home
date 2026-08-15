@@ -126,6 +126,8 @@
                                         OnEffects="() => this.OpenEffectsModal(_Group)"
                                         OnLightPower="a => this.SetPowerAsync(a.Light, a.IsOn)"
                                         OnLightBrightness="a => this.SetBrightnessAsync(a.Light, a.Brightness)"
+                                        OnLightColour="a => this.ApplyColourAsync(a.Light, a.Hue, a.Saturation)"
+                                        OnLightKelvin="a => this.ApplyKelvinAsync(a.Light, a.Kelvin)"
                                         OnLightPreset="a => this.ApplyPresetAsync(a.Light, a.Preset)"
                                         OnLightMoved="a => this.MoveLightAsync(a.Light, a.GroupID)" />
                     }

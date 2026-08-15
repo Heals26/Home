@@ -7,7 +7,17 @@
 
         <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold text-ink-50 truncate">@this.Light.Label</p>
-            <p class="text-xs text-ink-500">@this.StatusText()</p>
+            <p class="text-xs text-ink-500 flex items-center gap-2 min-w-0">
+                <span class="truncate">@this.StatusText()</span>
+
+                @* Home knows the bulb has addressable zones even though it can only set the whole
+                   strip at once — saying so beats pretending the hardware is something simpler. *@
+                @if (this.ZoneBadge() is { } _ZoneBadge)
+                {
+                    <span class="shrink-0 rounded border border-ink-700 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-400"
+                          title="This one has individually addressable zones. Home sets the whole light at once.">@_ZoneBadge</span>
+                }
+            </p>
         </div>
 
         @if (!this.EditMode)
@@ -36,13 +46,20 @@
     else if (this.Light.IsConnected && this.Light.IsOn)
     {
         <div class="mt-4 pt-4 border-t border-ink-800 flex flex-col gap-4">
-            <HomeSlider Label="Brightness"
-                        Unit="%"
-                        Min="1"
-                        Max="100"
-                        Value="Percent(this.Light.Brightness)"
-                        ValueChanged="v => this.Light.Brightness = v / 100d"
-                        ValueCommitted="v => this.OnBrightnessCommitted.InvokeAsync(v / 100d)" />
+            <HomeColourWheel Brightness="this.Light.Brightness"
+                             BrightnessChanged="b => this.Light.Brightness = b"
+                             BrightnessCommitted="b => this.OnBrightnessCommitted.InvokeAsync(b)"
+                             ColourChanged="this.PreviewColour"
+                             ColourCommitted="c => this.OnColourCommitted.InvokeAsync(c)"
+                             HasColour="this.Light.HasColour"
+                             HasVariableColourTemp="this.Light.HasVariableColourTemp"
+                             Hue="this.Light.Hue"
+                             Kelvin="this.Light.Kelvin"
+                             KelvinChanged="k => this.Light.Kelvin = k"
+                             KelvinCommitted="k => this.OnKelvinCommitted.InvokeAsync(k)"
+                             MaxKelvin="this.Light.MaxKelvin"
+                             MinKelvin="this.Light.MinKelvin"
+                             Saturation="this.Light.Saturation" />
 
             @* Only offer what the hardware can honour: a white-only bulb gets whites, a bulb with
                no variable temperature gets no whites either. *@

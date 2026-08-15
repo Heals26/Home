@@ -1,0 +1,53 @@
+﻿@* One card, shared by the board, the week and the day so they cannot drift apart. The parent
+   supplies whatever actions make sense in its view through FooterContent. *@
+
+<div class="bg-ink-800 border border-ink-700 rounded-lg overflow-hidden">
+    <div class="p-3 cursor-pointer hover:bg-ink-700 transition-colors"
+         draggable="@(this.Draggable ? "true" : "false")"
+         @ondragstart="this.OnDragStart"
+         @onclick="this.OnOpen">
+        <p class="text-sm font-medium text-ink-50">@this.Activity.Title</p>
+
+        @if (this.Activity.Tags.Any())
+        {
+            <div class="flex flex-wrap gap-1 mt-2">
+                @foreach (var _Tag in this.Activity.Tags)
+                {
+                    <span class="text-[10px] font-semibold uppercase tracking-wide text-ink-950 rounded-full px-2 py-0.5"
+                          style="background-color:@ActivityBoardLogic.SafeColour(_Tag.Colour)">@_Tag.Name</span>
+                }
+            </div>
+        }
+
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+            @if (this.ShowDate && this.Activity.DueDateUTC.HasValue)
+            {
+                <span class="inline-flex items-center gap-1 text-xs text-ink-400">
+                    <span class="home-icon home-icon-calendar h-3.5 w-3.5 inline-block"></span>
+                    @ActivityBoardLogic.DescribeDate(this.Activity.DueDateUTC.Value)
+                </span>
+            }
+            @if (this.Activity.DueTime.HasValue)
+            {
+                <span class="inline-flex items-center gap-1 text-xs text-week">
+                    <span class="home-icon home-icon-clock h-3.5 w-3.5 inline-block"></span>
+                    @ActivityBoardLogic.DescribeTime(this.Activity.DueTime.Value)
+                </span>
+            }
+            @if (!string.IsNullOrWhiteSpace(this.Activity.AssignedTo))
+            {
+                <span class="inline-flex items-center gap-1.5 min-w-0">
+                    <span class="h-5 w-5 shrink-0 rounded-full bg-week/15 text-week text-[10px] font-semibold flex items-center justify-center">@ActivityBoardLogic.Initials(this.Activity.AssignedTo)</span>
+                    <span class="text-xs text-ink-500 truncate">@this.Activity.AssignedTo</span>
+                </span>
+            }
+        </div>
+    </div>
+
+    @if (this.FooterContent != null)
+    {
+        <div class="flex border-t border-ink-700">
+            @this.FooterContent
+        </div>
+    }
+</div>

@@ -1,0 +1,24 @@
+﻿@* One day-and-meal square of the planner. Shared by the wide matrix and the narrow day-by-day
+   list so the two layouts can never drift apart. *@
+
+<div class="flex flex-wrap items-center gap-1.5 @this.Class">
+    @foreach (var _Entry in this.Entries)
+    {
+        <span class="flex max-w-full items-center gap-1 rounded-full border border-ink-700 bg-ink-800 py-1 pl-3 pr-1">
+            <a href="/recipes/@_Entry.RecipeID" class="truncate text-xs text-ink-100 hover:underline underline-offset-4">@_Entry.RecipeName</a>
+            <button type="button"
+                    aria-label="@($"Remove {_Entry.RecipeName}")"
+                    class="h-7 w-7 shrink-0 rounded-full text-ink-500 hover:text-red-400"
+                    @onclick="() => this.OnRemove.InvokeAsync(_Entry)">
+                <span class="home-icon home-icon-x h-3 w-3 inline-block"></span>
+            </button>
+        </span>
+    }
+    <button type="button"
+            aria-label="@this.AddLabel"
+            title="@this.AddLabel"
+            class="h-9 w-9 shrink-0 rounded-lg border border-ink-800 text-ink-500 transition-all hover:border-ink-600 hover:text-ink-50 active:scale-95"
+            @onclick="this.OnPlan">
+        <span class="home-icon home-icon-plus h-3.5 w-3.5 inline-block"></span>
+    </button>
+</div>

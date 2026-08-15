@@ -1,14 +1,23 @@
-@page "/meal-plan"
+﻿@page "/meal-plan"
 
-@* The week's dinners. One row per day: glance for tonight, tap + to plan, and push the
-   whole week's ingredients onto a shopping list in one go. *@
+@using Home.WebUI.DataAccess.MealSlots.CreateMealSlot
+@using Home.WebUI.DataAccess.MealSlots.GetMealSlots
+@using Home.WebUI.DataAccess.MealSlots.Models
+@using Home.WebUI.DataAccess.MealSlots.UpdateMealSlot
+
+@* The week as a matrix: the household's meals down, the days across. On a phone it folds into a
+   day-by-day list so the same week still reads without sideways scrolling. *@
 
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
-    <div class="flex flex-col h-full max-w-3xl mx-auto w-full">
-        <HomeTopBar Title="Meals" Eyebrow="What's for dinner" EyebrowClass="text-recipes">
+    <div class="flex flex-col h-full w-full">
+        <HomeTopBar Title="Meals" Eyebrow="The week's meals" EyebrowClass="text-recipes">
             <ActionsContent>
+                <HomeButton Size="sm" Variant="ghost" OnClick="this.OpenManageMealsModal">
+                    <span class="home-icon home-icon-cog h-4 w-4 inline-block"></span>
+                </HomeButton>
                 <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenAddToListModal"
-                            Disabled="@(this.m_Entries == null || this.m_Entries.Count == 0)">
+                            Disabled="@(this.m_Entries == null || this.m_Entries.Count == 0)"
+                            DisabledReason="Nothing is planned this week yet.">
                     <span class="home-icon home-icon-shopping-list h-4 w-4 mr-1 inline-block"></span>
                     Add week to list
                 </HomeButton>
@@ -45,39 +54,97 @@
             {
                 <HomeLoader Class="py-16" />
             }
+            else if (this.m_MealSlots.Count == 0)
+            {
+                <HomeEmptyState Title="No meals defined yet"
+                                Subtitle="Name the meals your family actually eats — breakfast, dinner, whatever you call them.">
+                    <ActionContent>
+                        <HomeButton OnClick="this.OpenManageMealsModal">Set up meals</HomeButton>
+                    </ActionContent>
+                </HomeEmptyState>
+            }
             else
             {
-                <div class="flex flex-col gap-2">
+                @* Wide: meals down, days across *@
+                <div class="hidden lg:grid grid-cols-[8rem_repeat(7,minmax(0,1fr))] gap-2">
+                    <div></div>
                     @foreach (var _Day in this.WeekDays())
                     {
-                        var _IsToday = _Day == this.TimeProvider.GetLocalNow().Date;
-                        <div class="flex items-center gap-3 rounded-2xl border px-4 py-3 min-h-[64px] @(_IsToday ? "border-recipes/40 bg-ink-900" : "border-ink-800 bg-ink-900/60")">
-                            <div class="w-16 shrink-0">
-                                <p class="text-xs font-semibold uppercase tracking-widest @(_IsToday ? "text-recipes" : "text-ink-500")">@_Day.ToString("ddd")</p>
+                        <div class="px-1 pb-1 text-center">
+                            <p class="text-xs font-semibold uppercase tracking-widest @(this.IsToday(_Day) ? "text-recipes" : "text-ink-500")">@_Day.ToString("ddd")</p>
+                            <p class="text-xs text-ink-500">@_Day.ToString("d MMM")</p>
+                        </div>
+                    }
+
+                    @foreach (var _MealSlot in this.m_MealSlots)
+                    {
+                        <div class="flex flex-col justify-center rounded-xl bg-ink-900/60 px-3 py-2">
+                            <p class="text-sm font-medium text-ink-100 truncate">@_MealSlot.Name</p>
+                            @if (_MealSlot.StartsAt != null)
+                            {
+                                <p class="text-xs text-ink-600">@this.DescribeStartsAt(_MealSlot.StartsAt)</p>
+                            }
+                        </div>
+                        @foreach (var _Day in this.WeekDays())
+                        {
+                            <MealPlanCell Class="@(this.IsToday(_Day) ? "min-h-[64px] rounded-xl border border-recipes/40 bg-ink-900 p-2" : "min-h-[64px] rounded-xl border border-ink-800 bg-ink-900/40 p-2")"
+                                          AddLabel="@($"Plan {_MealSlot.Name} for {_Day:dddd d MMMM}")"
+                                          Entries="this.EntriesFor(_Day, _MealSlot.MealSlotID)"
+                                          OnPlan="() => this.OpenPickerAsync(_Day, _MealSlot.MealSlotID)"
+                                          OnRemove="this.DeleteEntryAsync" />
+                        }
+                    }
+
+                    @if (this.HasUnassignedEntries())
+                    {
+                        <div class="flex flex-col justify-center rounded-xl bg-ink-900/60 px-3 py-2">
+                            <p class="text-sm font-medium text-ink-400 truncate">Not assigned</p>
+                            <p class="text-xs text-ink-600">Planned before meals existed</p>
+                        </div>
+                        @foreach (var _Day in this.WeekDays())
+                        {
+                            <MealPlanCell Class="@(this.IsToday(_Day) ? "min-h-[64px] rounded-xl border border-dashed border-recipes/40 p-2" : "min-h-[64px] rounded-xl border border-dashed border-ink-800 p-2")"
+                                          AddLabel="@($"Plan a meal for {_Day:dddd d MMMM}")"
+                                          Entries="this.EntriesFor(_Day, null)"
+                                          OnPlan="() => this.OpenPickerAsync(_Day, null)"
+                                          OnRemove="this.DeleteEntryAsync" />
+                        }
+                    }
+                </div>
+
+                @* Narrow: one card per day *@
+                <div class="lg:hidden flex flex-col gap-3 max-w-3xl mx-auto">
+                    @foreach (var _Day in this.WeekDays())
+                    {
+                        <div class="rounded-2xl border px-4 py-3 @(this.IsToday(_Day) ? "border-recipes/40 bg-ink-900" : "border-ink-800 bg-ink-900/60")">
+                            <div class="flex items-baseline gap-2 mb-2">
+                                <p class="text-xs font-semibold uppercase tracking-widest @(this.IsToday(_Day) ? "text-recipes" : "text-ink-500")">@_Day.ToString("ddd")</p>
                                 <p class="text-sm text-ink-300">@_Day.ToString("d MMM")</p>
                             </div>
-                            <div class="flex-1 min-w-0 flex flex-wrap items-center gap-2">
-                                @foreach (var _Entry in this.EntriesFor(_Day))
+                            <div class="flex flex-col divide-y divide-ink-800">
+                                @foreach (var _MealSlot in this.m_MealSlots)
                                 {
-                                    <span class="flex items-center gap-1 max-w-full rounded-full border border-ink-700 bg-ink-800 pl-3 pr-1 py-1">
-                                        <a href="/recipes/@_Entry.RecipeID" class="text-sm text-ink-100 truncate hover:underline underline-offset-4">@_Entry.RecipeName</a>
-                                        <button type="button" aria-label="@($"Remove {_Entry.RecipeName}")"
-                                                class="h-8 w-8 rounded-full text-ink-500 hover:text-red-400"
-                                                @onclick="() => this.DeleteEntryAsync(_Entry)">
-                                            <span class="home-icon home-icon-x h-3.5 w-3.5 inline-block"></span>
-                                        </button>
-                                    </span>
+                                    <div class="flex items-center gap-3 py-2">
+                                        <p class="w-20 shrink-0 text-sm text-ink-400 truncate">@_MealSlot.Name</p>
+                                        <MealPlanCell Class="flex-1 min-w-0"
+                                                      AddLabel="@($"Plan {_MealSlot.Name} for {_Day:dddd d MMMM}")"
+                                                      Entries="this.EntriesFor(_Day, _MealSlot.MealSlotID)"
+                                                      OnPlan="() => this.OpenPickerAsync(_Day, _MealSlot.MealSlotID)"
+                                                      OnRemove="this.DeleteEntryAsync" />
+                                    </div>
                                 }
-                                @if (!this.EntriesFor(_Day).Any())
+                                @if (this.EntriesFor(_Day, null).Any())
                                 {
-                                    <span class="text-sm text-ink-600">Nothing planned</span>
+                                    <div class="flex items-center gap-3 py-2">
+                                        <p class="w-20 shrink-0 text-sm text-ink-500 truncate">Not assigned</p>
+                                        <MealPlanCell Class="flex-1 min-w-0"
+                                                      AddLabel="@($"Plan a meal for {_Day:dddd d MMMM}")"
+                                                      Entries="this.EntriesFor(_Day, null)"
+                                                      OnPlan="() => this.OpenPickerAsync(_Day, null)"
+                                                      OnRemove="this.DeleteEntryAsync" />
+                                    </div>
                                 }
                             </div>
-                            <button type="button" aria-label="@($"Plan a meal for {_Day:dddd d MMMM}")"
-                                    class="h-11 w-11 shrink-0 rounded-lg border border-ink-700 text-ink-400 hover:text-ink-50 hover:border-ink-500 active:scale-95 transition-all"
-                                    @onclick="() => this.OpenPickerAsync(_Day)">
-                                <span class="home-icon home-icon-plus h-4 w-4 inline-block"></span>
-                            </button>
                         </div>
                     }
                 </div>
@@ -87,8 +154,21 @@
 </CascadingValue>
 
 @* Recipe picker *@
-<HomeModal @bind-Visible="this.m_ShowPicker" Title="@($"Plan for {this.m_PickerDate:dddd d MMMM}")">
+<HomeModal @bind-Visible="this.m_ShowPicker" Title="@this.PickerTitle()">
     <ChildContent>
+        @if (this.m_MealSlots.Count > 0)
+        {
+            <div class="flex flex-wrap gap-2 mb-4">
+                @foreach (var _MealSlot in this.m_MealSlots)
+                {
+                    <button type="button"
+                            aria-pressed="@(this.m_PickerMealSlotID == _MealSlot.MealSlotID)"
+                            class="rounded-full border px-4 min-h-[40px] text-sm font-medium transition-colors active:scale-95 @(this.m_PickerMealSlotID == _MealSlot.MealSlotID ? "border-ink-50 bg-ink-50 text-ink-950" : "border-ink-700 bg-ink-800 text-ink-300 hover:text-ink-50")"
+                            @onclick="() => this.m_PickerMealSlotID = _MealSlot.MealSlotID">@_MealSlot.Name</button>
+                }
+            </div>
+        }
+
         @if (this.m_Recipes == null)
         {
             <HomeLoader Class="py-6" />
@@ -100,13 +180,17 @@
         else
         {
             <div class="max-h-80 app-scrollable divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
-                @foreach (var _Recipe in this.m_Recipes)
+                @foreach (var _Recipe in this.m_Recipes.OrderBy(r => r.Name))
                 {
                     <button type="button"
                             class="w-full text-left px-4 py-3 min-h-[48px] hover:bg-ink-800 transition-colors disabled:opacity-50"
                             disabled="@this.m_Planning"
                             @onclick="() => this.PlanRecipeAsync(_Recipe.RecipeID)">
                         <p class="text-sm font-medium text-ink-50">@_Recipe.Name</p>
+                        @if (_Recipe.MealSlots.Any())
+                        {
+                            <p class="text-xs text-ink-500">@(string.Join(" · ", _Recipe.MealSlots.OrderBy(m => m.Sequence).Select(m => m.Name)))</p>
+                        }
                     </button>
                 }
             </div>
@@ -117,7 +201,23 @@
 @* Add the visible week to a shopping list *@
 <HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add week to shopping list">
     <ChildContent>
-        <p class="text-sm text-ink-400 mb-3">Adds the ingredients of every meal planned this week.</p>
+        <p class="text-sm text-ink-400 mb-3">Adds the ingredients of the meals planned this week.</p>
+
+        @if (this.m_MealSlots.Count > 0)
+        {
+            <div class="mb-4 flex flex-col gap-1.5">
+                <label for="meal-plan-slot-filter" class="text-sm font-medium text-ink-300">Which meals</label>
+                <select id="meal-plan-slot-filter" @bind="this.m_ListMealSlotFilter"
+                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent">
+                    <option value="">Every meal</option>
+                    @foreach (var _MealSlot in this.m_MealSlots)
+                    {
+                        <option value="@_MealSlot.MealSlotID">@_MealSlot.Name only</option>
+                    }
+                </select>
+            </div>
+        }
+
         @if (this.m_AddedRecipeCount != null)
         {
             <p class="text-sm text-shopping mb-3">Added ingredients from @this.m_AddedRecipeCount @(this.m_AddedRecipeCount == 1 ? "recipe" : "recipes").</p>
@@ -153,10 +253,76 @@
                 <div class="mt-3 flex justify-end">
                     <HomeButton Loading="this.m_AddingToList"
                                 Disabled="@string.IsNullOrWhiteSpace(this.m_NewListName)"
+                                DisabledReason="Name the list first."
                                 OnClick="this.CreateListAndAddWeekAsync">Create &amp; add</HomeButton>
                 </div>
             </div>
         }
+    </ChildContent>
+</HomeModal>
+
+@* The household's own meal vocabulary *@
+<HomeModal @bind-Visible="this.m_ShowManageMeals" Title="Your meals">
+    <ChildContent>
+        <p class="text-sm text-ink-400 mb-3">Name the meals your family actually eats. They order the planner and filter the recipe book.</p>
+
+        @if (this.m_MealSlots.Count > 0)
+        {
+            <div class="flex flex-col gap-2">
+                @foreach (var _MealSlot in this.m_MealSlots)
+                {
+                    <div class="flex items-center gap-2 rounded-xl border border-ink-800 bg-ink-900 px-3 py-2">
+                        <div class="flex flex-col">
+                            <button type="button" aria-label="@($"Move {_MealSlot.Name} earlier")"
+                                    class="h-6 w-6 rounded text-ink-500 hover:text-ink-50 disabled:opacity-30"
+                                    disabled="@(this.m_MealSlots.IndexOf(_MealSlot) == 0)"
+                                    @onclick="() => this.MoveMealSlotAsync(_MealSlot, -1)">
+                                <span class="home-icon home-icon-chevron-left h-3 w-3 inline-block rotate-90"></span>
+                            </button>
+                            <button type="button" aria-label="@($"Move {_MealSlot.Name} later")"
+                                    class="h-6 w-6 rounded text-ink-500 hover:text-ink-50 disabled:opacity-30"
+                                    disabled="@(this.m_MealSlots.IndexOf(_MealSlot) == this.m_MealSlots.Count - 1)"
+                                    @onclick="() => this.MoveMealSlotAsync(_MealSlot, 1)">
+                                <span class="home-icon home-icon-chevron-right h-3 w-3 inline-block rotate-90"></span>
+                            </button>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-ink-50 truncate">@_MealSlot.Name</p>
+                            <p class="text-xs text-ink-500">@(_MealSlot.StartsAt == null ? "No usual time" : $"Around {this.DescribeStartsAt(_MealSlot.StartsAt)}")</p>
+                        </div>
+                        <button type="button" aria-label="@($"Delete {_MealSlot.Name}")"
+                                class="p-2 min-h-[44px] min-w-[44px] text-ink-600 hover:text-red-400 transition-colors"
+                                @onclick="() => this.DeleteMealSlotAsync(_MealSlot.MealSlotID)">
+                            <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-sm text-ink-500">No meals yet.</p>
+        }
+
+        <div class="mt-4 pt-4 border-t border-ink-800">
+            <div class="grid grid-cols-2 gap-3">
+                <HomeTextInput Label="New meal" AutoComplete="off" @bind-Value="this.m_NewMealName" Placeholder="e.g. Supper" />
+                <div class="flex flex-col gap-1.5">
+                    <label for="new-meal-time" class="text-sm font-medium text-ink-300">Usual time (optional)</label>
+                    <input id="new-meal-time" type="time"
+                           autocomplete="off"
+                           class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"
+                           value="@this.m_NewMealStartsAt"
+                           @onchange="e => this.m_NewMealStartsAt = e.Value?.ToString() ?? string.Empty" />
+                </div>
+            </div>
+            <div class="mt-3 flex justify-end">
+                <HomeButton Loading="this.m_SavingMeal"
+                            Disabled="@string.IsNullOrWhiteSpace(this.m_NewMealName)"
+                            DisabledReason="Give the meal a name first."
+                            OnClick="this.CreateMealSlotAsync">Add meal</HomeButton>
+            </div>
+        </div>
     </ChildContent>
 </HomeModal>
 

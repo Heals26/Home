@@ -14,7 +14,9 @@ public partial class LightControlCard
     [Parameter] public IReadOnlyList<LightGroupDto> Groups { get; set; } = [];
     [Parameter, EditorRequired] public LightDto Light { get; set; } = default!;
     [Parameter] public EventCallback<double> OnBrightnessCommitted { get; set; }
+    [Parameter] public EventCallback<(double Hue, double Saturation)> OnColourCommitted { get; set; }
     [Parameter] public EventCallback<long> OnGroupChanged { get; set; }
+    [Parameter] public EventCallback<int> OnKelvinCommitted { get; set; }
     [Parameter] public EventCallback<bool> OnPowerChanged { get; set; }
     [Parameter] public EventCallback<ColourPreset> OnPresetSelected { get; set; }
 
@@ -60,10 +62,22 @@ public partial class LightControlCard
     private static int Percent(double value)
         => (int)Math.Round(Math.Clamp(value, 0d, 1d) * 100d);
 
+    // The wheel drags against the card's own copy so the swatch tracks the finger.
+    private void PreviewColour((double Hue, double Saturation) colour)
+    {
+        this.Light.Hue = colour.Hue;
+        this.Light.Saturation = colour.Saturation;
+    }
+
     private string StatusText()
         => !this.Light.IsConnected ? "Offline"
             : this.Light.IsOn ? $"On · {Percent(this.Light.Brightness)}%"
             : "Off";
+
+    private string? ZoneBadge()
+        => this.Light.HasMatrix ? "Matrix"
+            : this.Light.HasMultizone ? "Strip"
+            : null;
 
     #endregion Methods
 

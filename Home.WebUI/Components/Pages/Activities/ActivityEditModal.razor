@@ -1,0 +1,59 @@
+﻿@* The quick editor for a card, opened from the board, the calendar and the card itself — so the
+   three of them cannot disagree about what is editable. *@
+
+<HomeModal Visible="this.Visible" VisibleChanged="this.OnVisibleChangedAsync" Title="Edit activity">
+    <ChildContent>
+        <HomeTextInput Label="Title" AutoComplete="off" @bind-Value="this.m_Title" Placeholder="Title" />
+
+        <div class="flex flex-col gap-1.5 mt-3">
+            <label for="activity-edit-state" class="text-sm font-medium text-ink-300">Column</label>
+            <select id="activity-edit-state" @bind="this.m_StateID"
+                    class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
+                <option value="">Not sorted</option>
+                @foreach (var _State in this.States)
+                {
+                    <option value="@_State.ActivityStateID">@_State.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="mt-3">
+            <ActivityDueFields IdPrefix="activity-edit"
+                               @bind-Date="this.m_DueDate"
+                               @bind-HasTime="this.m_HasTime"
+                               @bind-Time="this.m_DueTime" />
+        </div>
+
+        <div class="flex flex-col gap-1.5 mt-3">
+            <label for="activity-edit-assignee" class="text-sm font-medium text-ink-300">Assign to</label>
+            <select id="activity-edit-assignee" @bind="this.m_UserID"
+                    class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
+                <option value="">Anyone</option>
+                @foreach (var _User in this.Users)
+                {
+                    <option value="@_User.UserID">@_User.FullName</option>
+                }
+            </select>
+        </div>
+
+        <div class="mt-3">
+            <ActivityTagPicker Tags="this.Tags" SelectedTagIDs="this.m_TagIDs" OnToggle="this.ToggleTag" />
+        </div>
+
+        @if (this.OnOpenCard.HasDelegate)
+        {
+            <HomeButton Variant="secondary" Class="w-full mt-4" OnClick="this.OnOpenCard">
+                <span class="home-icon home-icon-note h-4 w-4 mr-2 inline-block"></span>
+                Open the full card
+            </HomeButton>
+        }
+
+        <div class="mt-5 flex justify-between items-center">
+            <HomeButton Variant="danger" Size="sm" Loading="this.m_Saving" OnClick="this.DeleteAsync">Delete</HomeButton>
+            <div class="flex gap-3">
+                <HomeButton Variant="ghost" OnClick="() => this.OnVisibleChangedAsync(false)">Cancel</HomeButton>
+                <HomeButton Loading="this.m_Saving" OnClick="this.SaveAsync">Save</HomeButton>
+            </div>
+        </div>
+    </ChildContent>
+</HomeModal>

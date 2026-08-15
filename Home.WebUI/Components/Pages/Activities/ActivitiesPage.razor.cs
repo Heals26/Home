@@ -1,9 +1,13 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.Activities.CreateActivity;
 using Home.WebUI.DataAccess.Activities.GetActivities;
 using Home.WebUI.DataAccess.Activities.Models;
+using Home.WebUI.DataAccess.Activities.SetActivityTags;
 using Home.WebUI.DataAccess.Activities.UpdateActivity;
 using Home.WebUI.DataAccess.ActivityStates.GetActivityStates;
+using Home.WebUI.DataAccess.Tags.GetTags;
+using Home.WebUI.DataAccess.Tags.Models;
 using Home.WebUI.DataAccess.Users.GetUsers;
 using Home.WebUI.DataAccess.Users.Models;
 using Home.WebUI.Infrastructure.ApiProviders;
@@ -17,39 +21,50 @@ namespace Home.WebUI.Components.Pages.Activities;
 public partial class ActivitiesPage : IDisposable
 {
 
-    #region Records
-
-    private record ColumnVm(string Title, long? StateID);
-
-    #endregion Records
-
     #region Fields
+
+    private const string BoardView = "board";
+    private const string DayView = "day";
+    private const string WeekView = "week";
+    private const string DefaultDueTime = "18:00";
+
+    private static readonly List<HomeSegmentedControl<string>.SegmentOption> ViewOptions =
+    [
+        new("Board", BoardView),
+        new("Week", WeekView),
+        new("Day", DayView),
+    ];
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
     private ErrorHandler? m_ErrorHandler;
     private IDisposable? m_ChangeSubscription;
 
-    private List<ActivityStateDto>? m_States;
-    private List<ActivitySummaryDto>? m_Activities;
-    private List<UserSummaryDto>? m_Users;
-    private ActivitySummaryDto? m_DraggedActivity;
+    private List<ActivityStateDto> m_States = [];
+    private List<ActivitySummaryDto> m_Activities = [];
+    private List<TagDto> m_Tags = [];
+    private List<UserSummaryDto> m_Users = [];
+    private bool m_Loaded;
+
+    private string m_View = BoardView;
+    private DateTime m_Anchor;
+    private DateTime m_Today;
 
     private bool m_Saving;
+    private bool m_ShowBoardSettings;
 
     // Create
     private bool m_ShowCreate;
     private string m_NewTitle = string.Empty;
     private DateTime? m_NewDueDate;
+    private bool m_NewHasTime;
+    private string m_NewDueTime = DefaultDueTime;
     private long? m_NewStateID;
     private long? m_NewUserID;
+    private HashSet<long> m_NewTagIDs = [];
 
     // Edit
     private bool m_ShowEdit;
     private ActivitySummaryDto? m_EditActivity;
-    private string m_EditTitle = string.Empty;
-    private DateTime? m_EditDueDate;
-    private long? m_EditStateID;
-    private long? m_EditUserID;
 
     #endregion Fields
 
@@ -63,15 +78,16 @@ public partial class ActivitiesPage : IDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        var _States = await this.ApiAccess.SendRequestAsync<object, GetActivityStatesWebAppResponse>(
-            null!, ApiProvider.GetActivityStates(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
+        this.m_Today = this.TimeProvider.GetLocalNow().Date;
+        this.m_Anchor = this.m_Today;
 
-        if (_States != null)
-            this.m_States = [.. _States.States];
+        await Task.WhenAll(
+            this.LoadStatesAsync(),
+            this.LoadActivitiesAsync(),
+            this.LoadTagsAsync(),
+            this.LoadUsersAsync());
 
-        await Task.WhenAll(this.LoadActivitiesAsync(), this.LoadUsersAsync());
+        this.m_Loaded = true;
 
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
             this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
@@ -94,25 +110,28 @@ public partial class ActivitiesPage : IDisposable
 
         await this.InvokeAsync(async () =>
         {
-            await Task.WhenAll(this.LoadActivitiesAsync(), this.LoadUsersAsync());
+            await Task.WhenAll(
+                this.LoadStatesAsync(),
+                this.LoadActivitiesAsync(),
+                this.LoadTagsAsync(),
+                this.LoadUsersAsync());
+
             this.StateHasChanged();
         });
     }
 
-    // Columns
-
-    private List<ColumnVm> GetColumns()
-    {
-        // Always rendered, so there is somewhere to drop or move a card to un-assign it.
-        var _Columns = new List<ColumnVm>() { new("Unassigned", null) };
-
-        foreach (var _State in this.m_States ?? [])
-            _Columns.Add(new ColumnVm(_State.Name, _State.ActivityStateID));
-
-        return _Columns;
-    }
-
     // Loading
+
+    private async Task LoadStatesAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetActivityStatesWebAppResponse>(
+            null!, ApiProvider.GetActivityStates(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != null)
+            this.m_States = [.. _Result.States.OrderBy(s => s.Sequence)];
+    }
 
     private async Task LoadActivitiesAsync()
     {
@@ -123,6 +142,17 @@ public partial class ActivitiesPage : IDisposable
 
         if (_Result != null)
             this.m_Activities = [.. _Result.Activities];
+    }
+
+    private async Task LoadTagsAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetTagsWebAppResponse>(
+            null!, ApiProvider.GetTags(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != null)
+            this.m_Tags = [.. _Result.Tags.OrderBy(t => t.Name)];
     }
 
     private async Task LoadUsersAsync()
@@ -136,45 +166,59 @@ public partial class ActivitiesPage : IDisposable
             this.m_Users = [.. _Result.Users];
     }
 
-    private List<ActivitySummaryDto> ActivitiesForState(long? stateID)
+    private async Task ReloadAndPublishAsync()
     {
-        if (this.m_Activities == null)
-            return [];
-
-        if (stateID == null)
-            return [.. this.m_Activities.Where(a => a.StateID == null || !this.IsKnownState(a.StateID.Value))];
-
-        return [.. this.m_Activities.Where(a => a.StateID == stateID)];
+        await this.LoadStatesAsync();
+        await this.LoadActivitiesAsync();
+        await this.LoadTagsAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
     }
 
-    private bool IsKnownState(long stateID)
-        => this.m_States?.Any(s => s.ActivityStateID == stateID) ?? false;
+    // Views
+
+    private void SelectView(string view)
+    {
+        this.m_View = view;
+        this.m_Anchor = this.m_Today;
+    }
+
+    private void ShiftAnchor(int direction)
+        => this.m_Anchor = this.m_Anchor.AddDays(direction * (this.m_View == WeekView ? 7 : 1));
+
+    private void GoToToday()
+        => this.m_Anchor = this.m_Today;
+
+    private string GetViewTitle()
+        => this.m_View switch
+        {
+            WeekView => "The week",
+            DayView => "The day",
+            _ => "The board"
+        };
+
+    private List<DateTime> GetDays()
+    {
+        if (this.m_View == DayView)
+            return [this.m_Anchor.Date];
+
+        var _StartOfWeek = ActivityBoardLogic.StartOfWeek(this.m_Anchor);
+
+        return [.. Enumerable.Range(0, 7).Select(i => _StartOfWeek.AddDays(i))];
+    }
+
+    private string GetPeriodLabel()
+    {
+        if (this.m_View == DayView)
+            return ActivityBoardLogic.DescribeLongDay(this.m_Anchor);
+
+        var _StartOfWeek = ActivityBoardLogic.StartOfWeek(this.m_Anchor);
+
+        return $"{ActivityBoardLogic.DescribeDate(_StartOfWeek)} – {ActivityBoardLogic.DescribeDate(_StartOfWeek.AddDays(6))}";
+    }
 
     // Moving
 
-    private void OnDragStart(ActivitySummaryDto activity)
-        => this.m_DraggedActivity = activity;
-
-    private async Task OnDropAsync(long? stateID)
-    {
-        var _Activity = this.m_DraggedActivity;
-        this.m_DraggedActivity = null;
-
-        if (_Activity == null || _Activity.StateID == stateID)
-            return;
-
-        await this.MoveActivityAsync(_Activity, stateID);
-    }
-
-    private async Task MoveToColumnAsync(ActivitySummaryDto activity, ColumnVm? column)
-    {
-        if (column == null)
-            return;
-
-        await this.MoveActivityAsync(activity, column.StateID);
-    }
-
-    private async Task MoveActivityAsync(ActivitySummaryDto activity, long? stateID)
+    private async Task OnMoveAsync(ActivityMove move)
     {
         if (this.m_Saving) return;
         this.m_Saving = true;
@@ -183,31 +227,34 @@ public partial class ActivitiesPage : IDisposable
         // member changed on their own device since this board last loaded.
         var _Request = new UpdateActivityWebAppRequest()
         {
-            StateID = new PropertyChangeTracker<long?>(stateID)
+            StateID = new PropertyChangeTracker<long?>(move.StateID)
         };
 
         var _Result = await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
-            _Request, ApiProvider.UpdateActivity(activity.ActivityID),
+            _Request, ApiProvider.UpdateActivity(move.Activity.ActivityID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
         this.m_Saving = false;
 
-        if (_Result != true)
-            return;
-
-        await this.LoadActivitiesAsync();
-        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
+        if (_Result == true)
+            await this.ReloadAndPublishAsync();
     }
+
+    private void OpenActivity(ActivitySummaryDto activity)
+        => this.NavigationManager.NavigateTo($"/activities/{activity.ActivityID}");
 
     // Create
 
     private void OpenCreateModal()
     {
         this.m_NewTitle = string.Empty;
-        this.m_NewDueDate = null;
-        this.m_NewStateID = this.m_States?.FirstOrDefault()?.ActivityStateID;
+        this.m_NewDueDate = this.m_View == BoardView ? null : this.m_Anchor.Date;
+        this.m_NewHasTime = false;
+        this.m_NewDueTime = DefaultDueTime;
+        this.m_NewStateID = this.m_States.FirstOrDefault()?.ActivityStateID;
         this.m_NewUserID = null;
+        this.m_NewTagIDs = [];
         this.m_ShowCreate = true;
     }
 
@@ -219,9 +266,10 @@ public partial class ActivitiesPage : IDisposable
 
         var _Request = new CreateActivityWebAppRequest()
         {
-            Title = this.m_NewTitle,
             DueDateUTC = this.m_NewDueDate,
+            DueTime = ResolveDueTime(this.m_NewDueDate, this.m_NewHasTime, this.m_NewDueTime),
             StateID = this.m_NewStateID,
+            Title = this.m_NewTitle,
             UserID = this.m_NewUserID
         };
 
@@ -230,13 +278,36 @@ public partial class ActivitiesPage : IDisposable
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
+        if (_Response != null && this.m_NewTagIDs.Count > 0)
+            _ = await this.SaveTagsAsync(_Response.ActivityID, this.m_NewTagIDs);
+
         this.m_Saving = false;
 
         if (_Response == null) return;
 
         this.m_ShowCreate = false;
-        await this.LoadActivitiesAsync();
-        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
+        await this.ReloadAndPublishAsync();
+    }
+
+    private void ToggleNewTag(long tagID)
+    {
+        if (!this.m_NewTagIDs.Add(tagID))
+            _ = this.m_NewTagIDs.Remove(tagID);
+    }
+
+    private async Task<bool> SaveTagsAsync(long activityID, IEnumerable<long> tagIDs)
+    {
+        var _Request = new SetActivityTagsWebAppRequest()
+        {
+            TagIDs = [.. tagIDs]
+        };
+
+        var _Result = await this.ApiAccess.SendRequestAsync<SetActivityTagsWebAppRequest, bool>(
+            _Request, ApiProvider.SetActivityTags(activityID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        return _Result == true;
     }
 
     // Edit
@@ -244,103 +315,25 @@ public partial class ActivitiesPage : IDisposable
     private void OpenEditModal(ActivitySummaryDto activity)
     {
         this.m_EditActivity = activity;
-        this.m_EditTitle = activity.Title;
-        this.m_EditDueDate = activity.DueDateUTC?.Date;
-        this.m_EditStateID = activity.StateID;
-        this.m_EditUserID = activity.AssignedToUserID;
         this.m_ShowEdit = true;
     }
 
-    private async Task SaveActivityAsync()
+    private void OpenEditedActivity()
     {
-        if (this.m_Saving || this.m_EditActivity == null) return;
-
-        // Only what this form actually altered, so an untouched field cannot revert a change
-        // made elsewhere in the household.
-        var _Request = new UpdateActivityWebAppRequest();
-        var _HasChanges = false;
-
-        if (this.m_EditTitle != this.m_EditActivity.Title)
-        {
-            _Request.Title = new PropertyChangeTracker<string>(this.m_EditTitle);
-            _HasChanges = true;
-        }
-
-        if (this.m_EditDueDate != this.m_EditActivity.DueDateUTC?.Date)
-        {
-            _Request.DueDateUTC = new PropertyChangeTracker<DateTime?>(this.m_EditDueDate);
-            _HasChanges = true;
-        }
-
-        if (this.m_EditStateID != this.m_EditActivity.StateID)
-        {
-            _Request.StateID = new PropertyChangeTracker<long?>(this.m_EditStateID);
-            _HasChanges = true;
-        }
-
-        if (this.m_EditUserID != this.m_EditActivity.AssignedToUserID)
-        {
-            _Request.UserID = new PropertyChangeTracker<long?>(this.m_EditUserID);
-            _HasChanges = true;
-        }
-
-        if (!_HasChanges)
-        {
-            this.m_ShowEdit = false;
+        if (this.m_EditActivity == null)
             return;
-        }
-
-        this.m_Saving = true;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
-            _Request, ApiProvider.UpdateActivity(this.m_EditActivity.ActivityID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_Saving = false;
-
-        if (_Result != true) return;
 
         this.m_ShowEdit = false;
-        await this.LoadActivitiesAsync();
-        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
-    }
-
-    private async Task DeleteActivityAsync()
-    {
-        if (this.m_Saving || this.m_EditActivity == null) return;
-        this.m_Saving = true;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.DeleteActivity(this.m_EditActivity.ActivityID),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_Saving = false;
-
-        if (_Result != true) return;
-
-        this.m_ShowEdit = false;
-        await this.LoadActivitiesAsync();
-        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
+        this.OpenActivity(this.m_EditActivity);
     }
 
     // Helpers
 
-    private static string Initials(string name)
-    {
-        var _Parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        return _Parts.Length switch
-        {
-            0 => "?",
-            1 => _Parts[0][..1].ToUpperInvariant(),
-            _ => $"{char.ToUpperInvariant(_Parts[0][0])}{char.ToUpperInvariant(_Parts[^1][0])}"
-        };
-    }
-
-    private static string MoveLabel(ColumnVm? column, string whenUnavailable)
-        => column == null ? whenUnavailable : $"Move to {column.Title}";
+    /// <summary>
+    /// A time without a day is meaningless on a board, so clearing the date clears the time too.
+    /// </summary>
+    private static TimeSpan? ResolveDueTime(DateTime? dueDate, bool hasTime, string time)
+        => dueDate.HasValue && hasTime ? ActivityBoardLogic.ParseTime(time) : null;
 
     #endregion Methods
 
