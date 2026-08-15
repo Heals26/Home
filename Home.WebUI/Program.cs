@@ -23,30 +23,50 @@ _Builder.Services.AddAuthentication(options =>
 })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
+        // Nothing signs in through this cookie. AuthorisationService is a custom
+        // AuthenticationStateProvider whose state comes from a token in ProtectedLocalStorage;
+        // the scheme is registered only so [Authorize] has a default and LoginPath resolves.
+        // SameAsRequest rather than Always is deliberate — the tablet reaches this app over the
+        // LAN, and a cookie the browser silently drops on plain HTTP would be worse than useless.
         options.LoginPath = AuthorisationUriProvider.GetLoginUri();
         options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SameSite = SameSiteMode.Lax;
         options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
         options.SlidingExpiration = true;
     });
 
 _Builder.Services.AddAuthorization();
 _Builder.Services.AddHttpContextAccessor();
-_Builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(_Builder.Environment.ContentRootPath, "DataProtectionKeys")));
 
-_Builder.Services.AddHttpClient<IHomeHttpClient, HomeHttpClient>(options =>
-{
-    var _BaseUrlString = _Builder.Configuration["apiBaseUrl"];
+// The key ring protects the stored OAuth token, so losing it signs every family member out.
+// Naming the application pins the discriminator to that name instead of the content root path,
+// which means moving or renaming the folder no longer invalidates the sessions on every tablet.
+_ = _Builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(_Builder.Environment.ContentRootPath, "DataProtectionKeys")))
+    .SetApplicationName("Home.WebUI")
+    .SetDefaultKeyLifetime(TimeSpan.FromDays(365));
 
-    if (_BaseUrlString == null)
-        throw new InvalidOperationException("API base URL is not configured.");
-    else if (!Uri.TryCreate(_BaseUrlString, UriKind.Absolute, out var _BaseUrl))
-        throw new InvalidOperationException("API base URL is malformed.");
+const string _ApiClientName = "HomeApi";
 
-    options.BaseAddress = new(_BaseUrlString);
-});
+var _ApiBaseUrlString = _Builder.Configuration["apiBaseUrl"];
+
+if (string.IsNullOrWhiteSpace(_ApiBaseUrlString))
+    throw new InvalidOperationException("API base URL is not configured.");
+
+if (!Uri.TryCreate(_ApiBaseUrlString, UriKind.Absolute, out var _ApiBaseUrl))
+    throw new InvalidOperationException("API base URL is malformed.");
+
+_ = _Builder.Services.AddHttpClient(_ApiClientName, options => options.BaseAddress = _ApiBaseUrl);
+
+// Scoped, not the transient a typed client would give: HomeHttpClient serialises token refreshes
+// through an instance semaphore, and that only holds if every component in a circuit shares one
+// instance. AuthorisationService resolves the concrete type for its refresh at startup.
+_ = _Builder.Services.AddScoped(sp => new HomeHttpClient(
+    sp.GetRequiredService<IAuthorisationService>(),
+    sp.GetRequiredService<IConfiguration>(),
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient(_ApiClientName)));
+_ = _Builder.Services.AddScoped<IHomeHttpClient>(sp => sp.GetRequiredService<HomeHttpClient>());
 // The BCL clock abstraction (.NET 8). Components read the time through this rather than
 // DateTime.Now, which also keeps "now" consistent across a single render.
 _Builder.Services.AddSingleton(TimeProvider.System);
@@ -58,6 +78,7 @@ _Builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredSer
 // each circuit talks to it through a broadcaster that pins the caller's own household.
 _Builder.Services.AddSingleton<IChangeBroker, ChangeBroker>();
 _Builder.Services.AddScoped<IChangeBroadcaster, ChangeBroadcaster>();
+
 
 var _App = _Builder.Build();
 

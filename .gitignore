@@ -405,3 +405,7 @@ start.ps1
 # Generated Tailwind output. Rebuilt by the npm build:css pre-build step in Home.WebUI.csproj,
 # so it never needs to be committed.
 Home.WebUI/wwwroot/css/app.css
+
+# Data protection key ring. This is the key material that encrypts every stored session token —
+# committing it would hand anyone with the repo the ability to read them.
+Home.WebUI/DataProtectionKeys/

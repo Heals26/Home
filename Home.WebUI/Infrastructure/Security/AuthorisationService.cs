@@ -1,5 +1,6 @@
 ﻿using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
 using Home.WebUI.DataAccess.OAuth.CreateRefreshGrant;
+using Home.WebUI.Infrastructure.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.Values;
 using Home.WebUI.ViewModels.OAuth;
@@ -10,7 +11,10 @@ using System.Text.Json;
 
 namespace Home.WebUI.Infrastructure.Security;
 
-public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage, TimeProvider timeProvider)
+public class AuthorisationService(
+    IServiceProvider serviceProvider,
+    ProtectedLocalStorage protectedLocalStorage,
+    TimeProvider timeProvider)
     : AuthenticationStateProvider, IAuthorisationService
 {
 
@@ -30,6 +34,18 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage, T
     /// task is pending, preventing any redirect to the login page.
     /// </summary>
     private readonly TaskCompletionSource<AuthenticationState> m_InitTcs = new();
+
+    /// <summary>
+    /// How far ahead of expiry a token counts as spent, so a request that is already in flight
+    /// cannot outlive the token it was sent with.
+    /// </summary>
+    private static readonly TimeSpan s_RefreshWindow = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// Caps the startup refresh. Without it an unreachable API would hold the
+    /// <c>Authorizing</c> spinner open for the whole HTTP timeout.
+    /// </summary>
+    private static readonly TimeSpan s_StartupRefreshTimeout = TimeSpan.FromSeconds(10);
 
     #endregion Fields
 
@@ -51,7 +67,50 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage, T
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
         => this.m_CurrentState ?? this.m_InitTcs.Task;
 
-    async Task<OAuthViewModel?> IAuthorisationService.GetTokenAsync()
+    private DateTime GetExpiryUTC(long expiresInSeconds)
+        => timeProvider.GetUtcNow().UtcDateTime.AddSeconds(expiresInSeconds);
+
+    Task<OAuthViewModel?> IAuthorisationService.GetTokenAsync()
+        => this.ReadTokenFromStorageAsync();
+
+    /// <summary>
+    /// Called once from <c>OnAfterRenderAsync(firstRender: true)</c> — at that point
+    /// the Blazor circuit is live and <see cref="ProtectedLocalStorage"/> can safely
+    /// perform JS interop to read from the browser.
+    /// </summary>
+    public async Task InitialiseAsync()
+    {
+        if (this.m_InitTcs.Task.IsCompleted)
+            return;
+
+        var _Token = await this.ReadTokenFromStorageAsync();
+
+        if (_Token != null && this.IsExpiring(_Token))
+            _Token = await this.RefreshAtStartupAsync(_Token);
+
+        var _State = _Token != null ? BuildAuthState(_Token) : Unauthenticated();
+
+        this.m_CurrentState = Task.FromResult(_State);
+        this.m_InitTcs.SetResult(_State);
+    }
+
+    private bool IsExpiring(OAuthViewModel token)
+        => token.ExpiresAtUTC <= timeProvider.GetUtcNow().UtcDateTime.Add(s_RefreshWindow);
+
+    async Task<bool> IAuthorisationService.IsTokenExpiredAsync()
+    {
+        var _Token = await this.ReadTokenFromStorageAsync();
+
+        return _Token != null && this.IsExpiring(_Token);
+    }
+
+    private void PublishState(AuthenticationState state)
+    {
+        this.m_CurrentState = Task.FromResult(state);
+        this.NotifyAuthenticationStateChanged(this.m_CurrentState);
+    }
+
+    private async Task<OAuthViewModel?> ReadTokenFromStorageAsync()
     {
         try
         {
@@ -64,95 +123,77 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage, T
         }
         catch
         {
-            // Stored value is unreadable (e.g. key ring changed) — treat as unauthenticated
-            // and attempt to clear the stale entry so future reads succeed
+            // Stored value is unreadable (e.g. the data protection key ring changed) — treat as
+            // unauthenticated and clear the stale entry so future reads succeed.
             try { await protectedLocalStorage.DeleteAsync(AuthorisationValues.OAuthKey); } catch { }
             return null;
         }
     }
 
     /// <summary>
-    /// Called once from <c>OnAfterRenderAsync(firstRender: true)</c> — at that point
-    /// the Blazor circuit is live and <see cref="ProtectedLocalStorage"/> can safely
-    /// perform JS interop to read from the browser.
+    /// A tablet coming back after the browser was closed almost always arrives with an access
+    /// token that expired in the meantime. Spending the refresh token here — before the
+    /// initialisation task completes — keeps <see cref="AuthorizeRouteView"/> in its
+    /// <c>Authorizing</c> slot rather than bouncing the family to the login page.
     /// </summary>
-    public async Task InitialiseAsync()
-    {
-        if (this.m_InitTcs.Task.IsCompleted)
-            return;
-
-        this.m_InitTcs.SetResult(await this.ReadStateFromStorageAsync());
-    }
-
-    async Task<bool> IAuthorisationService.IsTokenExpiredAsync()
-    {
-        var _Token = await ((IAuthorisationService)this).GetTokenAsync();
-
-        if (_Token == null)
-            return false;
-
-        return timeProvider.GetUtcNow() > DateTimeOffset.FromUnixTimeSeconds(_Token.ExpiresIn).AddMinutes(-5);
-    }
-
-    private void PublishState(AuthenticationState state)
-    {
-        this.m_CurrentState = Task.FromResult(state);
-        this.NotifyAuthenticationStateChanged(this.m_CurrentState);
-    }
-
-    private async Task<AuthenticationState> ReadStateFromStorageAsync()
+    /// <returns>The token to publish, or null when the API has explicitly refused the session.</returns>
+    private async Task<OAuthViewModel?> RefreshAtStartupAsync(OAuthViewModel token)
     {
         try
         {
-            var _Result = await protectedLocalStorage.GetAsync<string>(AuthorisationValues.OAuthKey);
+            using var _Timeout = new CancellationTokenSource(s_StartupRefreshTimeout, timeProvider);
 
-            if (!_Result.Success || string.IsNullOrEmpty(_Result.Value))
-                return Unauthenticated();
+            // Resolved here rather than injected: HomeHttpClient takes an IAuthorisationService,
+            // so constructor injection either way round would be a cycle.
+            var _Outcome = await serviceProvider.GetRequiredService<HomeHttpClient>()
+                .RefreshAccessTokenAsync(_Timeout.Token);
 
-            var _Token = JsonSerializer.Deserialize<OAuthViewModel>(_Result.Value);
-            return _Token != null ? BuildAuthState(_Token) : Unauthenticated();
+            if (_Outcome == TokenRefreshOutcome.Rejected)
+            {
+                await ((IAuthorisationService)this).SignOutAsync();
+                return null;
+            }
+
+            return _Outcome == TokenRefreshOutcome.Refreshed
+                ? await this.ReadTokenFromStorageAsync() ?? token
+                : token;
         }
         catch
         {
-            try { await protectedLocalStorage.DeleteAsync(AuthorisationValues.OAuthKey); } catch { }
-            return Unauthenticated();
+            // Nothing that goes wrong reaching the API may cost the family its session.
+            return token;
         }
     }
 
     async ValueTask IAuthorisationService.SignOutAsync()
     {
-        await protectedLocalStorage.DeleteAsync(AuthorisationValues.OAuthKey);
+        try { await protectedLocalStorage.DeleteAsync(AuthorisationValues.OAuthKey); } catch { }
         this.PublishState(Unauthenticated());
-    }
-
-    private async Task StoreTokenAsync(OAuthViewModel token)
-    {
-        await protectedLocalStorage.SetAsync(AuthorisationValues.OAuthKey, JsonSerializer.Serialize(token));
-        this.PublishState(BuildAuthState(token));
     }
 
     async Task<bool> IAuthorisationService.TryRefreshAsync(CreateRefreshGrantWebAppResponse response, CancellationToken cancellationToken)
     {
-        await this.StoreTokenAsync(new()
+        var _Existing = await this.ReadTokenFromStorageAsync();
+
+        return await this.TryStoreTokenAsync(new()
         {
             AccessToken = response.AccessToken,
-            Claims = (await ((IAuthorisationService)this).GetTokenAsync())?.Claims ?? [],
+            Claims = _Existing?.Claims ?? [],
+            ExpiresAtUTC = this.GetExpiryUTC(response.ExpiresIn),
             ExpiresIn = response.ExpiresIn,
             GrantType = response.GrantType,
             RefreshToken = response.RefreshToken,
             Scope = response.Scope,
             UserID = response.UserID
         });
-
-        return true;
     }
 
     async Task<bool> IAuthorisationService.TrySignInAsync(CreatePasswordGrantWebAppRequest request, CreatePasswordGrantWebAppResponse response, CancellationToken cancellationToken)
-    {
-        await this.StoreTokenAsync(new()
+        => await this.TryStoreTokenAsync(new()
         {
             AccessToken = response.AccessToken,
             Claims = response.Claims,
+            ExpiresAtUTC = this.GetExpiryUTC(response.ExpiresIn),
             ExpiresIn = response.ExpiresIn,
             GrantType = response.GrantType,
             RefreshToken = response.RefreshToken,
@@ -160,6 +201,22 @@ public class AuthorisationService(ProtectedLocalStorage protectedLocalStorage, T
             UserID = response.UserID
         });
 
+    /// <summary>
+    /// State is only published once the write has actually landed, so a storage failure leaves
+    /// the previous session in place rather than a principal with no token behind it.
+    /// </summary>
+    private async Task<bool> TryStoreTokenAsync(OAuthViewModel token)
+    {
+        try
+        {
+            await protectedLocalStorage.SetAsync(AuthorisationValues.OAuthKey, JsonSerializer.Serialize(token));
+        }
+        catch
+        {
+            return false;
+        }
+
+        this.PublishState(BuildAuthState(token));
         return true;
     }
 
