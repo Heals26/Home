@@ -26,6 +26,7 @@ public partial class ActivityBoardView
     [Parameter] public EventCallback<ActivitySummaryDto> OnEdit { get; set; }
     [Parameter] public EventCallback<ActivityMove> OnMove { get; set; }
     [Parameter] public EventCallback<ActivitySummaryDto> OnOpen { get; set; }
+    [Parameter] public EventCallback<ActivityCompletion> OnToggleComplete { get; set; }
     [Parameter] public bool Saving { get; set; }
     [Parameter] public List<ActivityStateDto> States { get; set; } = [];
 

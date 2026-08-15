@@ -23,10 +23,14 @@ internal class GetActivitiesInteractor : IInteractor<GetActivitiesInputPort, IGe
 
         var _Activities = _PersistenceContext.GetEntities<Activity>()
             .Where(a => a.Household.HouseholdID == _Household.HouseholdID)
-            // Undated activities sort after everything with a due date; the ID breaks ties so the
-            // board does not reshuffle between loads.
+            // Undated activities sort after everything with a due date, and within a day the
+            // "any time today" ones come before the timed ones, matching how a calendar puts
+            // all-day entries above the schedule. The ID breaks ties so the board does not
+            // reshuffle between loads.
             .OrderBy(a => a.DueDateUTC == null)
             .ThenBy(a => a.DueDateUTC)
+            .ThenBy(a => a.DueTime.HasValue)
+            .ThenBy(a => a.DueTime)
             .ThenBy(a => a.ActivityID)
             .Select(a => new
             {

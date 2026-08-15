@@ -1,5 +1,6 @@
 ﻿using Home.WebUI.DataAccess.Activities.GetActivities;
 using Home.WebUI.DataAccess.Activities.Models;
+using Home.WebUI.DataAccess.Activities.SetActivityCompletion;
 using Home.WebUI.DataAccess.Announcements.CreateAnnouncement;
 using Home.WebUI.DataAccess.Announcements.GetAnnouncements;
 using Home.WebUI.DataAccess.Announcements.Models;
@@ -278,10 +279,26 @@ public partial class DashboardPage : IDisposable
     private static string Temperature(double celsius)
         => $"{(int)Math.Round(celsius)}°";
 
+    private async Task CompleteActivityAsync(ActivitySummaryDto activity)
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
+            new SetActivityCompletionWebAppRequest() { IsComplete = true },
+            ApiProvider.SetActivityCompletion(activity.ActivityID),
+            _ => this.m_LoadFailed = true,
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != true)
+            return;
+
+        await this.LoadActivitiesAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
+    }
+
     private IEnumerable<ActivitySummaryDto> UpcomingActivities()
         => (this.m_Activities ?? [])
             .Where(a => a.CompletedDateUTC == null)
             .OrderBy(a => a.DueDateUTC ?? DateTime.MaxValue)
+            .ThenBy(a => a.DueTime ?? TimeSpan.Zero)
             .Take(4);
 
     private static string DayChip(ActivitySummaryDto activity, DateTime today)

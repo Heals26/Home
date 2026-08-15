@@ -33,6 +33,13 @@ public static partial class ApiProvider
         => new(HttpMethod.Get, RouteType.Route, $"{GetActivityBaseUrl(activityID)}/Regions");
 
     /// <summary>
+    /// Ticks a chore off from wherever it is shown. The API moves it to whichever column the
+    /// household treats as done, so no screen needs to know the board's shape.
+    /// </summary>
+    public static ApiProviderHelper SetActivityCompletion(long activityID)
+        => new(HttpMethod.Patch, RouteType.Body, $"{GetActivityBaseUrl(activityID)}/Completion");
+
+    /// <summary>
     /// Replaces the card's labels with the set sent — anything left out is taken off the card.
     /// </summary>
     public static ApiProviderHelper SetActivityTags(long activityID)

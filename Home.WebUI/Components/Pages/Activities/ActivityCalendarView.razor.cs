@@ -16,6 +16,7 @@ public partial class ActivityCalendarView
     [Parameter] public List<DateTime> Days { get; set; } = [];
     [Parameter] public EventCallback<ActivitySummaryDto> OnEdit { get; set; }
     [Parameter] public EventCallback<ActivitySummaryDto> OnOpen { get; set; }
+    [Parameter] public EventCallback<ActivityCompletion> OnToggleComplete { get; set; }
     [Parameter] public DateTime Today { get; set; }
 
     #endregion Properties

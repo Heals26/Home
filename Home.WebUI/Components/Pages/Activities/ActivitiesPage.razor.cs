@@ -3,6 +3,7 @@ using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.Activities.CreateActivity;
 using Home.WebUI.DataAccess.Activities.GetActivities;
 using Home.WebUI.DataAccess.Activities.Models;
+using Home.WebUI.DataAccess.Activities.SetActivityCompletion;
 using Home.WebUI.DataAccess.Activities.SetActivityTags;
 using Home.WebUI.DataAccess.Activities.UpdateActivity;
 using Home.WebUI.DataAccess.ActivityStates.GetActivityStates;
@@ -232,6 +233,23 @@ public partial class ActivitiesPage : IDisposable
 
         var _Result = await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
             _Request, ApiProvider.UpdateActivity(move.Activity.ActivityID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_Saving = false;
+
+        if (_Result == true)
+            await this.ReloadAndPublishAsync();
+    }
+
+    private async Task OnToggleCompleteAsync(ActivityCompletion completion)
+    {
+        if (this.m_Saving) return;
+        this.m_Saving = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
+            new SetActivityCompletionWebAppRequest() { IsComplete = completion.IsComplete },
+            ApiProvider.SetActivityCompletion(completion.Activity.ActivityID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 

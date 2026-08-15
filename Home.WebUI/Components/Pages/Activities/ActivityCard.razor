@@ -6,7 +6,26 @@
          draggable="@(this.Draggable ? "true" : "false")"
          @ondragstart="this.OnDragStart"
          @onclick="this.OnOpen">
-        <p class="text-sm font-medium text-ink-50">@this.Activity.Title</p>
+        <div class="flex items-start gap-2.5">
+            @if (this.OnToggleComplete.HasDelegate)
+            {
+                @* Its own click target inside a card that opens on tap, so stopping propagation
+                   is what keeps ticking a chore off from also opening it. *@
+                <button type="button"
+                        class="h-6 w-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors @(this.IsComplete ? "border-shopping bg-shopping/20" : "border-ink-600 hover:border-shopping")"
+                        title="@(this.IsComplete ? "Mark as not done" : "Mark as done")"
+                        aria-label="@(this.IsComplete ? $"Mark {this.Activity.Title} as not done" : $"Mark {this.Activity.Title} as done")"
+                        aria-pressed="@this.IsComplete"
+                        @onclick="this.ToggleCompleteAsync"
+                        @onclick:stopPropagation="true">
+                    @if (this.IsComplete)
+                    {
+                        <span class="home-icon home-icon-check h-3.5 w-3.5 text-shopping"></span>
+                    }
+                </button>
+            }
+            <p class="text-sm font-medium flex-1 min-w-0 @(this.IsComplete ? "text-ink-500 line-through" : "text-ink-50")">@this.Activity.Title</p>
+        </div>
 
         @if (this.Activity.Tags.Any())
         {

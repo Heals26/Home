@@ -1,6 +1,8 @@
 ﻿@page "/"
 @page "/home"
 
+<HomePageTitle />
+
 @* The family board — the tablet's idle face. Everything here is a glance, not a task:
    each tile shows live content and navigates to its pillar. Failures degrade to a
    single quiet banner, never a stack of toasts. *@
@@ -171,6 +173,17 @@
                                     <p class="text-xs text-ink-500 truncate">@_Activity.AssignedTo</p>
                                 }
                             </div>
+                            @* The whole tile is a link, so this has to swallow the click or ticking
+                               a chore off would navigate away from the board instead. *@
+                            <button type="button"
+                                    class="h-9 w-9 shrink-0 rounded-full border-2 border-ink-600 hover:border-shopping flex items-center justify-center transition-colors"
+                                    title="@($"Mark {_Activity.Title} as done")"
+                                    aria-label="@($"Mark {_Activity.Title} as done")"
+                                    @onclick="() => this.CompleteActivityAsync(_Activity)"
+                                    @onclick:stopPropagation="true"
+                                    @onclick:preventDefault="true">
+                                <span class="home-icon home-icon-check h-4 w-4 text-ink-500"></span>
+                            </button>
                         </div>
                     }
                 </div>
