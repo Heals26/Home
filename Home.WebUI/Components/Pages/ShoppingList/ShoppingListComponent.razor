@@ -4,6 +4,10 @@
         {
             <h2 class="text-base font-semibold text-ink-50">@this.m_ShoppingList.Name</h2>
         }
+        else if (this.m_LoadingList)
+        {
+            <h2 class="text-base font-semibold text-ink-400">Loading&hellip;</h2>
+        }
         else
         {
             <h2 class="text-base font-semibold text-ink-400">No list selected</h2>
@@ -19,9 +23,19 @@
         }
     </ActionsContent>
     <ChildContent>
-        @if (this.m_ShoppingList == null)
+        @* Only the first load of a list shows the spinner — a background refresh keeps the items
+           on screen rather than flashing. *@
+        @if (this.m_ShoppingList == null && !this.ShoppingListID.HasValue)
         {
             <HomeEmptyState Title="Select a list" Subtitle="Choose a shopping list from the left to see its items" />
+        }
+        else if (this.m_ShoppingList == null && this.m_LoadingList)
+        {
+            <HomeLoader Class="py-8" />
+        }
+        else if (this.m_ShoppingList == null)
+        {
+            <HomeEmptyState Title="Couldn't load that list" Subtitle="Choose it again from the left to try once more" />
         }
         else if (!this.m_ShoppingList.Items.Any())
         {

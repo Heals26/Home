@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -21,8 +21,12 @@ internal class GetShoppingListsInteractor : IInteractor<GetShoppingListsInputPor
 
         var _Household = _AuthorisationService.GetHousehold();
 
+        // Without an explicit order the database is free to hand back a different sequence each
+        // call, so "the list after this one" means nothing to the caller.
         var _ShoppingLists = _PersistenceContext.GetEntities<ShoppingList>()
             .Where(sl => sl.Household.HouseholdID == _Household.HouseholdID)
+            .OrderBy(sl => sl.Name)
+            .ThenBy(sl => sl.ShoppingListID)
             .Select(sl => new
             {
                 ShoppingList = sl,

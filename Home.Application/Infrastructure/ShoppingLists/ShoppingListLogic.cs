@@ -29,7 +29,8 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
             InBasket = inputPort.InBasket,
             Name = inputPort.Name,
             Quantity = inputPort.Quantity,
-            Sequence = (_ShoppingList.Items?.Count + 1) ?? 1,
+            // Counting rather than taking the highest reuses a sequence after any deletion.
+            Sequence = (_ShoppingList.Items?.Max(i => (long?)i.Sequence) ?? 0) + 1,
             Volume = inputPort.Volume,
             Weight = inputPort.Weight
         };
@@ -46,7 +47,9 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
 
     IQueryable<ShoppingListItem> IShoppingListLogic.GetItems(long shoppingListID)
         => persistenceContext.GetEntities<ShoppingListItem>()
-            .Where(sli => sli.ShoppingList.ShoppingListID == shoppingListID);
+            .Where(sli => sli.ShoppingList.ShoppingListID == shoppingListID)
+            .OrderBy(sli => sli.Sequence)
+            .ThenBy(sli => sli.ShoppingListItemID);
 
     void IShoppingListLogic.UpdateItem(UpdateShoppingListItemInputPort inputPort)
     {

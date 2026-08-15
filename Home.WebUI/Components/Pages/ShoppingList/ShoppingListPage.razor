@@ -9,7 +9,9 @@
                 <ShoppingListsComponent ShoppingListID="this.ShoppingListID" />
             </div>
             <div class="flex-1 min-w-0">
-                <ShoppingListComponent ShoppingListID="this.ShoppingListID" />
+                @* Keyed so switching lists builds a fresh component rather than reusing one
+                   that still holds the previous list's items and open modal. *@
+                <ShoppingListComponent @key="this.ShoppingListID" ShoppingListID="this.ShoppingListID" />
             </div>
         </div>
     </div>

@@ -18,6 +18,8 @@ public partial class ShoppingListComponent : IDisposable
     private ErrorHandler? m_ErrorHandler;
     private IDisposable? m_ChangeSubscription;
     private GetShoppingListWebAppResponse? m_ShoppingList;
+    private long? m_LoadedShoppingListID;
+    private bool m_LoadingList;
     private CreateShoppingListItemWebAppRequest? m_AddItemRequest = new();
     private bool m_ShowAddItem;
     private bool m_AddingItem;
@@ -41,10 +43,22 @@ public partial class ShoppingListComponent : IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
+        if (this.ShoppingListID == this.m_LoadedShoppingListID)
+            return;
+
+        // Everything on screen belongs to the list we are leaving, including a half-filled
+        // add-item modal, so none of it may survive the switch.
+        this.m_LoadedShoppingListID = this.ShoppingListID;
+        this.m_ShoppingList = null;
+        this.m_ShowAddItem = false;
+        this.m_AddItemRequest = new();
+        this.m_QuantityInput = string.Empty;
+        this.m_CostInput = string.Empty;
+
         if (this.ShoppingListID.HasValue)
             await this.LoadListAsync();
         else
-            this.m_ShoppingList = null;
+            this.m_LoadingList = false;
     }
 
     public void Dispose()
@@ -68,7 +82,7 @@ public partial class ShoppingListComponent : IDisposable
 
     private void OpenAddItemModal()
     {
-        this.m_AddItemRequest = new() { ShoppingListID = this.ShoppingListID!.Value };
+        this.m_AddItemRequest = new();
         this.m_QuantityInput = string.Empty;
         this.m_CostInput = string.Empty;
         this.m_ShowAddItem = true;
@@ -76,22 +90,40 @@ public partial class ShoppingListComponent : IDisposable
 
     private async Task LoadListAsync()
     {
-        this.m_ShoppingList = await this.ApiAccess.SendRequestAsync<object, GetShoppingListWebAppResponse>(
-            null!, ApiProvider.GetShoppingList(this.ShoppingListID!.Value),
+        var _RequestedShoppingListID = this.ShoppingListID!.Value;
+
+        this.m_LoadingList = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetShoppingListWebAppResponse>(
+            null!, ApiProvider.GetShoppingList(_RequestedShoppingListID),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
+
+        // A response for a list the user has already left would otherwise land under the new
+        // list's heading, so it is dropped.
+        if (_RequestedShoppingListID != this.ShoppingListID)
+            return;
+
+        this.m_LoadingList = false;
+        this.m_ShoppingList = _Result;
     }
 
     private async Task AddItemAsync()
     {
-        if (this.m_AddingItem) return;
+        if (this.m_AddingItem || !this.ShoppingListID.HasValue) return;
         this.m_AddingItem = true;
 
-        this.m_AddItemRequest!.Quantity = decimal.TryParse(this.m_QuantityInput, out var _Qty) ? _Qty : null;
-        this.m_AddItemRequest!.Cost = decimal.TryParse(this.m_CostInput, out var _Cost) ? _Cost : null;
+        // The target list is read at submit time, never at modal-open time.
+        var _Request = new CreateShoppingListItemWebAppRequest()
+        {
+            Cost = decimal.TryParse(this.m_CostInput, out var _Cost) ? _Cost : null,
+            Name = this.m_AddItemRequest!.Name,
+            Quantity = decimal.TryParse(this.m_QuantityInput, out var _Quantity) ? _Quantity : null,
+            ShoppingListID = this.ShoppingListID.Value
+        };
 
         var _Result = await this.ApiAccess.SendRequestAsync<CreateShoppingListItemWebAppRequest, CreateShoppingListItemWebAppResponse>(
-            this.m_AddItemRequest!,
+            _Request,
             ApiProvider.CreateShoppingListItem(),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
@@ -102,9 +134,13 @@ public partial class ShoppingListComponent : IDisposable
             return;
 
         this.m_ShowAddItem = false;
-        this.m_AddItemRequest = new() { ShoppingListID = this.ShoppingListID!.Value };
+        this.m_AddItemRequest = new();
+        this.m_QuantityInput = string.Empty;
+        this.m_CostInput = string.Empty;
 
-        await this.LoadListAsync();
+        if (_Request.ShoppingListID == this.ShoppingListID)
+            await this.LoadListAsync();
+
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
     }
 
