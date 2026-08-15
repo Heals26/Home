@@ -7,7 +7,9 @@
         </Authorized>
     </AuthorizeView>
 
-    <main class="flex-1 min-w-0 app-scrollable pb-20 md:pb-0">
+    @* The bottom bar is fixed, so main reserves its height — plus the home-indicator inset —
+       under exactly the same condition that shows it. *@
+    <main class="flex-1 min-w-0 app-scrollable pb-[calc(5rem_+_env(safe-area-inset-bottom))] rail:pb-0">
         <ErrorBoundary>
             <ChildContent>
                 @Body

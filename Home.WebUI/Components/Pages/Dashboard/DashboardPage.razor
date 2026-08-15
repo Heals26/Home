@@ -18,10 +18,12 @@
         </div>
     }
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @* Two columns only when the screen is genuinely landscape. Upright, halves of a tablet are
+       narrower than a phone and every tile starts truncating, so the board runs as one column. *@
+    <div class="grid grid-cols-1 rail:grid-cols-2 gap-4">
 
         @* ── Outside ───────────────────────────────────────────────── *@
-        <div class="md:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5">
+        <div class="rail:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5">
             <div class="flex items-center gap-2 text-ink-400 mb-3">
                 <span class="home-icon home-icon-weather-cloud-sun h-5 w-5"></span>
                 <span class="text-xs font-semibold uppercase tracking-widest">Outside</span>
@@ -95,7 +97,7 @@
         </div>
 
         @* ── Today's meals ─────────────────────────────────────────── *@
-        <a href="/meal-plan" class="group md:col-span-2 bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+        <a href="/meal-plan" class="group rail:col-span-2 bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
             <div class="flex items-center justify-between mb-2">
                 <span class="flex items-center gap-2 text-recipes">
                     <span class="home-icon home-icon-utensils h-5 w-5"></span>
@@ -282,7 +284,7 @@
         </a>
 
         @* ── Family notes ──────────────────────────────────────────── *@
-        <div class="md:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5">
+        <div class="rail:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-household">
                     <span class="home-icon home-icon-note h-5 w-5"></span>

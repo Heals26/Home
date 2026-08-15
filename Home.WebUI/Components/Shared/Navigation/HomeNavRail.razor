@@ -1,8 +1,9 @@
-﻿@* Persistent app navigation — a left rail on wide screens, a bottom bar on narrow ones.
-   Each pillar owns a hue and the active item wears it, so colour tells the family
-   where they are without reading. *@
+﻿@* Persistent app navigation — a left rail on wide landscape screens, a bottom bar everywhere
+   else. A tall device is held in two hands and the top-left corner is out of thumb reach, so
+   orientation decides this, not width alone. Each pillar owns a hue and the active item wears
+   it, so colour tells the family where they are without reading. *@
 
-<nav class="hidden md:flex flex-col w-24 shrink-0 bg-ink-950 border-r border-ink-800/60 pt-5 pb-3">
+<nav class="hidden rail:flex flex-col w-24 shrink-0 bg-ink-950 border-r border-ink-800/60 pt-5 pb-3">
     <a href="/" class="font-display text-2xl text-ink-50 text-center mb-6 select-none">H.</a>
 
     <div class="flex-1 flex flex-col gap-1 px-2">
@@ -28,7 +29,7 @@
     </div>
 </nav>
 
-<nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-950/95 backdrop-blur border-t border-ink-800/60 pb-[env(safe-area-inset-bottom)]">
+<nav class="rail:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-950/95 backdrop-blur border-t border-ink-800/60 pb-[env(safe-area-inset-bottom)]">
     <div class="grid grid-cols-7">
         @foreach (var _Item in m_Items)
         {
