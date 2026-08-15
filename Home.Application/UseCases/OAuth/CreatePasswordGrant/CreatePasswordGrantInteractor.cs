@@ -59,12 +59,15 @@ internal class CreatePasswordGrantInteractor : IInteractor<CreatePasswordGrantIn
 
         var _AccessToken = _TokenFactory.GetOAuthToken();
         var _RefreshToken = _TokenFactory.GetOAuthToken();
+        var _Now = serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime;
 
         var _AuthenticationMetadata = new UserAuthentication()
         {
             AccessToken = _AccessToken,
             ClientApplication = _ClientApplication,
-            DateSetUTC = serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime,
+            DateSetUTC = _Now,
+            ExpiresOnUTC = _Now.Add(SessionValues.RefreshTokenLifetime),
+            LastUsedOnUTC = _Now,
             RefreshToken = _RefreshToken,
             Scopes = string.Join(",", [OAuthValues.WebAppScope.Name]),
             User = _User
