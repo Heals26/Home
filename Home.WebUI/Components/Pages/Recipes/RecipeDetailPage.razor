@@ -3,6 +3,8 @@
 @using Home.WebUI.Components.Shared.Content
 @using Home.WebUI.DataAccess.MealSlots.Models
 
+<HomePageTitle Title="@this.m_Recipe?.Name" />
+
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
     <div class="flex flex-col h-full">
         <HomeTopBar Title="@(this.m_Recipe?.Name ?? "Recipe")" ShowBack="true" BackHref="/recipes">

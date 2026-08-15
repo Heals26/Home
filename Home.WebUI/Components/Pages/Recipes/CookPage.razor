@@ -4,6 +4,8 @@
 
 @inject IJSRuntime JS
 
+<HomePageTitle Title="@(this.m_Recipe == null ? "Cooking" : $"Cooking {this.m_Recipe.Name}")" />
+
 @* Cooking mode: one step at a time in big type, giant wet-finger targets, timers on tap —
    both the ones read out of the step text and any the cook starts — and the screen held
    awake while the page is open. *@

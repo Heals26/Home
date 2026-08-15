@@ -1,6 +1,8 @@
 ﻿@page "/shopping-lists"
 @page "/shopping-lists/{ShoppingListID:long}"
 
+<HomePageTitle Title="Shopping" />
+
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
     <div class="flex flex-col h-full">
         <HomeTopBar Title="Shopping lists" Eyebrow="For the shop" EyebrowClass="text-shopping" />
