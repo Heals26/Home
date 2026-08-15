@@ -18,6 +18,7 @@ using Home.Application.Services.Persistence;
 using Home.Application.Services.RecipeImports;
 using Home.Application.Services.Security;
 using Home.Application.Services.Validation;
+using Home.Application.Services.Weather;
 using Home.Application.UseCases.ApiAuditing;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
@@ -32,6 +33,7 @@ using Home.WebApi.Infrastructure.Lights;
 using Home.WebApi.Infrastructure.OAuth;
 using Home.WebApi.Infrastructure.RecipeImports;
 using Home.WebApi.Infrastructure.Values;
+using Home.WebApi.Infrastructure.Weather;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +50,7 @@ SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
 SetupLights(_Builder.Services, _Builder.Configuration);
 SetupRecipeImports(_Builder.Services);
+SetupWeather(_Builder.Services);
 SetupEntityFramework(_Builder.Services, _Builder.Configuration);
 
 SetupAuthentication(_Builder.Services);
@@ -348,6 +351,21 @@ static IServiceCollection SetupScrutorServices(IServiceCollection services)
             .AddClasses(c => c.Where(t => t.Name.EndsWith("Presenter")))
             .AsSelf()
             .WithScopedLifetime();
+    });
+
+    return services;
+}
+
+// Open-Meteo needs no key and no account. The adapter caches per coordinate, so an always-on
+// tablet and every phone in the house together cost one call a quarter hour.
+static IServiceCollection SetupWeather(IServiceCollection services)
+{
+    _ = services.AddMemoryCache();
+
+    _ = services.AddHttpClient<IWeatherService, OpenMeteoWeatherService>(client =>
+    {
+        client.BaseAddress = new Uri(WeatherValues.OpenMeteoBaseUrl);
+        client.Timeout = TimeSpan.FromSeconds(WeatherValues.RequestTimeoutSeconds);
     });
 
     return services;
