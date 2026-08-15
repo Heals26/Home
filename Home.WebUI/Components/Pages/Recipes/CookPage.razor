@@ -2,15 +2,23 @@
 
 @inject IJSRuntime JS
 
-@* Cooking mode: one step at a time in big type, giant wet-finger targets, tap-to-start
-   timers read out of the step text, and the screen held awake while the page is open. *@
+@* Cooking mode: one step at a time in big type, giant wet-finger targets, timers on tap —
+   both the ones read out of the step text and any the cook starts — and the screen held
+   awake while the page is open. *@
 
 <div class="flex flex-col h-full max-w-3xl mx-auto w-full">
     <HomeTopBar Title="@(this.m_Recipe?.Name ?? "Cooking")"
                 Eyebrow="Cooking"
                 EyebrowClass="text-recipes"
                 ShowBack="true"
-                BackHref="@($"/recipes/{this.RecipeID}")" />
+                BackHref="@($"/recipes/{this.RecipeID}")">
+        <ActionsContent>
+            <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenTimerPicker">
+                <span class="home-icon home-icon-clock h-4 w-4 mr-1 inline-block"></span>
+                Timer
+            </HomeButton>
+        </ActionsContent>
+    </HomeTopBar>
 
     <div class="flex-1 min-h-0 px-6 pb-6 flex flex-col">
         @if (this.m_Recipe == null)
@@ -40,7 +48,10 @@
                 @this.StepLabel()
             </p>
 
-            <div class="flex-1 min-h-0 app-scrollable bg-ink-900 border border-ink-800 rounded-2xl p-6 md:p-8">
+            @* select-none and tabindex="-1" keep a text caret out of the cooking card: browsers make
+               scroll containers keyboard-focusable, and a focused, selectable box shows an I-beam. *@
+            <div tabindex="-1"
+                 class="flex-1 min-h-0 app-scrollable select-none cursor-default focus:outline-none bg-ink-900 border border-ink-800 rounded-2xl p-6 md:p-8">
                 @if (this.OnIngredients())
                 {
                     <h2 class="font-display text-3xl text-ink-50 mb-5">Everything you'll need</h2>
@@ -75,31 +86,93 @@
                         </div>
                     }
                 }
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 mt-4 shrink-0">
-                <HomeButton Variant="secondary" Size="lg"
-                            Disabled="@(this.m_StepIndex == 0)"
-                            OnClick="() => this.m_StepIndex--">
-                    <span class="home-icon home-icon-chevron-left h-5 w-5 mr-1 inline-block"></span>
-                    Back
-                </HomeButton>
-                @if (this.IsLastStep())
-                {
-                    <HomeButton Size="lg" OnClick="@(() => this.NavigationManager.NavigateTo($"/recipes/{this.RecipeID}"))">
-                        Done
-                    </HomeButton>
-                }
                 else
                 {
-                    <HomeButton Size="lg" OnClick="() => this.m_StepIndex++">
-                        Next
-                        <span class="home-icon home-icon-chevron-right h-5 w-5 ml-1 inline-block"></span>
-                    </HomeButton>
+                    <p class="text-xl text-ink-400">
+                        This recipe hasn't got any ingredients or steps written down yet.
+                    </p>
                 }
             </div>
+
+            @* A recipe with ingredients but no steps is a single page — a pair of buttons where one
+               is permanently dead reads as broken, so it becomes one honest action. *@
+            @if (this.TotalPages() <= 1)
+            {
+                <div class="mt-4 shrink-0">
+                    <HomeButton Size="lg" Class="w-full" OnClick="this.LeaveCooking">
+                        Done
+                    </HomeButton>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-2 gap-3 mt-4 shrink-0">
+                    @if (this.m_StepIndex == 0)
+                    {
+                        <HomeButton Variant="secondary" Size="lg" OnClick="this.LeaveCooking">
+                            <span class="home-icon home-icon-chevron-left h-5 w-5 mr-1 inline-block"></span>
+                            Leave cooking
+                        </HomeButton>
+                    }
+                    else
+                    {
+                        <HomeButton Variant="secondary" Size="lg" OnClick="() => this.m_StepIndex--">
+                            <span class="home-icon home-icon-chevron-left h-5 w-5 mr-1 inline-block"></span>
+                            Back
+                        </HomeButton>
+                    }
+
+                    @if (this.IsLastStep())
+                    {
+                        <HomeButton Size="lg" OnClick="this.LeaveCooking">
+                            Done
+                        </HomeButton>
+                    }
+                    else
+                    {
+                        <HomeButton Size="lg" OnClick="() => this.m_StepIndex++">
+                            Next
+                            <span class="home-icon home-icon-chevron-right h-5 w-5 ml-1 inline-block"></span>
+                        </HomeButton>
+                    }
+                </div>
+            }
         }
     </div>
 </div>
+
+@* Timers can always be started, whether or not the recipe's wording happens to mention a duration. *@
+<HomeModal @bind-Visible="this.m_ShowTimerPicker" Title="Start a timer">
+    <ChildContent>
+        <div class="flex flex-col gap-5">
+            <div class="grid grid-cols-3 gap-2">
+                @foreach (var _Minutes in s_TimerPresets)
+                {
+                    <button type="button"
+                            class="min-h-[56px] rounded-xl border border-ink-700 bg-ink-800 text-base font-semibold text-ink-50 hover:border-recipes/60 active:scale-95 transition-all"
+                            @onclick="() => this.StartPresetTimer(_Minutes)">
+                        @FormatMinutes(_Minutes)
+                    </button>
+                }
+            </div>
+
+            <div class="flex items-end gap-2">
+                <div class="flex-1 min-w-0">
+                    <HomeTextInput Label="Or your own number of minutes"
+                                   AutoComplete="off"
+                                   InputMode="numeric"
+                                   Placeholder="e.g. 12"
+                                   @bind-Value="this.m_CustomTimerMinutes" />
+                </div>
+                <HomeButton Size="lg"
+                            OnClick="this.StartCustomTimer"
+                            Disabled="@(!this.CanStartCustomTimer())"
+                            DisabledReason="Type a whole number of minutes between 1 and 1440.">
+                    Start
+                </HomeButton>
+            </div>
+        </div>
+    </ChildContent>
+</HomeModal>
 
 <ErrorHandler @ref="this.m_ErrorHandler" />

@@ -52,6 +52,8 @@ public partial class LightsPage : IDisposable
     private string m_CaptureName = string.Empty;
     private long m_CaptureGroupID;
     private bool m_Capturing;
+    private bool m_CaptureSyncing;
+    private bool m_CaptureUsedLastKnownState;
 
     // Schedules
     private bool m_ShowScheduleModal;
@@ -88,6 +90,8 @@ public partial class LightsPage : IDisposable
     private ColourPreset? m_EffectPreset;
     private bool m_StartingEffect;
     private bool m_StoppingEffect;
+
+    private const int AllDaysOfWeek = 127;
 
     // Bit 0 is Sunday, matching System.DayOfWeek, displayed Monday-first.
     private static readonly ScheduleDay[] ScheduleDays =
@@ -157,6 +161,8 @@ public partial class LightsPage : IDisposable
         => this.m_EditMode = !this.m_EditMode;
 
     // Free — this reads Home's own records, not the provider.
+    // A failed load keeps whatever was already on screen and otherwise settles on empty, so one
+    // dropped request can never pin a section on its loading skeleton for good.
     private async Task LoadLightsAsync()
     {
         var _Result = await this.ApiAccess.SendRequestAsync<object, GetLightsWebAppResponse>(
@@ -164,8 +170,7 @@ public partial class LightsPage : IDisposable
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        if (_Result != null)
-            this.m_Groups = _Result.Groups;
+        this.m_Groups = _Result?.Groups ?? this.m_Groups ?? [];
     }
 
     private async Task LoadScenesAsync()
@@ -175,8 +180,7 @@ public partial class LightsPage : IDisposable
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        if (_Result != null)
-            this.m_Scenes = _Result.Scenes;
+        this.m_Scenes = _Result?.Scenes ?? this.m_Scenes ?? [];
     }
 
     private async Task LoadSchedulesAsync()
@@ -186,8 +190,30 @@ public partial class LightsPage : IDisposable
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
-        if (_Result != null)
-            this.m_Schedules = _Result.Schedules;
+        this.m_Schedules = _Result?.Schedules ?? this.m_Schedules ?? [];
+    }
+
+    /// <summary>
+    /// Pulls live state from the provider. Capturing a scene needs this too, but silently — it
+    /// reports its own outcome rather than raising a toast.
+    /// </summary>
+    private async Task<bool> SendSyncAsync(bool reportErrors)
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, SyncLightsWebAppResponse>(
+            null!, ApiProvider.SyncLights(),
+            e =>
+            {
+                if (reportErrors)
+                    this.m_ErrorHandler?.AddError(e);
+            },
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result == null)
+            return false;
+
+        this.m_LastSynced = this.TimeProvider.GetLocalNow().ToString("h:mm tt");
+
+        return true;
     }
 
     private async Task SyncLightsAsync()
@@ -197,21 +223,44 @@ public partial class LightsPage : IDisposable
 
         this.m_Syncing = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, SyncLightsWebAppResponse>(
-            null!, ApiProvider.SyncLights(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
+        var _Synced = await this.SendSyncAsync(true);
 
         this.m_Syncing = false;
 
-        if (_Result == null)
+        if (!_Synced)
             return;
-
-        this.m_LastSynced = this.TimeProvider.GetLocalNow().ToString("h:mm tt");
 
         // A sync can add or drop bulbs, which also changes what scenes cover.
         await Task.WhenAll(this.LoadLightsAsync(), this.LoadScenesAsync());
         await this.PublishLightsChangedAsync();
+    }
+
+    /// <summary>
+    /// How stale the page's picture of the bulbs is. The list comes from Home's database, which
+    /// only matches the room after a sync.
+    /// </summary>
+    private string? FreshnessText()
+    {
+        var _Latest = (this.m_Groups ?? [])
+            .SelectMany(g => g.Lights)
+            .Select(l => l.StateUpdatedUTC)
+            .DefaultIfEmpty(DateTime.MinValue)
+            .Max();
+
+        if (_Latest == DateTime.MinValue)
+            return null;
+
+        var _Age = this.TimeProvider.GetUtcNow().UtcDateTime - _Latest;
+        var _Minutes = (int)_Age.TotalMinutes;
+        var _Hours = (int)_Age.TotalHours;
+
+        return _Age.TotalSeconds switch
+        {
+            < 90 => "Updated just now",
+            _ when _Minutes < 60 => $"Updated {_Minutes} min ago",
+            _ when _Hours < 24 => $"Updated {_Hours} {(_Hours == 1 ? "hour" : "hours")} ago",
+            _ => "Updated over a day ago"
+        };
     }
 
     /* ---------- scenes ---------- */
@@ -237,11 +286,23 @@ public partial class LightsPage : IDisposable
         await this.PublishLightsChangedAsync();
     }
 
-    private void OpenCaptureModal()
+    /// <summary>
+    /// "Current look" has to mean the bulbs right now, so the provider is read before the capture.
+    /// When it cannot be reached the capture still goes ahead, on the last state Home knew about,
+    /// and the modal says so.
+    /// </summary>
+    private async Task OpenCaptureModalAsync()
     {
         this.m_CaptureName = string.Empty;
         this.m_CaptureGroupID = 0;
+        this.m_CaptureUsedLastKnownState = false;
+        this.m_CaptureSyncing = true;
         this.m_ShowCaptureModal = true;
+
+        this.m_CaptureUsedLastKnownState = !await this.SendSyncAsync(false);
+        this.m_CaptureSyncing = false;
+
+        await this.LoadLightsAsync();
     }
 
     private async Task CaptureSceneAsync()
@@ -296,8 +357,16 @@ public partial class LightsPage : IDisposable
         this.m_ScheduleTrigger = LightScheduleTrigger.Time;
         this.m_ScheduleTime = "19:00";
         this.m_ScheduleOffsetMinutes = 0;
-        this.m_ScheduleDays = 0;
+        this.m_ScheduleDays = AllDaysOfWeek;
         this.m_ShowScheduleModal = true;
+    }
+
+    // Nothing to schedule without a scene, so the dead end hands straight over to making one.
+    private async Task CaptureSceneFromScheduleAsync()
+    {
+        this.m_ShowScheduleModal = false;
+
+        await this.OpenCaptureModalAsync();
     }
 
     private bool IsDaySelected(int bit)
@@ -311,6 +380,20 @@ public partial class LightsPage : IDisposable
             && this.m_ScheduleSceneID != 0
             && this.m_ScheduleDays != 0
             && (this.m_ScheduleTrigger != LightScheduleTrigger.Time || TimeSpan.TryParse(this.m_ScheduleTime, out _));
+
+    private string ScheduleBlockedReason()
+    {
+        if (string.IsNullOrWhiteSpace(this.m_ScheduleName))
+            return "Give the schedule a name first.";
+
+        if (this.m_ScheduleSceneID == 0)
+            return "Choose the scene this schedule should fire.";
+
+        if (this.m_ScheduleDays == 0)
+            return "Pick at least one day of the week.";
+
+        return "That time doesn't read as a time — try something like 19:00.";
+    }
 
     private async Task CreateScheduleAsync()
     {
@@ -400,13 +483,12 @@ public partial class LightsPage : IDisposable
 
     private static string FormatDays(int daysOfWeek)
     {
-        const int _EveryDay = 127;
         const int _Weekdays = 62;
         const int _Weekend = 65;
 
         return daysOfWeek switch
         {
-            _EveryDay => "Every day",
+            AllDaysOfWeek => "Every day",
             _Weekdays => "Weekdays",
             _Weekend => "Weekends",
             _ => string.Join(" · ", ScheduleDays.Where(d => (daysOfWeek & d.Bit) != 0).Select(d => d.Label))

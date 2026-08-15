@@ -1,13 +1,24 @@
 ﻿@* Reusable button. Variants: primary (default), secondary, ghost, danger. Sizes: sm, md, lg (default md). *@
 
+@* Disabled WITH a DisabledReason, the button stays tappable and answers with the reason rather
+   than being a silent dead tap. The message hangs off the button itself, so no layout changes. *@
+
 <button type="@this.Type"
         class="@this.GetClasses()"
-        disabled="@(this.Disabled || this.Loading)"
-        @onclick="@(this.OnClick.HasDelegate ? this.OnClick : EventCallback.Empty)"
+        disabled="@(this.IsHardDisabled() || this.Loading)"
+        @onclick="this.HandleClickAsync"
         @attributes="this.AdditionalAttributes">
     @if (this.Loading)
     {
         <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></span>
     }
     @this.ChildContent
+
+    @if (this.m_ShowDisabledReason && this.HasDisabledReason())
+    {
+        <span role="status"
+              class="absolute top-full right-0 mt-1.5 z-30 w-max max-w-[16rem] whitespace-normal text-left rounded-lg border border-ink-700 bg-ink-800 px-3 py-2 text-xs font-normal text-ink-200 shadow-xl">
+            @this.DisabledReason
+        </span>
+    }
 </button>

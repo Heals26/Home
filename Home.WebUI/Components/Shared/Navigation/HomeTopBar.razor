@@ -6,7 +6,10 @@
     <div class="flex items-center gap-2 min-w-0">
         @if (this.ShowBack)
         {
-            <button class="p-2 -ml-2 mb-0.5 text-ink-400 hover:text-ink-50 rounded-lg transition-colors shrink-0 min-h-[44px] min-w-[44px]"
+            <button type="button"
+                    title="Back"
+                    aria-label="Back"
+                    class="p-2 -ml-2 mb-0.5 text-ink-400 hover:text-ink-50 rounded-lg transition-colors shrink-0 min-h-[44px] min-w-[44px]"
                     @onclick="this.GoBack">
                 <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
             </button>

@@ -35,10 +35,15 @@ public partial class CookPage : IAsyncDisposable
     private readonly List<CookTimer> m_Timers = [];
     private bool m_TickerRunning;
 
+    private bool m_ShowTimerPicker;
+    private string m_CustomTimerMinutes = string.Empty;
+
     // Durations like "20 minutes", "1 hr", "45 min" pulled from step text become one-tap timers.
     private static readonly Regex s_Durations = new(
         @"(\d+)\s*(hours?|hrs?|minutes?|mins?)\b",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly int[] s_TimerPresets = [1, 3, 5, 10, 15, 20, 30, 45, 60];
 
     #endregion Fields
 
@@ -69,7 +74,9 @@ public partial class CookPage : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        // Cancelling ends the ticker's next wait, so no countdown outlives the page.
         this.m_CancellationTokenHandler.Dispose();
+        this.m_Timers.Clear();
 
         try
         {
@@ -78,6 +85,10 @@ public partial class CookPage : IAsyncDisposable
         catch (JSDisconnectedException)
         {
             // The circuit is gone — the browser released the wake lock with the page.
+        }
+        catch (OperationCanceledException)
+        {
+            // Teardown cancelled the interop call; the lock goes with the page anyway.
         }
     }
 
@@ -111,11 +122,41 @@ public partial class CookPage : IAsyncDisposable
         => this.m_StepIndex >= this.TotalPages() - 1;
 
     private string StepLabel()
-        => this.OnIngredients()
-            ? "Before you start"
-            : $"Step {this.m_StepIndex + (this.HasIngredientsPage() ? 0 : 1)} of {this.OrderedSteps().Count}";
+        => this.TotalPages() == 0
+            ? "Nothing written down yet"
+            : this.OnIngredients()
+                ? "Before you start"
+                : $"Step {this.m_StepIndex + (this.HasIngredientsPage() ? 0 : 1)} of {this.OrderedSteps().Count}";
+
+    private void LeaveCooking()
+        => this.NavigationManager.NavigateTo($"/recipes/{this.RecipeID}");
 
     // Timers
+
+    private void OpenTimerPicker()
+    {
+        this.m_CustomTimerMinutes = string.Empty;
+        this.m_ShowTimerPicker = true;
+    }
+
+    private void StartPresetTimer(int minutes)
+    {
+        this.StartTimer(minutes);
+        this.m_ShowTimerPicker = false;
+    }
+
+    private bool CanStartCustomTimer()
+        => int.TryParse(this.m_CustomTimerMinutes, out var _Minutes) && _Minutes is > 0 and <= 24 * 60;
+
+    private void StartCustomTimer()
+    {
+        if (!this.CanStartCustomTimer())
+            return;
+
+        this.StartTimer(int.Parse(this.m_CustomTimerMinutes));
+        this.m_CustomTimerMinutes = string.Empty;
+        this.m_ShowTimerPicker = false;
+    }
 
     private IEnumerable<int> CurrentStepDurations()
     {

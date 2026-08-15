@@ -13,6 +13,12 @@
                     </HomeButton>
                 }
 
+                @* This page shows what Home last recorded, which is only the room after a sync. *@
+                @if (this.FreshnessText() is { } _Freshness)
+                {
+                    <span class="hidden sm:inline text-xs text-ink-600 whitespace-nowrap">@_Freshness</span>
+                }
+
                 <HomeButton Size="sm" Variant="ghost" OnClick="this.SyncLightsAsync" Loading="this.m_Syncing">
                     <span class="home-icon home-icon-refresh h-4 w-4 mr-1 inline-block"></span>
                     Sync
@@ -42,7 +48,7 @@
                     <section>
                         <div class="flex items-center justify-between mb-3 px-1">
                             <h2 class="text-xs font-semibold text-ink-500 uppercase tracking-widest">Scenes</h2>
-                            <HomeButton Size="sm" Variant="ghost" OnClick="this.OpenCaptureModal">
+                            <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenCaptureModalAsync">
                                 <span class="home-icon home-icon-sparkles h-4 w-4 mr-1 inline-block"></span>
                                 Save current look
                             </HomeButton>
@@ -57,9 +63,15 @@
                         }
                         else if (this.m_Scenes.Count == 0)
                         {
-                            <p class="text-sm text-ink-500 px-1">
-                                Get the room looking right, then save it as a scene to bring back any time.
-                            </p>
+                            <div class="flex flex-col items-start gap-3 rounded-2xl border border-dashed border-ink-700 px-4 py-4">
+                                <p class="text-sm text-ink-400">
+                                    Get the room looking right, then save it as a scene to bring back any time.
+                                </p>
+                                <HomeButton Size="sm" OnClick="this.OpenCaptureModalAsync">
+                                    <span class="home-icon home-icon-sparkles h-4 w-4 mr-1 inline-block"></span>
+                                    Save how the lights look now
+                                </HomeButton>
+                            </div>
                         }
                         else
                         {
@@ -130,7 +142,8 @@
                                    @bind:event="oninput" />
 
                             <HomeButton OnClick="this.CreateGroupAsync"
-                                        Disabled="@string.IsNullOrWhiteSpace(this.m_NewGroupName)">Add group</HomeButton>
+                                        Disabled="@string.IsNullOrWhiteSpace(this.m_NewGroupName)"
+                                        DisabledReason="Type a name for the group first.">Add group</HomeButton>
                         </div>
                     }
 
@@ -138,7 +151,8 @@
                     <section>
                         <div class="flex items-center justify-between mb-3 px-1">
                             <h2 class="text-xs font-semibold text-ink-500 uppercase tracking-widest">Schedules</h2>
-                            <HomeButton Size="sm" Variant="ghost" OnClick="this.OpenScheduleModal" Disabled="@(this.m_Scenes == null || this.m_Scenes.Count == 0)">
+                            @* Always opens: with no scenes yet the modal explains and offers the next step. *@
+                            <HomeButton Size="sm" Variant="ghost" OnClick="this.OpenScheduleModal">
                                 <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
                                 Add schedule
                             </HomeButton>
@@ -198,6 +212,19 @@
 <HomeModal @bind-Visible="this.m_ShowCaptureModal" Title="Save current look">
     <ChildContent>
         <div class="flex flex-col gap-4">
+            @if (this.m_CaptureSyncing)
+            {
+                <p class="text-xs text-ink-500">Reading what the bulbs are doing right now…</p>
+            }
+            else if (this.m_CaptureUsedLastKnownState)
+            {
+                <p class="text-xs text-lights">The bulbs didn't answer just now, so this saves the last look Home knew about.</p>
+            }
+            else
+            {
+                <p class="text-xs text-ink-500">This saves the lights exactly as they are at the moment.</p>
+            }
+
             <HomeTextInput Label="Name" AutoComplete="off" Placeholder="e.g. Movie night" @bind-Value="this.m_CaptureName" />
             <div class="flex flex-col gap-1.5">
                 <label for="scene-capture-group" class="text-sm font-medium text-ink-300">Which lights</label>
@@ -218,7 +245,8 @@
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowCaptureModal = false">Cancel</HomeButton>
             <HomeButton OnClick="this.CaptureSceneAsync"
                         Loading="this.m_Capturing"
-                        Disabled="@string.IsNullOrWhiteSpace(this.m_CaptureName)">Save scene</HomeButton>
+                        Disabled="@string.IsNullOrWhiteSpace(this.m_CaptureName)"
+                        DisabledReason="Name the scene so you can find it again.">Save scene</HomeButton>
         </div>
     </FooterContent>
 </HomeModal>
@@ -226,6 +254,21 @@
 @* ── Add-schedule modal ───────────────────────────────────────── *@
 <HomeModal @bind-Visible="this.m_ShowScheduleModal" Title="Add schedule">
     <ChildContent>
+        @if (this.m_Scenes == null || this.m_Scenes.Count == 0)
+        {
+            <div class="flex flex-col items-start gap-4">
+                <p class="text-sm text-ink-400">
+                    A schedule fires a saved scene, and this home hasn't got one yet. Set the lights how
+                    you want them, save that as a scene, then come back and give it a time.
+                </p>
+                <HomeButton OnClick="this.CaptureSceneFromScheduleAsync">
+                    <span class="home-icon home-icon-sparkles h-4 w-4 mr-1 inline-block"></span>
+                    Save a scene first
+                </HomeButton>
+            </div>
+        }
+        else
+        {
         <div class="flex flex-col gap-4">
             <HomeTextInput Label="Name" AutoComplete="off" Placeholder="e.g. Wind down" @bind-Value="this.m_ScheduleName" />
 
@@ -290,13 +333,18 @@
                 </div>
             </div>
         </div>
+        }
     </ChildContent>
     <FooterContent>
         <div class="flex justify-end gap-2">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowScheduleModal = false">Cancel</HomeButton>
-            <HomeButton OnClick="this.CreateScheduleAsync"
-                        Loading="this.m_CreatingSchedule"
-                        Disabled="@(!this.CanCreateSchedule())">Add schedule</HomeButton>
+            @if (this.m_Scenes?.Count > 0)
+            {
+                <HomeButton OnClick="this.CreateScheduleAsync"
+                            Loading="this.m_CreatingSchedule"
+                            Disabled="@(!this.CanCreateSchedule())"
+                            DisabledReason="@this.ScheduleBlockedReason()">Add schedule</HomeButton>
+            }
         </div>
     </FooterContent>
 </HomeModal>
@@ -340,7 +388,8 @@
             </HomeButton>
             <HomeButton OnClick="this.StartEffectAsync"
                         Loading="this.m_StartingEffect"
-                        Disabled="@(this.m_EffectPreset == null)">Start</HomeButton>
+                        Disabled="@(this.m_EffectPreset == null)"
+                        DisabledReason="Pick a colour for the effect first.">Start</HomeButton>
         </div>
     </FooterContent>
 </HomeModal>

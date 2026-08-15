@@ -19,8 +19,10 @@ public partial class HomeTopBar
 
     #region Methods
 
+    // Always a real destination, never browser history — history can be empty on a deep link,
+    // and a blank BackHref would throw.
     private void GoBack()
-        => this.NavigationManager.NavigateTo(this.BackHref);
+        => this.NavigationManager.NavigateTo(string.IsNullOrWhiteSpace(this.BackHref) ? "/" : this.BackHref);
 
     #endregion Methods
 
