@@ -5,6 +5,28 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-15 — There is a light theme now, but dark is still the default
+
+Supersedes the 13 Aug "dark only, no toggle" decision. Mitch listed "No light mode" as a
+complaint, so light is now an opt-in **per-device** preference in Settings → Appearance:
+Dark / Light / Match device, stored in `localStorage` under `home-theme`. Dark remains what an
+unconfigured device gets — a kitchen tablet that already lives on the wall must not change
+appearance because someone else's phone chose otherwise, and a device with JavaScript off or
+storage blocked falls through to dark as well. The theme is **tokenised, not duplicated**: the
+`ink` scale, the five pillar hues and the `surface` aliases moved out of `tailwind.config.js`
+into CSS custom properties on `:root` (dark) and `:root[data-theme="light"]`, declared as
+`rgb(var(--token) / <alpha-value>)` so the ~400 existing utilities — including opacity
+modifiers like `bg-week/10` and `border-lights/40`, which a plain `var()` would have broken —
+work in both themes with **no component markup changed**. Read the ink scale by role, not by
+lightness: 950 is the page, 900 the surface, 800 raised fills and borders, 50 the primary text.
+Light inverts the ramp, so those roles still hold. The pillar hues could not simply be reused —
+sky `#7dd3fc` is about 1.4:1 on paper — so each has a darkened light-theme variant that keeps
+its identity and clears 4.5:1. The stored choice is applied by a synchronous inline script in
+`App.razor` before the body renders; the app renders with `prerender: false`, so there is no
+server-side pass to put it on and an inline script is the only thing that beats the first paint.
+Rule for later: a new colour goes in `input.css` as a token pair, never as a hex in the config
+or in markup.
+
 ## 2026-08-15 — A household session is expected to last months, not an hour
 
 Mitch: "If I close the application or browser I have to relog back in. I should not have to."
