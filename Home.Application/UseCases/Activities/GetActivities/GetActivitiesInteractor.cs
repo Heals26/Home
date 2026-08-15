@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -23,6 +23,11 @@ internal class GetActivitiesInteractor : IInteractor<GetActivitiesInputPort, IGe
 
         var _Activities = _PersistenceContext.GetEntities<Activity>()
             .Where(a => a.Household.HouseholdID == _Household.HouseholdID)
+            // Undated activities sort after everything with a due date; the ID breaks ties so the
+            // board does not reshuffle between loads.
+            .OrderBy(a => a.DueDateUTC == null)
+            .ThenBy(a => a.DueDateUTC)
+            .ThenBy(a => a.ActivityID)
             .Select(a => new
             {
                 Activity = a,

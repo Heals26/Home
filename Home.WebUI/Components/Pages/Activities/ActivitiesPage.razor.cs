@@ -103,10 +103,8 @@ public partial class ActivitiesPage : IDisposable
 
     private List<ColumnVm> GetColumns()
     {
-        var _Columns = new List<ColumnVm>();
-
-        if (this.HasUnassigned())
-            _Columns.Add(new ColumnVm("Unassigned", null));
+        // Always rendered, so there is somewhere to drop or move a card to un-assign it.
+        var _Columns = new List<ColumnVm>() { new("Unassigned", null) };
 
         foreach (var _State in this.m_States ?? [])
             _Columns.Add(new ColumnVm(_State.Name, _State.ActivityStateID));
@@ -152,10 +150,7 @@ public partial class ActivitiesPage : IDisposable
     private bool IsKnownState(long stateID)
         => this.m_States?.Any(s => s.ActivityStateID == stateID) ?? false;
 
-    private bool HasUnassigned()
-        => this.m_Activities?.Any(a => a.StateID == null || !this.IsKnownState(a.StateID.Value)) ?? false;
-
-    // Drag & drop
+    // Moving
 
     private void OnDragStart(ActivitySummaryDto activity)
         => this.m_DraggedActivity = activity;
@@ -171,15 +166,32 @@ public partial class ActivitiesPage : IDisposable
         await this.MoveActivityAsync(_Activity, stateID);
     }
 
+    private async Task MoveToColumnAsync(ActivitySummaryDto activity, ColumnVm? column)
+    {
+        if (column == null)
+            return;
+
+        await this.MoveActivityAsync(activity, column.StateID);
+    }
+
     private async Task MoveActivityAsync(ActivitySummaryDto activity, long? stateID)
     {
-        var _Request = BuildUpdateRequest(activity);
-        _Request.StateID = new PropertyChangeTracker<long?>(stateID);
+        if (this.m_Saving) return;
+        this.m_Saving = true;
+
+        // Only the column. Anything else sent here would overwrite whatever another family
+        // member changed on their own device since this board last loaded.
+        var _Request = new UpdateActivityWebAppRequest()
+        {
+            StateID = new PropertyChangeTracker<long?>(stateID)
+        };
 
         var _Result = await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
             _Request, ApiProvider.UpdateActivity(activity.ActivityID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
+
+        this.m_Saving = false;
 
         if (_Result != true)
             return;
@@ -242,13 +254,43 @@ public partial class ActivitiesPage : IDisposable
     private async Task SaveActivityAsync()
     {
         if (this.m_Saving || this.m_EditActivity == null) return;
-        this.m_Saving = true;
 
-        var _Request = BuildUpdateRequest(this.m_EditActivity);
-        _Request.Title = new PropertyChangeTracker<string>(this.m_EditTitle);
-        _Request.DueDateUTC = new PropertyChangeTracker<DateTime?>(this.m_EditDueDate);
-        _Request.StateID = new PropertyChangeTracker<long?>(this.m_EditStateID);
-        _Request.UserID = new PropertyChangeTracker<long?>(this.m_EditUserID);
+        // Only what this form actually altered, so an untouched field cannot revert a change
+        // made elsewhere in the household.
+        var _Request = new UpdateActivityWebAppRequest();
+        var _HasChanges = false;
+
+        if (this.m_EditTitle != this.m_EditActivity.Title)
+        {
+            _Request.Title = new PropertyChangeTracker<string>(this.m_EditTitle);
+            _HasChanges = true;
+        }
+
+        if (this.m_EditDueDate != this.m_EditActivity.DueDateUTC?.Date)
+        {
+            _Request.DueDateUTC = new PropertyChangeTracker<DateTime?>(this.m_EditDueDate);
+            _HasChanges = true;
+        }
+
+        if (this.m_EditStateID != this.m_EditActivity.StateID)
+        {
+            _Request.StateID = new PropertyChangeTracker<long?>(this.m_EditStateID);
+            _HasChanges = true;
+        }
+
+        if (this.m_EditUserID != this.m_EditActivity.AssignedToUserID)
+        {
+            _Request.UserID = new PropertyChangeTracker<long?>(this.m_EditUserID);
+            _HasChanges = true;
+        }
+
+        if (!_HasChanges)
+        {
+            this.m_ShowEdit = false;
+            return;
+        }
+
+        this.m_Saving = true;
 
         var _Result = await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
             _Request, ApiProvider.UpdateActivity(this.m_EditActivity.ActivityID),
@@ -297,16 +339,8 @@ public partial class ActivitiesPage : IDisposable
         };
     }
 
-    private static UpdateActivityWebAppRequest BuildUpdateRequest(ActivitySummaryDto activity)
-        => new()
-        {
-            Title = new PropertyChangeTracker<string>(activity.Title),
-            DueDateUTC = new PropertyChangeTracker<DateTime?>(activity.DueDateUTC),
-            CompletedDateUTC = new PropertyChangeTracker<DateTime?>(activity.CompletedDateUTC),
-            StateID = new PropertyChangeTracker<long?>(activity.StateID),
-            StatusID = new PropertyChangeTracker<long?>(activity.StatusID),
-            UserID = new PropertyChangeTracker<long?>(activity.AssignedToUserID)
-        };
+    private static string MoveLabel(ColumnVm? column, string whenUnavailable)
+        => column == null ? whenUnavailable : $"Move to {column.Title}";
 
     #endregion Methods
 
