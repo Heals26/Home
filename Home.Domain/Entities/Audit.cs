@@ -19,7 +19,11 @@ public class Audit
     /// </summary>
     public string? UserName { get; set; }
 
-    public User User { get; set; } = null!;
+    /// <summary>
+    /// Null once the member has been removed — the audit outlives them, and
+    /// <see cref="UserName"/> keeps the record readable.
+    /// </summary>
+    public User? User { get; set; }
 
     #endregion Properties
 

@@ -39,6 +39,19 @@ public class AuditConfiguration : IEntityTypeConfiguration<Audit>
             v => v.Value,
             v => (ResourceTypeSE)v);
 
+        // Also never configured, which left deleting a member blocked by their own audit trail.
+        // The history outlives the person — UserName is already denormalised onto the row for
+        // exactly that reason — so the link is cleared rather than the record destroyed.
+        // WithMany() without the navigation: UserConfiguration ignores User.Audits, because an
+        // audit is reached by Entity + EntityID rather than by walking a person's history.
+        _ = entity.Property<long?>("UserID");
+        _ = entity.HasOne(e => e.User)
+            .WithMany()
+            .HasConstraintName("FK_Audit_User")
+            .HasForeignKey("UserID")
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
         _ = entity.HasIndex(e => new { e.Entity, e.EntityID })
             .HasDatabaseName("IX_Audit_Entity_EntityID");
     }

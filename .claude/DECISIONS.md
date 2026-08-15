@@ -5,6 +5,21 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-15 — Every relationship is configured explicitly, or EF quietly invents a bad one
+
+Deleting a recipe failed on `FK_RecipeStep_Recipe_RecipeID`. The cause was an *absence*:
+`RecipeStepConfiguration` never declared the relationship, so EF inferred one from `Recipe.Steps`
+— and because `RecipeStep` carries no back-navigation, it inferred it as **optional with no
+cascade**, giving a nullable `RecipeID` the database then used to block every delete. Deleting a
+recipe with steps had never worked. The giveaway is the constraint name: EF's default
+`FK_Child_Parent_Column` shape instead of this repo's `FK_Child_Parent`, so that naming
+difference is a reliable way to find unconfigured relationships. A sweep found exactly one other
+— `Audit → User`, which blocked deleting any member who had ever done anything. Steps now cascade
+from the recipe (a single path: the household already reaches them through it); the audit link is
+`SetNull`, because history outlives the person and `Audit.UserName` is denormalised onto the row
+for exactly that reason. Rule: configure every relationship explicitly, and never trust an
+inferred one — a missing configuration is silent until a delete fails in front of the family.
+
 ## 2026-08-15 — There is a light theme now, but dark is still the default
 
 Supersedes the 13 Aug "dark only, no toggle" decision. Mitch listed "No light mode" as a
