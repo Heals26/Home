@@ -14,6 +14,13 @@ public class Activity
 
     public DateTime? CompletedDateUTC { get; set; }
     public DateTime? DueDateUTC { get; set; }
+
+    /// <summary>
+    /// Time of day the activity is due, or null when only the day matters. Kept separate from
+    /// the date so "no time set" stays representable without a companion flag.
+    /// </summary>
+    public TimeSpan? DueTime { get; set; }
+
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
@@ -37,6 +44,8 @@ public class Activity
     /// Todo, In Progress, Done
     /// </summary>
     public ActivityStatus? Status { get; set; }
+
+    public ICollection<ActivityTag> Tags { get; set; } = [];
 
     public User? User { get; set; }
 

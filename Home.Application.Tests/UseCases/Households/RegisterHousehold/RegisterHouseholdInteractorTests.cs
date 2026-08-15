@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Home.Application.Infrastructure.Households;
+using Home.Application.Services.EntityLogic.Households;
 using Home.Application.Services.Persistence;
 using Home.Application.Tests.Infrastructure;
 using Home.Application.UseCases.Households.RegisterHousehold;
@@ -29,10 +31,13 @@ public class RegisterHouseholdInteractorTests
             .Setup(c => c.GetEntities<User>())
             .Returns((existingUsers ?? []).AsQueryable());
 
+        // The real setup logic, not a mock: a household that arrives without board columns or
+        // meal slots is unusable on the first screen it shows, so that is worth covering here.
         var _ServiceFactory = new TestServiceFactory()
             .With(this.m_PersistenceContext.Object)
             .With(this.m_PasswordService.Object)
             .With(this.m_AuditLogic.Object)
+            .With<IHouseholdSetupLogic>(new HouseholdSetupLogic(this.m_PersistenceContext.Object))
             .Build();
 
         return new RegisterHouseholdInteractor().HandleAsync(
@@ -40,6 +45,23 @@ public class RegisterHouseholdInteractorTests
             this.m_OutputPort.Object,
             _ServiceFactory,
             CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task HandleAsync_SeedsTheHouseholdsOwnBoardColumnsAndMealSlots()
+    {
+        Household? _Added = null;
+        this.m_PersistenceContext
+            .Setup(c => c.Add(It.IsAny<Household>()))
+            .Callback<Household>(h => _Added = h);
+
+        await this.HandleAsync();
+
+        _Added.Should().NotBeNull();
+        _Added!.ActivityStates.Select(s => s.Name).Should().Equal("To do", "Doing", "Waiting on", "Done");
+        _Added.ActivityStates.Should().ContainSingle(s => s.IsComplete).Which.Name.Should().Be("Done");
+        _Added.ActivityStates.Select(s => s.Sequence).Should().Equal(0, 1, 2, 3);
+        _Added.MealSlots.Select(s => s.Name).Should().Equal("Breakfast", "Lunch", "Dinner", "Snack");
     }
 
     [Fact]

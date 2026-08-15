@@ -1,4 +1,4 @@
-namespace Home.Domain.Entities;
+﻿namespace Home.Domain.Entities;
 
 public class Household
 {
@@ -27,10 +27,13 @@ public class Household
     public string Name { get; set; } = string.Empty;
 
     public ICollection<Activity> Activities { get; set; } = [];
+    public ICollection<ActivityState> ActivityStates { get; set; } = [];
     public ICollection<LightLocation> LightLocations { get; set; } = [];
     public ICollection<LightScene> LightScenes { get; set; } = [];
+    public ICollection<MealSlot> MealSlots { get; set; } = [];
     public ICollection<Recipe> Recipes { get; set; } = [];
     public ICollection<ShoppingList> ShoppingLists { get; set; } = [];
+    public ICollection<Tag> Tags { get; set; } = [];
     public ICollection<User> Members { get; set; } = [];
 
     #endregion Properties

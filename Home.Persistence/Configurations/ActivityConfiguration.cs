@@ -1,4 +1,4 @@
-using Home.Domain;
+﻿using Home.Domain;
 using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -22,6 +22,9 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
             .IsRequired(false);
 
         _ = entity.Property(e => e.DueDateUTC)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.DueTime)
             .IsRequired(false);
 
         _ = entity.Property(e => e.Title)

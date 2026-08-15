@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.Mediator;
+using Home.Application.Services.EntityLogic.Households;
 using Home.Application.Services.Persistence;
 using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
@@ -32,6 +33,7 @@ internal class RegisterHouseholdInteractor
         {
             var _PasswordService = serviceFactory.GetService<IPasswordService>();
             var _AuditLogic = serviceFactory.GetService<IAuditLogic<User>>();
+            var _HouseholdSetupLogic = serviceFactory.GetService<IHouseholdSetupLogic>();
 
             var _Household = new Household() { Name = inputPort.HouseholdName.Trim() };
 
@@ -49,6 +51,9 @@ internal class RegisterHouseholdInteractor
 
             _PersistenceContext.Add(_Household);
             _PersistenceContext.Add(_User);
+
+            _HouseholdSetupLogic.SeedDefaults(_Household);
+
             _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
             await outputPort.PresentHouseholdRegisteredAsync(_Household.HouseholdID, cancellationToken);

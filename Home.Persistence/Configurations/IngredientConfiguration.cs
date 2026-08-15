@@ -18,6 +18,13 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
         _ = entity.Property(e => e.IngredientID)
             .ValueGeneratedOnAdd();
 
+        _ = entity.Property(e => e.Amount)
+            .HasPrecision(18, 4)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.Unit)
+            .IsRequired(false);
+
         _ = entity.Property(e => e.Name)
             .HasMaxLength(200)
             .IsRequired();

@@ -30,6 +30,17 @@ public class MealPlanEntryConfiguration : IEntityTypeConfiguration<MealPlanEntry
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
 
+        // Restricted, not cascading: the household is already reached through the recipe, and a
+        // second cascade path would be rejected. Refusing to delete a slot still holding a week
+        // of dinners is also the behaviour the family wants.
+        _ = entity.Property<long?>("MealSlotID");
+        _ = entity.HasOne(e => e.MealSlot)
+            .WithMany()
+            .HasForeignKey("MealSlotID")
+            .HasConstraintName("FK_MealPlanEntry_MealSlot")
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
         // The planner always reads a date window.
         _ = entity.HasIndex(e => e.Date);
     }

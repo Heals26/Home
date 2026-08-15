@@ -24,6 +24,26 @@ public class UserAuthentication : IEntityTypeConfiguration<Domain.Entities.UserA
         _ = entity.Property(e => e.DateSetUTC)
             .IsRequired();
 
+        _ = entity.Property(e => e.DeviceLabel)
+            .HasMaxLength(200)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.ExpiresOnUTC);
+        _ = entity.Property(e => e.LastUsedOnUTC)
+            .IsRequired(false);
+
+        // Deliberately a bare column, not a foreign key — a self-reference here would close a
+        // cycle. It is rotation metadata, read only to detect a replayed refresh token.
+        _ = entity.Property(e => e.SupersededByAuthenticationMetadataID)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.SupersededOnUTC)
+            .IsRequired(false);
+
+        // Every refresh looks a token up by its value, and the pruning sweep reads expiry.
+        _ = entity.HasIndex(e => e.RefreshToken);
+        _ = entity.HasIndex(e => e.ExpiresOnUTC);
+
         _ = entity.Property(e => e.RefreshToken)
             .IsRequired();
 

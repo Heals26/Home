@@ -18,6 +18,12 @@ public class MealPlanEntry
     /// </summary>
     public DateTime Date { get; set; }
 
+    /// <summary>
+    /// Which meal of the day this is for. Null on entries planned before the household defined
+    /// its meals.
+    /// </summary>
+    public MealSlot? MealSlot { get; set; }
+
     public Recipe Recipe { get; set; } = null!;
 
     #endregion Properties

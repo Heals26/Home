@@ -3,11 +3,13 @@ using CleanArchitecture.Mediator;
 using CleanArchitecture.Mediator.Setup;
 using Home.Application.Infrastructure.Security;
 using Home.Application.Infrastructure.Activities;
+using Home.Application.Infrastructure.Households;
 using Home.Application.Infrastructure.Recipes;
 using Home.Application.Infrastructure.ShoppingLists;
 using Home.Application.Infrastructure.Users;
 using Home.Application.Infrastructure.Lights;
 using Home.Application.Services.EntityLogic.Activities;
+using Home.Application.Services.EntityLogic.Households;
 using Home.Application.Services.EntityLogic.Lights;
 using Home.Application.Services.EntityLogic.Recipes;
 using Home.Application.Services.EntityLogic.ShoppingLists;
@@ -74,12 +76,6 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     _ = app.UseAuthentication();
     _ = app.UseAuthorization();
 
-    _ = app.Use(async (context, next) =>
-    {
-        context.Request.EnableBuffering();
-        await next();
-    });
-
     _ = app.UseEndpoints(e =>
     {
         _ = e.MapControllers();
@@ -93,17 +89,11 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     SeedLookups(_PersistenceContext);
 }
 
+// Board columns are no longer seeded here: they belong to a household now, so a global row
+// would be unreachable by every scoped query. RegisterHousehold seeds them per household
+// through IHouseholdSetupLogic, and the migration backfilled the existing ones.
 static void SeedLookups(PersistenceContext context)
 {
-    if (!context.Set<ActivityState>().Any())
-        context.AddRange(
-            new ActivityState() { Name = "Todo" },
-            new ActivityState() { Name = "Refining" },
-            new ActivityState() { Name = "Progressing" },
-            new ActivityState() { Name = "Blocked" },
-            new ActivityState() { Name = "Testing" },
-            new ActivityState() { Name = "Done" });
-
     if (!context.Set<ActivityStatus>().Any())
         context.AddRange(
             new ActivityStatus() { Name = "Todo" },
@@ -191,7 +181,9 @@ static IServiceCollection SetupEntityFramework(IServiceCollection services, ICon
 
 static IServiceCollection SetupInfrastructure(IServiceCollection services)
 {
-    _ = services.AddControllers();
+    // The audit filter is what puts an action name against each entry — the middleware alone only
+    // ever sees the URI.
+    _ = services.AddControllers(o => o.Filters.Add<ApiAuditingActionFilterAttribute>());
     _ = services.AddSignalR();
 
     // Open generic, so AutoMapper can close it per grant response when it resolves the resolver.
@@ -328,6 +320,7 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
 
     _ = services
         .AddScoped<IActivityLogic, ActivityLogic>()
+        .AddScoped<IHouseholdSetupLogic, HouseholdSetupLogic>()
         .AddScoped<ILightSceneLogic, LightSceneLogic>()
         .AddScoped<ILightSyncLogic, LightSyncLogic>()
         .AddScoped<IRecipeLogic, RecipeLogic>()

@@ -18,6 +18,22 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
         _ = entity.Property(e => e.RecipeID)
             .ValueGeneratedOnAdd();
 
+        _ = entity.Property(e => e.CookMinutes)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.Complexity)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.ImageUrl)
+            .HasMaxLength(2048)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.PrepMinutes)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.Servings)
+            .IsRequired(false);
+
         _ = entity.Property(e => e.Name)
             .HasMaxLength(250)
             .IsRequired();

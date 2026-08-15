@@ -1,4 +1,4 @@
-using Home.Domain;
+﻿using Home.Domain;
 using Home.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -25,6 +25,13 @@ public class ShoppingListItemConfiguration : IEntityTypeConfiguration<ShoppingLi
         _ = entity.Property(e => e.InBasket)
             .HasDefaultValue(false)
             .IsRequired();
+
+        _ = entity.Property(e => e.Amount)
+            .HasPrecision(18, 4)
+            .IsRequired(false);
+
+        _ = entity.Property(e => e.Unit)
+            .IsRequired(false);
 
         _ = entity.Property(e => e.Quantity)
             .HasPrecision(18, 4)
