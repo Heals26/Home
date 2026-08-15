@@ -1,9 +1,10 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.Activities.GetActivity;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
 using Home.WebApi.UseCases.Activities.GetActivity;
 using Home.WebApi.UseCases.Activities.Models;
+using Home.WebApi.UseCases.Tags.Models;
 
 namespace Home.WebApi.Presenters.Activities.GetActivity;
 
@@ -19,6 +20,7 @@ public class GetActivityPresenter(IMapper mapper)
             ActivityID = activity.ActivityID,
             Title = activity.Title,
             DueDateUTC = activity.DueDateUTC,
+            DueTime = activity.DueTime,
             CompletedDateUTC = activity.CompletedDateUTC,
             StateID = activity.State?.ActivityStateID,
             State = activity.State?.Name,
@@ -26,6 +28,12 @@ public class GetActivityPresenter(IMapper mapper)
             Status = activity.Status?.Name,
             AssignedToUserID = activity.User?.UserID,
             AssignedTo = activity.User?.UserName,
+            Tags = [.. activity.Tags.Select(t => t.Tag).OrderBy(t => t.Name).Select(t => new TagDto()
+            {
+                Colour = t.Colour,
+                Name = t.Name,
+                TagID = t.TagID
+            })],
             Regions = [.. activity.Regions.OrderBy(r => r.Sequence).Select(r => new ActivityRegionDto()
             {
                 ActivityRegionID = r.ActivityRegionID,

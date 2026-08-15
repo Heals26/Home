@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -23,6 +23,16 @@ internal class GetAssignedActivitiesInteractor : IInteractor<GetAssignedActiviti
 
         var _Activities = _PersistenceContext.GetEntities<Activity>()
             .Where(a => a.User != null && a.User.UserID == _User.UserID)
+            .Select(a => new
+            {
+                Activity = a,
+                a.State,
+                a.Status,
+                Tags = a.Tags.Select(t => new { ActivityTag = t, t.Tag }),
+                a.User
+            })
+            .ToList()
+            .Select(a => a.Activity)
             .ToList();
 
         await output.PresentAssignedActivitiesAsync(_Activities, cancellationToken);

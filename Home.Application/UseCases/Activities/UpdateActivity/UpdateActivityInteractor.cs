@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.Mediator;
+using Home.Application.Services.EntityLogic.Activities;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -19,6 +20,7 @@ internal class UpdateActivityInteractor : IInteractor<UpdateActivityInputPort, I
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _ActivityLogic = serviceFactory.GetService<IActivityLogic>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<Activity>>();
 
         var _Household = _AuthorisationService.GetHousehold();
@@ -38,13 +40,19 @@ internal class UpdateActivityInteractor : IInteractor<UpdateActivityInputPort, I
         if (inputPort.DueDateUTC.HasBeenSet)
             _Activity.DueDateUTC = inputPort.DueDateUTC.Value;
 
+        if (inputPort.DueTime.HasBeenSet)
+            _Activity.DueTime = inputPort.DueTime.Value;
+
         if (inputPort.CompletedDateUTC.HasBeenSet)
             _Activity.CompletedDateUTC = inputPort.CompletedDateUTC.Value;
 
+        // Columns belong to a household, so a guessed ID has to miss rather than land on
+        // another family's board.
         if (inputPort.StateID.HasBeenSet)
-            _Activity.State = inputPort.StateID.Value.HasValue
-                ? _PersistenceContext.Find<ActivityState>(inputPort.StateID.Value.Value)
-                : null;
+            _ActivityLogic.ApplyStateChange(_Activity, inputPort.StateID.Value.HasValue
+                ? _PersistenceContext.GetEntities<ActivityState>()
+                    .SingleOrDefault(s => s.ActivityStateID == inputPort.StateID.Value.Value && s.Household.HouseholdID == _Household.HouseholdID)
+                : null);
 
         if (inputPort.StatusID.HasBeenSet)
             _Activity.Status = inputPort.StatusID.Value.HasValue

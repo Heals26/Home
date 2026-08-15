@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.ActivityStates.GetActivityStates;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -19,7 +19,9 @@ public class GetActivityStatesPresenter(IMapper mapper)
             States = [.. activityStates.Select(s => new ActivityStateDto()
             {
                 ActivityStateID = s.ActivityStateID,
-                Name = s.Name
+                IsComplete = s.IsComplete,
+                Name = s.Name,
+                Sequence = s.Sequence
             })]
         }, cancellationToken);
 

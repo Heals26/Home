@@ -1,8 +1,9 @@
-using Home.Application.UseCases.Activities.CreateActivity;
+﻿using Home.Application.UseCases.Activities.CreateActivity;
 using Home.Application.UseCases.Activities.DeleteActivity;
 using Home.Application.UseCases.Activities.GetActivities;
 using Home.Application.UseCases.Activities.GetActivity;
 using Home.Application.UseCases.Activities.GetAssignedActivities;
+using Home.Application.UseCases.Activities.SetActivityTags;
 using Home.Application.UseCases.Activities.UpdateActivity;
 using Home.Application.UseCases.ActivityRegions.GetActivityRegions;
 using Home.WebApi.Infrastructure.Attributes;
@@ -12,11 +13,13 @@ using Home.WebApi.Presenters.Activities.DeleteActivity;
 using Home.WebApi.Presenters.Activities.GetActivities;
 using Home.WebApi.Presenters.Activities.GetActivity;
 using Home.WebApi.Presenters.Activities.GetAssignedActivities;
+using Home.WebApi.Presenters.Activities.SetActivityTags;
 using Home.WebApi.Presenters.Activities.UpdateActivity;
 using Home.WebApi.Presenters.ActivityRegions.GetActivityRegions;
 using Home.WebApi.UseCases.Activities.CreateActivity;
 using Home.WebApi.UseCases.Activities.GetActivities;
 using Home.WebApi.UseCases.Activities.GetActivity;
+using Home.WebApi.UseCases.Activities.SetActivityTags;
 using Home.WebApi.UseCases.Activities.UpdateActivity;
 using Home.WebApi.UseCases.ActivityRegions.GetActivityRegions;
 using Microsoft.AspNetCore.Authorization;
@@ -40,7 +43,7 @@ public class ActivitiesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new CreateActivityInputPort(request.Title, request.DueDateUTC, request.StateID, request.StatusID, request.UserID),
+            new CreateActivityInputPort(request.Title, request.DueDateUTC, request.DueTime, request.StateID, request.StatusID, request.UserID),
             presenter,
             this.ServiceFactory,
             cancellationToken);
@@ -106,6 +109,23 @@ public class ActivitiesController : BaseController
         return presenter.Result;
     }
 
+    /// <summary>
+    /// Replaces the card's tags with the set sent. Anything left out is taken off the card.
+    /// </summary>
+    [HttpPut("{activityID}/Tags")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetActivityTags(
+        [FromServices] SetActivityTagsPresenter presenter,
+        [FromRoute] long activityID,
+        [FromBody] SetActivityTagsApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new SetActivityTagsInputPort(activityID, request.TagIDs), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
     [HttpPatch("{activityID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateActivity(
@@ -115,7 +135,7 @@ public class ActivitiesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new UpdateActivityInputPort(activityID, request.Title, request.DueDateUTC, request.CompletedDateUTC, request.StateID, request.StatusID, request.UserID),
+            new UpdateActivityInputPort(activityID, request.Title, request.DueDateUTC, request.DueTime, request.CompletedDateUTC, request.StateID, request.StatusID, request.UserID),
             presenter,
             this.ServiceFactory,
             cancellationToken);

@@ -33,6 +33,7 @@ internal class GetActivityInteractor : IInteractor<GetActivityInputPort, IGetAct
                 }),
                 a.State,
                 a.Status,
+                Tags = a.Tags.Select(t => new { ActivityTag = t, t.Tag }),
                 a.User
             })
             .SingleOrDefault()

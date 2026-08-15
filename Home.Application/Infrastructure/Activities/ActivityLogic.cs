@@ -1,4 +1,4 @@
-using Home.Application.Services.EntityLogic.Activities;
+﻿using Home.Application.Services.EntityLogic.Activities;
 using Home.Application.Services.Persistence;
 using Home.Application.UseCases.ActivityContents.CreateActivityContent;
 using Home.Application.UseCases.ActivityContents.UpdateActivityContent;
@@ -9,7 +9,7 @@ using Home.Domain.Enumerations;
 
 namespace Home.Application.Infrastructure.Activities;
 
-public class ActivityLogic(IPersistenceContext persistenceContext) : IActivityLogic
+public class ActivityLogic(IPersistenceContext persistenceContext, TimeProvider timeProvider) : IActivityLogic
 {
 
     #region Methods
@@ -51,6 +51,18 @@ public class ActivityLogic(IPersistenceContext persistenceContext) : IActivityLo
             Content = inputPort.Content,
             Sequence = (_Region.Fields?.Count + 1) ?? 1
         };
+    }
+
+    void IActivityLogic.ApplyStateChange(Activity activity, ActivityState? state)
+    {
+        activity.State = state;
+
+        // A date already on the card wins, so an explicitly entered completion date is not
+        // overwritten by the drag that put the card in the column.
+        if (state?.IsComplete == true)
+            activity.CompletedDateUTC ??= timeProvider.GetUtcNow().UtcDateTime;
+        else
+            activity.CompletedDateUTC = null;
     }
 
     bool IActivityLogic.DoesActivityRegionExist(long activityRegionID)
