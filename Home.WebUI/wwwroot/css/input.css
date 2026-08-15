@@ -3,9 +3,90 @@
 @tailwind utilities;
 
 @layer base {
+  /* ─── Theme tokens ───────────────────────────────────────────────────────────
+     Space-separated RGB channels, because tailwind.config.js reads them as
+     `rgb(var(--token) / <alpha-value>)` — that form is what keeps opacity
+     modifiers like bg-week/10 and border-lights/40 working.
+
+     Dark is the default and lives on bare :root, so a device with no stored
+     preference (or no JavaScript at all) gets exactly the palette it had before
+     the light theme existed. The light theme is opt-in, applied by
+     wwwroot/js/theme.js writing data-theme="light" onto <html>.
+
+     Read the ink scale by role, not by lightness: 950 is the page, 900 the
+     surface, 800 raised fills and borders, 700 the stronger border, 50 the
+     primary text. Light inverts the ramp so every existing utility still means
+     the same thing.
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  :root {
+    color-scheme: dark;
+
+    --ink-50:  250 250 249;
+    --ink-100: 245 245 244;
+    --ink-200: 231 229 228;
+    --ink-300: 214 211 209;
+    --ink-400: 168 162 158;
+    --ink-500: 120 113 108;
+    --ink-600: 87 83 78;
+    --ink-700: 68 64 60;
+    --ink-800: 41 37 36;
+    --ink-900: 28 25 23;
+    --ink-950: 12 10 9;
+
+    --recipes: 251 146 60;
+    --recipes-dim: 194 65 12;
+    --shopping: 163 177 138;
+    --shopping-dim: 88 129 87;
+    --week: 125 211 252;
+    --week-dim: 3 105 161;
+    --lights: 251 191 36;
+    --lights-dim: 180 83 9;
+    --household: 214 211 209;
+    --household-dim: 120 113 108;
+
+    --surface: 28 25 23;
+    --surface-raised: 41 37 36;
+    --surface-overlay: 12 10 9;
+  }
+
+  /* Warm paper, not cold grey — the same stone character read the other way up.
+     The pillar hues are darkened variants, because the dark-theme values (sky
+     #7dd3fc is ~1.4:1 on white) are unreadable on paper. */
+  :root[data-theme="light"] {
+    color-scheme: light;
+
+    --ink-50:  27 22 20;
+    --ink-100: 36 31 28;
+    --ink-200: 51 46 42;
+    --ink-300: 68 63 58;
+    --ink-400: 87 81 75;
+    --ink-500: 116 108 100;
+    --ink-600: 139 129 119;
+    --ink-700: 213 202 186;
+    --ink-800: 236 230 220;
+    --ink-900: 255 253 249;
+    --ink-950: 250 247 241;
+
+    --recipes: 194 65 12;
+    --recipes-dim: 124 45 18;
+    --shopping: 90 112 67;
+    --shopping-dim: 61 77 45;
+    --week: 3 105 161;
+    --week-dim: 7 89 133;
+    --lights: 143 95 4;
+    --lights-dim: 101 63 0;
+    --household: 68 63 58;
+    --household-dim: 116 108 100;
+
+    --surface: 255 253 249;
+    --surface-raised: 236 230 220;
+    --surface-overlay: 250 247 241;
+  }
+
   html, body {
-    background-color: #0c0a09;
-    color: #fafaf9;
+    background-color: rgb(var(--ink-950));
+    color: rgb(var(--ink-50));
     font-family: 'Inter', system-ui, sans-serif;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
@@ -16,7 +97,11 @@
     -webkit-tap-highlight-color: transparent;
   }
   input[type="range"] {
-    accent-color: #fbbf24;
+    accent-color: rgb(var(--lights));
+  }
+  ::selection {
+    background-color: rgb(var(--ink-700));
+    color: rgb(var(--ink-50));
   }
 }
 

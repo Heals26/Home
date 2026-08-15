@@ -146,9 +146,19 @@ bottom-right from `ValidationProblemDetails` returned by the API.
 
 ## Design system
 
-Dark only — the app lives on an always-on kitchen tablet, and dark IS the palette; there is no
-light theme and no toggle. Redesigned 13 Aug 2026: warm stone neutrals (the `ink` scale), an
-editorial display face, and one hue per pillar so colour encodes *place* in the app.
+Dark by default — the app lives on an always-on kitchen tablet. A light theme was added
+15 Aug 2026 as an opt-in per-device preference (Settings → Appearance: Dark / Light / Match
+device); an unconfigured device still gets dark. Redesigned 13 Aug 2026: warm stone neutrals
+(the `ink` scale), an editorial display face, and one hue per pillar so colour encodes *place*
+in the app.
+
+**Colours are tokens, never hexes.** The `ink` scale and pillar hues live in `input.css` as CSS
+custom properties on `:root` (dark) and `:root[data-theme="light"]`, and `tailwind.config.js`
+consumes them as `rgb(var(--token) / <alpha-value>)` — the alpha form matters, because opacity
+modifiers like `bg-week/10` are used everywhere and a plain `var()` breaks them. A new colour
+goes in as a token *pair*, never as a hex in the config, in markup, or in a `.razor.css`. The
+values below are the dark theme; each has a light counterpart darkened enough to clear 4.5:1 on
+paper (sky at `#7dd3fc` is about 1.4:1 on white, so the hues could not simply be reused).
 
 | Token | Value |
 |---|---|

@@ -1,0 +1,8 @@
+﻿@* Per-device theme choice. Dark is the default and stays the default — this only opts a
+   single device out of it. *@
+@inject IJSRuntime JS
+
+<HomeSegmentedControl TValue="string"
+                      Options="this.m_Options"
+                      Value="this.m_Preference"
+                      ValueChanged="this.SetPreferenceAsync" />

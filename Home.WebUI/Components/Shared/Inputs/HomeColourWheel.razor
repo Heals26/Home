@@ -59,10 +59,12 @@
                             <path d="@_Wedge.Path" fill="@_Wedge.Fill" />
                         }
 
+                        @* The wheel's own hues are content, but its ring and marker are chrome and
+                           follow the theme — a near-black ring is invisible on paper. *@
                         <circle cx="112" cy="112" r="104" fill="url(#@this.m_GradientID)" />
-                        <circle cx="112" cy="112" r="104" fill="none" stroke="#292524" stroke-width="2" />
+                        <circle cx="112" cy="112" r="104" fill="none" stroke="rgb(var(--ink-800))" stroke-width="2" />
                         <circle cx="@this.MarkerX()" cy="@this.MarkerY()" r="12"
-                                fill="@this.PreviewCss()" stroke="#fafaf9" stroke-width="3" />
+                                fill="@this.PreviewCss()" stroke="rgb(var(--ink-50))" stroke-width="3" />
                     </svg>
 
                     <p class="text-xs text-ink-500">Lands on the bulb when you let go.</p>

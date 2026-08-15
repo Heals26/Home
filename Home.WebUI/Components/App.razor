@@ -5,6 +5,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <base href="/" />
+    @* Runs before the stylesheet and before the body, so the page never paints in the wrong
+       theme. Blazor renders with prerender:false, so there is no server-side render to put
+       this on — inline and synchronous is the only way to beat the first paint. Anything
+       unexpected falls through to dark, which is the default. *@
+    <script>
+        (function () {
+            var theme = "dark";
+
+            try {
+                var stored = localStorage.getItem("home-theme");
+
+                if (stored === "light")
+                    theme = "light";
+                else if (stored === "device" && window.matchMedia("(prefers-color-scheme: light)").matches)
+                    theme = "light";
+            } catch { }
+
+            document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,6 +38,7 @@
     <script src="_framework/blazor.web.js"></script>
     <script src="js/cook.js"></script>
     <script src="js/board.js"></script>
+    <script src="js/theme.js"></script>
 </body>
 
 </html>
