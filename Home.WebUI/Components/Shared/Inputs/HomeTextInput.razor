@@ -5,7 +5,9 @@
     {
         <label for="@this.m_InputID" class="text-sm font-medium text-ink-300">@this.Label</label>
     }
-    <input id="@this.m_InputID"
+    <input @attributes="this.AdditionalAttributes"
+           @ref="this.m_Input"
+           id="@this.m_InputID"
            type="@this.Type"
            name="@this.Name"
            autocomplete="@this.AutoComplete"
@@ -16,6 +18,9 @@
            aria-invalid="@(string.IsNullOrEmpty(this.Error) ? null : "true")"
            aria-describedby="@(string.IsNullOrEmpty(this.Error) ? null : this.ErrorID)"
            @oninput="this.OnInputChanged"
+           @onkeydown="this.OnKeyDown"
+           @onfocus="this.OnFocus"
+           @onblur="this.OnBlur"
            class="@this.GetInputClasses()" />
     @if (!string.IsNullOrEmpty(this.Error))
     {
