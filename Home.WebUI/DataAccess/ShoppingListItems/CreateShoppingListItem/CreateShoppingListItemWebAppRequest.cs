@@ -6,6 +6,11 @@ public class CreateShoppingListItemWebAppRequest
     #region Properties
 
     /// <summary>
+    /// How much to buy, in <see cref="Unit"/>.
+    /// </summary>
+    public decimal? Amount { get; set; }
+
+    /// <summary>
     /// The cost of the item.
     /// </summary>
     public decimal? Cost { get; set; }
@@ -21,24 +26,14 @@ public class CreateShoppingListItemWebAppRequest
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// The quantity of the item.
-    /// </summary>
-    public decimal? Quantity { get; set; }
-
-    /// <summary>
     /// The ID of the shopping list this item belongs to.
     /// </summary>
     public long ShoppingListID { get; set; }
 
     /// <summary>
-    /// The volume of the item.
+    /// The measurement the amount is in. Null is an amount with no unit.
     /// </summary>
-    public decimal? Volume { get; set; }
-
-    /// <summary>
-    /// The weight of the item.
-    /// </summary>
-    public decimal? Weight { get; set; }
+    public long? Unit { get; set; }
 
     #endregion Properties
 

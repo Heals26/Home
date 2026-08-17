@@ -11,6 +11,11 @@ public class UpdateShoppingListItemWebAppRequest
     #region Properties
 
     /// <summary>
+    /// How much to buy, in <see cref="Unit"/>.
+    /// </summary>
+    public PropertyChangeTracker<decimal?> Amount { get; set; }
+
+    /// <summary>
     /// The cost of one of the item.
     /// </summary>
     public PropertyChangeTracker<decimal?> Cost { get; set; }
@@ -26,11 +31,6 @@ public class UpdateShoppingListItemWebAppRequest
     public PropertyChangeTracker<string> Name { get; set; }
 
     /// <summary>
-    /// How many of the item to buy.
-    /// </summary>
-    public PropertyChangeTracker<decimal?> Quantity { get; set; }
-
-    /// <summary>
     /// Display order within the list.
     /// </summary>
     public PropertyChangeTracker<long> Sequence { get; set; }
@@ -41,14 +41,9 @@ public class UpdateShoppingListItemWebAppRequest
     public long ShoppingListItemID { get; set; }
 
     /// <summary>
-    /// The item's volume in millilitres.
+    /// The measurement the amount is in. Null is an amount with no unit.
     /// </summary>
-    public PropertyChangeTracker<decimal?> Volume { get; set; }
-
-    /// <summary>
-    /// The item's weight in grams.
-    /// </summary>
-    public PropertyChangeTracker<decimal?> Weight { get; set; }
+    public PropertyChangeTracker<long?> Unit { get; set; }
 
     #endregion Properties
 

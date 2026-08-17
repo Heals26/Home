@@ -1,0 +1,30 @@
+@* One line of a shopping list. The whole row is the tick target; edit sits beside it. *@
+
+<div class="flex items-center hover:bg-ink-800/50 transition-colors">
+    <button type="button"
+            class="flex-1 min-w-0 flex items-center gap-4 pl-5 pr-2 py-3 min-h-[56px] text-left"
+            aria-pressed="@this.Item.InBasket"
+            @onclick="() => this.OnToggle.InvokeAsync(this.Item)">
+        <span class="h-6 w-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors @(this.Item.InBasket ? "border-shopping bg-shopping/20" : "border-ink-600")">
+            @if (this.Item.InBasket)
+            {
+                <span class="home-icon home-icon-check h-3.5 w-3.5 text-shopping"></span>
+            }
+        </span>
+        <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate @(this.Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@this.Item.Name</span>
+            @if (this.Detail().Length > 0)
+            {
+                <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">@this.Detail()</span>
+            }
+        </span>
+    </button>
+    @* Always visible rather than revealed on hover — the tablet this lives on has no pointer. *@
+    <button type="button"
+            class="px-4 py-3 min-h-[56px] text-ink-700 hover:text-ink-50 transition-colors"
+            title="Edit @this.Item.Name"
+            aria-label="Edit @this.Item.Name"
+            @onclick="() => this.OnEdit.InvokeAsync(this.Item)">
+        <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
+    </button>
+</div>

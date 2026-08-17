@@ -28,6 +28,9 @@
          most of them live in the API alongside its response models. -->
     <ProjectReference Include="..\Home.Persistence\Home.Persistence.csproj" />
     <ProjectReference Include="..\Home.WebApi\Home.WebApi.csproj" />
+    <!-- Only for the handful of web app types that are pure logic rather than markup — the
+         shopping list's text parser above all, which has too many cases to check by hand. -->
+    <ProjectReference Include="..\Home.WebUI\Home.WebUI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

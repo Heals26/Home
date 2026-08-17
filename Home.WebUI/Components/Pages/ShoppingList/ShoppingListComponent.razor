@@ -1,8 +1,14 @@
-﻿<HomeCard>
+@using Home.WebUI.DataAccess.Recipes.Models
+
+<HomeCard>
     <TitleContent>
         @if (this.m_ShoppingList != null)
         {
             <h2 class="text-base font-semibold text-ink-50">@this.m_ShoppingList.Name</h2>
+            @if (this.ItemCount() > 0)
+            {
+                <p class="text-sm text-ink-400 mt-0.5">@this.TrolleyCount() of @this.ItemCount() in the trolley</p>
+            }
         }
         else if (this.m_LoadingList)
         {
@@ -14,12 +20,10 @@
         }
     </TitleContent>
     <ActionsContent>
-        @if (this.m_ShoppingList != null)
+        @if (this.TrolleyCount() > 0)
         {
-            <HomeButton Size="sm" OnClick="this.OpenAddItemModal">
-                <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
-                Add item
-            </HomeButton>
+            <HomeButton Size="sm" Variant="ghost" Disabled="this.m_RunningListAction" OnClick="this.UntickAllAsync">Untick all</HomeButton>
+            <HomeButton Size="sm" Variant="secondary" Disabled="this.m_RunningListAction" OnClick="() => this.m_ShowConfirmClear = true">Clear ticked</HomeButton>
         }
     </ActionsContent>
     <ChildContent>
@@ -37,85 +41,185 @@
         {
             <HomeEmptyState Title="Couldn't load that list" Subtitle="Choose it again from the left to try once more" />
         }
-        else if (!this.m_ShoppingList.Items.Any())
-        {
-            <HomeEmptyState Title="List is empty" Subtitle="Add the first thing you'll need">
-                <ActionContent>
-                    <HomeButton OnClick="this.OpenAddItemModal">Add item</HomeButton>
-                </ActionContent>
-            </HomeEmptyState>
-        }
         else
         {
-            <div class="divide-y divide-ink-800 -mx-5">
-                @foreach (var _Item in this.m_ShoppingList.Items.OrderBy(i => i.InBasket).ThenBy(i => i.Name))
+            var _Suggestions = this.m_ShowSuggestions ? this.VisibleSuggestions().ToList() : [];
+            var _ToGet = this.ItemsToGet().ToList();
+            var _InTrolley = this.ItemsInTrolley().ToList();
+
+            @* Always on screen rather than behind a button — adding is the thing this page is
+               asked to do most, and a modal per item is a modal too many. *@
+            <div class="relative">
+                <div class="flex gap-2">
+                    <HomeTextInput @ref="this.m_QuickAddInput"
+                                   Class="flex-1"
+                                   AutoComplete="off"
+                                   Placeholder="Add an item — try &quot;2 kg potatoes&quot;"
+                                   role="combobox"
+                                   aria-autocomplete="list"
+                                   aria-expanded="@(_Suggestions.Count > 0 ? "true" : "false")"
+                                   @bind-Value="this.m_QuickAddText"
+                                   OnKeyDown="this.OnQuickAddKeyDownAsync"
+                                   OnFocus="() => this.m_ShowSuggestions = true"
+                                   OnBlur="() => this.m_ShowSuggestions = false" />
+                    <HomeButton Loading="this.m_AddingItem"
+                                Disabled="this.m_QuickAddText.Trim().Length == 0"
+                                OnClick="this.QuickAddAsync"
+                                aria-label="Add item">
+                        <span class="home-icon home-icon-plus h-5 w-5 inline-block"></span>
+                    </HomeButton>
+                </div>
+
+                @if (_Suggestions.Count > 0)
                 {
-                    <button type="button"
-                            class="w-full flex items-center gap-4 px-5 py-3 min-h-[56px] text-left hover:bg-ink-800/50 transition-colors"
-                            @onclick="() => this.ToggleItemAsync(_Item)">
-                        <span class="h-6 w-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors @(_Item.InBasket ? "border-shopping bg-shopping/20" : "border-ink-600")">
-                            @if (_Item.InBasket)
-                            {
-                                <span class="home-icon home-icon-check h-3.5 w-3.5 text-shopping"></span>
-                            }
-                        </span>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium truncate @(_Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@_Item.Name</p>
-                            @if (_Item.Cost.HasValue && _Item.Cost > 0)
-                            {
-                                <p class="text-xs text-ink-500">$@_Item.Cost.Value.ToString("F2")</p>
-                            }
-                        </div>
-                        @if (_Item.Quantity.HasValue)
+                    @* preventDefault on mousedown keeps focus in the box, so picking one thing off
+                       the list leaves the cursor ready for the next. *@
+                    <div class="absolute z-20 left-0 right-0 top-full mt-1 bg-ink-900 border border-ink-700 rounded-lg shadow-2xl overflow-hidden">
+                        <p class="px-4 pt-3 pb-1 text-xs font-medium uppercase tracking-wide text-ink-500">
+                            @(this.m_QuickAddText.Trim().Length == 0 ? "You usually buy" : "Bought before")
+                        </p>
+                        @foreach (var _Suggestion in _Suggestions)
                         {
-                            <span class="text-sm shrink-0 @(_Item.InBasket ? "text-ink-600" : "text-ink-400")">qty @_Item.Quantity.Value</span>
+                            <button type="button"
+                                    class="w-full flex items-center gap-3 px-4 py-3 min-h-[48px] text-left hover:bg-ink-800 transition-colors"
+                                    @onmousedown:preventDefault="true"
+                                    @onclick="() => this.AddSuggestionAsync(_Suggestion)">
+                                <span class="home-icon home-icon-plus h-4 w-4 shrink-0 text-shopping"></span>
+                                <span class="flex-1 min-w-0 truncate text-sm text-ink-50">@_Suggestion.Name</span>
+                                <span class="shrink-0 text-xs text-ink-500">@ShoppingListItemLogic.DescribeAmount(_Suggestion.Amount, _Suggestion.Unit, _Suggestion.UnitAbbreviation)</span>
+                                @if (_Suggestion.Cost is > 0)
+                                {
+                                    <span class="shrink-0 text-xs text-ink-400">$@_Suggestion.Cost.Value.ToString("F2")</span>
+                                }
+                            </button>
                         }
-                    </button>
+                    </div>
                 }
             </div>
-            <div class="border-t border-ink-800 pt-4 mt-4 flex justify-between items-center -mx-5 px-5 -mb-5 pb-5">
-                <span class="text-sm text-ink-400">
-                    @if (this.TrolleyTotal() > 0)
-                    {
-                        <span class="text-shopping font-medium">$@this.TrolleyTotal().ToString("F2") in the trolley</span>
-                    }
-                    else
-                    {
-                        <span>Total</span>
-                    }
-                </span>
-                <span class="text-base font-semibold text-ink-50">
-                    $@this.ListTotal().ToString("F2")
-                </span>
-            </div>
+
+            @if (this.ItemCount() == 0)
+            {
+                <HomeEmptyState Title="List is empty" Subtitle="Type the first thing you'll need above" />
+            }
+            else
+            {
+                <div class="mt-4 h-1.5 rounded-full bg-ink-800 overflow-hidden" role="progressbar" aria-valuenow="@this.ProgressPercent()" aria-valuemin="0" aria-valuemax="100">
+                    <div class="h-full bg-shopping transition-all duration-300" style="width: @(this.ProgressPercent())%"></div>
+                </div>
+
+                @if (_ToGet.Count > 0)
+                {
+                    <div class="divide-y divide-ink-800 -mx-5 mt-4">
+                        @foreach (var _Item in _ToGet)
+                        {
+                            <ShoppingListItemRow @key="_Item.ShoppingListItemID"
+                                                 Item="_Item"
+                                                 OnToggle="this.ToggleItemAsync"
+                                                 OnEdit="this.OpenEditItem" />
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="py-10 text-center">
+                        <span class="home-icon home-icon-check h-8 w-8 inline-block text-shopping"></span>
+                        <p class="text-sm font-medium text-ink-50 mt-2">That's everything</p>
+                        <p class="text-xs text-ink-500 mt-1">Clear the ticked items when you're home</p>
+                    </div>
+                }
+
+                @if (_InTrolley.Count > 0)
+                {
+                    <div class="-mx-5 mt-4 border-t border-ink-800">
+                        <button type="button"
+                                class="w-full flex items-center gap-3 px-5 py-3 min-h-[48px] text-left hover:bg-ink-800/50 transition-colors"
+                                aria-expanded="@this.m_ShowTrolley"
+                                @onclick="() => this.m_ShowTrolley = !this.m_ShowTrolley">
+                            <span class="home-icon home-icon-chevron-down h-4 w-4 shrink-0 text-ink-500 transition-transform @(this.m_ShowTrolley ? "" : "-rotate-90")"></span>
+                            <span class="flex-1 text-sm font-medium text-ink-300">In the trolley (@_InTrolley.Count)</span>
+                            @if (this.TrolleyTotal() > 0)
+                            {
+                                <span class="text-sm font-medium text-shopping">$@this.TrolleyTotal().ToString("F2")</span>
+                            }
+                        </button>
+                        @if (this.m_ShowTrolley)
+                        {
+                            <div class="divide-y divide-ink-800 border-t border-ink-800">
+                                @foreach (var _Item in _InTrolley)
+                                {
+                                    <ShoppingListItemRow @key="_Item.ShoppingListItemID"
+                                                         Item="_Item"
+                                                         OnToggle="this.ToggleItemAsync"
+                                                         OnEdit="this.OpenEditItem" />
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (this.ListTotal() > 0)
+                {
+                    <div class="border-t border-ink-800 pt-4 mt-4 flex justify-between items-center -mx-5 px-5 -mb-5 pb-5">
+                        <span class="text-sm text-ink-400">Whole list</span>
+                        <span class="text-base font-semibold text-ink-50">$@this.ListTotal().ToString("F2")</span>
+                    </div>
+                }
+            }
         }
     </ChildContent>
 </HomeCard>
 
-<HomeModal @bind-Visible="this.m_ShowAddItem" Title="Add item">
+<HomeModal @bind-Visible="this.m_ShowEditItem" Title="Edit item">
     <ChildContent>
-        <EditForm Model="this.m_AddItemRequest" OnValidSubmit="this.AddItemAsync">
-            <HomeTextInput Label="Name"
-                           AutoComplete="off"
-                           @bind-Value="this.m_AddItemRequest!.Name"
-                           Placeholder="e.g. Milk" />
-            <div class="grid grid-cols-2 gap-3 mt-3">
-                <HomeTextInput Label="Quantity"
-                               AutoComplete="off"
-                               InputMode="numeric"
-                               @bind-Value="this.m_QuantityInput"
-                               Placeholder="e.g. 2" />
-                <HomeTextInput Label="Cost ($)"
-                               AutoComplete="off"
-                               InputMode="decimal"
-                               @bind-Value="this.m_CostInput"
-                               Placeholder="e.g. 3.50" />
+        <HomeTextInput Label="Name" AutoComplete="off" @bind-Value="this.m_EditName" Placeholder="e.g. Milk" />
+        <div class="grid grid-cols-2 gap-3 mt-3">
+            <HomeTextInput Label="How much" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_EditAmount" Placeholder="e.g. 2" />
+            <div class="flex flex-col gap-1.5">
+                <label for="shopping-item-unit" class="text-sm font-medium text-ink-300">Measurement</label>
+                <select id="shopping-item-unit" @bind="this.m_EditUnit"
+                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent">
+                    <option value="">Just a number</option>
+                    @* Pieces is the one entry with nothing to show beside a number, which is what
+                       the option above already says. *@
+                    @foreach (var _Unit in MeasurementUnits.All.Where(u => u.Abbreviation.Length > 0))
+                    {
+                        <option value="@_Unit.Value">@_Unit.Name</option>
+                    }
+                </select>
             </div>
-            <div class="mt-4 flex justify-end gap-3">
-                <HomeButton Variant="ghost" OnClick="() => this.m_ShowAddItem = false">Cancel</HomeButton>
-                <HomeButton Type="submit" Loading="this.m_AddingItem">Add item</HomeButton>
+        </div>
+        <HomeTextInput Class="mt-3"
+                       Label="Price for the line ($)"
+                       AutoComplete="off"
+                       InputMode="decimal"
+                       @bind-Value="this.m_EditCost"
+                       Placeholder="e.g. 3.50" />
+        <div class="mt-4 flex justify-between gap-3">
+            <HomeButton Variant="danger" Loading="this.m_SavingItem" OnClick="this.DeleteItemAsync">
+                <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>
+                Remove
+            </HomeButton>
+            <div class="flex gap-3">
+                <HomeButton Variant="ghost" OnClick="() => this.m_ShowEditItem = false">Cancel</HomeButton>
+                <HomeButton Loading="this.m_SavingItem"
+                            Disabled="this.m_EditName.Trim().Length == 0"
+                            DisabledReason="Give the item a name first"
+                            OnClick="this.SaveItemAsync">Save</HomeButton>
             </div>
-        </EditForm>
+        </div>
+    </ChildContent>
+</HomeModal>
+
+<HomeModal @bind-Visible="this.m_ShowConfirmClear" Title="Clear ticked items">
+    <ChildContent>
+        <p class="text-sm text-ink-300">
+            This removes the @this.TrolleyCount() ticked @(this.TrolleyCount() == 1 ? "item" : "items") from the list for good.
+            To keep them for next week, untick them instead.
+        </p>
+        <div class="mt-4 flex justify-end gap-3">
+            <HomeButton Variant="ghost" OnClick="() => this.m_ShowConfirmClear = false">Cancel</HomeButton>
+            <HomeButton Variant="danger" Loading="this.m_RunningListAction" OnClick="this.ClearTickedAsync">Clear them</HomeButton>
+        </div>
     </ChildContent>
 </HomeModal>
 
