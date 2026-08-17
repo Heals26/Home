@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Home.Application.UseCases.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.Domain.Entities;
+using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.WebApi.UseCases.ShoppingLists.GetShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.GetShoppingLists;
 using Home.WebApi.UseCases.ShoppingLists.Models;
@@ -23,6 +25,10 @@ public class ShoppingListsProfile : Profile
 
         _ = this.CreateMap<ShoppingList, GetShoppingListDto>()
             .ForMember(d => d.ItemCount, o => o.MapFrom(s => s.Items.Count));
+
+        _ = this.CreateMap<ShoppingListItemSuggestion, GetShoppingListItemSuggestionDto>();
+        _ = this.CreateMap<IEnumerable<ShoppingListItemSuggestion>, GetShoppingListItemSuggestionsApiResponse>()
+            .ForMember(d => d.Suggestions, o => o.MapFrom(s => s));
     }
 
     #endregion Constructors
