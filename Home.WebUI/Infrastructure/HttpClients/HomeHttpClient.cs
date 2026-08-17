@@ -16,7 +16,8 @@ namespace Home.WebUI.Infrastructure.HttpClients;
 public class HomeHttpClient(
     IAuthorisationService authorisationService,
     IConfiguration configurationManager,
-    HttpClient httpClient)
+    HttpClient httpClient,
+    ILoginThrottle loginThrottle)
     : IHomeHttpClient
 {
 
@@ -314,6 +315,19 @@ public class HomeHttpClient(
         Action<ValidationProblemDetails> problemDetails,
         CancellationToken cancellationToken)
     {
+        if (loginThrottle.GetLockout(request.Username) is { } _Lockout)
+        {
+            problemDetails.Invoke(new ValidationProblemDetails()
+            {
+                Title = "Too many attempts.",
+                Status = (int)HttpStatusCode.TooManyRequests,
+                Detail = $"Wait about {Math.Max(1, (int)Math.Ceiling(_Lockout.TotalMinutes))} minute(s) and try again.",
+                Errors = new Dictionary<string, string[]>()
+            });
+
+            return false;
+        }
+
         var _Request = new CreatePasswordGrantWebAppRequest()
         {
             ClientID = configurationManager.GetValue<long>("OAuth:AccessToken:ClientID")!,
@@ -330,13 +344,16 @@ public class HomeHttpClient(
             problemDetails,
             cancellationToken);
 
-        if (_Response != null)
+        if (_Response == null)
         {
-            _ = await authorisationService.TrySignInAsync(_Request, _Response, cancellationToken);
-            return true;
+            loginThrottle.RecordFailure(request.Username);
+            return false;
         }
 
-        return false;
+        loginThrottle.RecordSuccess(request.Username);
+
+        _ = await authorisationService.TrySignInAsync(_Request, _Response, cancellationToken);
+        return true;
     }
 
     #endregion Methods

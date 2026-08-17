@@ -9,6 +9,7 @@ using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.UriProvider;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var _Builder = WebApplication.CreateBuilder(args);
 
@@ -65,7 +66,8 @@ _ = _Builder.Services.AddHttpClient(_ApiClientName, options => options.BaseAddre
 _ = _Builder.Services.AddScoped(sp => new HomeHttpClient(
     sp.GetRequiredService<IAuthorisationService>(),
     sp.GetRequiredService<IConfiguration>(),
-    sp.GetRequiredService<IHttpClientFactory>().CreateClient(_ApiClientName)));
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient(_ApiClientName),
+    sp.GetRequiredService<ILoginThrottle>()));
 _ = _Builder.Services.AddScoped<IHomeHttpClient>(sp => sp.GetRequiredService<HomeHttpClient>());
 // The BCL clock abstraction (.NET 8). Components read the time through this rather than
 // DateTime.Now, which also keeps "now" consistent across a single render.
@@ -79,6 +81,21 @@ _Builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredSer
 _Builder.Services.AddSingleton<IChangeBroker, ChangeBroker>();
 _Builder.Services.AddScoped<IChangeBroadcaster, ChangeBroadcaster>();
 
+// Singleton so the count survives the circuit: a new browser tab must not reset it.
+_Builder.Services.AddSingleton<ILoginThrottle, LoginThrottle>();
+
+// A tunnel or reverse proxy terminates TLS at its edge and hands this app plain HTTP, so
+// without these headers UseHttpsRedirection would bounce a phone to the machine's own
+// localhost address. Both lists are cleared because the proxy is not on a known network —
+// which does mean these headers are trusted from any caller, so the app must only ever be
+// reachable through the proxy, never directly from the internet.
+_ = _Builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 
 var _App = _Builder.Build();
 
@@ -88,6 +105,9 @@ if (!_App.Environment.IsDevelopment())
     _ = _App.UseExceptionHandler("/Error", createScopeForErrors: true);
     _ = _App.UseHsts();
 }
+
+// Before anything that reads the scheme or the caller's address — chiefly the redirect below.
+_App.UseForwardedHeaders();
 
 _App.UseStaticFiles();
 _App.UseHttpsRedirection();
