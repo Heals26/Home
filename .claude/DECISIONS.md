@@ -5,6 +5,49 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-17 — Adding to a shopping list is one text box, not a form
+
+The add-item modal is gone. There is a single input that stays on screen, takes the whole line as
+written — "2 kg potatoes", "500g mince", "1/2 cup rice" — and keeps the cursor after each add, so
+writing a list is typing, Enter, typing, Enter. `ShoppingListItemLogic.Parse` does the reading and
+is the only place that knows how a line is written; anything it cannot make sense of survives as
+the name exactly as typed, because losing what someone wrote is worse than missing an amount.
+Reason: this is the most-used action in the app and it was costing four taps and a modal per item,
+which is precisely the comparison against Bring! and AnyList that the product has to win.
+
+## 2026-08-17 — What a household buys is offered back to it
+
+`GetShoppingListItemSuggestions` returns the household's distinct item names ordered by how often
+they have been added, each carrying the amount and price from the last time it was bought. The
+whole set (capped at 200) is fetched once when the screen opens and filtered on the device, not
+per keystroke — a phone in a supermarket should not be asking the server on every letter, and
+what a family usually buys does not change between keystrokes. Picking a suggestion brings its
+last price with it, which is how the running total fills in without anyone typing prices. An
+amount already typed beats the remembered one.
+
+## 2026-08-17 — Emptying a list is one call, not one call per line
+
+`DeleteTickedShoppingListItems` and `UntickShoppingListItems` exist as their own slices rather
+than the screen looping over the per-item endpoints. Thirty round trips over a supermarket
+connection is the difference between a list emptying and a list draining. Clearing is confirmed
+because there is no undo; unticking is not, because nothing is lost. Both are household-scoped
+the same way as everything else — a list that isn't yours simply matches nothing.
+
+## 2026-08-17 — A shopping item's cost is the line price, not a unit price
+
+`ListTotal` sums `Cost` and no longer multiplies it by an amount. "$3.50 for 2 kg of potatoes" is
+three fifty, and multiplying turned it into seven. The field is labelled "Price for the line" so
+the meaning is on screen rather than assumed. Consequence: there is no per-kilo price anywhere,
+and adding one later means a new column rather than reinterpreting this one.
+
+## 2026-08-17 — The web app's item requests carry Amount and Unit
+
+The web app was still posting `Quantity`/`Volume`/`Weight` after the API moved to `Amount`/`Unit`,
+so a quantity typed into the add form was serialised, ignored by the API and silently lost — and
+the row rendered the legacy column, which was always empty, so the loss was invisible. Both
+request models now match the API. The legacy properties stay on the *response* model because rows
+written before units existed still read through them.
+
 ## 2026-08-17 — The whole AutoMapper configuration is asserted in a test
 
 AutoMapper only validates a map the first time it is used, so a missing one is invisible until
