@@ -33,11 +33,17 @@ public static partial class ApiProvider
     public static ApiProviderHelper DeleteShoppingList(long shoppingListID)
         => new(HttpMethod.Delete, RouteType.Route, GetShoppingListBaseUrl(shoppingListID));
 
+    public static ApiProviderHelper DeleteTickedShoppingListItems(long shoppingListID)
+        => new(HttpMethod.Delete, RouteType.Route, $"{GetShoppingListBaseUrl(shoppingListID)}/Items/Ticked");
+
     public static ApiProviderHelper GetShoppingLists()
         => new(HttpMethod.Get, RouteType.Route, GetShoppingListsBaseUrl());
 
     public static ApiProviderHelper GetShoppingList(long shoppingListID)
         => new(HttpMethod.Get, RouteType.Route, GetShoppingListBaseUrl(shoppingListID));
+
+    public static ApiProviderHelper UntickShoppingListItems(long shoppingListID)
+        => new(HttpMethod.Post, RouteType.Route, $"{GetShoppingListBaseUrl(shoppingListID)}/Items/Untick");
 
     public static ApiProviderHelper UpdateShoppingList(long shoppingListID)
         => new(HttpMethod.Patch, RouteType.Body, GetShoppingListBaseUrl(shoppingListID));

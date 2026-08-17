@@ -3,8 +3,10 @@ using Home.Application.UseCases.ShoppingLists.AddMealPlanToShoppingList;
 using Home.Application.UseCases.ShoppingLists.AddRecipeToShoppingList;
 using Home.Application.UseCases.ShoppingLists.CreateShoppingList;
 using Home.Application.UseCases.ShoppingLists.DeleteShoppingList;
+using Home.Application.UseCases.ShoppingLists.DeleteTickedShoppingListItems;
 using Home.Application.UseCases.ShoppingLists.GetShoppingList;
 using Home.Application.UseCases.ShoppingLists.GetShoppingLists;
+using Home.Application.UseCases.ShoppingLists.UntickShoppingListItems;
 using Home.Application.UseCases.ShoppingLists.UpdateShoppingList;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
@@ -13,8 +15,10 @@ using Home.WebApi.Presenters.ShoppingLists.AddMealPlanToShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.AddRecipeToShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.CreateShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.DeleteShoppingList;
+using Home.WebApi.Presenters.ShoppingLists.DeleteTickedShoppingListItems;
 using Home.WebApi.Presenters.ShoppingLists.GetShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.GetShoppingLists;
+using Home.WebApi.Presenters.ShoppingLists.UntickShoppingListItems;
 using Home.WebApi.Presenters.ShoppingLists.UpdateShoppingList;
 using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItems;
 using Home.WebApi.UseCases.ShoppingLists.AddMealPlanToShoppingList;
@@ -92,6 +96,18 @@ public class ShoppingListsController : BaseController
         return presenter.Result;
     }
 
+    [HttpDelete("{shoppingListID}/Items/Ticked")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DeleteTickedShoppingListItems(
+        [FromServices] DeleteTickedShoppingListItemsPresenter presenter,
+        [FromRoute] long shoppingListID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new DeleteTickedShoppingListItemsInputPort(shoppingListID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
     [HttpGet("{shoppingListID}")]
     [ProducesResponseType<GetShoppingListApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetShoppingList(
@@ -123,6 +139,18 @@ public class ShoppingListsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetShoppingListsInputPort(), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpPost("{shoppingListID}/Items/Untick")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UntickShoppingListItems(
+        [FromServices] UntickShoppingListItemsPresenter presenter,
+        [FromRoute] long shoppingListID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new UntickShoppingListItemsInputPort(shoppingListID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
