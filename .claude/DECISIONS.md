@@ -5,6 +5,23 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-17 — The whole AutoMapper configuration is asserted in a test
+
+AutoMapper only validates a map the first time it is used, so a missing one is invisible until
+the screen that needs it returns a 500 — which had happened more than once, most recently on
+`GetShoppingList`, whose `Items` had no element map at all. `MapperConfigurationTests` now builds
+the configuration from the same four assemblies `Program.cs` registers and calls
+`AssertConfigurationIsValid`, turning that into a build failure. Two notes for whoever touches it:
+the assembly list must stay in step with `Program.cs` or profiles go unchecked (a second test
+asserts profiles are actually found, so the assertion can't silently pass over nothing), and the
+exception is caught and asserted as a string because `AutoMapperConfigurationException` does not
+survive the test runner's serialisation — a test that lets it escape vanishes from the run
+instead of failing it. It immediately found four faults: the missing shopping list item map,
+`User.Household` unmapped on both user profiles, and `UpdateUserApiRequest -> UpdateUserInputPort`
+having no usable constructor. That last one is why `UsersController` now builds its input ports
+directly, like every other controller — mapping onto a positional record is fragile, because
+`ForMember(...).Ignore()` cannot ignore a constructor parameter.
+
 ## 2026-08-15 — Every relationship is configured explicitly, or EF quietly invents a bad one
 
 Deleting a recipe failed on `FK_RecipeStep_Recipe_RecipeID`. The cause was an *absence*:

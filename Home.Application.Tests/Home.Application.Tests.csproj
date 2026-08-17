@@ -24,6 +24,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Home.Application\Home.Application.csproj" />
     <ProjectReference Include="..\Home.Domain\Home.Domain.csproj" />
+    <!-- Every AutoMapper profile has to be reachable for the configuration test to see it, and
+         most of them live in the API alongside its response models. -->
+    <ProjectReference Include="..\Home.Persistence\Home.Persistence.csproj" />
+    <ProjectReference Include="..\Home.WebApi\Home.WebApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>

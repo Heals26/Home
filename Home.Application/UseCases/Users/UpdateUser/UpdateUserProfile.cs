@@ -14,6 +14,8 @@ public class UpdateUserProfile : Profile
             .ForMember(d => d.UserID, o => o.Ignore())
             .ForMember(d => d.AssignedActivities, o => o.Ignore())
             .ForMember(d => d.Audits, o => o.Ignore())
+            // A member never changes household, least of all through an edit form.
+            .ForMember(d => d.Household, o => o.Ignore())
             .ForMember(d => d.Password, o => o.Ignore())
             .ForMember(d => d.PasswordLastChanged, o => o.Ignore())
             .ForMember(d => d.UserName, o => o.Ignore())
