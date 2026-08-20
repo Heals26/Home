@@ -5,6 +5,44 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-20 — Recipe photos live in the database and stream through the web app
+
+The "no image bytes, that forces a hosting decision" stance on `Recipe.ImageUrl` is superseded:
+Mitch asked for his own photos, and for a household app the database *is* the hosting decision.
+`RecipeImage` holds the bytes (5 MB cap) one-to-one with the recipe, deliberately with **no
+navigation on Recipe** — a stray Include would drag blobs through every book query. What the book
+needs instead is `Recipe.ImageUpdatedOnUTC`: a denormalised stamp meaning "has a photo", written
+only by the two image use cases, whose ticks double as the cache-buster in the image URL. The
+format comes from sniffing the bytes' magic numbers, never from the declared content type — a
+renamed file lies, the bytes don't. The browser fetches `/recipe-images/{id}` on the *web app*,
+which turns the sign-in cookie into a bearer token and proxies the API — an img tag can only send
+a cookie, and the API's household scoping stays in charge. An uploaded photo beats the ImageUrl
+link everywhere.
+
+## 2026-08-20 — Applying a light scene first saves how the room looked
+
+"Previous look" is one reserved scene per household (`LightScene.IsPreviousLook`), rewritten by
+every scene apply with a snapshot of the *whole* household's lights taken before the apply mutates
+anything. That makes it an undo — and tapping it twice toggles, because applying it re-captures
+what it replaced. It is pinned first in the scene list, cannot be scheduled (it changes on every
+apply, so a schedule would set lights nobody chose), and is never created until the first apply.
+
+## 2026-08-20 — Planning a meal can create the recipe on the spot
+
+The meal-plan picker gained search, orders recipes tagged with the meal being planned first, and
+offers "Add *X* as a new dinner recipe" when the search matches nothing exactly — created, tagged
+with that meal, and planned in one tap, composed client-side from the existing CreateRecipe,
+SetRecipeMealSlots and CreateMealPlanEntry slices rather than a new API shape. Reason: "I want to
+add spaghetti bolognese but haven't added it as a recipe" ended in a five-screen round trip, which
+is a plan abandoned.
+
+## 2026-08-20 — Nothing defaults to a CLR-evaluated timestamp
+
+`Note.CreatedOnUTC` carried `HasDefaultValue(DateTime.UtcNow)` — frozen at scaffold time, so every
+Note defaulted to the same stale moment *and every migration since re-altered the column* as the
+"default" moved. It is `HasDefaultValueSql("SYSUTCDATETIME()")` now. Rule: a column default is the
+database's clock or a constant, never the model's.
+
 ## 2026-08-19 — The session is the cookie; browser storage is out of the auth path entirely
 
 Supersedes the session mechanics of the 15 Aug entry below. That fix kept the token in
