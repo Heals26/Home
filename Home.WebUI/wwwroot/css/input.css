@@ -345,3 +345,99 @@
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M7.5 15h9a4.5 4.5 0 00.9-8.91A6 6 0 006.06 7.2 4 4 0 001.44 7.8zM13.5 16.8l-3.5 3.9h2.8l-1.3 2.8'/%3E%3C/svg%3E");
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M7.5 15h9a4.5 4.5 0 00.9-8.91A6 6 0 006.06 7.2 4 4 0 001.44 7.8zM13.5 16.8l-3.5 3.9h2.8l-1.3 2.8'/%3E%3C/svg%3E");
 }
+
+/* ─── Reconnect overlay ───────────────────────────────────────────────────────
+   Outside @layer components on purpose: Blazor adds the components-reconnect-*
+   classes at runtime, so they never appear in markup for Tailwind's scanner to
+   find and a layered block would be tree-shaken away. Paired with
+   wwwroot/js/reconnect.js, which reloads rather than leaving a page that looks
+   alive and does nothing.
+─────────────────────────────────────────────────────────────────────────────── */
+
+.home-reconnect {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgb(var(--ink-950) / 0.92);
+  backdrop-filter: blur(4px);
+}
+
+.home-reconnect.components-reconnect-show,
+.home-reconnect.components-reconnect-failed,
+.home-reconnect.components-reconnect-rejected {
+  display: flex;
+}
+
+.home-reconnect-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 20rem;
+  padding: 2rem;
+  text-align: center;
+  border: 1px solid rgb(var(--ink-800));
+  border-radius: 1rem;
+  background: rgb(var(--ink-900));
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.6);
+}
+
+.home-reconnect-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid rgb(var(--ink-700));
+  border-top-color: rgb(var(--ink-50));
+  border-radius: 9999px;
+  animation: home-reconnect-spin 700ms linear infinite;
+}
+
+@keyframes home-reconnect-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-reconnect-spinner { animation-duration: 2s; }
+}
+
+.home-reconnect-title {
+  display: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(var(--ink-50));
+}
+
+/* One heading per state, so the wording matches what is actually happening. */
+.components-reconnect-show .home-reconnect-title[data-state="show"],
+.components-reconnect-failed .home-reconnect-title[data-state="failed"],
+.components-reconnect-rejected .home-reconnect-title[data-state="rejected"] {
+  display: block;
+}
+
+.home-reconnect-detail {
+  font-size: 0.875rem;
+  color: rgb(var(--ink-400));
+}
+
+.home-reconnect-retry {
+  display: none;
+  min-height: 44px;
+  margin-top: 0.25rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(var(--ink-950));
+  background: rgb(var(--ink-50));
+  border-radius: 0.5rem;
+}
+
+/* Only offered once waiting has stopped being the answer. */
+.components-reconnect-failed .home-reconnect-retry,
+.components-reconnect-rejected .home-reconnect-retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
