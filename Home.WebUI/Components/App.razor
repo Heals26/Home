@@ -30,15 +30,32 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght,SOFT@9..144,400..700,50&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/app.css" />
-    <HeadOutlet @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+    <HeadOutlet @rendermode="this.PageRenderMode" />
 </head>
 
 <body class="bg-ink-950 text-ink-50">
-    <Routes @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+    <Routes @rendermode="this.PageRenderMode" />
+
+    @* Replaces Blazor's own reconnect overlay, which is white, unbranded and — once it gives up —
+       leaves a page that looks fine and does nothing. The id is Blazor's convention: an element
+       with this id receives the components-reconnect-* classes instead of the built-in overlay
+       appearing. reconnect.js watches those classes. *@
+    <div id="components-reconnect-modal" class="home-reconnect">
+        <div class="home-reconnect-panel">
+            <span class="home-reconnect-spinner" aria-hidden="true"></span>
+            <p class="home-reconnect-title" data-state="show">Reconnecting&hellip;</p>
+            <p class="home-reconnect-title" data-state="failed">Getting you back on&hellip;</p>
+            <p class="home-reconnect-title" data-state="rejected">Picking up where you were&hellip;</p>
+            <p class="home-reconnect-detail">You&rsquo;re still signed in.</p>
+            <button id="home-reconnect-retry" type="button" class="home-reconnect-retry">Reload now</button>
+        </div>
+    </div>
+
     <script src="_framework/blazor.web.js"></script>
     <script src="js/cook.js"></script>
     <script src="js/board.js"></script>
     <script src="js/theme.js"></script>
+    <script src="js/reconnect.js"></script>
 </body>
 
 </html>

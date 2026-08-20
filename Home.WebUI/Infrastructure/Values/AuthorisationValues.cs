@@ -1,11 +1,9 @@
-﻿namespace Home.WebUI.Infrastructure.Values;
+namespace Home.WebUI.Infrastructure.Values;
 
 public static class AuthorisationValues
 {
 
     #region Fields
-
-    public const string OAuthKey = "oauth_storage_v2";
 
     /// <summary>
     /// The grant type the API's token endpoint matches on to route a request into the refresh

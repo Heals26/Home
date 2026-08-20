@@ -1,6 +1,10 @@
-﻿@attribute [AllowAnonymous]
+@using Home.WebUI.Infrastructure.Services.Security
+
+@attribute [AllowAnonymous]
 
 @page "/setup"
+
+@inject IOAuthClient OAuthClient
 
 <HomePageTitle Title="Set up your household" />
 
@@ -12,56 +16,51 @@
         </div>
 
         <div class="bg-ink-900 rounded-2xl border border-ink-800 p-6">
-            @if (this.m_CheckingStatus)
-            {
-                <HomeLoader Class="py-8" />
-            }
-            else
-            {
-                <EditForm Model="this.m_Model" OnValidSubmit="this.HandleSubmitAsync">
-                    <div class="flex flex-col gap-4">
-                        <HomeTextInput Label="Household name"
-                                       Name="household-name"
-                                       AutoComplete="off"
-                                       @bind-Value="this.m_Model.HouseholdName"
-                                       Placeholder="e.g. The Healys" />
+            @* A statically rendered Blazor form, like the login page — registering signs the
+               first member straight in, and signing in writes a cookie (see App.razor.cs). *@
+            <form method="post" @formname="setup" @onsubmit="this.RegisterAsync">
+                <AntiforgeryToken />
+                <div class="flex flex-col gap-4">
+                    <HomeTextInput Label="Household name"
+                                   Name="HouseholdName"
+                                   AutoComplete="off"
+                                   Value="@(this.HouseholdName ?? string.Empty)"
+                                   Placeholder="e.g. The Healys" />
 
-                        <div class="grid grid-cols-2 gap-3">
-                            <HomeTextInput Label="First name"
-                                           Name="given-name"
-                                           AutoComplete="given-name"
-                                           @bind-Value="this.m_Model.FirstName" />
-
-                            <HomeTextInput Label="Last name"
-                                           Name="family-name"
-                                           AutoComplete="family-name"
-                                           @bind-Value="this.m_Model.LastName" />
-                        </div>
-
-                        <HomeTextInput Label="Email"
-                                       Type="email"
-                                       Name="email"
-                                       AutoComplete="email"
-                                       @bind-Value="this.m_Model.Email"
-                                       Placeholder="You'll sign in with this" />
-
-                        <HomePasswordInput Label="Password"
-                                           Name="new-password"
-                                           AutoComplete="new-password"
-                                           @bind-Value="this.m_Model.Password" />
-
-                        <HomeButton Type="submit" Loading="this.m_IsLoading" Disabled="@(!this.CanSubmit())" Class="w-full mt-2">
-                            Create household
-                        </HomeButton>
-
-                        <p class="text-xs text-ink-500 text-center">
-                            This creates the household and its first member — everyone else joins from inside the app.
-                        </p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <HomeTextInput Label="First name"
+                                       Name="FirstName"
+                                       AutoComplete="given-name"
+                                       Value="@(this.FirstName ?? string.Empty)" />
+                        <HomeTextInput Label="Last name"
+                                       Name="LastName"
+                                       AutoComplete="family-name"
+                                       Value="@(this.LastName ?? string.Empty)" />
                     </div>
-                </EditForm>
-            }
-        </div>
 
-        <ErrorHandler @ref="this.m_ErrorHandler" />
+                    <HomeTextInput Label="Email"
+                                   Type="email"
+                                   Name="Email"
+                                   AutoComplete="email"
+                                   Value="@(this.Email ?? string.Empty)"
+                                   Placeholder="You'll sign in with this" />
+
+                    <HomePasswordInput Label="Password"
+                                       Name="Password"
+                                       AutoComplete="new-password" />
+
+                    @if (!string.IsNullOrEmpty(this.m_Error))
+                    {
+                        <p role="alert" class="text-sm text-red-400">@this.m_Error</p>
+                    }
+
+                    <HomeButton Type="submit" Class="w-full mt-2">Create household</HomeButton>
+
+                    <p class="text-xs text-ink-500 text-center">
+                        This creates the household and its first member — everyone else joins from inside the app.
+                    </p>
+                </div>
+            </form>
+        </div>
     </div>
 </div>

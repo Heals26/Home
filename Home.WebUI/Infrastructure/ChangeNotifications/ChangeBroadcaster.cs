@@ -9,7 +9,7 @@ namespace Home.WebUI.Infrastructure.ChangeNotifications;
 public class ChangeBroadcaster(
     IChangeBroker changeBroker,
     IHomeHttpClient apiAccess,
-    IAuthorisationService authorisationService)
+    IHouseholdSession householdSession)
     : IChangeBroadcaster
 {
 
@@ -38,8 +38,8 @@ public class ChangeBroadcaster(
             : await changeBroker.SubscribeAsync(_HouseholdID.Value, handler, this.GetAccessTokenAsync, cancellationToken);
     }
 
-    private async Task<string?> GetAccessTokenAsync()
-        => (await authorisationService.GetTokenAsync())?.AccessToken;
+    private Task<string?> GetAccessTokenAsync()
+        => householdSession.GetAccessTokenAsync(CancellationToken.None);
 
     /// <summary>
     /// The household comes from the API using the caller's own token, so a device can only

@@ -8,7 +8,6 @@ using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.UriProvider;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var _Builder = WebApplication.CreateBuilder(args);
@@ -24,21 +23,31 @@ _Builder.Services.AddAuthentication(options =>
 })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
-        // Nothing signs in through this cookie. AuthorisationService is a custom
-        // AuthenticationStateProvider whose state comes from a token in ProtectedLocalStorage;
-        // the scheme is registered only so [Authorize] has a default and LoginPath resolves.
+        // This cookie *is* the session. It arrives with the request that starts the circuit, so a
+        // reload knows who you are before a single component renders — nothing is read out of the
+        // browser and nothing can fail in a way that looks like being signed out.
+        //
         // SameAsRequest rather than Always is deliberate — the tablet reaches this app over the
         // LAN, and a cookie the browser silently drops on plain HTTP would be worse than useless.
         options.LoginPath = AuthorisationUriProvider.GetLoginUri();
+        options.Cookie.Name = "Home.Session";
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+        options.Cookie.IsEssential = true;
+
+        // Matched to the refresh token's own life, and sliding, so a tablet in daily use is never
+        // asked again. Anything shorter is a password prompt with a timer on it.
+        options.ExpireTimeSpan = TimeSpan.FromDays(90);
         options.SlidingExpiration = true;
     });
 
 _Builder.Services.AddAuthorization();
 _Builder.Services.AddHttpContextAccessor();
+
+// Hands the signed-in principal to every component through CascadingAuthenticationState. This is
+// what replaced the custom AuthenticationStateProvider that had to reach into browser storage.
+_Builder.Services.AddCascadingAuthenticationState();
 
 // The key ring protects the stored OAuth token, so losing it signs every family member out.
 // Naming the application pins the discriminator to that name instead of the content root path,
@@ -60,21 +69,22 @@ if (!Uri.TryCreate(_ApiBaseUrlString, UriKind.Absolute, out var _ApiBaseUrl))
 
 _ = _Builder.Services.AddHttpClient(_ApiClientName, options => options.BaseAddress = _ApiBaseUrl);
 
-// Scoped, not the transient a typed client would give: HomeHttpClient serialises token refreshes
-// through an instance semaphore, and that only holds if every component in a circuit shares one
-// instance. AuthorisationService resolves the concrete type for its refresh at startup.
-_ = _Builder.Services.AddScoped(sp => new HomeHttpClient(
-    sp.GetRequiredService<IAuthorisationService>(),
-    sp.GetRequiredService<IConfiguration>(),
+_ = _Builder.Services.AddScoped<IHomeHttpClient>(sp => new HomeHttpClient(
     sp.GetRequiredService<IHttpClientFactory>().CreateClient(_ApiClientName),
-    sp.GetRequiredService<ILoginThrottle>()));
-_ = _Builder.Services.AddScoped<IHomeHttpClient>(sp => sp.GetRequiredService<HomeHttpClient>());
+    sp.GetRequiredService<IHouseholdSession>()));
+
+// The token endpoint is reached from two places that must not depend on each other: the sign-in
+// endpoint during a request, and the circuit's session when its access token runs out.
+_ = _Builder.Services.AddScoped<IOAuthClient>(sp => new OAuthClient(
+    sp.GetRequiredService<IConfiguration>(),
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient(_ApiClientName)));
+
+// Scoped so one circuit shares one access token and one refresh gate.
+_Builder.Services.AddScoped<IHouseholdSession, HouseholdSession>();
+
 // The BCL clock abstraction (.NET 8). Components read the time through this rather than
 // DateTime.Now, which also keeps "now" consistent across a single render.
 _Builder.Services.AddSingleton(TimeProvider.System);
-_Builder.Services.AddScoped<AuthorisationService>();
-_Builder.Services.AddScoped<IAuthorisationService>(sp => sp.GetRequiredService<AuthorisationService>());
-_Builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthorisationService>());
 
 // Live cross-device updates: the broker is the process-wide fan-out between circuits, and
 // each circuit talks to it through a broadcaster that pins the caller's own household.

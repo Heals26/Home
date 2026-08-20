@@ -1,4 +1,4 @@
-﻿namespace Home.WebUI.Infrastructure.UriProvider;
+namespace Home.WebUI.Infrastructure.UriProvider;
 
 public static class AuthorisationUriProvider
 {
