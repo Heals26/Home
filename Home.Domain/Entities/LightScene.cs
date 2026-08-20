@@ -10,6 +10,13 @@ public class LightScene
     #region Properties
 
     public long LightSceneID { get; set; }
+
+    /// <summary>
+    /// The household's one automatic scene: how the lights looked just before a scene was last
+    /// applied, refreshed on every apply so there is always a way back. Never named by a person.
+    /// </summary>
+    public bool IsPreviousLook { get; set; }
+
     public string Name { get; set; } = string.Empty;
 
     /// <summary>

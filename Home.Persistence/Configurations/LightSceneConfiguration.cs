@@ -18,6 +18,8 @@ public class LightSceneConfiguration : IEntityTypeConfiguration<LightScene>
         _ = entity.Property(e => e.LightSceneID)
             .ValueGeneratedOnAdd();
 
+        _ = entity.Property(e => e.IsPreviousLook);
+
         _ = entity.Property(e => e.Name)
             .HasMaxLength(250)
             .IsRequired();

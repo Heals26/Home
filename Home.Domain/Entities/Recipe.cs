@@ -24,8 +24,16 @@ public class Recipe
     public Household Household { get; set; } = null!;
 
     /// <summary>
+    /// When the household's own photo of the dish was last uploaded, or null when there isn't
+    /// one. Lives here rather than on <see cref="RecipeImage"/> so listing the book can say
+    /// "has a photo" without a query ever touching the image bytes; the two are only ever
+    /// written together by the image use cases.
+    /// </summary>
+    public DateTime? ImageUpdatedOnUTC { get; set; }
+
+    /// <summary>
     /// A link to a picture of the finished dish — imported from the source page, or pasted in.
-    /// No image bytes are stored; that would force a hosting decision the product hasn't made.
+    /// The household's own photo beats this when both exist.
     /// </summary>
     public string? ImageUrl { get; set; }
 

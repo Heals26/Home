@@ -21,8 +21,11 @@ public class NoteConfiguration : IEntityTypeConfiguration<Note>
         _ = entity.Property(e => e.Content)
             .IsRequired();
 
+        // The database stamps the row, not the model: a CLR-evaluated default is frozen at
+        // scaffold time, which both stamped every defaulted Note with the same stale moment and
+        // made every later migration re-alter this column as the "default" moved.
         _ = entity.Property(e => e.CreatedOnUTC)
-            .HasDefaultValue(DateTime.UtcNow)
+            .HasDefaultValueSql("SYSUTCDATETIME()")
             .IsRequired();
 
         _ = entity.Ignore(e => e.Audits);
