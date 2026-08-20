@@ -21,6 +21,13 @@ public class GetRecipeDto
     public long? Complexity { get; set; }
     public int? CookMinutes { get; set; }
     public string ImageUrl { get; set; }
+
+    /// <summary>
+    /// Ticks of the household photo's last upload — null when there is no photo. Doubles as the
+    /// cache-buster in the image's URL.
+    /// </summary>
+    public long? ImageVersion { get; set; }
+
     public ICollection<RecipeMealSlotDto> MealSlots { get; set; }
     public string Name { get; set; }
     public int? PrepMinutes { get; set; }

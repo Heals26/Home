@@ -1,5 +1,6 @@
 ﻿using Home.WebUI.Components;
 using Microsoft.AspNetCore.DataProtection;
+using Home.WebUI.Endpoints;
 using Home.WebUI.Infrastructure.ChangeNotifications;
 using Home.WebUI.Infrastructure.HttpClients;
 using Home.WebUI.Infrastructure.Security;
@@ -7,6 +8,7 @@ using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.UriProvider;
+using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 
@@ -57,8 +59,6 @@ _ = _Builder.Services.AddDataProtection()
     .SetApplicationName("Home.WebUI")
     .SetDefaultKeyLifetime(TimeSpan.FromDays(365));
 
-const string _ApiClientName = "HomeApi";
-
 var _ApiBaseUrlString = _Builder.Configuration["apiBaseUrl"];
 
 if (string.IsNullOrWhiteSpace(_ApiBaseUrlString))
@@ -67,17 +67,17 @@ if (string.IsNullOrWhiteSpace(_ApiBaseUrlString))
 if (!Uri.TryCreate(_ApiBaseUrlString, UriKind.Absolute, out var _ApiBaseUrl))
     throw new InvalidOperationException("API base URL is malformed.");
 
-_ = _Builder.Services.AddHttpClient(_ApiClientName, options => options.BaseAddress = _ApiBaseUrl);
+_ = _Builder.Services.AddHttpClient(HttpClientValues.ApiClientName, options => options.BaseAddress = _ApiBaseUrl);
 
 _ = _Builder.Services.AddScoped<IHomeHttpClient>(sp => new HomeHttpClient(
-    sp.GetRequiredService<IHttpClientFactory>().CreateClient(_ApiClientName),
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient(HttpClientValues.ApiClientName),
     sp.GetRequiredService<IHouseholdSession>()));
 
 // The token endpoint is reached from two places that must not depend on each other: the sign-in
 // endpoint during a request, and the circuit's session when its access token runs out.
 _ = _Builder.Services.AddScoped<IOAuthClient>(sp => new OAuthClient(
     sp.GetRequiredService<IConfiguration>(),
-    sp.GetRequiredService<IHttpClientFactory>().CreateClient(_ApiClientName)));
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient(HttpClientValues.ApiClientName)));
 
 // Scoped so one circuit shares one access token and one refresh gate.
 _Builder.Services.AddScoped<IHouseholdSession, HouseholdSession>();
@@ -128,6 +128,8 @@ _App.UseAuthorization();
 
 _App.UseWebSockets();
 _App.UseAntiforgery();
+
+_App.MapRecipeImageEndpoints();
 
 _App.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

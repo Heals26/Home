@@ -40,7 +40,9 @@
 
                     @* At a glance: the picture, the numbers, the meals it suits *@
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
-                        <RecipeImage ImageUrl="@this.m_Recipe.ImageUrl"
+                        <RecipeImage RecipeID="this.m_Recipe.RecipeID"
+                                     ImageVersion="this.m_Recipe.ImageVersion"
+                                     ImageUrl="@this.m_Recipe.ImageUrl"
                                      Alt="@this.m_Recipe.Name"
                                      Class="aspect-[4/3] w-full rounded-2xl sm:w-56 sm:shrink-0"
                                      IconClass="h-10 w-10" />
@@ -213,6 +215,34 @@
         </div>
         <div class="mt-3">
             <HomeTextInput Label="Picture URL (optional)" Type="url" AutoComplete="off" @bind-Value="this.m_EditImageUrl" Placeholder="https://..." />
+        </div>
+
+        @* The household's own photo — stored with the recipe, and it beats the URL above. *@
+        <div class="mt-3 flex flex-col gap-1.5">
+            <span class="text-sm font-medium text-ink-300">Your own photo</span>
+            <div class="flex items-center gap-3">
+                <label class="inline-flex items-center justify-center gap-2 min-h-[48px] rounded-lg border border-ink-700 bg-ink-800 px-4 py-3 text-sm font-medium text-ink-50 cursor-pointer hover:bg-ink-700 transition-colors">
+                    <span class="home-icon home-icon-sparkles h-4 w-4 inline-block"></span>
+                    @(this.HasPhoto() ? "Replace photo" : "Upload photo")
+                    <InputFile OnChange="this.OnPhotoPickedAsync" accept="image/*" class="hidden" />
+                </label>
+                @if (this.m_PendingPhotoName.Length > 0)
+                {
+                    <span class="min-w-0 truncate text-sm text-shopping">@this.m_PendingPhotoName</span>
+                }
+                else if (this.HasPhoto())
+                {
+                    <button type="button"
+                            class="min-h-[48px] px-3 text-sm text-ink-400 hover:text-red-400 transition-colors"
+                            @onclick="() => this.m_RemovePhoto = !this.m_RemovePhoto">
+                        @(this.m_RemovePhoto ? "Keeping it after all?" : "Remove photo")
+                    </button>
+                }
+            </div>
+            @if (this.m_PhotoError.Length > 0)
+            {
+                <p role="alert" class="text-xs text-red-400">@this.m_PhotoError</p>
+            }
         </div>
 
         <div class="grid grid-cols-3 gap-3 mt-3">

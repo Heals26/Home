@@ -24,6 +24,12 @@ public class GetRecipeWebAppResponse
     public string? ImageUrl { get; set; }
 
     /// <summary>
+    /// Ticks of the household photo's last upload — null when there is no photo. Doubles as the
+    /// cache-buster in the image's URL.
+    /// </summary>
+    public long? ImageVersion { get; set; }
+
+    /// <summary>
     /// The ingredients that make up the recipe.
     /// </summary>
     public List<RecipeIngredientDto> Ingredients { get; set; } = [];

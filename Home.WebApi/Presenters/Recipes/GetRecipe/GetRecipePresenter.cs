@@ -20,6 +20,7 @@ public class GetRecipePresenter(IMapper mapper)
             Complexity = recipe.Complexity,
             CookMinutes = recipe.CookMinutes,
             ImageUrl = recipe.ImageUrl,
+            ImageVersion = recipe.ImageUpdatedOnUTC == null ? null : recipe.ImageUpdatedOnUTC.Value.Ticks,
             Name = recipe.Name,
             PrepMinutes = recipe.PrepMinutes,
             Servings = recipe.Servings,

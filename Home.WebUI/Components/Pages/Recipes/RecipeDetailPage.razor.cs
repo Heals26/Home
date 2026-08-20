@@ -3,6 +3,7 @@ using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
 using Home.WebUI.DataAccess.MealSlots.Models;
 using Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient;
 using Home.WebUI.DataAccess.RecipeIngredients.UpdateRecipeIngredient;
+using Home.WebUI.DataAccess.RecipeImages.SetRecipeImage;
 using Home.WebUI.DataAccess.RecipeNotes.AddRecipeNote;
 using Home.WebUI.DataAccess.Recipes.GetRecipe;
 using Home.WebUI.DataAccess.Recipes.Models;
@@ -18,6 +19,7 @@ using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using System.Globalization;
 
 namespace Home.WebUI.Components.Pages.Recipes;
@@ -45,6 +47,16 @@ public partial class RecipeDetailPage : IDisposable
     private string m_EditServings = string.Empty;
     private string m_EditComplexity = string.Empty;
     private HashSet<long> m_EditMealSlotIDs = [];
+
+    /// <summary>
+    /// Mirrors the API's photo cap, so an oversized pick fails in the modal, not on the wire.
+    /// </summary>
+    private const long MaxPhotoBytes = 5 * 1024 * 1024;
+
+    private byte[]? m_PendingPhoto;
+    private string m_PendingPhotoName = string.Empty;
+    private string m_PhotoError = string.Empty;
+    private bool m_RemovePhoto;
 
     // Ingredient
     private bool m_ShowIngredient;
@@ -153,6 +165,10 @@ public partial class RecipeDetailPage : IDisposable
         this.m_EditServings = this.m_Recipe.Servings?.ToString() ?? string.Empty;
         this.m_EditComplexity = this.m_Recipe.Complexity?.ToString() ?? string.Empty;
         this.m_EditMealSlotIDs = [.. this.m_Recipe.MealSlots.Select(m => m.MealSlotID)];
+        this.m_PendingPhoto = null;
+        this.m_PendingPhotoName = string.Empty;
+        this.m_PhotoError = string.Empty;
+        this.m_RemovePhoto = false;
         this.m_ShowEditRecipe = true;
     }
 
@@ -196,6 +212,9 @@ public partial class RecipeDetailPage : IDisposable
                 this.m_CancellationTokenHandler.Token);
         }
 
+        if (_Result == true)
+            _Result = await this.SavePhotoAsync();
+
         this.m_Saving = false;
 
         if (_Result != true) return;
@@ -203,6 +222,59 @@ public partial class RecipeDetailPage : IDisposable
         this.m_ShowEditRecipe = false;
         await this.ReloadAndPublishAsync();
     }
+
+    /// <summary>
+    /// Reads the picked file straight away rather than at save time — the browser revokes the
+    /// file handle if the user picks another one, and a failed read should be visible while the
+    /// modal is still open.
+    /// </summary>
+    private async Task OnPhotoPickedAsync(InputFileChangeEventArgs e)
+    {
+        this.m_PhotoError = string.Empty;
+        this.m_PendingPhoto = null;
+        this.m_PendingPhotoName = string.Empty;
+        this.m_RemovePhoto = false;
+
+        if (e.File.Size > MaxPhotoBytes)
+        {
+            this.m_PhotoError = "That photo is over 5 MB. Most phones can export a smaller size.";
+            return;
+        }
+
+        try
+        {
+            using var _Content = new MemoryStream();
+            await e.File.OpenReadStream(MaxPhotoBytes).CopyToAsync(_Content, this.m_CancellationTokenHandler.Token);
+
+            this.m_PendingPhoto = _Content.ToArray();
+            this.m_PendingPhotoName = e.File.Name;
+        }
+        catch (IOException)
+        {
+            this.m_PhotoError = "That photo couldn't be read. Try picking it again.";
+        }
+    }
+
+    private async Task<bool> SavePhotoAsync()
+    {
+        if (this.m_PendingPhoto != null)
+            return await this.ApiAccess.SendRequestAsync<SetRecipeImageWebAppRequest, bool>(
+                new SetRecipeImageWebAppRequest() { Image = new MemoryStream(this.m_PendingPhoto) },
+                ApiProvider.SetRecipeImage(this.RecipeID),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.m_CancellationTokenHandler.Token) == true;
+
+        if (this.m_RemovePhoto)
+            return await this.ApiAccess.SendRequestAsync<object, bool>(
+                null!, ApiProvider.DeleteRecipeImage(this.RecipeID),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.m_CancellationTokenHandler.Token) == true;
+
+        return true;
+    }
+
+    private bool HasPhoto()
+        => this.m_Recipe?.ImageVersion != null;
 
     // Ingredients
 

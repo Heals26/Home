@@ -1,4 +1,8 @@
-﻿using Home.Application.UseCases.Recipes.CreateRecipe;
+﻿using Home.Application.Infrastructure.Recipes;
+using Home.Application.UseCases.RecipeImages.DeleteRecipeImage;
+using Home.Application.UseCases.RecipeImages.GetRecipeImage;
+using Home.Application.UseCases.RecipeImages.SetRecipeImage;
+using Home.Application.UseCases.Recipes.CreateRecipe;
 using Home.Application.UseCases.Recipes.DeleteRecipe;
 using Home.Application.UseCases.Recipes.GetRecipe;
 using Home.Application.UseCases.Recipes.GetRecipes;
@@ -7,6 +11,9 @@ using Home.Application.UseCases.Recipes.SetRecipeMealSlots;
 using Home.Application.UseCases.Recipes.UpdateRecipe;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
+using Home.WebApi.Presenters.RecipeImages.DeleteRecipeImage;
+using Home.WebApi.Presenters.RecipeImages.GetRecipeImage;
+using Home.WebApi.Presenters.RecipeImages.SetRecipeImage;
 using Home.WebApi.Presenters.Recipes.CreateRecipe;
 using Home.WebApi.Presenters.Recipes.DeleteRecipe;
 using Home.WebApi.Presenters.Recipes.GetRecipe;
@@ -57,6 +64,61 @@ public class RecipesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new DeleteRecipeInputPort(recipeID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpDelete("{recipeID}/Image")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DeleteRecipeImage(
+        [FromServices] DeleteRecipeImagePresenter presenter,
+        [FromRoute] long recipeID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new DeleteRecipeImageInputPort(recipeID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpGet("{recipeID}/Image")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecipeImage(
+        [FromServices] GetRecipeImagePresenter presenter,
+        [FromRoute] long recipeID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new GetRecipeImageInputPort(recipeID), presenter, this.ServiceFactory, cancellationToken);
+
+        // The image's URL carries its UpdatedOnUTC ticks, so a changed photo is a changed URL and
+        // this can be cached as hard as the browser likes.
+        if (presenter.PresentedSuccessfully)
+            this.Response.Headers.CacheControl = "private, max-age=31536000, immutable";
+
+        return presenter.Result;
+    }
+
+    /// <summary>
+    /// The photo arrives as multipart form data — the only shape a browser file input produces.
+    /// </summary>
+    [HttpPut("{recipeID}/Image")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [RequestSizeLimit(RecipeImageLogic.MaximumContentBytes + 65536)]
+    public async Task<IActionResult> SetRecipeImage(
+        [FromServices] SetRecipeImagePresenter presenter,
+        [FromRoute] long recipeID,
+        IFormFile image,
+        CancellationToken cancellationToken)
+    {
+        using var _Content = new MemoryStream();
+
+        if (image != null)
+            await image.CopyToAsync(_Content, cancellationToken);
+
+        await this.Pipeline.InvokeAsync(
+            new SetRecipeImageInputPort(_Content.ToArray(), recipeID),
+            presenter,
+            this.ServiceFactory,
+            cancellationToken);
 
         return presenter.Result;
     }

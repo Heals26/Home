@@ -71,7 +71,9 @@
                     {
                         <div class="group flex items-center gap-4 rounded-2xl border border-ink-800 bg-ink-900 p-3 hover:border-ink-700 transition-all cursor-pointer"
                              @onclick="() => this.OpenRecipe(_Recipe.RecipeID)">
-                            <RecipeImage ImageUrl="@_Recipe.ImageUrl"
+                            <RecipeImage RecipeID="_Recipe.RecipeID"
+                                         ImageVersion="_Recipe.ImageVersion"
+                                         ImageUrl="@_Recipe.ImageUrl"
                                          Alt="@_Recipe.Name"
                                          Class="h-16 w-16 shrink-0 rounded-xl"
                                          IconClass="h-6 w-6" />
@@ -106,7 +108,9 @@
                     {
                         <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-ink-800 bg-ink-900 hover:border-ink-700 transition-all cursor-pointer"
                              @onclick="() => this.OpenRecipe(_Recipe.RecipeID)">
-                            <RecipeImage ImageUrl="@_Recipe.ImageUrl"
+                            <RecipeImage RecipeID="_Recipe.RecipeID"
+                                         ImageVersion="_Recipe.ImageVersion"
+                                         ImageUrl="@_Recipe.ImageUrl"
                                          Alt="@_Recipe.Name"
                                          Class="aspect-[4/3] w-full"
                                          IconClass="h-10 w-10" />
