@@ -21,12 +21,14 @@ internal class GetLightScenesInteractor : IInteractor<GetLightScenesInputPort, I
 
         var _Household = _AuthorisationService.GetHousehold();
 
+        // The previous look leads: it is the undo, and an undo you have to hunt for isn't one.
         var _Scenes = _PersistenceContext.GetEntities<LightScene>()
             .Where(s => s.Household.HouseholdID == _Household.HouseholdID)
             .Select(s => new { Scene = s, s.States })
             .ToList()
             .Select(s => s.Scene)
-            .OrderBy(s => s.Sequence)
+            .OrderByDescending(s => s.IsPreviousLook)
+            .ThenBy(s => s.Sequence)
             .ThenBy(s => s.Name)
             .ToList();
 

@@ -81,8 +81,10 @@
                                 @foreach (var _Scene in this.m_Scenes)
                                 {
                                     <div class="relative">
+                                        @* The previous look is the undo — it reads as one, and applying it swaps
+                                           back and forth because each apply re-captures what it replaced. *@
                                         <button type="button"
-                                                class="flex items-center gap-2 min-h-[48px] rounded-xl border border-ink-700 bg-ink-900 hover:border-lights/60 active:scale-95 transition-all px-4 py-2 disabled:opacity-60"
+                                                class="flex items-center gap-2 min-h-[48px] rounded-xl border active:scale-95 transition-all px-4 py-2 disabled:opacity-60 @(_Scene.IsPreviousLook ? "border-dashed border-ink-600 bg-ink-900/60 hover:border-ink-400" : "border-ink-700 bg-ink-900 hover:border-lights/60")"
                                                 disabled="@(this.m_ApplyingSceneID != null)"
                                                 @onclick="() => this.ApplySceneAsync(_Scene)">
                                             @if (this.m_ApplyingSceneID == _Scene.LightSceneID)
@@ -91,13 +93,13 @@
                                             }
                                             else
                                             {
-                                                <span class="home-icon home-icon-sparkles h-4 w-4 text-lights"></span>
+                                                <span class="home-icon @(_Scene.IsPreviousLook ? "home-icon-refresh text-ink-400" : "home-icon-sparkles text-lights") h-4 w-4"></span>
                                             }
-                                            <span class="text-sm font-medium text-ink-100">@_Scene.Name</span>
+                                            <span class="text-sm font-medium @(_Scene.IsPreviousLook ? "text-ink-300" : "text-ink-100")">@_Scene.Name</span>
                                             <span class="text-xs text-ink-500">@_Scene.LightCount</span>
                                         </button>
 
-                                        @if (this.m_EditMode)
+                                        @if (this.m_EditMode && !_Scene.IsPreviousLook)
                                         {
                                             <button type="button"
                                                     title="Delete scene"
@@ -258,7 +260,9 @@
 @* ── Add-schedule modal ───────────────────────────────────────── *@
 <HomeModal @bind-Visible="this.m_ShowScheduleModal" Title="Add schedule">
     <ChildContent>
-        @if (this.m_Scenes == null || this.m_Scenes.Count == 0)
+        @* The automatic previous-look scene never appears here — it changes on every apply, so a
+           schedule firing it would set the lights to something nobody chose. *@
+        @if (this.m_Scenes == null || !this.m_Scenes.Any(s => !s.IsPreviousLook))
         {
             <div class="flex flex-col items-start gap-4">
                 <p class="text-sm text-ink-400">
@@ -282,7 +286,7 @@
                         class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
                         @bind="this.m_ScheduleSceneID">
                     <option value="0">Choose a scene</option>
-                    @foreach (var _Scene in this.m_Scenes ?? [])
+                    @foreach (var _Scene in (this.m_Scenes ?? []).Where(s => !s.IsPreviousLook))
                     {
                         <option value="@_Scene.LightSceneID">@_Scene.Name</option>
                     }

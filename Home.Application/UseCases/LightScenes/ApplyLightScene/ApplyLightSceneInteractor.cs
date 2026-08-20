@@ -38,6 +38,11 @@ internal class ApplyLightSceneInteractor
             return;
         }
 
+        // Snapshotted before the apply mutates the cached light rows, so "Previous look" is what
+        // the room actually looked like a moment ago — including when the scene being applied is
+        // the previous look itself, which is what makes tapping it twice toggle back and forth.
+        var _PreviousStates = this.SnapshotHouseholdLights(_Household, _PersistenceContext);
+
         var _Result = await _SceneLogic.ApplyAsync(_Scene, cancellationToken);
 
         if (_Result == LightCommandResult.Unavailable)
@@ -46,9 +51,63 @@ internal class ApplyLightSceneInteractor
             return;
         }
 
+        this.SavePreviousLook(_Household, _PreviousStates, _PersistenceContext);
+
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
         await outputPort.PresentLightSceneAppliedAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The whole household rather than just the lights the scene touches, because "how it looked
+    /// before" means the room, not the subset that changed.
+    /// </summary>
+    private List<LightSceneState> SnapshotHouseholdLights(Household household, IPersistenceContext persistenceContext)
+        => [.. persistenceContext.GetEntities<Light>()
+            .Where(l => l.Group.Location.Household.HouseholdID == household.HouseholdID)
+            .ToList()
+            .Select(l => new LightSceneState()
+            {
+                Light = l,
+                Brightness = l.Brightness,
+                Hue = l.Hue,
+                IsOn = l.IsOn,
+                Kelvin = l.Kelvin,
+                Saturation = l.Saturation
+            })];
+
+    private void SavePreviousLook(Household household, List<LightSceneState> states, IPersistenceContext persistenceContext)
+    {
+        var _PreviousLook = persistenceContext.GetEntities<LightScene>()
+            .Where(s => s.Household.HouseholdID == household.HouseholdID && s.IsPreviousLook)
+            .Select(s => new { Scene = s, s.States })
+            .SingleOrDefault()
+            ?.Scene;
+
+        if (_PreviousLook == null)
+        {
+            _PreviousLook = new LightScene()
+            {
+                Household = household,
+                IsPreviousLook = true,
+                Name = "Previous look",
+                Sequence = -1,
+                States = []
+            };
+
+            persistenceContext.Add(_PreviousLook);
+        }
+        else
+        {
+            persistenceContext.RemoveRange(_PreviousLook.States);
+            _PreviousLook.States.Clear();
+        }
+
+        states.ForEach(s =>
+        {
+            s.Scene = _PreviousLook;
+            _PreviousLook.States.Add(s);
+        });
     }
 
     #endregion Methods

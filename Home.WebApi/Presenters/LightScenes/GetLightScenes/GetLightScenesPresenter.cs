@@ -18,6 +18,7 @@ public class GetLightScenesPresenter(IMapper mapper)
         {
             Scenes = [.. scenes.Select(s => new LightSceneDto()
             {
+                IsPreviousLook = s.IsPreviousLook,
                 LightSceneID = s.LightSceneID,
                 Name = s.Name,
                 Sequence = s.Sequence,
