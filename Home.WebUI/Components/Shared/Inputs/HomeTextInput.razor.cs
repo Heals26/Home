@@ -66,6 +66,16 @@ public partial class HomeTextInput
         return $"{_Base} {_Border}";
     }
 
+    /// <summary>
+    /// Prose gets the red squiggle; names, addresses and numbers don't. Browsers guess this
+    /// inconsistently, so it is said outright: spellcheck belongs on plain text the user is
+    /// composing, never on identity fields or anything typed on a numeric keyboard.
+    /// </summary>
+    private string GetSpellCheck()
+        => this.Type == "text" && this.InputMode == null && (this.AutoComplete == null || this.AutoComplete == "off")
+            ? "true"
+            : "false";
+
     #endregion Methods
 
 }

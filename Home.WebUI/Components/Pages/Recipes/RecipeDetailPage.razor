@@ -289,9 +289,21 @@
 @* Ingredient modal (add + edit) *@
 <HomeModal @bind-Visible="this.m_ShowIngredient" Title="@(this.m_EditingIngredientID.HasValue ? "Edit ingredient" : "Add ingredient")">
     <ChildContent>
-        <HomeTextInput Label="Name" AutoComplete="off" @bind-Value="this.m_IngName" Placeholder="e.g. Onion" />
+        @* Enter saves, and an add stays open with the cursor back in the name box — a recipe is
+           a dozen ingredients, and a tap on plus per line is eleven taps too many. *@
+        <HomeTextInput @ref="this.m_IngredientNameInput"
+                       Label="Name"
+                       AutoComplete="off"
+                       @bind-Value="this.m_IngName"
+                       OnKeyDown="this.OnIngredientKeyDownAsync"
+                       Placeholder="e.g. Onion" />
         <div class="grid grid-cols-2 gap-3 mt-3">
-            <HomeTextInput Label="Amount" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_IngAmount" Placeholder="e.g. 2" />
+            <HomeTextInput Label="Amount"
+                           AutoComplete="off"
+                           InputMode="decimal"
+                           @bind-Value="this.m_IngAmount"
+                           OnKeyDown="this.OnIngredientKeyDownAsync"
+                           Placeholder="e.g. 2" />
             <div class="flex flex-col gap-1.5">
                 <label for="ingredient-unit" class="text-sm font-medium text-ink-300">Measurement</label>
                 <select id="ingredient-unit" @bind="this.m_IngUnit"
@@ -304,8 +316,12 @@
             </div>
         </div>
         <div class="mt-4 flex justify-end gap-3">
-            <HomeButton Variant="ghost" OnClick="() => this.m_ShowIngredient = false">Cancel</HomeButton>
-            <HomeButton Loading="this.m_Saving" OnClick="this.SaveIngredientAsync">Save</HomeButton>
+            <HomeButton Variant="ghost" OnClick="() => this.m_ShowIngredient = false">
+                @(this.m_EditingIngredientID.HasValue ? "Cancel" : "Done")
+            </HomeButton>
+            <HomeButton Loading="this.m_Saving" OnClick="this.SaveIngredientAsync">
+                @(this.m_EditingIngredientID.HasValue ? "Save" : "Add & next")
+            </HomeButton>
         </div>
     </ChildContent>
 </HomeModal>
@@ -318,6 +334,7 @@
             <label for="recipe-step-content" class="text-sm font-medium text-ink-300">Instructions</label>
             <textarea id="recipe-step-content" @bind="this.m_StepContent" rows="5"
                       placeholder="Describe this step..."
+                      spellcheck="true"
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
             <p class="text-xs text-ink-500">Markdown works here — **bold**, *italic*, - bullet lists.</p>
         </div>

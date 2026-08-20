@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
 using Home.WebUI.DataAccess.MealSlots.Models;
 using Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient;
@@ -20,6 +21,7 @@ using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using System.Globalization;
 
 namespace Home.WebUI.Components.Pages.Recipes;
@@ -57,6 +59,11 @@ public partial class RecipeDetailPage : IDisposable
     private string m_PendingPhotoName = string.Empty;
     private string m_PhotoError = string.Empty;
     private bool m_RemovePhoto;
+
+    // Focus can only land once the modal has actually rendered, so opening it raises a flag that
+    // OnAfterRenderAsync acts on.
+    private HomeTextInput? m_IngredientNameInput;
+    private bool m_FocusIngredientName;
 
     // Ingredient
     private bool m_ShowIngredient;
@@ -103,6 +110,15 @@ public partial class RecipeDetailPage : IDisposable
 
     protected override async Task OnParametersSetAsync()
         => await this.LoadRecipeAsync();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!this.m_FocusIngredientName || this.m_IngredientNameInput == null)
+            return;
+
+        this.m_FocusIngredientName = false;
+        await this.m_IngredientNameInput.FocusAsync();
+    }
 
     public void Dispose()
     {
@@ -284,6 +300,7 @@ public partial class RecipeDetailPage : IDisposable
         this.m_IngName = string.Empty;
         this.m_IngAmount = string.Empty;
         this.m_IngUnit = MeasurementUnits.All[0].Value.ToString();
+        this.m_FocusIngredientName = true;
         this.m_ShowIngredient = true;
     }
 
@@ -296,9 +313,15 @@ public partial class RecipeDetailPage : IDisposable
         this.m_ShowIngredient = true;
     }
 
+    private async Task OnIngredientKeyDownAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await this.SaveIngredientAsync();
+    }
+
     private async Task SaveIngredientAsync()
     {
-        if (this.m_Saving) return;
+        if (this.m_Saving || string.IsNullOrWhiteSpace(this.m_IngName)) return;
         this.m_Saving = true;
 
         bool _Result;
@@ -339,7 +362,20 @@ public partial class RecipeDetailPage : IDisposable
 
         if (!_Result) return;
 
-        this.m_ShowIngredient = false;
+        // Adding chains: the modal stays open with the cursor back in the name box, because the
+        // next ingredient is nearly always right behind this one. Editing closes as before.
+        if (this.m_EditingIngredientID.HasValue)
+        {
+            this.m_ShowIngredient = false;
+        }
+        else
+        {
+            this.m_IngName = string.Empty;
+            this.m_IngAmount = string.Empty;
+            this.m_IngUnit = MeasurementUnits.All[0].Value.ToString();
+            this.m_FocusIngredientName = true;
+        }
+
         await this.ReloadAndPublishAsync();
     }
 
