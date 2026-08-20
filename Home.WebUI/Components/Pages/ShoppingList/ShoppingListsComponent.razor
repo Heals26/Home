@@ -29,7 +29,9 @@
                             <p class="text-sm font-medium @(this.ShoppingListID == _List.ShoppingListID ? "text-shopping" : "text-ink-50")">@_List.Name</p>
                             <p class="text-xs text-ink-500 mt-0.5">@_List.ItemCount items</p>
                         </button>
-                        <button class="px-3 py-4 text-ink-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                        @* Always visible rather than revealed on hover — a finger has no hover, so
+                           a hover-revealed control needs two touches before it does anything. *@
+                        <button class="px-3 py-4 text-ink-600 hover:text-red-400 transition-colors"
                                 type="button"
                                 title="Delete list"
                                 @onclick="() => this.DeleteShoppingListAsync(_List.ShoppingListID)">
