@@ -26,9 +26,10 @@ public partial class ActivityCalendarView
     private string GetLaneClasses(bool isToday)
     {
         // Seven lanes have to fit a tablet screen at once or the week stops being glanceable, so
-        // they share the width rather than each claiming a fixed one.
-        var _Base = "flex flex-col bg-ink-900/60 border rounded-xl max-h-full";
-        var _Width = this.Days.Count == 1 ? "flex-1 min-w-0 max-w-2xl" : "flex-1 min-w-[9rem]";
+        // from lg up they share the width rather than each claiming a fixed one. Below that the
+        // lanes are full-width cards stacked down the page.
+        var _Base = "flex flex-col bg-ink-900/60 border rounded-xl lg:max-h-full";
+        var _Width = this.Days.Count == 1 ? "w-full lg:flex-1 min-w-0 lg:max-w-2xl" : "w-full lg:flex-1 lg:min-w-[9rem]";
         var _Border = isToday ? "border-week/40" : "border-ink-800";
 
         return $"{_Base} {_Width} {_Border}";
