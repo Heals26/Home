@@ -5,6 +5,50 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-19 — The session is the cookie; browser storage is out of the auth path entirely
+
+Supersedes the session mechanics of the 15 Aug entry below. That fix kept the token in
+`ProtectedLocalStorage`, which means identity had to be *read back out of the browser over JS
+interop after every reload* — and every way that read can fail (circuit evicted, interop timeout,
+key-ring drift) is indistinguishable from "not signed in". Mitch kept getting the login page on
+F5, and rotation compounded it: several circuits share one stored token, so whichever presented
+it second looked like a replay attack and revoked the household.
+
+The standard shape replaced all of it:
+
+- **A persistent auth cookie is the session** (`Home.Session`, HttpOnly, essential, 90-day sliding
+  expiry matching the refresh token). The browser sends it with the request that starts the
+  circuit, so a reload arrives already signed in — there is nothing to read, race or time out.
+- **`/login`, `/logout` and `/setup` render statically** — `App.razor.cs` picks the render mode
+  per path — because only an HTTP response can carry `Set-Cookie`. They are plain Blazor
+  `@formname` forms with `<AntiforgeryToken />` and `[SupplyParameterFromForm]`, and each guards
+  against arriving through the interactive router by re-entering with `forceLoad` when there is
+  no `HttpContext`. The custom `AuthenticationStateProvider`, `AuthInitialiser` and the OAuth
+  view model in browser storage are deleted.
+- **The refresh token rides in a claim** inside the encrypted cookie. Per circuit,
+  `HouseholdSession` trades it for an access token in memory; `OAuthClient` is the one place that
+  talks to the token endpoint. A refused refresh surfaces as an error — nothing client-side can
+  end a session, because only the sign-out form can clear the cookie.
+- **Refresh tokens do not rotate.** Every tab and device presenting the token it holds must keep
+  working; rotation is what made honest concurrency look like theft. A session ends two ways:
+  expiry or sign-out. The grace window died with rotation. The access token is only re-minted
+  when it has under five minutes left (`SessionValues.AccessTokenReissueFloor`), so tabs sharing
+  a session row converge on one token instead of invalidating each other hourly.
+
+Verified end-to-end on 19 Aug against a live browser and a disposable DB user: sign-in sets the
+cookie, F5 stays signed in, killing and restarting the WebUI stays signed in, sign-out clears it,
+and presenting the same refresh token twice returns the same token both times.
+
+## 2026-08-19 — The reconnect overlay is ours, and a dead circuit reloads itself
+
+Blazor's default overlay is white in an app that is dark by default, and once it gives up it
+leaves a page that looks alive and does nothing — the tablet's worst failure mode. The element
+with Blazor's `components-reconnect-modal` id in `App.razor` restyles the overlay with theme
+tokens, and `reconnect.js` watches the state classes: a rejected reconnect (server restarted,
+circuit gone) reloads immediately, and a failed one retries with a HEAD probe and reloads the
+moment the server answers. Reloading is safe precisely because of the cookie entry above — the
+reload comes back signed in on the same page.
+
 ## 2026-08-17 — Adding to a shopping list is one text box, not a form
 
 The add-item modal is gone. There is a single input that stays on screen, takes the whole line as
