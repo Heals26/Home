@@ -1,4 +1,6 @@
-﻿namespace Home.WebApi.Infrastructure.Values;
+﻿using Home.Application.Infrastructure.Values;
+
+namespace Home.WebApi.Infrastructure.Values;
 
 public static class FrameworkValues
 {
@@ -15,11 +17,11 @@ public static class FrameworkValues
     public const string ScopeWebApp = "WebApp";
 
     /// <summary>
-    /// How long an access token stays valid. Was an inline AddHours(1) in three places — the
-    /// handler that rejects expired tokens and both grant responses that report the remaining
-    /// seconds — which is exactly the sort of thing that drifts apart.
+    /// How long an access token stays valid. Owned by <see cref="SessionValues"/> now, because
+    /// the refresh grant also reads it to decide when a token is worth replacing — this alias
+    /// keeps the handler and both grant responses on the same number without touching them.
     /// </summary>
-    public static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromHours(1);
+    public static readonly TimeSpan AccessTokenLifetime = SessionValues.AccessTokenLifetime;
 
     #endregion Properties
 

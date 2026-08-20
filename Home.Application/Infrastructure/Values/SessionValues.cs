@@ -1,4 +1,4 @@
-﻿namespace Home.Application.Infrastructure.Values;
+namespace Home.Application.Infrastructure.Values;
 
 public static class SessionValues
 {
@@ -6,11 +6,19 @@ public static class SessionValues
     #region Fields
 
     /// <summary>
-    /// How long a rotated refresh token keeps working. Restarting the server reconnects every
-    /// open circuit at once, and they all present the same stored token within moments of each
-    /// other; without this window the first one wins and the rest are signed out.
+    /// How long an access token is accepted for, measured from the row's DateSetUTC. Owned here
+    /// because both the bearer handler and the refresh grant read it, and the two drifting apart
+    /// would mean tokens the handler refuses but the grant declines to replace.
     /// </summary>
-    public static readonly TimeSpan RefreshGraceWindow = TimeSpan.FromSeconds(60);
+    public static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// A refresh only mints a new access token when the current one has less life than this left.
+    /// Every tab on a device shares one session row, so an always-minting refresh would have two
+    /// tabs invalidating each other's token every hour; below the floor they converge on the same
+    /// one instead.
+    /// </summary>
+    public static readonly TimeSpan AccessTokenReissueFloor = TimeSpan.FromMinutes(5);
 
     /// <summary>
     /// How long a household stays signed in without touching a password. Slides forward on every

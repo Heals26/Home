@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Mediator;
+using CleanArchitecture.Mediator;
 using Home.Application.Infrastructure.Values;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
@@ -7,11 +7,16 @@ using Home.Domain.Entities;
 namespace Home.Application.UseCases.OAuth.CreateRefreshGrant;
 
 /// <summary>
-/// Rotates the refresh token, keeping the one just replaced usable for a short grace window.
-/// Every device and every Blazor circuit holds the same stored token, so a server restart makes
-/// several of them present it at the same moment; rejecting all but the first is what used to
-/// sign the family out on every restart. Presenting a rotated token after the window has closed
-/// is treated as a leak and revokes the whole session.
+/// Issues a fresh access token against the device's existing session row. The refresh token is
+/// deliberately <em>not</em> rotated.
+/// <para>
+/// Rotation was tried and removed. Every Blazor circuit, every open tab and every device holds its
+/// own copy of the stored token, and a rotating scheme makes the second one to arrive a suspected
+/// leak: a restart, a reload or a tablet waking up all present a token that has already been spent.
+/// Widening the grace window only moved the failure. Worse, the leak response revoked every row
+/// belonging to the user, so one stale copy signed out the whole household. A session now ends for
+/// exactly two reasons — it expired, or somebody signed out.
+/// </para>
 /// </summary>
 internal class CreateRefreshGrantInteractor : IInteractor<CreateRefreshGrantInputPort, ICreateRefreshGrantOutputPort>
 {
@@ -68,82 +73,63 @@ internal class CreateRefreshGrantInteractor : IInteractor<CreateRefreshGrantInpu
             return;
         }
 
-        if (_ExistingToken.SupersededOnUTC != null)
+        // Rows left behind by the rotating scheme this replaced. Their holder never learnt the
+        // successor's refresh token, so handing the successor back is the only answer that does
+        // not cost somebody a password.
+        var _Session = this.ResolveSupersededSession(_ExistingToken, _PersistenceContext) ?? _ExistingToken;
+
+        // Only replaced when nearly dead. Every tab on a device shares this row, so an
+        // always-minting refresh would have two tabs invalidating each other's token; below the
+        // floor they converge on the same one. The lifetime is measured from DateSetUTC, so the
+        // two move together.
+        if (_Session.DateSetUTC.Add(SessionValues.AccessTokenLifetime).Subtract(SessionValues.AccessTokenReissueFloor) <= _Now)
         {
-            await this.ReplayOrRevokeAsync(_ExistingToken, _Now, _PersistenceContext, outputPort, cancellationToken);
-            return;
+            _Session.AccessToken = _TokenFactory.GetOAuthToken();
+            _Session.DateSetUTC = _Now;
         }
 
-        var _AuthenticationMetadata = new UserAuthentication()
-        {
-            AccessToken = _TokenFactory.GetOAuthToken(),
-            ClientApplication = _ClientApplication,
-            DateSetUTC = _Now,
-            DeviceLabel = _ExistingToken.DeviceLabel,
-            ExpiresOnUTC = _Now.Add(SessionValues.RefreshTokenLifetime),
-            LastUsedOnUTC = _Now,
-            RefreshToken = _TokenFactory.GetOAuthToken(),
-            Scopes = string.Join(",", [OAuthValues.WebAppScope.Name]),
-            User = _ExistingToken.User
-        };
+        _Session.ExpiresOnUTC = _Now.Add(SessionValues.RefreshTokenLifetime);
+        _Session.LastUsedOnUTC = _Now;
 
-        _PersistenceContext.Add(_AuthenticationMetadata);
-        _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
-
-        // Kept rather than deleted, so a sibling circuit presenting the same token moments later
-        // is answered instead of signed out. The identity is only known after the insert.
-        _ExistingToken.SupersededByAuthenticationMetadataID = _AuthenticationMetadata.AuthenticationMetadataID;
-        _ExistingToken.SupersededOnUTC = _Now;
-
-        this.PruneSpentSessions(_ExistingToken.User, _Now, _PersistenceContext);
+        this.PruneExpiredSessions(_ExistingToken.User, _Now, _PersistenceContext);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
-        await outputPort.PresentAuthorisationGrantedAsync(_AuthenticationMetadata, cancellationToken);
+        await outputPort.PresentAuthorisationGrantedAsync(_Session, cancellationToken);
     }
 
     /// <summary>
-    /// Rows nobody can use again. Without this the table grows by one row per refresh forever.
+    /// Only rows whose own expiry has passed, and only for the user doing the refreshing. Nothing
+    /// here may touch a row another device is still using.
     /// </summary>
-    private void PruneSpentSessions(User user, DateTime nowUTC, IPersistenceContext persistenceContext)
+    private void PruneExpiredSessions(User user, DateTime nowUTC, IPersistenceContext persistenceContext)
     {
-        var _Cutoff = nowUTC.Subtract(SessionValues.RefreshGraceWindow);
-
-        var _Spent = persistenceContext.GetEntities<UserAuthentication>()
-            .Where(am => am.User.UserID == user.UserID
-                && (am.ExpiresOnUTC <= nowUTC || (am.SupersededOnUTC != null && am.SupersededOnUTC < _Cutoff)))
+        var _Expired = persistenceContext.GetEntities<UserAuthentication>()
+            .Where(am => am.User.UserID == user.UserID && am.ExpiresOnUTC <= nowUTC)
             .ToList();
 
-        persistenceContext.RemoveRange(_Spent);
+        persistenceContext.RemoveRange(_Expired);
     }
 
-    private async Task ReplayOrRevokeAsync(
-        UserAuthentication existingToken,
-        DateTime nowUTC,
-        IPersistenceContext persistenceContext,
-        ICreateRefreshGrantOutputPort outputPort,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// The successor is read through a projection rather than a find, so its user and client are
+    /// loaded — the presenter reads both when it answers.
+    /// </summary>
+    private UserAuthentication? ResolveSupersededSession(UserAuthentication existingToken, IPersistenceContext persistenceContext)
     {
-        var _Successor = existingToken.SupersededByAuthenticationMetadataID == null
-            ? null
-            : persistenceContext.Find<UserAuthentication>(existingToken.SupersededByAuthenticationMetadataID.Value);
+        if (existingToken.SupersededOnUTC == null || existingToken.SupersededByAuthenticationMetadataID == null)
+            return null;
 
-        if (_Successor != null && nowUTC.Subtract(existingToken.SupersededOnUTC!.Value) <= SessionValues.RefreshGraceWindow)
-        {
-            await outputPort.PresentAuthorisationGrantedAsync(_Successor, cancellationToken);
-            return;
-        }
-
-        // Outside the window the token should have been long discarded, so its reappearance means
-        // a copy is loose. Everything issued to this user goes, including the successor.
-        var _Chain = persistenceContext.GetEntities<UserAuthentication>()
-            .Where(am => am.User.UserID == existingToken.User.UserID)
-            .ToList();
-
-        persistenceContext.RemoveRange(_Chain);
-        _ = await persistenceContext.SaveChangesAsync(cancellationToken);
-
-        await outputPort.PresentNotAuthorisedAsync(OAuthValues.InvalidRequest, cancellationToken);
+        return persistenceContext.GetEntities<UserAuthentication>()
+            .Where(am => am.AuthenticationMetadataID == existingToken.SupersededByAuthenticationMetadataID.Value)
+            .Select(am => new
+            {
+                AuthenticationMetadata = am,
+                am.ClientApplication,
+                am.User
+            })
+            .SingleOrDefault()
+            ?.AuthenticationMetadata;
     }
 
     #endregion Methods
