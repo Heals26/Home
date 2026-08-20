@@ -6,7 +6,9 @@ using Home.WebUI.DataAccess.MealSlots.CreateMealSlot;
 using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
 using Home.WebUI.DataAccess.MealSlots.Models;
 using Home.WebUI.DataAccess.MealSlots.UpdateMealSlot;
+using Home.WebUI.DataAccess.Recipes.CreateRecipe;
 using Home.WebUI.DataAccess.Recipes.GetRecipes;
+using Home.WebUI.DataAccess.Recipes.SetRecipeMealSlots;
 using Home.WebUI.DataAccess.ShoppingLists.AddMealPlanToShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.CreateShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists;
@@ -38,6 +40,7 @@ public partial class MealPlanPage : IDisposable
     private bool m_ShowPicker;
     private DateTime m_PickerDate;
     private long? m_PickerMealSlotID;
+    private string m_PickerSearch = string.Empty;
     private bool m_Planning;
 
     // Add-to-list modal
@@ -136,6 +139,7 @@ public partial class MealPlanPage : IDisposable
     {
         this.m_PickerDate = date;
         this.m_PickerMealSlotID = mealSlotID ?? this.m_MealSlots.FirstOrDefault()?.MealSlotID;
+        this.m_PickerSearch = string.Empty;
         this.m_ShowPicker = true;
 
         if (this.m_Recipes != null)
@@ -148,6 +152,69 @@ public partial class MealPlanPage : IDisposable
 
         if (_Result != null)
             this.m_Recipes = _Result.Recipes;
+    }
+
+    /// <summary>
+    /// Recipes tagged with the meal being planned come first — someone filling in Tuesday's
+    /// breakfast is almost always choosing among breakfasts.
+    /// </summary>
+    private IEnumerable<GetRecipeDto> PickerRecipes()
+    {
+        var _Search = this.m_PickerSearch.Trim();
+
+        return (this.m_Recipes ?? [])
+            .Where(r => _Search.Length == 0 || r.Name.Contains(_Search, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(this.SuitsPickedMeal)
+            .ThenBy(r => r.Name);
+    }
+
+    private bool SuitsPickedMeal(GetRecipeDto recipe)
+        => this.m_PickerMealSlotID != null && recipe.MealSlots.Any(m => m.MealSlotID == this.m_PickerMealSlotID);
+
+    private string PickedMealName()
+        => this.m_MealSlots.FirstOrDefault(m => m.MealSlotID == this.m_PickerMealSlotID)?.Name ?? string.Empty;
+
+    private bool PickerSearchMatchesExactly()
+        => (this.m_Recipes ?? []).Any(r => string.Equals(r.Name, this.m_PickerSearch.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Makes the typed name a real recipe — tagged with the meal being planned, so it sorts to
+    /// the top next time — then plans it into the cell that started all this.
+    /// </summary>
+    private async Task CreateAndPlanRecipeAsync()
+    {
+        var _Name = this.m_PickerSearch.Trim();
+
+        if (this.m_Planning || _Name.Length == 0)
+            return;
+
+        this.m_Planning = true;
+
+        var _Created = await this.ApiAccess.SendRequestAsync<CreateRecipeWebAppRequest, CreateRecipeWebAppResponse>(
+            new CreateRecipeWebAppRequest() { Name = _Name },
+            ApiProvider.CreateRecipe(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Created == null)
+        {
+            this.m_Planning = false;
+            return;
+        }
+
+        if (this.m_PickerMealSlotID != null)
+            _ = await this.ApiAccess.SendRequestAsync<SetRecipeMealSlotsWebAppRequest, bool>(
+                new SetRecipeMealSlotsWebAppRequest() { MealSlotIDs = [this.m_PickerMealSlotID.Value] },
+                ApiProvider.SetRecipeMealSlots(_Created.RecipeID),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.m_CancellationTokenHandler.Token);
+
+        // The book changed, so the cached picker list is stale for the next open.
+        this.m_Recipes = null;
+        this.m_Planning = false;
+
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Recipes, this.m_CancellationTokenHandler.Token);
+        await this.PlanRecipeAsync(_Created.RecipeID);
     }
 
     private async Task PlanRecipeAsync(long recipeID)
