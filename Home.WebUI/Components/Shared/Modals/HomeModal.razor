@@ -1,4 +1,12 @@
-﻿@* Modal dialog — slides up on mobile/tablet, centred on desktop. Use @bind-Visible for two-way binding. *@
+@inject IJSRuntime JS
+
+@* Modal dialog — slides up on mobile/tablet, centred on desktop. Use @bind-Visible for two-way binding.
+
+   Set OnSubmit and the body becomes a real form: Enter in a text field runs the primary action,
+   Enter in a textarea still inserts a newline, and the first field is focused on open. All of that
+   is the browser's own form behaviour rather than key handling of ours, which is why it is right
+   everywhere without each screen wiring it up. A modal with OnSubmit must not contain its own
+   form or EditForm — nesting forms is invalid HTML. *@
 
 @if (this.Visible)
 {
@@ -8,18 +16,36 @@
              @onclick="this.CloseAsync"></div>
 
         @* Panel *@
-        <div class="relative w-full sm:max-w-lg bg-ink-900 rounded-t-2xl sm:rounded-2xl border border-ink-800 shadow-2xl z-10 max-h-[90vh] flex flex-col">
+        <div id="@this.m_PanelID"
+             role="dialog"
+             aria-modal="true"
+             aria-label="@this.Title"
+             class="relative w-full sm:max-w-lg bg-ink-900 rounded-t-2xl sm:rounded-2xl border border-ink-800 shadow-2xl z-10 max-h-[90vh] flex flex-col">
             @* Header *@
             <div class="flex items-center justify-between px-6 py-4 border-b border-ink-800 shrink-0">
                 <h3 class="font-display text-xl text-ink-50">@this.Title</h3>
                 <button class="text-ink-400 hover:text-ink-50 transition-colors p-2 -mr-2 rounded-lg min-h-[44px] min-w-[44px]"
+                        type="button"
+                        aria-label="Close"
                         @onclick="this.CloseAsync">
                     <span class="home-icon home-icon-x h-5 w-5 inline-block"></span>
                 </button>
             </div>
             @* Body *@
             <div class="px-6 py-5 overflow-y-auto app-scrollable">
-                @this.ChildContent
+                @if (this.OnSubmit.HasDelegate)
+                {
+                    <form @onsubmit="this.SubmitAsync" @onsubmit:preventDefault>
+                        @this.ChildContent
+                        @* Implicit submission needs a submit button to exist; it is never shown or
+                           tabbed to, it only gives the form its Enter key. *@
+                        <button type="submit" class="hidden" tabindex="-1" aria-hidden="true"></button>
+                    </form>
+                }
+                else
+                {
+                    @this.ChildContent
+                }
             </div>
             @* Footer *@
             @if (this.FooterContent != null)

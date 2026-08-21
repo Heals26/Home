@@ -67,14 +67,36 @@ public partial class HomeTextInput
     }
 
     /// <summary>
+    /// Sentence case on prose so a phone keyboard capitalises "onion" the way a person would,
+    /// and off everywhere else — an address or a token must arrive exactly as typed.
+    /// </summary>
+    private string GetAutoCapitalise()
+        => this.IsProse() ? "sentences" : "off";
+
+    /// <summary>
+    /// A field with no explicit name gets its own unguessable one. Browsers decide whether to
+    /// offer contacts by pattern-matching the name, id and label — a field labelled "Name" gets
+    /// offered a contact card whatever <c>autocomplete="off"</c> says — and nothing matches a
+    /// GUID. Fields that genuinely want autofill (username, password) pass a real name.
+    /// </summary>
+    private string GetName()
+        => string.IsNullOrEmpty(this.Name) ? this.m_InputID : this.Name;
+
+    /// <summary>
     /// Prose gets the red squiggle; names, addresses and numbers don't. Browsers guess this
     /// inconsistently, so it is said outright: spellcheck belongs on plain text the user is
     /// composing, never on identity fields or anything typed on a numeric keyboard.
     /// </summary>
     private string GetSpellCheck()
-        => this.Type == "text" && this.InputMode == null && (this.AutoComplete == null || this.AutoComplete == "off")
-            ? "true"
-            : "false";
+        => this.IsProse() ? "true" : "false";
+
+    /// <summary>
+    /// Plain text the user is composing, as opposed to an address, a number or a credential.
+    /// </summary>
+    private bool IsProse()
+        => this.Type == "text"
+            && this.InputMode == null
+            && (this.AutoComplete == null || this.AutoComplete == "off");
 
     #endregion Methods
 
