@@ -1,7 +1,7 @@
 ﻿@* Naming, ordering and colouring the board. Everything here is household vocabulary, so it is
    deliberately all in one place rather than hidden in Settings. *@
 
-<HomeModal Visible="this.Visible" VisibleChanged="this.OnVisibleChangedAsync" Title="Set up the board">
+<HomeModal Visible="this.Visible" VisibleChanged="this.OnVisibleChangedAsync" Title="Set up the board" OnSubmit="this.SubmitActiveTabAsync" AutoFocus="false">
     <ChildContent>
         <HomeSegmentedControl TValue="string"
                               Class="mb-4"
@@ -24,6 +24,7 @@
                         <div class="flex items-center gap-2">
                             <input type="text"
                                    autocomplete="off"
+                                   spellcheck="true"
                                    aria-label="Column name"
                                    value="@_State.Name"
                                    @onchange="e => this.RenameColumnAsync(_State, e.Value?.ToString())"
@@ -112,6 +113,7 @@
                                         @onclick="() => this.ToggleTagColour(_Tag)"></button>
                                 <input type="text"
                                        autocomplete="off"
+                                       spellcheck="true"
                                        aria-label="Label name"
                                        value="@_Tag.Name"
                                        @onchange="e => this.RenameTagAsync(_Tag, e.Value?.ToString())"

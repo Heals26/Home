@@ -161,7 +161,7 @@
 </div>
 
 @* Add-member modal *@
-<HomeModal @bind-Visible="this.m_ShowAddMember" Title="Add a member">
+<HomeModal @bind-Visible="this.m_ShowAddMember" Title="Add a member" OnSubmit="this.AddMemberAsync">
     <ChildContent>
         <div class="flex flex-col gap-4">
             <div class="grid grid-cols-2 gap-3">

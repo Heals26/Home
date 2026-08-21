@@ -313,12 +313,6 @@ public partial class RecipeDetailPage : IDisposable
         this.m_ShowIngredient = true;
     }
 
-    private async Task OnIngredientKeyDownAsync(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-            await this.SaveIngredientAsync();
-    }
-
     private async Task SaveIngredientAsync()
     {
         if (this.m_Saving || string.IsNullOrWhiteSpace(this.m_IngName)) return;
@@ -410,7 +404,7 @@ public partial class RecipeDetailPage : IDisposable
 
     private async Task SaveStepAsync()
     {
-        if (this.m_Saving) return;
+        if (this.m_Saving || string.IsNullOrWhiteSpace(this.m_StepContent)) return;
         this.m_Saving = true;
 
         bool _Result;
@@ -456,7 +450,17 @@ public partial class RecipeDetailPage : IDisposable
 
         if (!_Result) return;
 
-        this.m_ShowStep = false;
+        // A method is a run of steps, so adding chains the same way ingredients do.
+        if (this.m_EditingStepID.HasValue)
+        {
+            this.m_ShowStep = false;
+        }
+        else
+        {
+            this.m_StepTitle = string.Empty;
+            this.m_StepContent = string.Empty;
+        }
+
         await this.ReloadAndPublishAsync();
     }
 

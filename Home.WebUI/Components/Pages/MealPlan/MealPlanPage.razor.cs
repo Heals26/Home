@@ -217,6 +217,25 @@ public partial class MealPlanPage : IDisposable
         await this.PlanRecipeAsync(_Created.RecipeID);
     }
 
+    /// <summary>
+    /// Enter in the picker does the obvious thing: plan the one recipe left after filtering, or
+    /// create what was typed when nothing matches. With nothing typed there is nothing to submit.
+    /// </summary>
+    private async Task SubmitPickerAsync()
+    {
+        if (this.m_PickerSearch.Trim().Length == 0)
+            return;
+
+        var _Matches = this.PickerRecipes().ToList();
+
+        if (_Matches.Count > 0 && this.PickerSearchMatchesExactly())
+            await this.PlanRecipeAsync(_Matches[0].RecipeID);
+        else if (_Matches.Count == 1)
+            await this.PlanRecipeAsync(_Matches[0].RecipeID);
+        else
+            await this.CreateAndPlanRecipeAsync();
+    }
+
     private async Task PlanRecipeAsync(long recipeID)
     {
         if (this.m_Planning)

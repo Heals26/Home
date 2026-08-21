@@ -258,6 +258,12 @@ public partial class BoardSettingsModal
         await this.ReloadAndNotifyAsync();
     }
 
+    /// <summary>
+    /// The modal shows one tab's add field at a time, so Enter means whichever one is on screen.
+    /// </summary>
+    private Task SubmitActiveTabAsync()
+        => this.m_Tab == "columns" ? this.AddColumnAsync() : this.AddTagAsync();
+
     private async Task AddColumnAsync()
     {
         if (this.m_Saving || string.IsNullOrWhiteSpace(this.m_NewColumnName))

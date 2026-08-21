@@ -44,18 +44,20 @@
     </ChildContent>
 </HomeCard>
 
-<HomeModal @bind-Visible="this.m_ShowCreate" Title="New list">
+<HomeModal @bind-Visible="this.m_ShowCreate" Title="New list" OnSubmit="this.CreateShoppingListAsync">
     <ChildContent>
-        <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateShoppingListAsync">
-            <HomeTextInput Label="List name"
-                           AutoComplete="off"
-                           @bind-Value="this.m_CreateRequest!.Name"
-                           Placeholder="e.g. Weekly shop" />
-            <div class="mt-4 flex justify-end gap-3">
-                <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
-                <HomeButton Type="submit" Loading="this.m_Creating">Add list</HomeButton>
-            </div>
-        </EditForm>
+        <HomeTextInput Label="List name"
+                       Name="list-name"
+                       AutoComplete="off"
+                       @bind-Value="this.m_CreateRequest!.Name"
+                       Placeholder="e.g. Weekly shop" />
+        <div class="mt-4 flex justify-end gap-3">
+            <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
+            <HomeButton Loading="this.m_Creating"
+                        Disabled="@string.IsNullOrWhiteSpace(this.m_CreateRequest!.Name)"
+                        DisabledReason="Name the list first."
+                        OnClick="this.CreateShoppingListAsync">Add list</HomeButton>
+        </div>
     </ChildContent>
 </HomeModal>
 

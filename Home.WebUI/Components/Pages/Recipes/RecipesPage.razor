@@ -141,11 +141,14 @@
     </div>
 </CascadingValue>
 
-<HomeModal @bind-Visible="this.m_ShowCreate" Title="New recipe">
+@* Enter submits whichever half has something in it — pasting a URL and hitting Enter imports,
+   typing a name and hitting Enter creates. *@
+<HomeModal @bind-Visible="this.m_ShowCreate" Title="New recipe" OnSubmit="this.SubmitCreateModalAsync">
     <ChildContent>
         <div class="mb-4 pb-4 border-b border-ink-800">
             <HomeTextInput Label="Import from a web page"
                            Type="url"
+                           Name="import-url"
                            AutoComplete="off"
                            @bind-Value="this.m_ImportUrl"
                            Placeholder="Paste a recipe URL" />
@@ -153,27 +156,31 @@
             <div class="mt-3 flex justify-end">
                 <HomeButton Loading="this.m_Importing"
                             Disabled="@string.IsNullOrWhiteSpace(this.m_ImportUrl)"
+                            DisabledReason="Paste a recipe address first."
                             OnClick="this.ImportRecipeAsync">Import</HomeButton>
             </div>
         </div>
 
-        <EditForm Model="this.m_CreateRequest" OnValidSubmit="this.CreateRecipeAsync">
-            <HomeTextInput Label="Recipe name"
+        <HomeTextInput Label="Recipe name"
+                       Name="recipe-name"
+                       AutoComplete="off"
+                       @bind-Value="this.m_CreateRequest!.Name"
+                       Placeholder="e.g. Spaghetti Bolognese" />
+        <div class="mt-3">
+            <HomeTextInput Label="Source URL (optional)"
+                           Type="url"
+                           Name="recipe-source-url"
                            AutoComplete="off"
-                           @bind-Value="this.m_CreateRequest!.Name"
-                           Placeholder="e.g. Spaghetti Bolognese" />
-            <div class="mt-3">
-                <HomeTextInput Label="Source URL (optional)"
-                               Type="url"
-                               AutoComplete="off"
-                               @bind-Value="this.m_CreateRequest!.Url"
-                               Placeholder="https://..." />
-            </div>
-            <div class="mt-4 flex justify-end gap-3">
-                <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
-                <HomeButton Type="submit" Loading="this.m_Creating">Add recipe</HomeButton>
-            </div>
-        </EditForm>
+                           @bind-Value="this.m_CreateRequest!.Url"
+                           Placeholder="https://..." />
+        </div>
+        <div class="mt-4 flex justify-end gap-3">
+            <HomeButton Variant="ghost" OnClick="() => this.m_ShowCreate = false">Cancel</HomeButton>
+            <HomeButton Loading="this.m_Creating"
+                        Disabled="@string.IsNullOrWhiteSpace(this.m_CreateRequest!.Name)"
+                        DisabledReason="Give the recipe a name first."
+                        OnClick="this.CreateRecipeAsync">Add recipe</HomeButton>
+        </div>
     </ChildContent>
 </HomeModal>
 

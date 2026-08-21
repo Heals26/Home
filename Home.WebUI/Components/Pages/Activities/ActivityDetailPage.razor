@@ -131,7 +131,7 @@
                        OnDeleted="this.GoBackToBoard"
                        OnSaved="this.ReloadAndPublishAsync" />
 
-    <HomeModal @bind-Visible="this.m_ShowField" Title="@(this.m_EditingContentID.HasValue ? "Edit" : "Add to the card")">
+    <HomeModal @bind-Visible="this.m_ShowField" Title="@(this.m_EditingContentID.HasValue ? "Edit" : "Add to the card")" OnSubmit="this.SaveFieldAsync">
         <ChildContent>
             <div class="flex flex-col gap-1.5">
                 <label for="activity-field-content" class="text-sm font-medium text-ink-300">@ActivityBoardLogic.RegionLabel(this.m_FieldRegionKind)</label>

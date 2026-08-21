@@ -207,7 +207,7 @@
 </CascadingValue>
 
 @* Edit recipe modal *@
-<HomeModal @bind-Visible="this.m_ShowEditRecipe" Title="Edit recipe">
+<HomeModal @bind-Visible="this.m_ShowEditRecipe" Title="Edit recipe" OnSubmit="this.SaveRecipeAsync">
     <ChildContent>
         <HomeTextInput Label="Recipe name" AutoComplete="off" @bind-Value="this.m_EditName" Placeholder="Recipe name" />
         <div class="mt-3">
@@ -287,7 +287,7 @@
 </HomeModal>
 
 @* Ingredient modal (add + edit) *@
-<HomeModal @bind-Visible="this.m_ShowIngredient" Title="@(this.m_EditingIngredientID.HasValue ? "Edit ingredient" : "Add ingredient")">
+<HomeModal @bind-Visible="this.m_ShowIngredient" Title="@(this.m_EditingIngredientID.HasValue ? "Edit ingredient" : "Add ingredient")" OnSubmit="this.SaveIngredientAsync">
     <ChildContent>
         @* Enter saves, and an add stays open with the cursor back in the name box — a recipe is
            a dozen ingredients, and a tap on plus per line is eleven taps too many. *@
@@ -295,14 +295,12 @@
                        Label="Name"
                        AutoComplete="off"
                        @bind-Value="this.m_IngName"
-                       OnKeyDown="this.OnIngredientKeyDownAsync"
                        Placeholder="e.g. Onion" />
         <div class="grid grid-cols-2 gap-3 mt-3">
             <HomeTextInput Label="Amount"
                            AutoComplete="off"
                            InputMode="decimal"
                            @bind-Value="this.m_IngAmount"
-                           OnKeyDown="this.OnIngredientKeyDownAsync"
                            Placeholder="e.g. 2" />
             <div class="flex flex-col gap-1.5">
                 <label for="ingredient-unit" class="text-sm font-medium text-ink-300">Measurement</label>
@@ -327,26 +325,33 @@
 </HomeModal>
 
 @* Step modal (add + edit) *@
-<HomeModal @bind-Visible="this.m_ShowStep" Title="@(this.m_EditingStepID.HasValue ? "Edit step" : "Add step")">
+<HomeModal @bind-Visible="this.m_ShowStep" Title="@(this.m_EditingStepID.HasValue ? "Edit step" : "Add step")" OnSubmit="this.SaveStepAsync">
     <ChildContent>
         <HomeTextInput Label="Title (optional)" AutoComplete="off" @bind-Value="this.m_StepTitle" Placeholder="e.g. Prepare the sauce" />
         <div class="mt-3 flex flex-col gap-1.5">
             <label for="recipe-step-content" class="text-sm font-medium text-ink-300">Instructions</label>
-            <textarea id="recipe-step-content" @bind="this.m_StepContent" rows="5"
+            <textarea id="recipe-step-content" @bind="this.m_StepContent" @bind:event="oninput" rows="5"
                       placeholder="Describe this step..."
                       spellcheck="true"
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
             <p class="text-xs text-ink-500">Markdown works here — **bold**, *italic*, - bullet lists.</p>
         </div>
         <div class="mt-4 flex justify-end gap-3">
-            <HomeButton Variant="ghost" OnClick="() => this.m_ShowStep = false">Cancel</HomeButton>
-            <HomeButton Loading="this.m_Saving" OnClick="this.SaveStepAsync">Save</HomeButton>
+            <HomeButton Variant="ghost" OnClick="() => this.m_ShowStep = false">
+                @(this.m_EditingStepID.HasValue ? "Cancel" : "Done")
+            </HomeButton>
+            <HomeButton Loading="this.m_Saving"
+                        Disabled="@string.IsNullOrWhiteSpace(this.m_StepContent)"
+                        DisabledReason="Write the step first."
+                        OnClick="this.SaveStepAsync">
+                @(this.m_EditingStepID.HasValue ? "Save" : "Add & next")
+            </HomeButton>
         </div>
     </ChildContent>
 </HomeModal>
 
 @* Note modal *@
-<HomeModal @bind-Visible="this.m_ShowNote" Title="Add note">
+<HomeModal @bind-Visible="this.m_ShowNote" Title="Add note" OnSubmit="this.SaveNoteAsync">
     <ChildContent>
         <div class="flex flex-col gap-1.5">
             <label for="recipe-note-content" class="text-sm font-medium text-ink-300">Note</label>
@@ -363,7 +368,7 @@
 </HomeModal>
 
 @* Add to shopping list modal *@
-<HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add to shopping list">
+<HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add to shopping list" OnSubmit="this.CreateListAndAddAsync">
     <ChildContent>
         @if (this.m_Recipe == null || !this.m_Recipe.Ingredients.Any())
         {

@@ -215,7 +215,7 @@
 </CascadingValue>
 
 @* ── Save-scene modal ─────────────────────────────────────────── *@
-<HomeModal @bind-Visible="this.m_ShowCaptureModal" Title="Save current look">
+<HomeModal @bind-Visible="this.m_ShowCaptureModal" Title="Save current look" OnSubmit="this.CaptureSceneAsync">
     <ChildContent>
         <div class="flex flex-col gap-4">
             @if (this.m_CaptureSyncing)
@@ -258,7 +258,7 @@
 </HomeModal>
 
 @* ── Add-schedule modal ───────────────────────────────────────── *@
-<HomeModal @bind-Visible="this.m_ShowScheduleModal" Title="Add schedule">
+<HomeModal @bind-Visible="this.m_ShowScheduleModal" Title="Add schedule" OnSubmit="this.CreateScheduleAsync">
     <ChildContent>
         @* The automatic previous-look scene never appears here — it changes on every apply, so a
            schedule firing it would set the lights to something nobody chose. *@

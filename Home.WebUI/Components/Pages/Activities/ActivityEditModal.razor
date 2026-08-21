@@ -1,7 +1,7 @@
 ﻿@* The quick editor for a card, opened from the board, the calendar and the card itself — so the
    three of them cannot disagree about what is editable. *@
 
-<HomeModal Visible="this.Visible" VisibleChanged="this.OnVisibleChangedAsync" Title="Edit activity">
+<HomeModal Visible="this.Visible" VisibleChanged="this.OnVisibleChangedAsync" Title="Edit activity" OnSubmit="this.SaveAsync">
     <ChildContent>
         <HomeTextInput Label="Title" AutoComplete="off" @bind-Value="this.m_Title" Placeholder="Title" />
 

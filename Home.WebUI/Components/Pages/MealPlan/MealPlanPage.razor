@@ -156,7 +156,7 @@
 </CascadingValue>
 
 @* Recipe picker *@
-<HomeModal @bind-Visible="this.m_ShowPicker" Title="@this.PickerTitle()">
+<HomeModal @bind-Visible="this.m_ShowPicker" Title="@this.PickerTitle()" OnSubmit="this.SubmitPickerAsync">
     <ChildContent>
         @if (this.m_MealSlots.Count > 0)
         {
@@ -240,7 +240,7 @@
 </HomeModal>
 
 @* Add the visible week to a shopping list *@
-<HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add week to shopping list">
+<HomeModal @bind-Visible="this.m_ShowAddToList" Title="Add week to shopping list" OnSubmit="this.CreateListAndAddWeekAsync">
     <ChildContent>
         <p class="text-sm text-ink-400 mb-3">Adds the ingredients of the meals planned this week.</p>
 
@@ -303,7 +303,7 @@
 </HomeModal>
 
 @* The household's own meal vocabulary *@
-<HomeModal @bind-Visible="this.m_ShowManageMeals" Title="Your meals">
+<HomeModal @bind-Visible="this.m_ShowManageMeals" Title="Your meals" OnSubmit="this.CreateMealSlotAsync" AutoFocus="false">
     <ChildContent>
         <p class="text-sm text-ink-400 mb-3">Name the meals your family actually eats. They order the planner and filter the recipe book.</p>
 

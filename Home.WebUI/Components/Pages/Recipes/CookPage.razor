@@ -146,7 +146,7 @@
 </div>
 
 @* Timers can always be started, whether or not the recipe's wording happens to mention a duration. *@
-<HomeModal @bind-Visible="this.m_ShowTimerPicker" Title="Start a timer">
+<HomeModal @bind-Visible="this.m_ShowTimerPicker" Title="Start a timer" OnSubmit="this.StartCustomTimer">
     <ChildContent>
         <div class="flex flex-col gap-5">
             <div class="grid grid-cols-3 gap-2">

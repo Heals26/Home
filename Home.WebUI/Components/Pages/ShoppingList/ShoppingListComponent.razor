@@ -169,7 +169,7 @@
     </ChildContent>
 </HomeCard>
 
-<HomeModal @bind-Visible="this.m_ShowEditItem" Title="Edit item">
+<HomeModal @bind-Visible="this.m_ShowEditItem" Title="Edit item" OnSubmit="this.SaveItemAsync">
     <ChildContent>
         <HomeTextInput Label="Name" AutoComplete="off" @bind-Value="this.m_EditName" Placeholder="e.g. Milk" />
         <div class="grid grid-cols-2 gap-3 mt-3">
@@ -210,7 +210,7 @@
     </ChildContent>
 </HomeModal>
 
-<HomeModal @bind-Visible="this.m_ShowConfirmClear" Title="Clear ticked items">
+<HomeModal @bind-Visible="this.m_ShowConfirmClear" Title="Clear ticked items" OnSubmit="this.ClearTickedAsync">
     <ChildContent>
         <p class="text-sm text-ink-300">
             This removes the @this.TrolleyCount() ticked @(this.TrolleyCount() == 1 ? "item" : "items") from the list for good.

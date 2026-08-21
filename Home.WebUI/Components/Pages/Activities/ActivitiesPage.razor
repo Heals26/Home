@@ -85,7 +85,7 @@
                        OnSaved="this.ReloadAndPublishAsync" />
 
     @* Create activity modal *@
-    <HomeModal @bind-Visible="this.m_ShowCreate" Title="New activity">
+    <HomeModal @bind-Visible="this.m_ShowCreate" Title="New activity" OnSubmit="this.CreateActivityAsync">
         <ChildContent>
             <HomeTextInput Label="Title" AutoComplete="off" @bind-Value="this.m_NewTitle" Placeholder="e.g. Mow the lawn" />
 

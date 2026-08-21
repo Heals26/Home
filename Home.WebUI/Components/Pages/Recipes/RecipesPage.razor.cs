@@ -182,9 +182,21 @@ public partial class RecipesPage : IDisposable
     private void OpenRecipe(long recipeID)
         => this.NavigationManager.NavigateTo($"/recipes/{recipeID}");
 
+    /// <summary>
+    /// The modal has two ways in, so Enter follows whichever the user actually filled in — a
+    /// pasted address imports, a typed name creates.
+    /// </summary>
+    private async Task SubmitCreateModalAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(this.m_ImportUrl))
+            await this.ImportRecipeAsync();
+        else
+            await this.CreateRecipeAsync();
+    }
+
     private async Task CreateRecipeAsync()
     {
-        if (this.m_Creating) return;
+        if (this.m_Creating || string.IsNullOrWhiteSpace(this.m_CreateRequest!.Name)) return;
         this.m_Creating = true;
 
         var _Result = await this.ApiAccess.SendRequestAsync<CreateRecipeWebAppRequest, CreateRecipeWebAppResponse>(

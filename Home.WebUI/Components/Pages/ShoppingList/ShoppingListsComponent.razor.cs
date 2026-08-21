@@ -77,7 +77,7 @@ public partial class ShoppingListsComponent : IDisposable
 
     private async Task CreateShoppingListAsync()
     {
-        if (this.m_Creating) return;
+        if (this.m_Creating || string.IsNullOrWhiteSpace(this.m_CreateRequest!.Name)) return;
         this.m_Creating = true;
 
         var _Result = await this.ApiAccess.SendRequestAsync<CreateShoppingListWebAppRequest, CreateShoppingListWebAppResponse>(
