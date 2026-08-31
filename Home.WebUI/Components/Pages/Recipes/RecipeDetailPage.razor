@@ -118,7 +118,7 @@
                                                     class="shrink-0 p-2 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 transition-colors"
                                                     title="Move up"
                                                     aria-label="@($"Move {_Ingredient.Name} up")"
-                                                    disabled="@(this.m_Recipe.Ingredients.First() == _Ingredient || this.m_Saving)"
+                                                    disabled="@(this.m_Recipe.Ingredients.First().IngredientID == _Ingredient.IngredientID || this.m_Saving)"
                                                     @onclick="() => this.MoveIngredientAsync(_Ingredient, -1)">
                                                 <span class="home-icon home-icon-chevron-left h-4 w-4 inline-block rotate-90"></span>
                                             </button>
@@ -126,7 +126,7 @@
                                                     class="shrink-0 p-2 pr-4 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 transition-colors"
                                                     title="Move down"
                                                     aria-label="@($"Move {_Ingredient.Name} down")"
-                                                    disabled="@(this.m_Recipe.Ingredients.Last() == _Ingredient || this.m_Saving)"
+                                                    disabled="@(this.m_Recipe.Ingredients.Last().IngredientID == _Ingredient.IngredientID || this.m_Saving)"
                                                     @onclick="() => this.MoveIngredientAsync(_Ingredient, 1)">
                                                 <span class="home-icon home-icon-chevron-right h-4 w-4 inline-block rotate-90"></span>
                                             </button>
