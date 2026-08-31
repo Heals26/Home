@@ -5,6 +5,7 @@ using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
 using Home.WebUI.DataAccess.MealSlots.Models;
 using Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient;
 using Home.WebUI.DataAccess.RecipeIngredients.GetIngredientSuggestions;
+using Home.WebUI.DataAccess.RecipeIngredients.SetRecipeIngredientSequence;
 using Home.WebUI.DataAccess.RecipeIngredients.UpdateRecipeIngredient;
 using Home.WebUI.DataAccess.RecipeImages.SetRecipeImage;
 using Home.WebUI.DataAccess.RecipeNotes.AddRecipeNote;
@@ -458,6 +459,46 @@ public partial class RecipeDetailPage : IDisposable
 
         if (_Result == true)
             await this.ReloadAndPublishAsync();
+    }
+
+    /// <summary>
+    /// Swaps an ingredient with its neighbour, the same two-call swap the board uses to move a
+    /// column. The list is already in sequence order, so the neighbour is simply the next row.
+    /// </summary>
+    private async Task MoveIngredientAsync(RecipeIngredientDto ingredient, int direction)
+    {
+        if (this.m_Saving || this.m_Recipe == null)
+            return;
+
+        var _Ingredients = this.m_Recipe.Ingredients.ToList();
+        var _Index = _Ingredients.IndexOf(ingredient);
+        var _TargetIndex = _Index + direction;
+
+        if (_Index < 0 || _TargetIndex < 0 || _TargetIndex >= _Ingredients.Count)
+            return;
+
+        var _Target = _Ingredients[_TargetIndex];
+        this.m_Saving = true;
+
+        var _Moved = await this.SetIngredientSequenceAsync(ingredient, _Target.Sequence);
+
+        if (_Moved)
+            _ = await this.SetIngredientSequenceAsync(_Target, ingredient.Sequence);
+
+        this.m_Saving = false;
+
+        if (_Moved)
+            await this.ReloadAndPublishAsync();
+    }
+
+    private async Task<bool> SetIngredientSequenceAsync(RecipeIngredientDto ingredient, long sequence)
+    {
+        var _Request = new SetRecipeIngredientSequenceWebAppRequest() { Sequence = sequence };
+
+        return await this.ApiAccess.SendRequestAsync<SetRecipeIngredientSequenceWebAppRequest, bool>(
+            _Request, ApiProvider.SetRecipeIngredientSequence(this.RecipeID, ingredient.IngredientID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token) == true;
     }
 
     /// <summary>

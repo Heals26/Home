@@ -6,9 +6,14 @@ namespace Home.Persistence.Database;
 /// <summary>
 /// Lets <c>dotnet ef</c> build the model with this project as the startup project, so migrations
 /// can be added while the API is running and holding its output folder locked. Adding a migration
-/// never opens a connection — the string only needs to be well-formed. <c>database update</c>
-/// still goes through <c>Home.WebApi</c> and its user secrets, or set
-/// <c>HOME_DESIGNTIME_CONNECTIONSTRING</c> to target a real database from here.
+/// never opens a connection — the string only needs to be well-formed.
+/// <para>
+/// <b>This factory wins over the startup project.</b> EF prefers an
+/// <see cref="IDesignTimeDbContextFactory{TContext}"/> to the host's service provider, so
+/// <c>database update</c> comes here even with <c>--startup-project Home.WebApi</c> and never
+/// reads the API's user secrets. Set <c>HOME_DESIGNTIME_CONNECTIONSTRING</c> to the database you
+/// mean, or the update silently lands on the LocalDB fallback below instead of the real one.
+/// </para>
 /// </summary>
 public class PersistenceContextDesignTimeFactory : IDesignTimeDbContextFactory<PersistenceContext>
 {

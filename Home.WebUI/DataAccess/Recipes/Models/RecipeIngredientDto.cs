@@ -26,6 +26,11 @@ public class RecipeIngredientDto
     public decimal? Quantity { get; set; }
 
     /// <summary>
+    /// Where it sits in this recipe's list — the order it is reached for while cooking.
+    /// </summary>
+    public long Sequence { get; set; }
+
+    /// <summary>
     /// The measurement the amount is in.
     /// </summary>
     public long? Unit { get; set; }

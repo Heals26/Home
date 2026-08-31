@@ -27,6 +27,9 @@ public static partial class ApiProvider
     public static ApiProviderHelper RemoveRecipeIngredient(long recipeID, long ingredientID)
         => new(HttpMethod.Delete, RouteType.Route, $"{GetRecipeIngredientsBaseUrl()}/{recipeID}/{ingredientID}");
 
+    public static ApiProviderHelper SetRecipeIngredientSequence(long recipeID, long ingredientID)
+        => new(HttpMethod.Patch, RouteType.Body, $"{GetRecipeIngredientsBaseUrl()}/{recipeID}/{ingredientID}/sequence");
+
     public static ApiProviderHelper UpdateRecipeIngredient(long ingredientID)
         => new(HttpMethod.Patch, RouteType.Body, $"{GetRecipeIngredientsBaseUrl()}/{ingredientID}");
 

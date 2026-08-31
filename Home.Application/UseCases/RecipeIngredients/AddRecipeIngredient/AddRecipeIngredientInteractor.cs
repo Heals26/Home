@@ -48,10 +48,18 @@ internal class AddRecipeIngredientInteractor : IInteractor<AddRecipeIngredientIn
         _PersistenceContext.Add(_Ingredient);
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
+        // A new ingredient goes on the end, because a recipe is written in the order it is cooked.
+        // Computed here rather than sent by the caller so two people adding at once cannot land on
+        // the same position.
+        var _NextSequence = _Recipe.Ingredients.Count == 0
+            ? 1
+            : _Recipe.Ingredients.Max(ri => ri.Sequence) + 1;
+
         _Recipe.Ingredients.Add(new RecipeIngredient()
         {
             IngredientID = _Ingredient.IngredientID,
-            RecipeID = _Recipe.RecipeID
+            RecipeID = _Recipe.RecipeID,
+            Sequence = _NextSequence
         });
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);

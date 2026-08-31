@@ -96,21 +96,41 @@
                                 <div class="divide-y divide-ink-800 -mx-5 -mb-5">
                                     @foreach (var _Ingredient in this.m_Recipe.Ingredients)
                                     {
-                                        <button type="button"
-                                                class="w-full flex items-baseline gap-3 px-5 py-3 min-h-[48px] text-left hover:bg-ink-800/50 active:bg-ink-800 transition-colors"
-                                                aria-label="@($"Edit {_Ingredient.Name}")"
-                                                @onclick="() => this.OpenEditIngredientModal(_Ingredient)">
-                                            @* Amount and name read as one line, and the amounts share a
-                                               column so they line up down the list the way a cookbook
-                                               sets them. The column is dropped entirely when no
-                                               ingredient in the recipe has an amount, so an unmeasured
-                                               list doesn't carry an empty gutter. *@
-                                            @if (this.ShowsIngredientAmounts())
-                                            {
-                                                <span class="shrink-0 min-w-[4.5rem] text-sm text-ink-400 tabular-nums">@RecipeDisplayLogic.DescribeAmount(_Ingredient)</span>
-                                            }
-                                            <span class="flex-1 min-w-0 text-sm font-medium text-ink-50 truncate">@_Ingredient.Name</span>
-                                        </button>
+                                        <div class="flex items-center group">
+                                            <button type="button"
+                                                    class="flex-1 min-w-0 flex items-baseline gap-3 px-5 py-3 min-h-[48px] text-left hover:bg-ink-800/50 active:bg-ink-800 transition-colors"
+                                                    aria-label="@($"Edit {_Ingredient.Name}")"
+                                                    @onclick="() => this.OpenEditIngredientModal(_Ingredient)">
+                                                @* Amount and name read as one line, and the amounts share a
+                                                   column so they line up down the list the way a cookbook
+                                                   sets them. The column is dropped entirely when no
+                                                   ingredient in the recipe has an amount, so an unmeasured
+                                                   list doesn't carry an empty gutter. *@
+                                                @if (this.ShowsIngredientAmounts())
+                                                {
+                                                    <span class="shrink-0 min-w-[4.5rem] text-sm text-ink-400 tabular-nums">@RecipeDisplayLogic.DescribeAmount(_Ingredient)</span>
+                                                }
+                                                <span class="flex-1 min-w-0 text-sm font-medium text-ink-50 truncate">@_Ingredient.Name</span>
+                                            </button>
+                                            @* Chevrons rather than drag, the same affordance the board uses:
+                                               a finger can hit them, and they need no pointer to discover. *@
+                                            <button type="button"
+                                                    class="shrink-0 p-2 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 transition-colors"
+                                                    title="Move up"
+                                                    aria-label="@($"Move {_Ingredient.Name} up")"
+                                                    disabled="@(this.m_Recipe.Ingredients.First() == _Ingredient || this.m_Saving)"
+                                                    @onclick="() => this.MoveIngredientAsync(_Ingredient, -1)">
+                                                <span class="home-icon home-icon-chevron-left h-4 w-4 inline-block rotate-90"></span>
+                                            </button>
+                                            <button type="button"
+                                                    class="shrink-0 p-2 pr-4 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 transition-colors"
+                                                    title="Move down"
+                                                    aria-label="@($"Move {_Ingredient.Name} down")"
+                                                    disabled="@(this.m_Recipe.Ingredients.Last() == _Ingredient || this.m_Saving)"
+                                                    @onclick="() => this.MoveIngredientAsync(_Ingredient, 1)">
+                                                <span class="home-icon home-icon-chevron-right h-4 w-4 inline-block rotate-90"></span>
+                                            </button>
+                                        </div>
                                     }
                                 </div>
                             }

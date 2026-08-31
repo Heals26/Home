@@ -16,6 +16,9 @@ public class RecipeIngredientConfiguration : IEntityTypeConfiguration<RecipeIngr
 
         _ = entity.HasKey(e => new { e.IngredientID, e.RecipeID });
 
+        _ = entity.Property(e => e.Sequence)
+            .IsRequired();
+
         _ = entity.Property(e => e.RecipeID);
         _ = entity.HasOne(e => e.Recipe)
             .WithMany(e => e.Ingredients)

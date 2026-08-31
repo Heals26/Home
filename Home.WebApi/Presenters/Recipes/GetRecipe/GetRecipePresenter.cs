@@ -25,12 +25,13 @@ public class GetRecipePresenter(IMapper mapper)
             PrepMinutes = recipe.PrepMinutes,
             Servings = recipe.Servings,
             Url = recipe.Url,
-            Ingredients = [.. recipe.Ingredients.Select(ri => new RecipeIngredientDto()
+            Ingredients = [.. recipe.Ingredients.OrderBy(ri => ri.Sequence).Select(ri => new RecipeIngredientDto()
             {
                 IngredientID = ri.IngredientID,
                 Amount = ri.Ingredient.Amount,
                 Name = ri.Ingredient.Name,
                 Quantity = ri.Ingredient.Quantity,
+                Sequence = ri.Sequence,
                 Unit = ri.Ingredient.Unit,
                 Volume = ri.Ingredient.Volume,
                 Weight = ri.Ingredient.Weight

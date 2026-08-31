@@ -2,6 +2,7 @@
 using Home.Application.UseCases.RecipeIngredients.GetIngredientSuggestions;
 using Home.Application.UseCases.RecipeIngredients.GetRecipeIngredient;
 using Home.Application.UseCases.RecipeIngredients.RemoveRecipeIngredient;
+using Home.Application.UseCases.RecipeIngredients.SetRecipeIngredientSequence;
 using Home.Application.UseCases.RecipeIngredients.UpdateRecipeIngredient;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
@@ -9,10 +10,12 @@ using Home.WebApi.Presenters.RecipeIngredients.AddRecipeIngredient;
 using Home.WebApi.Presenters.RecipeIngredients.GetIngredientSuggestions;
 using Home.WebApi.Presenters.RecipeIngredients.GetRecipeIngredient;
 using Home.WebApi.Presenters.RecipeIngredients.RemoveRecipeIngredient;
+using Home.WebApi.Presenters.RecipeIngredients.SetRecipeIngredientSequence;
 using Home.WebApi.Presenters.RecipeIngredients.UpdateRecipeIngredient;
 using Home.WebApi.UseCases.RecipeIngredients.AddRecipeIngredient;
 using Home.WebApi.UseCases.RecipeIngredients.GetIngredientSuggestions;
 using Home.WebApi.UseCases.RecipeIngredients.GetRecipeIngredient;
+using Home.WebApi.UseCases.RecipeIngredients.SetRecipeIngredientSequence;
 using Home.WebApi.UseCases.RecipeIngredients.UpdateRecipeIngredient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -75,6 +78,20 @@ public class RecipeIngredientsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new RemoveRecipeIngredientInputPort(ingredientID, recipeID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpPatch("{recipeID}/{ingredientID}/sequence")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> SetRecipeIngredientSequence(
+        [FromServices] SetRecipeIngredientSequencePresenter presenter,
+        [FromRoute] long recipeID,
+        [FromRoute] long ingredientID,
+        [FromBody] SetRecipeIngredientSequenceApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new SetRecipeIngredientSequenceInputPort(ingredientID, recipeID, request.Sequence), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
