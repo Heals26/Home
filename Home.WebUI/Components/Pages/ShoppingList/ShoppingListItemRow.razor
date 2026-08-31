@@ -1,30 +1,30 @@
-@* One line of a shopping list. The whole row is the tick target; edit sits beside it. *@
+﻿@* One line of a shopping list, split into two targets: the circle ticks, the words open the item.
+   The whole row used to tick, which meant reading a line and tapping it to check the amount
+   crossed it off instead — in a supermarket, with a trolley, that is a mis-tap you have to undo.
+   The circle keeps a 56px hit area of its own so the tick target did not shrink to the 24px ring
+   you can see, and the pencil is gone because the words now do its job. *@
 
 <div class="flex items-center hover:bg-ink-800/50 transition-colors">
     <button type="button"
-            class="flex-1 min-w-0 flex items-center gap-4 pl-5 pr-2 py-3 min-h-[56px] text-left"
+            class="shrink-0 flex items-center justify-center pl-5 pr-3 py-3 min-h-[56px]"
             aria-pressed="@this.Item.InBasket"
+            aria-label="@(this.Item.InBasket ? $"Untick {this.Item.Name}" : $"Tick {this.Item.Name}")"
             @onclick="() => this.OnToggle.InvokeAsync(this.Item)">
-        <span class="h-6 w-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors @(this.Item.InBasket ? "border-shopping bg-shopping/20" : "border-ink-600")">
+        <span class="h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors @(this.Item.InBasket ? "border-shopping bg-shopping/20" : "border-ink-600")">
             @if (this.Item.InBasket)
             {
                 <span class="home-icon home-icon-check h-3.5 w-3.5 text-shopping"></span>
             }
         </span>
-        <span class="flex-1 min-w-0">
-            <span class="block text-sm font-medium truncate @(this.Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@this.Item.Name</span>
-            @if (this.Detail().Length > 0)
-            {
-                <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">@this.Detail()</span>
-            }
-        </span>
     </button>
-    @* Always visible rather than revealed on hover — the tablet this lives on has no pointer. *@
     <button type="button"
-            class="px-4 py-3 min-h-[56px] text-ink-700 hover:text-ink-50 transition-colors"
-            title="Edit @this.Item.Name"
+            class="flex-1 min-w-0 pr-5 py-3 min-h-[56px] text-left"
             aria-label="Edit @this.Item.Name"
             @onclick="() => this.OnEdit.InvokeAsync(this.Item)">
-        <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
+        <span class="block text-sm font-medium truncate @(this.Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@this.Item.Name</span>
+        @if (this.Detail().Length > 0)
+        {
+            <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">@this.Detail()</span>
+        }
     </button>
 </div>
