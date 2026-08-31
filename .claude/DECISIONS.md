@@ -5,6 +5,61 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-31 — A modal is a `<dialog>`, so the browser owns its keyboard
+
+`HomeModal` was a `<div>` with `fixed inset-0`, which gets none of the behaviour a modal is
+expected to have: Escape did nothing on any of the twenty-one modals, Tab walked straight out of
+the panel onto the page behind it, and the background stayed live to pointers and screen readers.
+The fix was not to write key handling — it was to stop hand-rolling the element. `showModal()` on
+a real `<dialog>` gives Escape, the focus trap, the inert background and the top layer for free,
+which is the same reasoning that made the body a `<form>` for its Enter key on 20 Aug.
+
+Two details worth keeping. The `cancel` event is **preventDefault-ed** and routed back into Blazor
+through a `[JSInvokable]`, because letting Escape close the element natively would leave the DOM
+shut while `Visible` still said open — `Visible` stays the single source of truth. And the dialog
+is stretched over the viewport with its user-agent frame stripped (`m-0`, `max-w-none`,
+`max-h-none`, `p-0`, `border-0`), because `dialog:modal` ships a `calc(100% - 38px)` max-width and
+an `auto` margin that would otherwise inset the whole overlay.
+
+## 2026-08-31 — Tapping a row opens the thing; only its own control acts on it
+
+Supersedes the tap-to-tick half of the 17 Aug shopping list entry. The whole row being the tick
+target meant reading a line to check the amount crossed it off — in a supermarket, mid-shop, a
+mis-tap you then have to find and undo. The circle now ticks and carries a 56px hit area of its
+own so the target did not shrink to the ring you can see; the words open the item.
+
+The same rule settles the recipe page, where the pencil and bin were `opacity-0
+group-hover:opacity-100` — invisible on a tablet, which is the only device this runs on. That was
+the identical defect already fixed for the delete-list button on 19 Aug, and a sweep found seven
+of them across Recipes. Ingredient rows became tap-to-open with removal moved inside the sheet;
+steps, notes and recipe cards simply stopped hiding their controls. **Rule: never gate a control
+on hover. A finger has no pointer, and `group-hover` is a desktop-only affordance.**
+
+## 2026-08-31 — An ingredient's position belongs to the recipe, not to the ingredient
+
+Ingredients rendered in whatever order the database returned. They are ordered now, and the order
+is *order of use in the method* — what a cookbook does, and what you read down while cooking.
+Grouping by type (herbs, spices, meats) was considered and rejected for the recipe page: that is
+what a shopping list wants, and it is already the aisle-grouping item on the roadmap.
+
+`Sequence` went on `RecipeIngredient`, the join, rather than on `Ingredient`. Today an `Ingredient`
+row is created fresh for every line and never reused, so putting it on the ingredient would have
+worked — and would have quietly blocked the ingredient-catalogue rework, where one shared onion
+cannot hold one recipe's position. Moving is the board's two-call sequence swap, not a new verb.
+
+## 2026-08-31 — A unit knows its own singular, because English does not derive one
+
+"1 packets" and "1 tins" were being rendered because a unit carried exactly one abbreviation.
+Each now carries both forms explicitly rather than being pluralised by rule: leaf becomes leaves,
+dash becomes dashes, pinch becomes pinches, and no suffix rule gets all three right. The API picks
+the form from the amount beside it, so every screen agrees without each one deciding.
+
+There are **three** lists of measurements that cannot see each other — the domain enumeration, the
+web app's mirror of it, and the synonyms the shopping list parser accepts — and until now only a
+comment held them together. `MeasurementUnitTests` pins all three to the enumeration, so a unit
+added to one and forgotten in the others fails the build rather than showing an empty dropdown
+entry or silently dropping a typed unit.
+
 ## 2026-08-20 — Recipe photos live in the database and stream through the web app
 
 The "no image bytes, that forces a hosting decision" stance on `Recipe.ImageUrl` is superseded:
