@@ -10,7 +10,7 @@
     {
       "name": "api",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "Home.WebApi", "--urls", "http://localhost:57175"],
+      "runtimeArgs": ["run", "--project", "Home.WebApi", "--urls", "https://localhost:57174;http://localhost:57175"],
       "port": 57175
     }
   ]

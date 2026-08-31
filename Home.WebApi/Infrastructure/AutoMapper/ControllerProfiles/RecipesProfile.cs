@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Home.Application.UseCases.RecipeIngredients.GetIngredientSuggestions;
 using Home.Domain.Entities;
+using Home.WebApi.UseCases.RecipeIngredients.GetIngredientSuggestions;
 using Home.WebApi.UseCases.Recipes.GetRecipes;
 using Home.WebApi.UseCases.Recipes.Models;
 
@@ -12,8 +14,13 @@ public class RecipesProfile : Profile
 
     public RecipesProfile()
     {
+        _ = this.CreateMap<IEnumerable<IngredientSuggestion>, GetIngredientSuggestionsApiResponse>()
+            .ForMember(d => d.Suggestions, o => o.MapFrom(s => s));
+
         _ = this.CreateMap<IEnumerable<Recipe>, GetRecipesApiResponse>()
             .ForMember(d => d.Recipes, o => o.MapFrom(s => s));
+
+        _ = this.CreateMap<IngredientSuggestion, GetIngredientSuggestionDto>();
 
         _ = this.CreateMap<MealSlot, RecipeMealSlotDto>();
 

@@ -1,8 +1,10 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Pages.ShoppingList;
 using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
 using Home.WebUI.DataAccess.MealSlots.Models;
 using Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient;
+using Home.WebUI.DataAccess.RecipeIngredients.GetIngredientSuggestions;
 using Home.WebUI.DataAccess.RecipeIngredients.UpdateRecipeIngredient;
 using Home.WebUI.DataAccess.RecipeImages.SetRecipeImage;
 using Home.WebUI.DataAccess.RecipeNotes.AddRecipeNote;
@@ -72,6 +74,15 @@ public partial class RecipeDetailPage : IDisposable
     private string m_IngAmount = string.Empty;
     private string m_IngUnit = string.Empty;
 
+    /// <summary>
+    /// How many of the household's ingredients the name box offers at once. Enough to recognise
+    /// one without the list swallowing the amount field underneath it.
+    /// </summary>
+    private const int IngredientSuggestionsShown = 6;
+
+    private List<GetIngredientSuggestionDto> m_IngredientSuggestions = [];
+    private bool m_ShowIngredientSuggestions;
+
     // Step
     private bool m_ShowStep;
     private long? m_EditingStepID;
@@ -103,6 +114,7 @@ public partial class RecipeDetailPage : IDisposable
     protected override async Task OnInitializedAsync()
     {
         await this.LoadMealSlotsAsync();
+        await this.LoadIngredientSuggestionsAsync();
 
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
             this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
@@ -300,6 +312,63 @@ public partial class RecipeDetailPage : IDisposable
     /// </summary>
     private bool ShowsIngredientAmounts()
         => this.m_Recipe?.Ingredients.Any(i => !string.IsNullOrEmpty(RecipeDisplayLogic.DescribeAmount(i))) == true;
+
+    /// <summary>
+    /// The household's whole larder in one call when the recipe opens, filtered on the device as
+    /// the name is typed — the same trade the shopping list makes, for the same reason.
+    /// </summary>
+    private async Task LoadIngredientSuggestionsAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetIngredientSuggestionsWebAppResponse>(
+            null!, ApiProvider.GetIngredientSuggestions(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != null)
+            this.m_IngredientSuggestions = [.. _Result.Suggestions];
+    }
+
+    /// <summary>
+    /// What the name box is offering right now. Ingredients already in this recipe are left out —
+    /// they are the one thing being written that cannot be the answer.
+    /// </summary>
+    private IEnumerable<GetIngredientSuggestionDto> VisibleIngredientSuggestions()
+    {
+        if (!this.m_ShowIngredientSuggestions || this.m_EditingIngredientID.HasValue)
+            return [];
+
+        var _AlreadyIn = (this.m_Recipe?.Ingredients ?? [])
+            .Select(i => i.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var _Candidates = this.m_IngredientSuggestions.Where(s => !_AlreadyIn.Contains(s.Name));
+        var _Typed = this.m_IngName.Trim();
+
+        return _Typed.Length == 0
+            ? _Candidates.Take(IngredientSuggestionsShown)
+            : _Candidates
+                .Where(s => s.Name.Contains(_Typed, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(s => s.Name.StartsWith(_Typed, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .ThenByDescending(s => s.TimesUsed)
+                .Take(IngredientSuggestionsShown);
+    }
+
+    /// <summary>
+    /// Picking one brings the amount it was last written with, because the same ingredient is
+    /// usually wanted in the same quantity. Anything already typed into the amount box wins.
+    /// </summary>
+    private void UseIngredientSuggestion(GetIngredientSuggestionDto suggestion)
+    {
+        this.m_IngName = suggestion.Name;
+
+        if (this.m_IngAmount.Length == 0 && suggestion.Amount != null)
+        {
+            this.m_IngAmount = suggestion.Amount.Value.ToString("0.##", CultureInfo.InvariantCulture);
+            this.m_IngUnit = (suggestion.Unit ?? MeasurementUnits.All[0].Value).ToString();
+        }
+
+        this.m_ShowIngredientSuggestions = false;
+    }
 
     private void OpenAddIngredientModal()
     {
