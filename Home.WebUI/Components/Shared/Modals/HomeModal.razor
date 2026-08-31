@@ -10,17 +10,20 @@
 
 @if (this.Visible)
 {
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-        @* Backdrop *@
+    @* A real <dialog>, opened with showModal(), so Escape, the tab trap and the inert page behind
+       come from the browser rather than from key handling of ours. The element is stretched over
+       the viewport and stripped of its user-agent frame so the panel inside sits exactly where it
+       always did. *@
+    <dialog id="@this.m_PanelID"
+            tabindex="-1"
+            aria-label="@this.Title"
+            class="fixed inset-0 z-50 m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-0 flex items-end sm:items-center justify-center focus:outline-none">
+        @* Backdrop. Ours rather than ::backdrop because it is also the tap target that closes. *@
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"
              @onclick="this.CloseAsync"></div>
 
         @* Panel *@
-        <div id="@this.m_PanelID"
-             role="dialog"
-             aria-modal="true"
-             aria-label="@this.Title"
-             class="relative w-full sm:max-w-lg bg-ink-900 rounded-t-2xl sm:rounded-2xl border border-ink-800 shadow-2xl z-10 max-h-[90vh] flex flex-col">
+        <div class="relative w-full sm:max-w-lg bg-ink-900 rounded-t-2xl sm:rounded-2xl border border-ink-800 shadow-2xl z-10 max-h-[90vh] flex flex-col">
             @* Header *@
             <div class="flex items-center justify-between px-6 py-4 border-b border-ink-800 shrink-0">
                 <h3 class="font-display text-xl text-ink-50">@this.Title</h3>
@@ -55,5 +58,5 @@
                 </div>
             }
         </div>
-    </div>
+    </dialog>
 }

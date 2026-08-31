@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 
 namespace Home.WebUI.Components.Shared.Modals;
 
-public partial class HomeModal
+public partial class HomeModal : IDisposable
 {
 
     #region Fields
@@ -11,10 +11,12 @@ public partial class HomeModal
     private readonly string m_PanelID = $"home-modal-{Guid.NewGuid():N}";
 
     /// <summary>
-    /// Whether the panel has been focused since it last opened, so a re-render while the modal is
-    /// open does not drag the cursor back out of whatever field the user moved to.
+    /// Whether showModal has been called since the modal last opened, so a re-render while it is
+    /// open does not reopen it or drag the cursor back out of whatever field the user moved to.
     /// </summary>
-    private bool m_Focused;
+    private bool m_Opened;
+
+    private DotNetObjectReference<HomeModal>? m_Reference;
 
     #endregion Fields
 
@@ -48,20 +50,18 @@ public partial class HomeModal
     {
         if (!this.Visible)
         {
-            this.m_Focused = false;
+            this.m_Opened = false;
             return;
         }
 
-        if (this.m_Focused)
+        if (this.m_Opened)
             return;
 
-        this.m_Focused = true;
+        this.m_Opened = true;
+        this.m_Reference ??= DotNetObjectReference.Create(this);
 
-        if (!this.AutoFocus)
-            return;
-
-        // A dead circuit cannot focus anything, and that is never worth an error on screen.
-        try { await this.JS.InvokeVoidAsync("homeModal.focusFirstField", this.m_PanelID); } catch { }
+        // A dead circuit cannot open anything, and that is never worth an error on screen.
+        try { await this.JS.InvokeVoidAsync("homeModal.open", this.m_PanelID, this.AutoFocus, this.m_Reference); } catch { }
     }
 
     #endregion Lifecycle Methods
@@ -70,6 +70,25 @@ public partial class HomeModal
 
     private async Task CloseAsync()
         => await this.VisibleChanged.InvokeAsync(false);
+
+    /// <summary>
+    /// Escape, routed back through Blazor rather than left to close the element on its own, so the
+    /// DOM and <see cref="Visible"/> never disagree about whether the modal is open.
+    /// </summary>
+    [JSInvokable]
+    public async Task CloseFromBrowserAsync()
+    {
+        await this.CloseAsync();
+
+        this.StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        this.m_Reference?.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
 
     private async Task SubmitAsync()
         => await this.OnSubmit.InvokeAsync();

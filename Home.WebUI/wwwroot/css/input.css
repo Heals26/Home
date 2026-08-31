@@ -103,6 +103,11 @@
     background-color: rgb(var(--ink-700));
     color: rgb(var(--ink-50));
   }
+  /* A modal draws its own backdrop, because that layer is also the tap target that closes it.
+     The browser's would only sit underneath ours and darken everything twice. */
+  dialog::backdrop {
+    background: transparent;
+  }
 }
 
 @layer components {
