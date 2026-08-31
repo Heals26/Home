@@ -62,9 +62,15 @@
                     <ul class="flex flex-col gap-3">
                         @foreach (var _Ingredient in this.m_Recipe.Ingredients)
                         {
+                            @* Amount first, matching the recipe page — mid-cook you are looking for
+                               how much, and the name is what you already know you need. *@
                             <li class="flex items-baseline gap-3 text-xl text-ink-100">
                                 <span class="h-2 w-2 rounded-full bg-recipes shrink-0 translate-y-[-2px]"></span>
-                                <span>@_Ingredient.Name@(IngredientAmount(_Ingredient))</span>
+                                @if (RecipeDisplayLogic.DescribeAmount(_Ingredient) is { Length: > 0 } _Amount)
+                                {
+                                    <span class="shrink-0 text-ink-400 tabular-nums">@_Amount</span>
+                                }
+                                <span>@_Ingredient.Name</span>
                             </li>
                         }
                     </ul>

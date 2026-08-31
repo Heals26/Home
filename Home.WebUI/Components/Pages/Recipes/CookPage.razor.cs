@@ -255,13 +255,6 @@ public partial class CookPage : IAsyncDisposable
             _ => $"{minutes / 60} h {minutes % 60} min"
         };
 
-    private static string IngredientAmount(RecipeIngredientDto ingredient)
-    {
-        var _Amount = RecipeDisplayLogic.DescribeAmount(ingredient);
-
-        return string.IsNullOrEmpty(_Amount) ? string.Empty : $" — {_Amount}";
-    }
-
     #endregion Methods
 
 }

@@ -294,6 +294,13 @@ public partial class RecipeDetailPage : IDisposable
 
     // Ingredients
 
+    /// <summary>
+    /// Whether the list gives its amounts a column. A recipe whose ingredients are all unmeasured
+    /// would otherwise indent every name past an empty gutter for no reason.
+    /// </summary>
+    private bool ShowsIngredientAmounts()
+        => this.m_Recipe?.Ingredients.Any(i => !string.IsNullOrEmpty(RecipeDisplayLogic.DescribeAmount(i))) == true;
+
     private void OpenAddIngredientModal()
     {
         this.m_EditingIngredientID = null;
@@ -308,7 +315,7 @@ public partial class RecipeDetailPage : IDisposable
     {
         this.m_EditingIngredientID = ingredient.IngredientID;
         this.m_IngName = ingredient.Name;
-        this.m_IngAmount = (ingredient.Amount ?? ingredient.Quantity)?.ToString() ?? string.Empty;
+        this.m_IngAmount = (ingredient.Amount ?? ingredient.Quantity)?.ToString("0.##") ?? string.Empty;
         this.m_IngUnit = (ingredient.Unit ?? MeasurementUnits.All[0].Value).ToString();
         this.m_ShowIngredient = true;
     }
@@ -382,6 +389,22 @@ public partial class RecipeDetailPage : IDisposable
 
         if (_Result == true)
             await this.ReloadAndPublishAsync();
+    }
+
+    /// <summary>
+    /// Removing from inside the sheet closes it first, so the row it was opened from is gone by
+    /// the time the list comes back rather than sitting under an open modal that edits nothing.
+    /// </summary>
+    private async Task RemoveEditingIngredientAsync()
+    {
+        if (!this.m_EditingIngredientID.HasValue)
+            return;
+
+        var _IngredientID = this.m_EditingIngredientID.Value;
+
+        this.m_ShowIngredient = false;
+
+        await this.RemoveIngredientAsync(_IngredientID);
     }
 
     // Steps
