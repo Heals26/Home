@@ -11,28 +11,45 @@ public static class MeasurementUnits
 
     public static readonly IReadOnlyList<MeasurementUnitOption> All =
     [
-        new("", "Pieces", 1),
-        new("g", "Grams", 2),
-        new("kg", "Kilograms", 3),
-        new("ml", "Millilitres", 4),
-        new("L", "Litres", 5),
-        new("tsp", "Teaspoons", 6),
-        new("tbsp", "Tablespoons", 7),
-        new("cups", "Cups", 8),
-        new("pinch", "Pinch", 9),
-        new("bunch", "Bunch", 10),
-        new("slices", "Slices", 11),
-        new("cloves", "Cloves", 12),
-        new("tins", "Tins", 13),
-        new("packets", "Packets", 14),
+        new("", "Pieces", 1, ""),
+        new("g", "Grams", 2, "g"),
+        new("kg", "Kilograms", 3, "kg"),
+        new("ml", "Millilitres", 4, "ml"),
+        new("L", "Litres", 5, "L"),
+        new("tsp", "Teaspoons", 6, "tsp"),
+        new("tbsp", "Tablespoons", 7, "tbsp"),
+        new("cups", "Cups", 8, "cup"),
+        new("pinches", "Pinch", 9, "pinch"),
+        new("bunches", "Bunch", 10, "bunch"),
+        new("slices", "Slices", 11, "slice"),
+        new("cloves", "Cloves", 12, "clove"),
+        new("tins", "Tins", 13, "tin"),
+        new("packets", "Packets", 14, "packet"),
+        new("jars", "Jars", 15, "jar"),
+        new("leaves", "Leaves", 16, "leaf"),
+        new("stalks", "Stalks", 17, "stalk"),
+        new("dashes", "Dashes", 18, "dash"),
     ];
 
     #endregion Fields
 
     #region Methods
 
-    public static string GetAbbreviation(long? unit)
-        => All.FirstOrDefault(u => u.Value == unit)?.Abbreviation ?? string.Empty;
+    /// <summary>
+    /// The form that suits the amount beside it: exactly one reads singular, anything else —
+    /// including a half and an amount nobody has given yet — reads plural.
+    /// </summary>
+    public static string GetAbbreviation(long? unit, decimal? amount)
+    {
+        var _Unit = All.FirstOrDefault(u => u.Value == unit);
+
+        if (_Unit == null)
+            return string.Empty;
+
+        return amount == 1
+            ? _Unit.SingularAbbreviation
+            : _Unit.Abbreviation;
+    }
 
     #endregion Methods
 

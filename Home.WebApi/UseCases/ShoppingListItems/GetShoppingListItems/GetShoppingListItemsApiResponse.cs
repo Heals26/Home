@@ -27,7 +27,7 @@ public record GetShoppingListItemDto(
     #region Properties
 
     public string UnitAbbreviation
-        => MeasurementUnitLogic.GetAbbreviation(this.Unit);
+        => MeasurementUnitLogic.GetAbbreviation(this.Unit, this.Amount);
 
     #endregion Properties
 

@@ -36,6 +36,10 @@ public static partial class ShoppingListItemLogic
         ["clove"] = 12, ["cloves"] = 12,
         ["tin"] = 13, ["tins"] = 13, ["can"] = 13, ["cans"] = 13,
         ["packet"] = 14, ["packets"] = 14, ["pack"] = 14, ["packs"] = 14, ["pkt"] = 14, ["pk"] = 14,
+        ["jar"] = 15, ["jars"] = 15,
+        ["leaf"] = 16, ["leaves"] = 16,
+        ["stalk"] = 17, ["stalks"] = 17, ["stick"] = 17, ["sticks"] = 17,
+        ["dash"] = 18, ["dashes"] = 18,
         ["x"] = null
     };
 
@@ -72,7 +76,7 @@ public static partial class ShoppingListItemLogic
             return string.Empty;
 
         var _Abbreviation = string.IsNullOrWhiteSpace(unitAbbreviation)
-            ? MeasurementUnits.GetAbbreviation(unit)
+            ? MeasurementUnits.GetAbbreviation(unit, amount)
             : unitAbbreviation;
 
         return string.IsNullOrWhiteSpace(_Abbreviation)

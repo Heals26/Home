@@ -50,7 +50,7 @@ public class GetShoppingListItemSuggestionDto
     /// How the unit reads beside the amount
     /// </summary>
     public string UnitAbbreviation
-        => MeasurementUnitLogic.GetAbbreviation(this.Unit);
+        => MeasurementUnitLogic.GetAbbreviation(this.Unit, this.Amount);
 
     #endregion Properties
 

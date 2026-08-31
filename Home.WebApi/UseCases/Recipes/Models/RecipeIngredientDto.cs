@@ -26,7 +26,7 @@ public class RecipeIngredientDto
     /// How the unit reads beside the amount, resolved here so every screen says the same thing.
     /// </summary>
     public string UnitAbbreviation
-        => MeasurementUnitLogic.GetAbbreviation(this.Unit);
+        => MeasurementUnitLogic.GetAbbreviation(this.Unit, this.Amount);
 
     public decimal? Volume { get; set; }
     public decimal? Weight { get; set; }

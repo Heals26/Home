@@ -6,4 +6,5 @@
 /// <param name="Abbreviation">How the unit reads beside an amount, e.g. "tbsp".</param>
 /// <param name="Name">How the unit reads in the dropdown, e.g. "Tablespoons".</param>
 /// <param name="Value">The stored value the API exchanges.</param>
-public record MeasurementUnitOption(string Abbreviation, string Name, long Value);
+/// <param name="SingularAbbreviation">How the unit reads beside exactly one, e.g. "leaf".</param>
+public record MeasurementUnitOption(string Abbreviation, string Name, long Value, string SingularAbbreviation);

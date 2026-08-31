@@ -42,7 +42,7 @@ public class GetRecipeIngredientApiResponse
     /// How the unit reads beside the amount.
     /// </summary>
     public string UnitAbbreviation
-        => MeasurementUnitLogic.GetAbbreviation(this.Unit);
+        => MeasurementUnitLogic.GetAbbreviation(this.Unit, this.Amount);
 
     /// <summary>
     /// Kept only so rows written before amounts carried a unit still read correctly.

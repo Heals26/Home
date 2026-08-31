@@ -17,20 +17,32 @@ public class MeasurementUnitSE : BaseEnumeration
     public static MeasurementUnitSE Litres = new("Litres", 5, "L");
     public static MeasurementUnitSE Teaspoons = new("Teaspoons", 6, "tsp");
     public static MeasurementUnitSE Tablespoons = new("Tablespoons", 7, "tbsp");
-    public static MeasurementUnitSE Cups = new("Cups", 8, "cups");
-    public static MeasurementUnitSE Pinch = new("Pinch", 9, "pinch");
-    public static MeasurementUnitSE Bunch = new("Bunch", 10, "bunch");
-    public static MeasurementUnitSE Slices = new("Slices", 11, "slices");
-    public static MeasurementUnitSE Cloves = new("Cloves", 12, "cloves");
-    public static MeasurementUnitSE Tins = new("Tins", 13, "tins");
-    public static MeasurementUnitSE Packets = new("Packets", 14, "packets");
+    public static MeasurementUnitSE Cups = new("Cups", 8, "cups", "cup");
+    public static MeasurementUnitSE Pinch = new("Pinch", 9, "pinches", "pinch");
+    public static MeasurementUnitSE Bunch = new("Bunch", 10, "bunches", "bunch");
+    public static MeasurementUnitSE Slices = new("Slices", 11, "slices", "slice");
+    public static MeasurementUnitSE Cloves = new("Cloves", 12, "cloves", "clove");
+    public static MeasurementUnitSE Tins = new("Tins", 13, "tins", "tin");
+    public static MeasurementUnitSE Packets = new("Packets", 14, "packets", "packet");
+    public static MeasurementUnitSE Jars = new("Jars", 15, "jars", "jar");
+    public static MeasurementUnitSE Leaves = new("Leaves", 16, "leaves", "leaf");
+    public static MeasurementUnitSE Stalks = new("Stalks", 17, "stalks", "stalk");
+    public static MeasurementUnitSE Dashes = new("Dashes", 18, "dashes", "dash");
 
     #endregion Fields
 
     #region Constructors
 
-    public MeasurementUnitSE(string name, long value, string abbreviation) : base(name, value)
-        => this.Abbreviation = abbreviation;
+    /// <summary>
+    /// A unit written as a symbol reads the same however many there are, so it passes one form.
+    /// A unit written as a word passes both, because English does not derive them reliably —
+    /// a leaf becomes leaves and a dash becomes dashes, and no rule gets all of them right.
+    /// </summary>
+    public MeasurementUnitSE(string name, long value, string abbreviation, string? singularAbbreviation = null) : base(name, value)
+    {
+        this.Abbreviation = abbreviation;
+        this.SingularAbbreviation = singularAbbreviation ?? abbreviation;
+    }
 
     #endregion Constructors
 
@@ -40,6 +52,11 @@ public class MeasurementUnitSE : BaseEnumeration
     /// How the unit reads beside an amount on a card or a shopping list.
     /// </summary>
     public string Abbreviation { get; } = string.Empty;
+
+    /// <summary>
+    /// How the unit reads beside exactly one — "1 packet", never "1 packets".
+    /// </summary>
+    public string SingularAbbreviation { get; } = string.Empty;
 
     #endregion Properties
 

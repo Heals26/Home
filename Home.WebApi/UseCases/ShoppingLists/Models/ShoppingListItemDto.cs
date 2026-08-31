@@ -26,7 +26,7 @@ public class ShoppingListItemDto
     public long? Unit { get; set; }
 
     public string UnitAbbreviation
-        => MeasurementUnitLogic.GetAbbreviation(this.Unit);
+        => MeasurementUnitLogic.GetAbbreviation(this.Unit, this.Amount);
 
     public decimal? Volume { get; set; }
     public decimal? Weight { get; set; }

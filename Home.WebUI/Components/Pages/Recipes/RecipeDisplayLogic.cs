@@ -20,7 +20,7 @@ public static class RecipeDisplayLogic
         if (ingredient.Amount != null)
         {
             var _Abbreviation = string.IsNullOrWhiteSpace(ingredient.UnitAbbreviation)
-                ? MeasurementUnits.GetAbbreviation(ingredient.Unit)
+                ? MeasurementUnits.GetAbbreviation(ingredient.Unit, ingredient.Amount)
                 : ingredient.UnitAbbreviation;
 
             return string.IsNullOrWhiteSpace(_Abbreviation)
