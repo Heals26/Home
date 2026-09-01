@@ -16,25 +16,25 @@ by effort. Specifics are open for discussion; this is the shape, not the spec.*
 These are the ones that make the app feel finished. Most are small, several are embarrassing gaps,
 and a few are backend capability that already works with no way to reach it.
 
-### A1 · Members you can actually manage — **S**
+### A1 [done 1 Sep] · Members you can actually manage — **S**
 `PATCH` and `DELETE api/Users/{id}` both work and nothing calls them. A member added with a typo is
 permanent, and someone who leaves can't be removed. Settings' Members card is add-only. The
 `Audit → User` relationship was deliberately set to `SetNull` (15 Aug) *specifically* so a member
 could be deleted — that groundwork is already paid for.
 **Also:** change your own password. The Account card currently contains one Sign out button.
 
-### A2 · Rename and organise shopping lists — **S**
+### A2 [done 1 Sep] · Rename and organise shopping lists — **S**
 `UpdateShoppingList` is wired in `ApiProvider` and called from nowhere: **a shopping list cannot be
 renamed.** Add rename, plus duplicate ("this week's like last week's") and archive so old lists
 stop cluttering the picker without being destroyed.
 
-### A3 · Search and sort the recipe book — **S**
+### A3 [done 1 Sep] · Search and sort the recipe book — **S**
 The meal-plan picker has search; the recipe book itself does not — the secondary surface
 out-features the primary one. Ordering is hard-coded to name. `Complexity`, `PrepMinutes`,
 `CookMinutes` and `Servings` are all captured and displayed, and none of them can be filtered or
 sorted on. "What can I cook in 30 minutes" is a question the data can already answer.
 
-### A4 · Reorder everything that has a Sequence — **M**
+### A4 [done 1 Sep] · Reorder everything that has a Sequence — **M**
 `Sequence` is persisted and honoured on `RecipeStep`, `ShoppingListItem`, `LightScene`,
 `ActivityRegion` and `ActivityContent`, and **none of them has a move control**. Recipe steps are
 the worst case: editing a step deliberately writes its existing sequence back, so a step added out
@@ -42,32 +42,32 @@ of order stays out of order forever. `LightScene.Sequence` is even documented as
 the Lights page" — groups got a reorder, scenes didn't. One shared move-up/move-down affordance,
 applied five times.
 
-### A5 · Edit a recipe note — **S**
+### A5 [done 1 Sep] · Edit a recipe note — **S**
 Notes can be added and removed but not edited, and `UpdateNote` is already wired. Small, and the
 kind of thing that makes the app feel unfinished when you hit it.
 
-### A6 · Retire the second board axis — **M**
+### A6 [done 1 Sep] · Retire the second board axis — **M**
 `ActivityStatus` is a *global, unscoped* lookup still seeded Todo/In Progress/Done at API startup,
 sitting beside the household-scoped `ActivityState` that replaced it (15 Aug). `Activity.Status`
 round-trips through both interactors and all three presenters, and **no UI control ever sets or
 shows it**. Two "what state is this card in" concepts, one invisible. Its global seeding also
 contradicts the rule that seeding moved to `IHouseholdSetupLogic`. Pick one, delete the other.
 
-### A7 · Take the software-ticket language off the family board — **M**
+### A7 [done 1 Sep] · Take the software-ticket language off the family board — **M**
 `RegionSE` defines `Description`, **`AcceptanceCriteria`** and `Notes`, hard-coded to that trio in
 `ActivityDetailPage`. This is the exact mistake the 15 Aug board-columns decision fixed
 ("software-process jargon on a family board") surviving in a second vocabulary. Nobody writes
 acceptance criteria for *mow the lawn*. Household-defined card sections, or a fixed set that reads
 like a home.
 
-### A8 · Filter the board, and give it real empty states — **M**
+### A8 [done 1 Sep] · Filter the board, and give it real empty states — **M**
 No filter or search of any kind: not by assignee, not by tag, not by date — though all three are
 first-class on the card. Cards also can't be reordered *within* a column (drag only moves between).
 And the empty states are bare inline text — `"Nothing here yet"`, `"Nothing on"` — where every
 other pillar uses `HomeEmptyState` with an action. A family opening an empty board is given no next
 step. *(Touch is already handled well here via the chevron move buttons — leave that alone.)*
 
-### A9 · Move a planned meal — **S**
+### A9 [done 1 Sep] · Move a planned meal — **S**
 A planned meal can't be shifted; delete-and-re-add is the only path, which on a tablet is three
 taps and a search to fix a mistake. Drag on desktop, move buttons on touch — same pattern the board
 already uses.

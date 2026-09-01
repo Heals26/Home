@@ -5,6 +5,57 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-01 — Card sections belong to the household, and the second board axis is gone
+
+Two decisions from the same complaint: the family board still spoke like a software ticket.
+
+`ActivityStatus` — the global, unscoped Todo/In Progress/Done lookup seeded at API startup — was
+**deleted outright** rather than reconciled with the household-scoped `ActivityState` that replaced
+it on 15 Aug. It was safe because it was never used: 0 of 3 activities carried a StatusID, and no
+UI control ever set or showed one. A card's column already answers "what state is this in", and two
+answers to one question is one too many. Nothing is seeded globally any more.
+
+`RegionSE` — Description / **AcceptanceCriteria** / Notes, fixed in code — became `CardSection`, a
+household-owned, named, ordered entity alongside board columns and meal slots. Mitch chose this over
+renaming the fixed trio, because the 15 Aug reasoning ("columns belong to the household") applies
+identically here. Existing households were seeded Details / Steps / Notes and their one existing
+region remapped onto the matching row through the card's household, so nothing written was lost.
+`ActivityRegion → CardSection` is **NoAction**, not Cascade: the household already reaches sections
+through the activity, SQL Server rejects the second cascade path, and refusing to delete a section
+still holding writing is what a family wants. The UI refuses it too, and the count that decides
+that has to be **projected** — an unloaded `Regions` collection counts zero and would have offered
+to delete a section with a card's writing under it.
+
+## 2026-09-01 — Archiving is not deleting, and a copy is one call
+
+A shopping list can now be renamed, copied and archived. Archiving keeps everything — the items,
+the prices, what was ticked — and only takes the list out of the picker, so last Christmas's shop
+can still be copied a year later; deleting stays the destructive one and asks twice. The list being
+looked at stays visible even once archived, because it would otherwise vanish from under the reader
+at the moment they archived it.
+
+Copying is a server-side slice, not the screen looping over the item endpoints — the same reasoning
+as clearing a list on 17 Aug. Nothing arrives ticked and nothing arrives priced: "this week's like
+last week's" means the same things to buy, not last week's trolley or last week's receipt.
+
+## 2026-09-01 — One move control, and the sequence swap is the pattern
+
+`HomeReorder` is the single up/down affordance, now used by recipe ingredients, recipe steps,
+shopping items, light scenes, card sections and cards within a board column. Chevrons rather than
+drag, everywhere: a finger can hit them, they need no pointer to discover, and they behave the same
+on the tablet as on a desktop. Drag stays as a desktop extra where it already existed, and the
+meal planner gained it by reusing the board's delegated `[data-drop-target]` listener rather than
+writing a second one — the attribute lost its `board-` prefix when the second screen wanted it.
+
+Every reorder is the same **two-call sequence swap** the board already used for its columns, and
+every one sends *only* the sequence: a reorder must not overwrite a name or a price someone is
+editing on another device. Ends are disabled rather than hidden so rows keep their width and do not
+shuffle sideways as things move.
+
+Two new `Sequence` columns fell out of this — `RecipeIngredient.Sequence` (31 Aug) and
+`Activity.Sequence` — both backfilled so existing rows keep the order they were already shown in
+rather than all landing on zero, which is the arbitrary ordering the column exists to end.
+
 ## 2026-08-31 — A modal is a `<dialog>`, so the browser owns its keyboard
 
 `HomeModal` was a `<div>` with `fixed inset-0`, which gets none of the behaviour a modal is
