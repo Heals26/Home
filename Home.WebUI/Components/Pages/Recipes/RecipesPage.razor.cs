@@ -32,6 +32,16 @@ public partial class RecipesPage : IDisposable
     private List<MealSlotDto> m_MealSlots = [];
     private long? m_MealSlotFilter;
 
+    /// <summary>
+    /// How the book is ordered. A per-device preference like the layout — the tablet in the
+    /// kitchen and a phone in the aisle want different things out of the same book.
+    /// </summary>
+    private const string SortStorageKey = "home.recipes.sort";
+
+    private string m_Search = string.Empty;
+    private string m_Sort = "name";
+    private int? m_MaxMinutes;
+
     private string m_View = "cards";
     private readonly List<HomeSegmentedControl<string>.SegmentOption> m_ViewOptions =
     [
@@ -73,13 +83,25 @@ public partial class RecipesPage : IDisposable
         if (!firstRender)
             return;
 
-        var _Stored = await this.ReadStoredViewAsync();
+        var _StoredView = await this.ReadStoredViewAsync();
+        var _StoredSort = await this.ReadStoredSortAsync();
 
-        if (_Stored == null || _Stored == this.m_View)
-            return;
+        var _Changed = false;
 
-        this.m_View = _Stored;
-        this.StateHasChanged();
+        if (_StoredView != null && _StoredView != this.m_View)
+        {
+            this.m_View = _StoredView;
+            _Changed = true;
+        }
+
+        if (_StoredSort != null && _StoredSort != this.m_Sort)
+        {
+            this.m_Sort = _StoredSort;
+            _Changed = true;
+        }
+
+        if (_Changed)
+            this.StateHasChanged();
     }
 
     public void Dispose()
@@ -165,6 +187,20 @@ public partial class RecipesPage : IDisposable
             var _Result = await this.LocalStorage.GetAsync<string>(ViewStorageKey);
 
             return _Result.Success && _Result.Value is "cards" or "list" ? _Result.Value : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task<string?> ReadStoredSortAsync()
+    {
+        try
+        {
+            var _Result = await this.LocalStorage.GetAsync<string>(SortStorageKey);
+
+            return _Result.Success && _Result.Value is "name" or "quickest" or "simplest" ? _Result.Value : null;
         }
         catch
         {
@@ -258,19 +294,98 @@ public partial class RecipesPage : IDisposable
 
     // Display
 
-    private IEnumerable<GetRecipeDto> OrderedRecipes()
-        => (this.m_Recipes?.Recipes ?? []).OrderBy(r => r.Name);
+    /// <summary>
+    /// The book as this device is currently asking to see it: matching the search, inside the time
+    /// the cook has, in the order they chose.
+    /// </summary>
+    private IEnumerable<GetRecipeDto> VisibleRecipes()
+    {
+        var _Recipes = (this.m_Recipes?.Recipes ?? []).AsEnumerable();
+        var _Search = this.m_Search.Trim();
+
+        if (_Search.Length > 0)
+            _Recipes = _Recipes.Where(r => r.Name.Contains(_Search, StringComparison.OrdinalIgnoreCase));
+
+        // A recipe that has never been timed is not hidden by a time filter — it might well be
+        // quick, and dropping it would quietly shrink the book for a value nobody entered.
+        if (this.m_MaxMinutes is { } _MaxMinutes)
+            _Recipes = _Recipes.Where(r => TotalMinutes(r) is not { } _Minutes || _Minutes <= _MaxMinutes);
+
+        return this.m_Sort switch
+        {
+            // Untimed and unjudged recipes sort last rather than first, because a missing value is
+            // not the same as a quick or a simple one.
+            "quickest" => _Recipes.OrderBy(r => TotalMinutes(r) ?? int.MaxValue).ThenBy(r => r.Name),
+            "simplest" => _Recipes.OrderBy(r => r.Complexity ?? long.MaxValue).ThenBy(r => r.Name),
+            _ => _Recipes.OrderBy(r => r.Name)
+        };
+    }
+
+    /// <summary>
+    /// Prep plus cook, or null when the household has timed neither — how long the recipe takes
+    /// from starting to eating.
+    /// </summary>
+    private static int? TotalMinutes(GetRecipeDto recipe)
+        => recipe.PrepMinutes == null && recipe.CookMinutes == null
+            ? null
+            : (recipe.PrepMinutes ?? 0) + (recipe.CookMinutes ?? 0);
+
+    private void SetSearch(string search)
+        => this.m_Search = search;
+
+    private async Task SetSortAsync(ChangeEventArgs args)
+    {
+        this.m_Sort = args.Value?.ToString() ?? "name";
+
+        // A dead circuit cannot remember anything, and that is never worth an error on screen.
+        try { await this.LocalStorage.SetAsync(SortStorageKey, this.m_Sort); } catch { }
+    }
+
+    private void SetMaxMinutes(ChangeEventArgs args)
+        => this.m_MaxMinutes = int.TryParse(args.Value?.ToString(), out var _Minutes) ? _Minutes : null;
 
     private string DescribeMealSlots(IEnumerable<RecipeMealSlotDto> mealSlots)
         => string.Join(" · ", mealSlots.OrderBy(m => m.Sequence).Select(m => m.Name));
 
+    /// <summary>
+    /// Whether anything is narrowing the book. An empty book and a book with nothing matching are
+    /// different situations and get different words — and only one of them wants "Add recipe".
+    /// </summary>
+    private bool IsNarrowed()
+        => this.m_MealSlotFilter != null || this.m_MaxMinutes != null || this.m_Search.Trim().Length > 0;
+
     private string EmptyTitle()
-        => this.m_MealSlotFilter == null ? "No recipes yet" : "Nothing for that meal yet";
+    {
+        if (!this.IsNarrowed())
+            return "No recipes yet";
+
+        return this.m_Search.Trim().Length > 0
+            ? $"Nothing matching “{this.m_Search.Trim()}”"
+            : "Nothing matches that";
+    }
 
     private string EmptySubtitle()
-        => this.m_MealSlotFilter == null
-            ? "Add your first recipe to get the book started"
-            : "No recipe has been marked as suiting this meal";
+    {
+        if (!this.IsNarrowed())
+            return "Add your first recipe to get the book started";
+
+        if (this.m_MaxMinutes is { } _MaxMinutes && this.m_Search.Trim().Length == 0 && this.m_MealSlotFilter == null)
+            return $"Nothing in the book is ready inside {_MaxMinutes} minutes";
+
+        return "Try a shorter search, or widen the meal and time filters";
+    }
+
+    /// <summary>
+    /// Clears everything narrowing the book at once — an empty screen should take one tap to get
+    /// out of, not three.
+    /// </summary>
+    private async Task ShowEveryRecipeAsync()
+    {
+        this.m_Search = string.Empty;
+        this.m_MaxMinutes = null;
+
+        await this.FilterByMealAsync(null);
+    }
 
     #endregion Methods
 

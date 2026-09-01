@@ -27,6 +27,44 @@
             </ActionsContent>
         </HomeTopBar>
 
+        @* Search, sort and "what can I cook in half an hour" all filter the book on the device —
+           it is already fetched whole, and the answer does not change between keystrokes. *@
+        <div class="px-6 pb-3 shrink-0 flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div class="flex-1 min-w-0">
+                <HomeTextInput Label="Search"
+                               Name="recipe-search"
+                               AutoComplete="off"
+                               Value="@this.m_Search"
+                               ValueChanged="this.SetSearch"
+                               Placeholder="A name, or part of one" />
+            </div>
+            <div class="flex gap-3 shrink-0">
+                <div class="flex flex-col gap-1.5">
+                    <label for="recipe-sort" class="text-sm font-medium text-ink-300">Sort by</label>
+                    <select id="recipe-sort"
+                            class="bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300"
+                            value="@this.m_Sort"
+                            @onchange="this.SetSortAsync">
+                        <option value="name">Name</option>
+                        <option value="quickest">Quickest</option>
+                        <option value="simplest">Simplest</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label for="recipe-time" class="text-sm font-medium text-ink-300">Ready in</label>
+                    <select id="recipe-time"
+                            class="bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300"
+                            value="@(this.m_MaxMinutes?.ToString() ?? string.Empty)"
+                            @onchange="this.SetMaxMinutes">
+                        <option value="">Any time</option>
+                        <option value="15">15 min</option>
+                        <option value="30">30 min</option>
+                        <option value="60">1 hour</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         @if (this.m_MealSlots.Count > 0)
         {
             <div class="px-6 pb-4 shrink-0">
@@ -49,17 +87,17 @@
             {
                 <HomeLoader Class="py-16" />
             }
-            else if (!this.m_Recipes.Recipes.Any())
+            else if (!this.VisibleRecipes().Any())
             {
                 <HomeEmptyState Title="@this.EmptyTitle()" Subtitle="@this.EmptySubtitle()">
                     <ActionContent>
-                        @if (this.m_MealSlotFilter == null)
+                        @if (!this.IsNarrowed())
                         {
                             <HomeButton OnClick="this.OpenCreateModal">Add recipe</HomeButton>
                         }
                         else
                         {
-                            <HomeButton Variant="secondary" OnClick="() => this.FilterByMealAsync(null)">Show every recipe</HomeButton>
+                            <HomeButton Variant="secondary" OnClick="this.ShowEveryRecipeAsync">Show every recipe</HomeButton>
                         }
                     </ActionContent>
                 </HomeEmptyState>
@@ -67,7 +105,7 @@
             else if (this.m_View == "list")
             {
                 <div class="max-w-3xl mx-auto flex flex-col gap-2">
-                    @foreach (var _Recipe in this.OrderedRecipes())
+                    @foreach (var _Recipe in this.VisibleRecipes())
                     {
                         <div class="group flex items-center gap-4 rounded-2xl border border-ink-800 bg-ink-900 p-3 hover:border-ink-700 transition-all cursor-pointer"
                              @onclick="() => this.OpenRecipe(_Recipe.RecipeID)">
@@ -104,7 +142,7 @@
             else
             {
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
-                    @foreach (var _Recipe in this.OrderedRecipes())
+                    @foreach (var _Recipe in this.VisibleRecipes())
                     {
                         <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-ink-800 bg-ink-900 hover:border-ink-700 transition-all cursor-pointer"
                              @onclick="() => this.OpenRecipe(_Recipe.RecipeID)">
