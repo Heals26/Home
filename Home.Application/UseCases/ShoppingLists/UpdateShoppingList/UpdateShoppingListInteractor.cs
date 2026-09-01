@@ -26,8 +26,14 @@ internal class UpdateShoppingListInteractor : IInteractor<UpdateShoppingListInpu
                 && sl.Household.HouseholdID == _Household.HouseholdID)
             .SingleOrDefault();
 
-        if (_ShoppingList != null && inputPort.Name.HasBeenSet)
-            _ShoppingList.Name = inputPort.Name.Value;
+        if (_ShoppingList != null)
+        {
+            if (inputPort.IsArchived.HasBeenSet)
+                _ShoppingList.IsArchived = inputPort.IsArchived.Value;
+
+            if (inputPort.Name.HasBeenSet)
+                _ShoppingList.Name = inputPort.Name.Value;
+        }
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

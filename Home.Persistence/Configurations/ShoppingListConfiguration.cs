@@ -18,6 +18,10 @@ public class ShoppingListConfiguration : IEntityTypeConfiguration<ShoppingList>
         _ = entity.Property(e => e.ShoppingListID)
             .ValueGeneratedOnAdd();
 
+        _ = entity.Property(e => e.IsArchived)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         _ = entity.Property(e => e.Name)
             .HasMaxLength(250)
             .IsRequired(false);

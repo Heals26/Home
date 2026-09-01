@@ -3,4 +3,8 @@ using Home.Application.Infrastructure.ChangeTrackers;
 
 namespace Home.Application.UseCases.ShoppingLists.UpdateShoppingList;
 
-public record UpdateShoppingListInputPort(PropertyChangeTracker<string> Name, long ShoppingListID) : IInputPort<IUpdateShoppingListOutputPort>;
+public record UpdateShoppingListInputPort(
+    PropertyChangeTracker<bool> IsArchived,
+    PropertyChangeTracker<string> Name,
+    long ShoppingListID)
+    : IInputPort<IUpdateShoppingListOutputPort>;

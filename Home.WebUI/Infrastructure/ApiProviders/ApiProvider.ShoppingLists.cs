@@ -36,6 +36,13 @@ public static partial class ApiProvider
     public static ApiProviderHelper DeleteTickedShoppingListItems(long shoppingListID)
         => new(HttpMethod.Delete, RouteType.Route, $"{GetShoppingListBaseUrl(shoppingListID)}/Items/Ticked");
 
+    /// <summary>
+    /// Copies a list and everything on it, server-side — thirty round trips over a supermarket
+    /// connection is the difference between a list appearing and a list filling in.
+    /// </summary>
+    public static ApiProviderHelper DuplicateShoppingList(long shoppingListID)
+        => new(HttpMethod.Post, RouteType.Body, $"{GetShoppingListBaseUrl(shoppingListID)}/Duplicate");
+
     public static ApiProviderHelper GetShoppingLists()
         => new(HttpMethod.Get, RouteType.Route, GetShoppingListsBaseUrl());
 

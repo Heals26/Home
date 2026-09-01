@@ -4,6 +4,7 @@ using Home.Application.UseCases.ShoppingLists.AddRecipeToShoppingList;
 using Home.Application.UseCases.ShoppingLists.CreateShoppingList;
 using Home.Application.UseCases.ShoppingLists.DeleteShoppingList;
 using Home.Application.UseCases.ShoppingLists.DeleteTickedShoppingListItems;
+using Home.Application.UseCases.ShoppingLists.DuplicateShoppingList;
 using Home.Application.UseCases.ShoppingLists.GetShoppingList;
 using Home.Application.UseCases.ShoppingLists.GetShoppingLists;
 using Home.Application.UseCases.ShoppingLists.UntickShoppingListItems;
@@ -16,6 +17,7 @@ using Home.WebApi.Presenters.ShoppingLists.AddRecipeToShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.CreateShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.DeleteShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.DeleteTickedShoppingListItems;
+using Home.WebApi.Presenters.ShoppingLists.DuplicateShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.GetShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.GetShoppingLists;
 using Home.WebApi.Presenters.ShoppingLists.UntickShoppingListItems;
@@ -24,6 +26,7 @@ using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItems;
 using Home.WebApi.UseCases.ShoppingLists.AddMealPlanToShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.AddRecipeToShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.CreateShoppingList;
+using Home.WebApi.UseCases.ShoppingLists.DuplicateShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.GetShoppingList;
 using Home.WebApi.UseCases.ShoppingLists.GetShoppingLists;
 using Home.WebApi.UseCases.ShoppingLists.UpdateShoppingList;
@@ -108,6 +111,19 @@ public class ShoppingListsController : BaseController
         return presenter.Result;
     }
 
+    [HttpPost("{shoppingListID}/Duplicate")]
+    [ProducesResponseType<DuplicateShoppingListApiResponse>(StatusCodes.Status201Created)]
+    public async Task<IActionResult> DuplicateShoppingList(
+        [FromServices] DuplicateShoppingListPresenter presenter,
+        [FromRoute] long shoppingListID,
+        [FromBody] DuplicateShoppingListApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new DuplicateShoppingListInputPort(request.Name, shoppingListID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
     [HttpGet("{shoppingListID}")]
     [ProducesResponseType<GetShoppingListApiResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetShoppingList(
@@ -163,7 +179,7 @@ public class ShoppingListsController : BaseController
         [FromBody] UpdateShoppingListApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new UpdateShoppingListInputPort(request.Name, shoppingListID), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new UpdateShoppingListInputPort(request.IsArchived, request.Name, shoppingListID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
