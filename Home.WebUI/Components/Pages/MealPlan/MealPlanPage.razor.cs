@@ -2,6 +2,7 @@
 using Home.WebUI.DataAccess.MealPlanEntries.CreateMealPlanEntry;
 using Home.WebUI.DataAccess.MealPlanEntries.GetMealPlanEntries;
 using Home.WebUI.DataAccess.MealPlanEntries.Models;
+using Home.WebUI.DataAccess.MealPlanEntries.UpdateMealPlanEntry;
 using Home.WebUI.DataAccess.MealSlots.CreateMealSlot;
 using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
 using Home.WebUI.DataAccess.MealSlots.Models;
@@ -37,6 +38,8 @@ public partial class MealPlanPage : IDisposable
     private DateTime m_WeekStart;
 
     // Picker modal
+    private MealPlanEntryDto? m_DraggedEntry;
+    private bool m_MovingEntry;
     private bool m_ShowPicker;
     private DateTime m_PickerDate;
     private long? m_PickerMealSlotID;
@@ -260,6 +263,56 @@ public partial class MealPlanPage : IDisposable
             return;
 
         this.m_ShowPicker = false;
+
+        await this.LoadWeekAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.MealPlan, this.m_CancellationTokenHandler.Token);
+    }
+
+    // Moving a planned meal
+
+    /// <summary>
+    /// Nudges a meal a day either way, keeping the meal of the day it was on. This is the path a
+    /// finger uses; dragging is the same move with the target picked directly.
+    /// </summary>
+    private async Task ShiftEntryAsync(MealPlanShift shift)
+        => await this.MoveEntryAsync(shift.Entry, shift.Entry.Date.AddDays(shift.Days), shift.Entry.MealSlotID);
+
+    private void StartDraggingEntry(MealPlanEntryDto entry)
+        => this.m_DraggedEntry = entry;
+
+    private async Task DropEntryAsync(DateTime date, long? mealSlotID)
+    {
+        if (this.m_DraggedEntry is not { } _Entry)
+            return;
+
+        this.m_DraggedEntry = null;
+
+        await this.MoveEntryAsync(_Entry, date, mealSlotID);
+    }
+
+    private async Task MoveEntryAsync(MealPlanEntryDto entry, DateTime date, long? mealSlotID)
+    {
+        // A move onto the square it already occupies is not a move, and a round trip that changes
+        // nothing would still repaint the week under the family.
+        if (this.m_MovingEntry || (entry.Date.Date == date.Date && entry.MealSlotID == mealSlotID))
+            return;
+
+        this.m_MovingEntry = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<UpdateMealPlanEntryWebAppRequest, bool>(
+            new UpdateMealPlanEntryWebAppRequest()
+            {
+                Date = new PropertyChangeTracker<DateTime>(date.Date),
+                MealSlotID = new PropertyChangeTracker<long?>(mealSlotID)
+            },
+            ApiProvider.UpdateMealPlanEntry(entry.MealPlanEntryID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_MovingEntry = false;
+
+        if (_Result != true)
+            return;
 
         await this.LoadWeekAsync();
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.MealPlan, this.m_CancellationTokenHandler.Token);

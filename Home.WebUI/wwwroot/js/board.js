@@ -10,7 +10,7 @@
             return;
         }
 
-        if (event.target.closest("[data-board-drop-target]") === null) {
+        if (event.target.closest("[data-drop-target]") === null) {
             return;
         }
 

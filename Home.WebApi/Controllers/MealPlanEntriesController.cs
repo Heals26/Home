@@ -1,13 +1,16 @@
 ﻿using Home.Application.UseCases.MealPlanEntries.CreateMealPlanEntry;
 using Home.Application.UseCases.MealPlanEntries.DeleteMealPlanEntry;
 using Home.Application.UseCases.MealPlanEntries.GetMealPlanEntries;
+using Home.Application.UseCases.MealPlanEntries.UpdateMealPlanEntry;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.MealPlanEntries.CreateMealPlanEntry;
 using Home.WebApi.Presenters.MealPlanEntries.DeleteMealPlanEntry;
 using Home.WebApi.Presenters.MealPlanEntries.GetMealPlanEntries;
+using Home.WebApi.Presenters.MealPlanEntries.UpdateMealPlanEntry;
 using Home.WebApi.UseCases.MealPlanEntries.CreateMealPlanEntry;
 using Home.WebApi.UseCases.MealPlanEntries.GetMealPlanEntries;
+using Home.WebApi.UseCases.MealPlanEntries.UpdateMealPlanEntry;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -54,6 +57,19 @@ public class MealPlanEntriesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetMealPlanEntriesInputPort(fromDate, toDate), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpPatch("{mealPlanEntryID}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UpdateMealPlanEntry(
+        [FromServices] UpdateMealPlanEntryPresenter presenter,
+        [FromRoute] long mealPlanEntryID,
+        [FromBody] UpdateMealPlanEntryApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new UpdateMealPlanEntryInputPort(request.Date, mealPlanEntryID, request.MealSlotID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

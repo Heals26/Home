@@ -12,7 +12,7 @@
         var _Cards = this.CardsFor(_Column.StateID);
 
         <div class="flex flex-col w-72 shrink-0 bg-ink-900/60 border border-ink-800 rounded-xl max-h-full"
-             data-board-drop-target=""
+             data-drop-target=""
              @ondrop="() => this.OnDropAsync(_Column.StateID)">
             <div class="flex items-center justify-between px-4 py-3 border-b border-ink-800 shrink-0">
                 <p class="text-sm font-semibold text-ink-200">@_Column.Title</p>

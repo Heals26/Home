@@ -26,6 +26,9 @@ public static partial class ApiProvider
     public static ApiProviderHelper GetMealPlanEntries(DateTime fromDate, DateTime toDate)
         => new(HttpMethod.Get, RouteType.Route, $"{GetMealPlanEntriesBaseUrl()}?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}");
 
+    public static ApiProviderHelper UpdateMealPlanEntry(long mealPlanEntryID)
+        => new(HttpMethod.Patch, RouteType.Body, GetMealPlanEntryBaseUrl(mealPlanEntryID));
+
     #endregion Methods
 
 }
