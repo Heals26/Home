@@ -8,9 +8,14 @@ public partial class ShoppingListItemRow
 
     #region Properties
 
+    [Parameter] public bool CanMoveDown { get; set; }
+    [Parameter] public bool CanMoveUp { get; set; }
     [Parameter, EditorRequired] public ShoppingListItemDto Item { get; set; } = null!;
     [Parameter] public EventCallback<ShoppingListItemDto> OnEdit { get; set; }
+    [Parameter] public EventCallback<ShoppingListItemDto> OnMoveDown { get; set; }
+    [Parameter] public EventCallback<ShoppingListItemDto> OnMoveUp { get; set; }
     [Parameter] public EventCallback<ShoppingListItemDto> OnToggle { get; set; }
+    [Parameter] public bool ShowReorder { get; set; }
 
     #endregion Properties
 

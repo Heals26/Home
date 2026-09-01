@@ -12,6 +12,7 @@ using Home.WebUI.DataAccess.Lights.SyncLights;
 using Home.WebUI.DataAccess.LightScenes.CaptureLightScene;
 using Home.WebUI.DataAccess.LightScenes.GetLightScenes;
 using Home.WebUI.DataAccess.LightScenes.Models;
+using Home.WebUI.DataAccess.LightScenes.SetLightSceneSequence;
 using Home.WebUI.DataAccess.LightSchedules.CreateLightSchedule;
 using Home.WebUI.DataAccess.LightSchedules.GetLightSchedules;
 using Home.WebUI.DataAccess.LightSchedules.Models;
@@ -44,6 +45,7 @@ public partial class LightsPage : IDisposable
     private string? m_LastSynced;
     private string m_NewGroupName = string.Empty;
     private bool m_EditMode;
+    private bool m_ReorderingScenes;
     private bool m_Syncing;
 
     // Scenes
@@ -334,6 +336,63 @@ public partial class LightsPage : IDisposable
     }
 
     // Deleting a scene also deletes any schedule that fires it, so both lists reload.
+    /// <summary>
+    /// The scenes that can be put in an order. The previous look is pinned first and rewritten by
+    /// every apply, so it is not one of them.
+    /// </summary>
+    private List<LightSceneDto> OrderableScenes()
+        => [.. (this.m_Scenes ?? []).Where(s => !s.IsPreviousLook)];
+
+    private bool CanMoveSceneUp(LightSceneDto scene)
+        => this.OrderableScenes().FindIndex(s => s.LightSceneID == scene.LightSceneID) > 0;
+
+    private bool CanMoveSceneDown(LightSceneDto scene)
+    {
+        var _Scenes = this.OrderableScenes();
+
+        return _Scenes.FindIndex(s => s.LightSceneID == scene.LightSceneID) is var _Index
+            && _Index >= 0
+            && _Index < _Scenes.Count - 1;
+    }
+
+    private async Task MoveSceneAsync(LightSceneDto scene, int direction)
+    {
+        if (this.m_ReorderingScenes)
+            return;
+
+        var _Scenes = this.OrderableScenes();
+        var _Index = _Scenes.FindIndex(s => s.LightSceneID == scene.LightSceneID);
+        var _TargetIndex = _Index + direction;
+
+        if (_Index < 0 || _TargetIndex < 0 || _TargetIndex >= _Scenes.Count)
+            return;
+
+        var _Target = _Scenes[_TargetIndex];
+        this.m_ReorderingScenes = true;
+
+        var _Moved = await this.SetSceneSequenceAsync(scene, _Target.Sequence);
+
+        if (_Moved)
+            _ = await this.SetSceneSequenceAsync(_Target, scene.Sequence);
+
+        this.m_ReorderingScenes = false;
+
+        if (!_Moved)
+            return;
+
+        await this.LoadScenesAsync();
+        await this.PublishLightsChangedAsync();
+    }
+
+    private async Task<bool> SetSceneSequenceAsync(LightSceneDto scene, int sequence)
+    {
+        return await this.ApiAccess.SendRequestAsync<SetLightSceneSequenceWebAppRequest, bool>(
+            new SetLightSceneSequenceWebAppRequest() { Sequence = sequence },
+            ApiProvider.SetLightSceneSequence(scene.LightSceneID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token) == true;
+    }
+
     private async Task DeleteSceneAsync(LightSceneDto scene)
     {
         var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(

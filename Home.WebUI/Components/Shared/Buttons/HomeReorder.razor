@@ -1,0 +1,27 @@
+@* Moves one thing up or down a list.
+
+   Chevrons rather than drag, deliberately: a finger can hit them, they need no pointer to
+   discover, and they behave the same on the kitchen tablet as on a desktop. Drag is a pointer
+   affordance wearing a touch costume.
+
+   The ends are disabled rather than hidden, so the control keeps the same width down the whole
+   list and rows do not shuffle sideways as you move things. *@
+
+<div class="flex items-center shrink-0">
+    <button type="button"
+            class="p-2 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 disabled:hover:text-ink-600 transition-colors"
+            title="Move up"
+            aria-label="@($"Move {this.Label} up")"
+            disabled="@(!this.CanMoveUp)"
+            @onclick="this.OnMoveUp">
+        <span class="home-icon home-icon-chevron-left h-4 w-4 inline-block rotate-90"></span>
+    </button>
+    <button type="button"
+            class="p-2 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 disabled:hover:text-ink-600 transition-colors"
+            title="Move down"
+            aria-label="@($"Move {this.Label} down")"
+            disabled="@(!this.CanMoveDown)"
+            @onclick="this.OnMoveDown">
+        <span class="home-icon home-icon-chevron-right h-4 w-4 inline-block rotate-90"></span>
+    </button>
+</div>

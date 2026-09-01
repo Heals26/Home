@@ -29,6 +29,9 @@ public static partial class ApiProvider
     public static ApiProviderHelper GetLightScenes()
         => new(HttpMethod.Get, RouteType.Route, GetLightScenesBaseUrl());
 
+    public static ApiProviderHelper SetLightSceneSequence(long lightSceneID)
+        => new(HttpMethod.Patch, RouteType.Body, $"{GetLightSceneBaseUrl(lightSceneID)}/sequence");
+
     #endregion Methods
 
 }

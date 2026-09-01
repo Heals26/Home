@@ -112,24 +112,11 @@
                                                 }
                                                 <span class="flex-1 min-w-0 text-sm font-medium text-ink-50 truncate">@_Ingredient.Name</span>
                                             </button>
-                                            @* Chevrons rather than drag, the same affordance the board uses:
-                                               a finger can hit them, and they need no pointer to discover. *@
-                                            <button type="button"
-                                                    class="shrink-0 p-2 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 transition-colors"
-                                                    title="Move up"
-                                                    aria-label="@($"Move {_Ingredient.Name} up")"
-                                                    disabled="@(this.m_Recipe.Ingredients.First().IngredientID == _Ingredient.IngredientID || this.m_Saving)"
-                                                    @onclick="() => this.MoveIngredientAsync(_Ingredient, -1)">
-                                                <span class="home-icon home-icon-chevron-left h-4 w-4 inline-block rotate-90"></span>
-                                            </button>
-                                            <button type="button"
-                                                    class="shrink-0 p-2 pr-4 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 transition-colors"
-                                                    title="Move down"
-                                                    aria-label="@($"Move {_Ingredient.Name} down")"
-                                                    disabled="@(this.m_Recipe.Ingredients.Last().IngredientID == _Ingredient.IngredientID || this.m_Saving)"
-                                                    @onclick="() => this.MoveIngredientAsync(_Ingredient, 1)">
-                                                <span class="home-icon home-icon-chevron-right h-4 w-4 inline-block rotate-90"></span>
-                                            </button>
+                                            <HomeReorder Label="@_Ingredient.Name"
+                                                         CanMoveUp="@(!this.m_Saving && this.m_Recipe.Ingredients.First().IngredientID != _Ingredient.IngredientID)"
+                                                         CanMoveDown="@(!this.m_Saving && this.m_Recipe.Ingredients.Last().IngredientID != _Ingredient.IngredientID)"
+                                                         OnMoveUp="() => this.MoveIngredientAsync(_Ingredient, -1)"
+                                                         OnMoveDown="() => this.MoveIngredientAsync(_Ingredient, 1)" />
                                         </div>
                                     }
                                 </div>
@@ -152,11 +139,16 @@
                             }
                             else
                             {
+                                var _Steps = this.m_Recipe.Steps.OrderBy(s => s.Sequence).ToList();
+
                                 <ol class="flex flex-col gap-3 -mb-1">
-                                    @foreach (var _Step in this.m_Recipe.Steps.OrderBy(s => s.Sequence))
+                                    @foreach (var _Step in _Steps)
                                     {
-                                        <li class="flex gap-3 group">
-                                            <span class="shrink-0 h-7 w-7 rounded-full bg-ink-800 text-recipes text-sm font-semibold flex items-center justify-center">@_Step.Sequence</span>
+                                        <li class="flex gap-3">
+                                            @* Numbered by position in the list rather than by the stored
+                                               sequence, so a swap renumbers 1, 2, 3 instead of showing
+                                               whatever pair of numbers happened to be traded. *@
+                                            <span class="shrink-0 h-7 w-7 rounded-full bg-ink-800 text-recipes text-sm font-semibold flex items-center justify-center">@(_Steps.IndexOf(_Step) + 1)</span>
                                             <div class="flex-1 min-w-0">
                                                 @if (!string.IsNullOrWhiteSpace(_Step.Title))
                                                 {
@@ -164,6 +156,11 @@
                                                 }
                                                 <HomeMarkdown Content="@_Step.Content" />
                                             </div>
+                                            <HomeReorder Label="@($"step {_Steps.IndexOf(_Step) + 1}")"
+                                                         CanMoveUp="@(!this.m_Saving && _Steps.IndexOf(_Step) > 0)"
+                                                         CanMoveDown="@(!this.m_Saving && _Steps.IndexOf(_Step) < _Steps.Count - 1)"
+                                                         OnMoveUp="() => this.MoveStepAsync(_Step, -1)"
+                                                         OnMoveDown="() => this.MoveStepAsync(_Step, 1)" />
                                             <button class="text-ink-600 hover:text-ink-200 transition-colors shrink-0 p-2 min-h-[44px] min-w-[44px]"
                                                     type="button" title="Edit"
                                                     aria-label="@($"Edit step {_Step.Sequence}")"

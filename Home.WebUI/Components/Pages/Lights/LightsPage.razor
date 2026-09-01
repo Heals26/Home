@@ -108,6 +108,17 @@
                                                     @onclick="() => this.DeleteSceneAsync(_Scene)">
                                                 <span class="home-icon home-icon-x h-3 w-3"></span>
                                             </button>
+
+                                            @* Ordering only appears in edit mode, where deleting already
+                                               lives — the everyday page stays a row of things to tap.
+                                               The previous look is pinned first and is not moveable. *@
+                                            <div class="flex justify-center">
+                                                <HomeReorder Label="@_Scene.Name"
+                                                             CanMoveUp="@(!this.m_ReorderingScenes && this.CanMoveSceneUp(_Scene))"
+                                                             CanMoveDown="@(!this.m_ReorderingScenes && this.CanMoveSceneDown(_Scene))"
+                                                             OnMoveUp="() => this.MoveSceneAsync(_Scene, -1)"
+                                                             OnMoveDown="() => this.MoveSceneAsync(_Scene, 1)" />
+                                            </div>
                                         }
                                     </div>
                                 }

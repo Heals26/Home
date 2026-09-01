@@ -491,6 +491,49 @@ public partial class RecipeDetailPage : IDisposable
             await this.ReloadAndPublishAsync();
     }
 
+    /// <summary>
+    /// Swaps a step with its neighbour, the same two-call swap the ingredients and the board use.
+    /// </summary>
+    private async Task MoveStepAsync(RecipeStepDto step, int direction)
+    {
+        if (this.m_Saving || this.m_Recipe == null)
+            return;
+
+        var _Steps = this.m_Recipe.Steps.OrderBy(s => s.Sequence).ToList();
+        var _Index = _Steps.FindIndex(s => s.RecipeStepID == step.RecipeStepID);
+        var _TargetIndex = _Index + direction;
+
+        if (_Index < 0 || _TargetIndex < 0 || _TargetIndex >= _Steps.Count)
+            return;
+
+        var _Target = _Steps[_TargetIndex];
+        this.m_Saving = true;
+
+        var _Moved = await this.SetStepSequenceAsync(step, _Target.Sequence);
+
+        if (_Moved)
+            _ = await this.SetStepSequenceAsync(_Target, step.Sequence);
+
+        this.m_Saving = false;
+
+        if (_Moved)
+            await this.ReloadAndPublishAsync();
+    }
+
+    /// <summary>
+    /// Only the sequence is sent. Content and title are left unset so a reorder cannot overwrite
+    /// what someone else is editing on another device.
+    /// </summary>
+    private async Task<bool> SetStepSequenceAsync(RecipeStepDto step, int sequence)
+    {
+        var _Request = new UpdateRecipeStepWebAppRequest() { Sequence = new PropertyChangeTracker<int>(sequence) };
+
+        return await this.ApiAccess.SendRequestAsync<UpdateRecipeStepWebAppRequest, bool>(
+            _Request, ApiProvider.UpdateRecipeStep(step.RecipeStepID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token) == true;
+    }
+
     private async Task<bool> SetIngredientSequenceAsync(RecipeIngredientDto ingredient, long sequence)
     {
         var _Request = new SetRecipeIngredientSequenceWebAppRequest() { Sequence = sequence };

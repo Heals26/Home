@@ -47,6 +47,7 @@ public partial class ShoppingListComponent : IDisposable
     private string m_EditCost = string.Empty;
     private string m_EditUnit = string.Empty;
     private bool m_SavingItem;
+    private bool m_Reordering;
 
     #endregion Fields
 
@@ -279,6 +280,56 @@ public partial class ShoppingListComponent : IDisposable
         this.m_EditCost = item.Cost?.ToString("0.00") ?? string.Empty;
         this.m_EditUnit = item.Unit?.ToString() ?? string.Empty;
         this.m_ShowEditItem = true;
+    }
+
+    /// <summary>
+    /// Swaps an item with its neighbour among the things still to get, so the list can be put in
+    /// the order the shop is walked. Ticked items keep their place and are not reorderable.
+    /// </summary>
+    private async Task MoveItemAsync(ShoppingListItemDto item, int direction)
+    {
+        if (this.m_Reordering)
+            return;
+
+        var _ToGet = this.ItemsToGet().ToList();
+        var _Index = _ToGet.FindIndex(i => i.ShoppingListItemID == item.ShoppingListItemID);
+        var _TargetIndex = _Index + direction;
+
+        if (_Index < 0 || _TargetIndex < 0 || _TargetIndex >= _ToGet.Count)
+            return;
+
+        var _Target = _ToGet[_TargetIndex];
+        this.m_Reordering = true;
+
+        var _Moved = await this.SetItemSequenceAsync(item, _Target.Sequence);
+
+        if (_Moved)
+            _ = await this.SetItemSequenceAsync(_Target, item.Sequence);
+
+        this.m_Reordering = false;
+
+        if (!_Moved)
+            return;
+
+        await this.LoadListAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
+    }
+
+    /// <summary>
+    /// Only the sequence is sent, so a reorder cannot overwrite a name or a price someone is
+    /// editing on another device.
+    /// </summary>
+    private async Task<bool> SetItemSequenceAsync(ShoppingListItemDto item, long sequence)
+    {
+        return await this.ApiAccess.SendRequestAsync<UpdateShoppingListItemWebAppRequest, bool>(
+            new UpdateShoppingListItemWebAppRequest()
+            {
+                Sequence = new(sequence),
+                ShoppingListItemID = item.ShoppingListItemID
+            },
+            ApiProvider.UpdateShoppingListItem(item.ShoppingListItemID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.CancellationToken) == true;
     }
 
     private async Task SaveItemAsync()

@@ -27,4 +27,14 @@
             <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">@this.Detail()</span>
         }
     </button>
+    @* Only what is still to get can be reordered — the order of the trolley is history, and the
+       list you walk the shop with is the one worth arranging. *@
+    @if (this.ShowReorder)
+    {
+        <HomeReorder Label="@this.Item.Name"
+                     CanMoveUp="this.CanMoveUp"
+                     CanMoveDown="this.CanMoveDown"
+                     OnMoveUp="() => this.OnMoveUp.InvokeAsync(this.Item)"
+                     OnMoveDown="() => this.OnMoveDown.InvokeAsync(this.Item)" />
+    }
 </div>

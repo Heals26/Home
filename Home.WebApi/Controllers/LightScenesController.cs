@@ -2,14 +2,17 @@ using Home.Application.UseCases.LightScenes.ApplyLightScene;
 using Home.Application.UseCases.LightScenes.CaptureLightScene;
 using Home.Application.UseCases.LightScenes.DeleteLightScene;
 using Home.Application.UseCases.LightScenes.GetLightScenes;
+using Home.Application.UseCases.LightScenes.SetLightSceneSequence;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Presenters.LightScenes.ApplyLightScene;
 using Home.WebApi.Presenters.LightScenes.CaptureLightScene;
 using Home.WebApi.Presenters.LightScenes.DeleteLightScene;
 using Home.WebApi.Presenters.LightScenes.GetLightScenes;
+using Home.WebApi.Presenters.LightScenes.SetLightSceneSequence;
 using Home.WebApi.UseCases.LightScenes.CaptureLightScene;
 using Home.WebApi.UseCases.LightScenes.GetLightScenes;
+using Home.WebApi.UseCases.LightScenes.SetLightSceneSequence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -70,6 +73,20 @@ public class LightScenesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetLightScenesInputPort(), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpPatch("{lightSceneID}/sequence")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetLightSceneSequence(
+        [FromServices] SetLightSceneSequencePresenter presenter,
+        [FromRoute] long lightSceneID,
+        [FromBody] SetLightSceneSequenceApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new SetLightSceneSequenceInputPort(lightSceneID, request.Sequence), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

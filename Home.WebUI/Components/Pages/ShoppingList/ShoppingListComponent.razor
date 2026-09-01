@@ -114,6 +114,11 @@
                         {
                             <ShoppingListItemRow @key="_Item.ShoppingListItemID"
                                                  Item="_Item"
+                                                 ShowReorder="true"
+                                                 CanMoveUp="@(!this.m_Reordering && _ToGet.IndexOf(_Item) > 0)"
+                                                 CanMoveDown="@(!this.m_Reordering && _ToGet.IndexOf(_Item) < _ToGet.Count - 1)"
+                                                 OnMoveUp="i => this.MoveItemAsync(i, -1)"
+                                                 OnMoveDown="i => this.MoveItemAsync(i, 1)"
                                                  OnToggle="this.ToggleItemAsync"
                                                  OnEdit="this.OpenEditItem" />
                         }
