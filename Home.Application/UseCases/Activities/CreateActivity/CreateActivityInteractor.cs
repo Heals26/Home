@@ -39,9 +39,6 @@ internal class CreateActivityInteractor : IInteractor<CreateActivityInputPort, I
             DueTime = inputPort.DueTime,
             Household = _Household,
             Regions = [],
-            Status = inputPort.StatusID.HasValue
-                ? _PersistenceContext.Find<ActivityStatus>(inputPort.StatusID.Value)
-                : null,
             Tags = [],
             Title = inputPort.Title,
             User = inputPort.UserID.HasValue

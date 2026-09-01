@@ -156,8 +156,6 @@ public partial class ActivityDetailPage : IDisposable
                 DueTime = this.m_Activity.DueTime,
                 State = this.m_Activity.State,
                 StateID = this.m_Activity.StateID,
-                Status = this.m_Activity.Status,
-                StatusID = this.m_Activity.StatusID,
                 Tags = this.m_Activity.Tags,
                 Title = this.m_Activity.Title
             };

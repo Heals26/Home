@@ -19,8 +19,6 @@ public class ActivitySummaryDto
     public DateTime? CompletedDateUTC { get; set; }
     public long? StateID { get; set; }
     public string State { get; set; }
-    public long? StatusID { get; set; }
-    public string Status { get; set; }
     public long? AssignedToUserID { get; set; }
     public string AssignedTo { get; set; }
     public List<TagDto> Tags { get; set; } = [];

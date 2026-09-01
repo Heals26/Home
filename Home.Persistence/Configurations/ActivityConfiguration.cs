@@ -49,13 +49,6 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
             .OnDelete(DeleteBehavior.NoAction)
             .IsRequired(false);
 
-        _ = entity.Property<long?>("StatusID");
-        _ = entity.HasOne(e => e.Status)
-            .WithMany(e => e.Activities)
-            .HasForeignKey("StatusID")
-            .HasConstraintName("FK_Activity_Status")
-            .OnDelete(DeleteBehavior.NoAction)
-            .IsRequired(false);
 
         _ = entity.Property<long?>("UserID");
         _ = entity.HasOne(e => e.User)

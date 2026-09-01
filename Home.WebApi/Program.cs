@@ -89,22 +89,12 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     var _PersistenceContext = _Scope.ServiceProvider.GetRequiredService<PersistenceContext>();
     _PersistenceContext.Database.Migrate();
 
-    SeedLookups(_PersistenceContext);
 }
 
-// Board columns are no longer seeded here: they belong to a household now, so a global row
-// would be unreachable by every scoped query. RegisterHousehold seeds them per household
-// through IHouseholdSetupLogic, and the migration backfilled the existing ones.
-static void SeedLookups(PersistenceContext context)
-{
-    if (!context.Set<ActivityStatus>().Any())
-        context.AddRange(
-            new ActivityStatus() { Name = "Todo" },
-            new ActivityStatus() { Name = "In Progress" },
-            new ActivityStatus() { Name = "Done" });
-
-    _ = context.SaveChanges();
-}
+// Nothing is seeded globally any more. Board columns belong to a household and are seeded per
+// household by IHouseholdSetupLogic (15 Aug); ActivityStatus — the second, invisible board axis
+// that used to be seeded here — was deleted outright, because a card's column already says what
+// state it is in and two answers to that question is one too many.
 
 static IServiceCollection SetupAuthentication(IServiceCollection services)
 {

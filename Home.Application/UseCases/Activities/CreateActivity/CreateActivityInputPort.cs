@@ -7,6 +7,5 @@ public record CreateActivityInputPort(
     DateTime? DueDateUTC,
     TimeSpan? DueTime,
     long? StateID,
-    long? StatusID,
     long? UserID)
     : IInputPort<ICreateActivityOutputPort>;

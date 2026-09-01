@@ -14,7 +14,6 @@ public class CreateActivityApiRequest
     public TimeSpan? DueTime { get; set; }
 
     public long? StateID { get; set; }
-    public long? StatusID { get; set; }
     public long? UserID { get; set; }
 
     #endregion Properties

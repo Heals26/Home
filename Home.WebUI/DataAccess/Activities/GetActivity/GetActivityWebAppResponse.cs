@@ -53,15 +53,10 @@ public class GetActivityWebAppResponse
     /// </summary>
     public long? StateID { get; set; }
 
-    /// <summary>
-    /// The name of the status.
-    /// </summary>
-    public string? Status { get; set; }
 
     /// <summary>
     /// The ID of the status.
     /// </summary>
-    public long? StatusID { get; set; }
 
     /// <summary>
     /// The labels on the card.

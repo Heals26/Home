@@ -10,6 +10,5 @@ public record UpdateActivityInputPort(
     PropertyChangeTracker<TimeSpan?> DueTime,
     PropertyChangeTracker<DateTime?> CompletedDateUTC,
     PropertyChangeTracker<long?> StateID,
-    PropertyChangeTracker<long?> StatusID,
     PropertyChangeTracker<long?> UserID)
     : IInputPort<IUpdateActivityOutputPort>;

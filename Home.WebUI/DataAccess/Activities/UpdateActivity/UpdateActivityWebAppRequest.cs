@@ -30,7 +30,6 @@ public class UpdateActivityWebAppRequest
     /// <summary>
     /// The ID of the status.
     /// </summary>
-    public PropertyChangeTracker<long?> StatusID { get; set; }
 
     /// <summary>
     /// The title of the activity.

@@ -46,7 +46,7 @@ public class ActivitiesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new CreateActivityInputPort(request.Title, request.DueDateUTC, request.DueTime, request.StateID, request.StatusID, request.UserID),
+            new CreateActivityInputPort(request.Title, request.DueDateUTC, request.DueTime, request.StateID, request.UserID),
             presenter,
             this.ServiceFactory,
             cancellationToken);
@@ -151,7 +151,7 @@ public class ActivitiesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new UpdateActivityInputPort(activityID, request.Title, request.DueDateUTC, request.DueTime, request.CompletedDateUTC, request.StateID, request.StatusID, request.UserID),
+            new UpdateActivityInputPort(activityID, request.Title, request.DueDateUTC, request.DueTime, request.CompletedDateUTC, request.StateID, request.UserID),
             presenter,
             this.ServiceFactory,
             cancellationToken);

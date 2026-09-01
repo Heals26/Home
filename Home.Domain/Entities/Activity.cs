@@ -43,7 +43,6 @@ public class Activity
     /// <summary>
     /// Todo, In Progress, Done
     /// </summary>
-    public ActivityStatus? Status { get; set; }
 
     public ICollection<ActivityTag> Tags { get; set; } = [];
 

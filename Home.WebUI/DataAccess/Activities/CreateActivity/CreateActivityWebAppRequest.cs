@@ -23,7 +23,6 @@ public class CreateActivityWebAppRequest
     /// <summary>
     /// The ID of the status.
     /// </summary>
-    public long? StatusID { get; set; }
 
     /// <summary>
     /// The title of the activity.

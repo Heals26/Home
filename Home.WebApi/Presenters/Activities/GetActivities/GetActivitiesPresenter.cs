@@ -26,8 +26,6 @@ public class GetActivitiesPresenter(IMapper mapper)
                 CompletedDateUTC = a.CompletedDateUTC,
                 StateID = a.State?.ActivityStateID,
                 State = a.State?.Name,
-                StatusID = a.Status?.ActivityStatusID,
-                Status = a.Status?.Name,
                 AssignedToUserID = a.User?.UserID,
                 AssignedTo = a.User?.UserName,
                 Tags = [.. a.Tags.Select(t => t.Tag).OrderBy(t => t.Name).Select(t => new TagDto()
