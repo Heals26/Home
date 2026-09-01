@@ -21,6 +21,50 @@
             </ActionsContent>
         </HomeTopBar>
 
+        @* Who, what sort, and by when — the three things first-class on a card and, until now, the
+           three things the board could not be narrowed by. Filtering happens on the device: the
+           week is already loaded, and the answer does not change between taps. *@
+        <div class="flex flex-wrap items-center gap-2 px-6 pb-3 shrink-0">
+            <select aria-label="Filter by who"
+                    class="bg-ink-900 border border-ink-800 rounded-lg px-3 min-h-[44px] text-sm text-ink-200 focus:outline-none focus:ring-2 focus:ring-ink-300"
+                    value="@(this.m_FilterUserID?.ToString() ?? string.Empty)"
+                    @onchange="this.SetUserFilter">
+                <option value="">Anyone</option>
+                @foreach (var _User in this.m_Users)
+                {
+                    <option value="@_User.UserID">@_User.FullName</option>
+                }
+            </select>
+
+            <select aria-label="Filter by label"
+                    class="bg-ink-900 border border-ink-800 rounded-lg px-3 min-h-[44px] text-sm text-ink-200 focus:outline-none focus:ring-2 focus:ring-ink-300"
+                    value="@(this.m_FilterTagID?.ToString() ?? string.Empty)"
+                    @onchange="this.SetTagFilter">
+                <option value="">Any label</option>
+                @foreach (var _Tag in this.m_Tags)
+                {
+                    <option value="@_Tag.TagID">@_Tag.Name</option>
+                }
+            </select>
+
+            <select aria-label="Filter by when"
+                    class="bg-ink-900 border border-ink-800 rounded-lg px-3 min-h-[44px] text-sm text-ink-200 focus:outline-none focus:ring-2 focus:ring-ink-300"
+                    value="@this.m_FilterDue"
+                    @onchange="this.SetDueFilter">
+                <option value="">Any time</option>
+                <option value="overdue">Overdue</option>
+                <option value="today">Due today</option>
+                <option value="week">Due this week</option>
+                <option value="none">No date</option>
+            </select>
+
+            @if (this.IsFiltered())
+            {
+                <HomeButton Size="sm" Variant="ghost" OnClick="this.ClearFilters">Clear</HomeButton>
+                <p class="text-sm text-ink-500">@this.FilteredActivities().Count of @this.m_Activities.Count</p>
+            }
+        </div>
+
         @if (this.m_View != BoardView)
         {
             <div class="flex items-center gap-2 px-6 pb-4 shrink-0">
@@ -50,17 +94,21 @@
             }
             else if (this.m_View == BoardView)
             {
-                <ActivityBoardView Activities="this.m_Activities"
+                <ActivityBoardView Activities="this.FilteredActivities()"
+                                   IsFiltered="this.IsFiltered()"
+                                   OnClearFilters="this.ClearFilters"
+                                   OnAdd="this.OpenCreateModal"
                                    States="this.m_States"
                                    Saving="this.m_Saving"
                                    OnEdit="this.OpenEditModal"
                                    OnMove="this.OnMoveAsync"
+                                   OnReorder="this.OnReorderAsync"
                                    OnOpen="this.OpenActivity"
                                    OnToggleComplete="this.OnToggleCompleteAsync" />
             }
             else
             {
-                <ActivityCalendarView Activities="this.m_Activities"
+                <ActivityCalendarView Activities="this.FilteredActivities()"
                                       Days="this.GetDays()"
                                       Today="this.m_Today"
                                       OnEdit="this.OpenEditModal"

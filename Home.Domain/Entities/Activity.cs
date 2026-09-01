@@ -41,8 +41,11 @@ public class Activity
     public ActivityState? State { get; set; }
 
     /// <summary>
-    /// Todo, In Progress, Done
+    /// Where the card sits within its column. Ordering is per-column in practice — a card keeps
+    /// its number when it moves, which is harmless because the order only has to be stable and
+    /// rearrangeable, not gapless.
     /// </summary>
+    public int Sequence { get; set; }
 
     public ICollection<ActivityTag> Tags { get; set; } = [];
 

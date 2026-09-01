@@ -33,6 +33,10 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
 
         _ = entity.Ignore(e => e.Audits);
 
+        _ = entity.Property(e => e.Sequence)
+            .HasDefaultValue(0)
+            .IsRequired();
+
         _ = entity.Property<long>("HouseholdID");
         _ = entity.HasOne(e => e.Household)
             .WithMany(e => e.Activities)

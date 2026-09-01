@@ -151,7 +151,7 @@ public class ActivitiesController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new UpdateActivityInputPort(activityID, request.Title, request.DueDateUTC, request.DueTime, request.CompletedDateUTC, request.StateID, request.UserID),
+            new UpdateActivityInputPort(activityID, request.Title, request.DueDateUTC, request.DueTime, request.CompletedDateUTC, request.Sequence, request.StateID, request.UserID),
             presenter,
             this.ServiceFactory,
             cancellationToken);

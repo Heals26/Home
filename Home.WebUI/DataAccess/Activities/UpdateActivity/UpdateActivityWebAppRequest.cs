@@ -25,6 +25,11 @@ public class UpdateActivityWebAppRequest
     /// <summary>
     /// The ID of the workflow state (kanban column).
     /// </summary>
+    /// <summary>
+    /// Where the card sits within its column.
+    /// </summary>
+    public PropertyChangeTracker<int> Sequence { get; set; }
+
     public PropertyChangeTracker<long?> StateID { get; set; }
 
     /// <summary>

@@ -54,6 +54,9 @@ internal class UpdateActivityInteractor : IInteractor<UpdateActivityInputPort, I
                     .SingleOrDefault(s => s.ActivityStateID == inputPort.StateID.Value.Value && s.Household.HouseholdID == _Household.HouseholdID)
                 : null);
 
+        if (inputPort.Sequence.HasBeenSet)
+            _Activity.Sequence = inputPort.Sequence.Value;
+
         if (inputPort.UserID.HasBeenSet)
             _Activity.User = inputPort.UserID.Value.HasValue
                 ? _PersistenceContext.GetEntities<User>()

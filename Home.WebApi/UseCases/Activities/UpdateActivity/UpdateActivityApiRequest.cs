@@ -11,5 +11,6 @@ public record UpdateActivityApiRequest(
     PropertyChangeTracker<DateTime?> DueDateUTC,
     PropertyChangeTracker<TimeSpan?> DueTime,
     PropertyChangeTracker<DateTime?> CompletedDateUTC,
+    PropertyChangeTracker<int> Sequence,
     PropertyChangeTracker<long?> StateID,
     PropertyChangeTracker<long?> UserID);

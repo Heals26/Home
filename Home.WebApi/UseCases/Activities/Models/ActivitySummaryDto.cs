@@ -17,6 +17,7 @@ public class ActivitySummaryDto
     public TimeSpan? DueTime { get; set; }
 
     public DateTime? CompletedDateUTC { get; set; }
+    public int Sequence { get; set; }
     public long? StateID { get; set; }
     public string State { get; set; }
     public long? AssignedToUserID { get; set; }

@@ -20,6 +20,7 @@ public class GetActivitiesPresenter(IMapper mapper)
             Activities = [.. activities.Select(a => new ActivitySummaryDto()
             {
                 ActivityID = a.ActivityID,
+                Sequence = a.Sequence,
                 Title = a.Title,
                 DueDateUTC = a.DueDateUTC,
                 DueTime = a.DueTime,

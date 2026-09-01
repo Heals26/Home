@@ -28,6 +28,11 @@ public class ActivitySummaryDto
     public DateTime? CompletedDateUTC { get; set; }
 
     /// <summary>
+    /// Where the card sits within its column.
+    /// </summary>
+    public int Sequence { get; set; }
+
+    /// <summary>
     /// When the activity is due (UTC).
     /// </summary>
     public DateTime? DueDateUTC { get; set; }

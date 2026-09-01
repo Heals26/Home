@@ -46,6 +46,12 @@ public partial class ActivitiesPage : IDisposable
     private List<UserSummaryDto> m_Users = [];
     private bool m_Loaded;
 
+    // Filters. Per-device and deliberately not remembered between visits: a board that silently
+    // hides half the family's week because someone filtered it yesterday is worse than no filter.
+    private long? m_FilterUserID;
+    private long? m_FilterTagID;
+    private string m_FilterDue = string.Empty;
+
     private string m_View = BoardView;
     private DateTime m_Anchor;
     private DateTime m_Today;
@@ -189,6 +195,59 @@ public partial class ActivitiesPage : IDisposable
     private void GoToToday()
         => this.m_Anchor = this.m_Today;
 
+    // Filtering
+
+    private bool IsFiltered()
+        => this.m_FilterUserID != null || this.m_FilterTagID != null || this.m_FilterDue.Length > 0;
+
+    /// <summary>
+    /// The board as this device is currently asking to see it. Both views read this, so a filter
+    /// set on the columns still holds when the family switches to the week.
+    /// </summary>
+    private List<ActivitySummaryDto> FilteredActivities()
+    {
+        var _Activities = this.m_Activities.AsEnumerable();
+
+        if (this.m_FilterUserID is { } _UserID)
+            _Activities = _Activities.Where(a => a.AssignedToUserID == _UserID);
+
+        if (this.m_FilterTagID is { } _TagID)
+            _Activities = _Activities.Where(a => a.Tags.Any(t => t.TagID == _TagID));
+
+        // Compared on the local day, because "due today" means the family's today rather than
+        // whatever UTC currently says.
+        var _Today = this.m_Today;
+
+        _Activities = this.m_FilterDue switch
+        {
+            "overdue" => _Activities.Where(a => a.CompletedDateUTC == null && a.DueDateUTC.HasValue && a.DueDateUTC.Value.ToLocalTime().Date < _Today),
+            "today" => _Activities.Where(a => a.DueDateUTC.HasValue && a.DueDateUTC.Value.ToLocalTime().Date == _Today),
+            "week" => _Activities.Where(a => a.DueDateUTC.HasValue
+                && a.DueDateUTC.Value.ToLocalTime().Date >= _Today
+                && a.DueDateUTC.Value.ToLocalTime().Date <= _Today.AddDays(7)),
+            "none" => _Activities.Where(a => a.DueDateUTC == null),
+            _ => _Activities
+        };
+
+        return [.. _Activities];
+    }
+
+    private void SetUserFilter(ChangeEventArgs args)
+        => this.m_FilterUserID = long.TryParse(args.Value?.ToString(), out var _UserID) ? _UserID : null;
+
+    private void SetTagFilter(ChangeEventArgs args)
+        => this.m_FilterTagID = long.TryParse(args.Value?.ToString(), out var _TagID) ? _TagID : null;
+
+    private void SetDueFilter(ChangeEventArgs args)
+        => this.m_FilterDue = args.Value?.ToString() ?? string.Empty;
+
+    private void ClearFilters()
+    {
+        this.m_FilterUserID = null;
+        this.m_FilterTagID = null;
+        this.m_FilterDue = string.Empty;
+    }
+
     private string GetViewTitle()
         => this.m_View switch
         {
@@ -218,6 +277,33 @@ public partial class ActivitiesPage : IDisposable
     }
 
     // Moving
+
+    /// <summary>
+    /// Swaps two cards' places within their column. Only the sequence is sent, for the same reason
+    /// only the column is sent when a card moves between them.
+    /// </summary>
+    private async Task OnReorderAsync(ActivityReorder reorder)
+    {
+        if (this.m_Saving) return;
+        this.m_Saving = true;
+
+        var _Moved = await this.SetActivitySequenceAsync(reorder.Activity.ActivityID, reorder.Neighbour.Sequence);
+
+        if (_Moved)
+            _ = await this.SetActivitySequenceAsync(reorder.Neighbour.ActivityID, reorder.Activity.Sequence);
+
+        this.m_Saving = false;
+
+        if (_Moved)
+            await this.ReloadAndPublishAsync();
+    }
+
+    private async Task<bool> SetActivitySequenceAsync(long activityID, int sequence)
+        => await this.ApiAccess.SendRequestAsync<UpdateActivityWebAppRequest, bool>(
+            new UpdateActivityWebAppRequest() { Sequence = new PropertyChangeTracker<int>(sequence) },
+            ApiProvider.UpdateActivity(activityID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token) == true;
 
     private async Task OnMoveAsync(ActivityMove move)
     {
