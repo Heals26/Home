@@ -35,7 +35,7 @@ public class ActivityRegionsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new CreateActivityRegionInputPort(request.ActivityID, request.Region),
+            new CreateActivityRegionInputPort(request.ActivityID, request.CardSectionID),
             presenter,
             this.ServiceFactory,
             cancellationToken);
@@ -88,7 +88,7 @@ public class ActivityRegionsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new UpdateActivityRegionInputPort(activityRegionID, request.Region, request.Sequence),
+            new UpdateActivityRegionInputPort(activityRegionID, request.Sequence),
             presenter,
             this.ServiceFactory,
             cancellationToken);

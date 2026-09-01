@@ -5,6 +5,8 @@ using Home.WebUI.DataAccess.ActivityContents.CreateActivityContent;
 using Home.WebUI.DataAccess.ActivityContents.UpdateActivityContent;
 using Home.WebUI.DataAccess.ActivityRegions.CreateActivityRegion;
 using Home.WebUI.DataAccess.ActivityStates.GetActivityStates;
+using Home.WebUI.DataAccess.CardSections.GetCardSections;
+using Home.WebUI.DataAccess.CardSections.Models;
 using Home.WebUI.DataAccess.Tags.GetTags;
 using Home.WebUI.DataAccess.Tags.Models;
 using Home.WebUI.DataAccess.Users.GetUsers;
@@ -23,10 +25,10 @@ public partial class ActivityDetailPage : IDisposable
     #region Fields
 
     /// <summary>
-    /// Fixed by RegionSE in the domain — a card has these three groups and no others. Letting the
-    /// family name their own would need a schema change, not a button.
+    /// The household's own card headings, loaded with the card. Nothing here is fixed in code any
+    /// more — a family that wants "Shopping" or "Who's coming" adds it in board settings.
     /// </summary>
-    private static readonly string[] RegionKinds = ["Description", "AcceptanceCriteria", "Notes"];
+    private List<CardSectionDto> m_CardSections = [];
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
     private ErrorHandler? m_ErrorHandler;
@@ -42,7 +44,7 @@ public partial class ActivityDetailPage : IDisposable
 
     // Field
     private bool m_ShowField;
-    private string m_FieldRegionKind = string.Empty;
+    private long m_FieldCardSectionID;
     private long? m_EditingContentID;
     private string m_FieldContent = string.Empty;
 
@@ -59,7 +61,7 @@ public partial class ActivityDetailPage : IDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.WhenAll(this.LoadStatesAsync(), this.LoadTagsAsync(), this.LoadUsersAsync());
+        await Task.WhenAll(this.LoadStatesAsync(), this.LoadTagsAsync(), this.LoadUsersAsync(), this.LoadCardSectionsAsync());
 
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
             this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
@@ -85,7 +87,7 @@ public partial class ActivityDetailPage : IDisposable
 
         await this.InvokeAsync(async () =>
         {
-            await Task.WhenAll(this.LoadActivityAsync(), this.LoadStatesAsync(), this.LoadTagsAsync(), this.LoadUsersAsync());
+            await Task.WhenAll(this.LoadActivityAsync(), this.LoadStatesAsync(), this.LoadTagsAsync(), this.LoadUsersAsync(), this.LoadCardSectionsAsync());
             this.StateHasChanged();
         });
     }
@@ -107,6 +109,17 @@ public partial class ActivityDetailPage : IDisposable
 
         if (_Result != null)
             this.m_States = [.. _Result.States.OrderBy(s => s.Sequence)];
+    }
+
+    private async Task LoadCardSectionsAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetCardSectionsWebAppResponse>(
+            null!, ApiProvider.GetCardSections(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != null)
+            this.m_CardSections = [.. _Result.CardSections.OrderBy(s => s.Sequence)];
     }
 
     private async Task LoadTagsAsync()
@@ -160,25 +173,28 @@ public partial class ActivityDetailPage : IDisposable
                 Title = this.m_Activity.Title
             };
 
-    private ActivityRegionDto? GetRegion(string regionKind)
-        => this.m_Activity?.Regions.FirstOrDefault(r => r.Region == regionKind);
+    private ActivityRegionDto? GetRegion(long cardSectionID)
+        => this.m_Activity?.Regions.FirstOrDefault(r => r.CardSectionID == cardSectionID);
+
+    private string FieldSectionName()
+        => this.m_CardSections.FirstOrDefault(s => s.CardSectionID == this.m_FieldCardSectionID)?.Name ?? "Note";
 
     private void GoBackToBoard()
         => this.NavigationManager.NavigateTo("/activities");
 
     // Fields
 
-    private void OpenAddFieldModal(string regionKind)
+    private void OpenAddFieldModal(long cardSectionID)
     {
-        this.m_FieldRegionKind = regionKind;
+        this.m_FieldCardSectionID = cardSectionID;
         this.m_EditingContentID = null;
         this.m_FieldContent = string.Empty;
         this.m_ShowField = true;
     }
 
-    private void OpenEditFieldModal(string regionKind, ActivityContentDto field)
+    private void OpenEditFieldModal(long cardSectionID, ActivityContentDto field)
     {
-        this.m_FieldRegionKind = regionKind;
+        this.m_FieldCardSectionID = cardSectionID;
         this.m_EditingContentID = field.ActivityContentID;
         this.m_FieldContent = field.Content;
         this.m_ShowField = true;
@@ -222,14 +238,14 @@ public partial class ActivityDetailPage : IDisposable
     /// </summary>
     private async Task<bool> CreateFieldAsync()
     {
-        var _RegionID = this.GetRegion(this.m_FieldRegionKind)?.ActivityRegionID;
+        var _RegionID = this.GetRegion(this.m_FieldCardSectionID)?.ActivityRegionID;
 
         if (_RegionID == null)
         {
             var _Request = new CreateActivityRegionWebAppRequest()
             {
                 ActivityID = this.ActivityID,
-                Region = this.m_FieldRegionKind
+                CardSectionID = this.m_FieldCardSectionID
             };
 
             var _Region = await this.ApiAccess.SendRequestAsync<CreateActivityRegionWebAppRequest, CreateActivityRegionWebAppResponse>(

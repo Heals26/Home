@@ -16,9 +16,14 @@ public class ActivityRegionDto
     public List<ActivityContentDto> Fields { get; set; } = [];
 
     /// <summary>
-    /// Which of the fixed groups this is — Description, AcceptanceCriteria or Notes.
+    /// The household-defined section this is.
     /// </summary>
-    public string Region { get; set; } = string.Empty;
+    public long CardSectionID { get; set; }
+
+    /// <summary>
+    /// The heading the household gave that section.
+    /// </summary>
+    public string CardSectionName { get; set; } = string.Empty;
 
     /// <summary>
     /// The order of the group on the card.

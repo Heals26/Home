@@ -13,7 +13,7 @@ public class CreateActivityRegionWebAppRequest
     /// <summary>
     /// Which of the fixed groups to add — Description, AcceptanceCriteria or Notes.
     /// </summary>
-    public string Region { get; set; } = string.Empty;
+    public long CardSectionID { get; set; }
 
     #endregion Properties
 

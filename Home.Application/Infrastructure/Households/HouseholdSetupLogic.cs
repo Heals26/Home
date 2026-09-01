@@ -22,6 +22,18 @@ public class HouseholdSetupLogic(IPersistenceContext persistenceContext) : IHous
         ("Done", true),
     ];
 
+    /// <summary>
+    /// Card sections in the language a family uses, not a software team's. These same names are
+    /// backfilled by the migration that made sections household-owned, so the two must stay in
+    /// step — the household is free to rename, reorder or replace them afterwards.
+    /// </summary>
+    private static readonly string[] s_DefaultCardSections =
+    [
+        "Details",
+        "Steps",
+        "Notes",
+    ];
+
     private static readonly (string Name, TimeSpan StartsAt)[] s_DefaultMealSlots =
     [
         ("Breakfast", new TimeSpan(7, 0, 0)),
@@ -50,6 +62,21 @@ public class HouseholdSetupLogic(IPersistenceContext persistenceContext) : IHous
 
             household.ActivityStates.Add(_State);
             persistenceContext.Add(_State);
+        }
+
+        _Sequence = 0;
+
+        foreach (var _Name in s_DefaultCardSections)
+        {
+            var _CardSection = new CardSection()
+            {
+                Household = household,
+                Name = _Name,
+                Sequence = _Sequence++
+            };
+
+            household.CardSections.Add(_CardSection);
+            persistenceContext.Add(_CardSection);
         }
 
         _Sequence = 0;

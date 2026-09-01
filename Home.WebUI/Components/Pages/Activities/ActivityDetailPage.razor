@@ -72,14 +72,15 @@
                         </ChildContent>
                     </HomeCard>
 
-                    @foreach (var _RegionKind in RegionKinds)
+                    @* The sections are the household's own, defined in board settings — not the
+                       Description / AcceptanceCriteria / Notes that used to be fixed in code. *@
+                    @foreach (var _Section in this.m_CardSections)
                     {
-                        var _Region = this.GetRegion(_RegionKind);
+                        var _Region = this.GetRegion(_Section.CardSectionID);
 
-                        <HomeCard Title="@ActivityBoardLogic.RegionLabel(_RegionKind)"
-                                  Subtitle="@ActivityBoardLogic.RegionBlurb(_RegionKind)">
+                        <HomeCard Title="@_Section.Name">
                             <ActionsContent>
-                                <HomeButton Size="sm" Variant="secondary" OnClick="() => this.OpenAddFieldModal(_RegionKind)">
+                                <HomeButton Size="sm" Variant="secondary" OnClick="() => this.OpenAddFieldModal(_Section.CardSectionID)">
                                     <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
                                     Add
                                 </HomeButton>
@@ -100,7 +101,7 @@
                                                         class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-400 hover:text-ink-50 hover:bg-ink-800 active:scale-95 transition"
                                                         title="Edit"
                                                         aria-label="Edit this note"
-                                                        @onclick="() => this.OpenEditFieldModal(_RegionKind, _Field)">
+                                                        @onclick="() => this.OpenEditFieldModal(_Section.CardSectionID, _Field)">
                                                     <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
                                                 </button>
                                                 <button type="button"
@@ -134,7 +135,7 @@
     <HomeModal @bind-Visible="this.m_ShowField" Title="@(this.m_EditingContentID.HasValue ? "Edit" : "Add to the card")" OnSubmit="this.SaveFieldAsync">
         <ChildContent>
             <div class="flex flex-col gap-1.5">
-                <label for="activity-field-content" class="text-sm font-medium text-ink-300">@ActivityBoardLogic.RegionLabel(this.m_FieldRegionKind)</label>
+                <label for="activity-field-content" class="text-sm font-medium text-ink-300">@this.FieldSectionName()</label>
                 <textarea id="activity-field-content"
                           rows="5"
                           @bind="this.m_FieldContent"

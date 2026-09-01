@@ -5,7 +5,6 @@ using Home.Application.UseCases.ActivityContents.UpdateActivityContent;
 using Home.Application.UseCases.ActivityRegions.CreateActivityRegion;
 using Home.Application.UseCases.ActivityRegions.UpdateActivityRegion;
 using Home.Domain.Entities;
-using Home.Domain.Enumerations;
 
 namespace Home.Application.Infrastructure.Activities;
 
@@ -14,7 +13,7 @@ public class ActivityLogic(IPersistenceContext persistenceContext, TimeProvider 
 
     #region Methods
 
-    ActivityRegion IActivityLogic.AddRegion(CreateActivityRegionInputPort inputPort)
+    ActivityRegion? IActivityLogic.AddRegion(CreateActivityRegionInputPort inputPort)
     {
         var _Activity = persistenceContext.GetEntities<Activity>()
             .Where(a => a.ActivityID == inputPort.ActivityID)
@@ -26,12 +25,20 @@ public class ActivityLogic(IPersistenceContext persistenceContext, TimeProvider 
             .Single()
             .Activity;
 
-        return new ActivityRegion()
-        {
-            Region = (RegionSE)inputPort.Region,
-            Sequence = (_Activity.Regions?.Count + 1) ?? 1,
-            Fields = []
-        };
+        // The section must belong to the same household as the card, which is what stops one
+        // household writing under another's heading.
+        var _CardSection = persistenceContext.GetEntities<CardSection>()
+            .SingleOrDefault(s => s.CardSectionID == inputPort.CardSectionID
+                && s.Household.HouseholdID == _Activity.Household.HouseholdID);
+
+        return _CardSection == null
+            ? null
+            : new ActivityRegion()
+            {
+                CardSection = _CardSection,
+                Sequence = _CardSection.Sequence,
+                Fields = []
+            };
     }
 
     ActivityContent IActivityLogic.AddContent(CreateActivityContentInputPort inputPort)
@@ -81,9 +88,6 @@ public class ActivityLogic(IPersistenceContext persistenceContext, TimeProvider 
             })
             .Single()
             .Region;
-
-        if (inputPort.Region.HasBeenSet)
-            _ActivityRegion.Region = (RegionSE)inputPort.Region.Value;
 
         if (inputPort.Sequence.HasBeenSet)
             _ActivityRegion.Sequence = inputPort.Sequence.Value;

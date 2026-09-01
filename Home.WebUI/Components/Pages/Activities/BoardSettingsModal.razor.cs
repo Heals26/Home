@@ -2,6 +2,10 @@
 using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.ActivityStates.CreateActivityState;
 using Home.WebUI.DataAccess.ActivityStates.GetActivityStates;
+using Home.WebUI.DataAccess.CardSections.CreateCardSection;
+using Home.WebUI.DataAccess.CardSections.GetCardSections;
+using Home.WebUI.DataAccess.CardSections.Models;
+using Home.WebUI.DataAccess.CardSections.UpdateCardSection;
 using Home.WebUI.DataAccess.ActivityStates.UpdateActivityState;
 using Home.WebUI.DataAccess.Tags.CreateTag;
 using Home.WebUI.DataAccess.Tags.GetTags;
@@ -21,6 +25,7 @@ public partial class BoardSettingsModal
     private static readonly List<HomeSegmentedControl<string>.SegmentOption> Tabs =
     [
         new("Columns", "columns"),
+        new("Sections", "sections"),
         new("Labels", "labels"),
     ];
 
@@ -35,6 +40,8 @@ public partial class BoardSettingsModal
 
     // Columns
     private string m_NewColumnName = string.Empty;
+    private List<CardSectionDto> m_CardSections = [];
+    private string m_NewSectionName = string.Empty;
     private long? m_DeletingStateID;
     private long m_MoveCardsToStateID;
 
@@ -94,7 +101,7 @@ public partial class BoardSettingsModal
         this.m_NewTagName = string.Empty;
         this.m_NewTagColour = DefaultTagColour;
 
-        await Task.WhenAll(this.LoadStatesAsync(), this.LoadTagsAsync());
+        await Task.WhenAll(this.LoadStatesAsync(), this.LoadTagsAsync(), this.LoadCardSectionsAsync());
     }
 
     private async Task LoadStatesAsync()
@@ -262,7 +269,127 @@ public partial class BoardSettingsModal
     /// The modal shows one tab's add field at a time, so Enter means whichever one is on screen.
     /// </summary>
     private Task SubmitActiveTabAsync()
-        => this.m_Tab == "columns" ? this.AddColumnAsync() : this.AddTagAsync();
+        => this.m_Tab switch
+        {
+            "columns" => this.AddColumnAsync(),
+            "sections" => this.AddSectionAsync(),
+            _ => this.AddTagAsync()
+        };
+
+    // Card sections
+
+    private async Task LoadCardSectionsAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetCardSectionsWebAppResponse>(
+            null!, ApiProvider.GetCardSections(),
+            e => this.ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+        if (_Result != null)
+            this.m_CardSections = [.. _Result.CardSections.OrderBy(s => s.Sequence)];
+    }
+
+    private async Task AddSectionAsync()
+    {
+        if (this.m_Saving || string.IsNullOrWhiteSpace(this.m_NewSectionName))
+            return;
+
+        this.m_Saving = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<CreateCardSectionWebAppRequest, CreateCardSectionWebAppResponse>(
+            new CreateCardSectionWebAppRequest() { Name = this.m_NewSectionName.Trim() },
+            ApiProvider.CreateCardSection(),
+            e => this.ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+        this.m_Saving = false;
+
+        if (_Result == null)
+            return;
+
+        this.m_NewSectionName = string.Empty;
+
+        await this.ReloadSectionsAndNotifyAsync();
+    }
+
+    private async Task RenameSectionAsync(CardSectionDto section, string? name)
+    {
+        var _Name = name?.Trim() ?? string.Empty;
+
+        if (this.m_Saving || _Name.Length == 0 || _Name == section.Name)
+            return;
+
+        this.m_Saving = true;
+
+        var _Saved = await this.SaveSectionAsync(section, new UpdateCardSectionWebAppRequest() { Name = new(_Name) });
+
+        this.m_Saving = false;
+
+        if (_Saved)
+            await this.ReloadSectionsAndNotifyAsync();
+    }
+
+    /// <summary>
+    /// The same two-call sequence swap the board uses for its columns.
+    /// </summary>
+    private async Task MoveSectionAsync(CardSectionDto section, int direction)
+    {
+        if (this.m_Saving)
+            return;
+
+        var _Index = this.m_CardSections.FindIndex(s => s.CardSectionID == section.CardSectionID);
+        var _TargetIndex = _Index + direction;
+
+        if (_Index < 0 || _TargetIndex < 0 || _TargetIndex >= this.m_CardSections.Count)
+            return;
+
+        var _Target = this.m_CardSections[_TargetIndex];
+        this.m_Saving = true;
+
+        var _Moved = await this.SaveSectionAsync(section, new UpdateCardSectionWebAppRequest() { Sequence = new(_Target.Sequence) });
+
+        if (_Moved)
+            _ = await this.SaveSectionAsync(_Target, new UpdateCardSectionWebAppRequest() { Sequence = new(section.Sequence) });
+
+        this.m_Saving = false;
+
+        if (_Moved)
+            await this.ReloadSectionsAndNotifyAsync();
+    }
+
+    private async Task<bool> SaveSectionAsync(CardSectionDto section, UpdateCardSectionWebAppRequest request)
+        => await this.ApiAccess.SendRequestAsync<UpdateCardSectionWebAppRequest, bool>(
+            request, ApiProvider.UpdateCardSection(section.CardSectionID),
+            e => this.ErrorHandler?.AddError(e),
+            this.CancellationToken) == true;
+
+    /// <summary>
+    /// Only ever offered for a section nothing is written under, so there is no "where should this
+    /// go" question to ask the way deleting a column has one.
+    /// </summary>
+    private async Task DeleteSectionAsync(CardSectionDto section)
+    {
+        if (this.m_Saving || section.CardCount > 0)
+            return;
+
+        this.m_Saving = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+            null!, ApiProvider.DeleteCardSection(section.CardSectionID),
+            e => this.ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+        this.m_Saving = false;
+
+        if (_Result == true)
+            await this.ReloadSectionsAndNotifyAsync();
+    }
+
+    private async Task ReloadSectionsAndNotifyAsync()
+    {
+        await this.LoadCardSectionsAsync();
+        await this.OnChanged.InvokeAsync();
+    }
 
     private async Task AddColumnAsync()
     {

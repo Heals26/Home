@@ -6,7 +6,7 @@ public class CreateActivityRegionApiRequest
     #region Properties
 
     public long ActivityID { get; set; }
-    public string Region { get; set; }
+    public long CardSectionID { get; set; }
 
     #endregion Properties
 

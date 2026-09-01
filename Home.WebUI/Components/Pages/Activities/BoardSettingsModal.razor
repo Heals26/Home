@@ -90,6 +90,59 @@
                 <HomeButton Loading="this.m_Saving" OnClick="this.AddColumnAsync">Add</HomeButton>
             </div>
         }
+        else if (this.m_Tab == "sections")
+        {
+            <p class="text-sm text-ink-500 mb-3">The headings every card is written under. These used to be fixed — now they are yours.</p>
+
+            <div class="divide-y divide-ink-800 border-y border-ink-800">
+                @for (var _Index = 0; _Index < this.m_CardSections.Count; _Index++)
+                {
+                    var _Section = this.m_CardSections[_Index];
+                    var _SectionIndex = _Index;
+
+                    <div class="py-3 flex items-center gap-2">
+                        <input type="text"
+                               autocomplete="off"
+                               spellcheck="true"
+                               aria-label="Section heading"
+                               value="@_Section.Name"
+                               @onchange="e => this.RenameSectionAsync(_Section, e.Value?.ToString())"
+                               class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
+
+                        <HomeReorder Label="@_Section.Name"
+                                     CanMoveUp="@(!this.m_Saving && _SectionIndex > 0)"
+                                     CanMoveDown="@(!this.m_Saving && _SectionIndex < this.m_CardSections.Count - 1)"
+                                     OnMoveUp="() => this.MoveSectionAsync(_Section, -1)"
+                                     OnMoveDown="() => this.MoveSectionAsync(_Section, 1)" />
+
+                        @* A section still written on cards cannot be deleted — the writing would go
+                           with it and there is no undo. The count says why the button is off. *@
+                        <button type="button"
+                                class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-400 hover:text-red-400 hover:bg-ink-800 disabled:opacity-25 disabled:hover:text-ink-400 transition"
+                                title="@(_Section.CardCount > 0 ? $"Used on {_Section.CardCount} card(s)" : "Delete section")"
+                                aria-label="@($"Delete {_Section.Name}")"
+                                disabled="@(this.m_Saving || _Section.CardCount > 0)"
+                                @onclick="() => this.DeleteSectionAsync(_Section)">
+                            <span class="home-icon home-icon-trash h-5 w-5 inline-block"></span>
+                        </button>
+                    </div>
+                }
+            </div>
+
+            @if (this.m_CardSections.Count == 0)
+            {
+                <p class="text-sm text-ink-600 py-4">No sections yet — a card will just have its title.</p>
+            }
+
+            <div class="flex items-end gap-2 mt-4">
+                <HomeTextInput Class="flex-1"
+                               Label="New section"
+                               AutoComplete="off"
+                               Placeholder="e.g. What to bring"
+                               @bind-Value="this.m_NewSectionName" />
+                <HomeButton Loading="this.m_Saving" OnClick="this.AddSectionAsync">Add</HomeButton>
+            </div>
+        }
         else
         {
             <p class="text-sm text-ink-500 mb-3">Labels colour a card so you can tell at a glance what sort of thing it is.</p>

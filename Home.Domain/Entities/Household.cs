@@ -28,6 +28,7 @@ public class Household
 
     public ICollection<Activity> Activities { get; set; } = [];
     public ICollection<ActivityState> ActivityStates { get; set; } = [];
+    public ICollection<CardSection> CardSections { get; set; } = [];
     public ICollection<LightLocation> LightLocations { get; set; } = [];
     public ICollection<LightScene> LightScenes { get; set; } = [];
     public ICollection<MealSlot> MealSlots { get; set; } = [];

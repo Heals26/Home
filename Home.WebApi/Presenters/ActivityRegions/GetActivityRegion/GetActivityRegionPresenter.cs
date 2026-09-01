@@ -17,7 +17,8 @@ public class GetActivityRegionPresenter(IMapper mapper)
         => this.OkAsync(new GetActivityRegionApiResponse()
         {
             ActivityRegionID = activityRegion.ActivityRegionID,
-            Region = activityRegion.Region?.Name,
+            CardSectionID = activityRegion.CardSection.CardSectionID,
+            CardSectionName = activityRegion.CardSection.Name,
             Sequence = activityRegion.Sequence,
             Fields = [.. activityRegion.Fields.OrderBy(f => f.Sequence).Select(f => new ActivityContentDto()
             {

@@ -35,7 +35,8 @@ public class GetActivityPresenter(IMapper mapper)
             Regions = [.. activity.Regions.OrderBy(r => r.Sequence).Select(r => new ActivityRegionDto()
             {
                 ActivityRegionID = r.ActivityRegionID,
-                Region = r.Region?.Name,
+                CardSectionID = r.CardSection.CardSectionID,
+                CardSectionName = r.CardSection.Name,
                 Sequence = r.Sequence,
                 Fields = [.. r.Fields.OrderBy(f => f.Sequence).Select(f => new ActivityContentDto()
                 {

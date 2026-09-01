@@ -99,7 +99,7 @@ namespace Home.Persistence.Migrations
                     b.Property<long>("ActivityID")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Region")
+                    b.Property<long>("CardSectionID")
                         .HasColumnType("bigint");
 
                     b.Property<int>("Sequence")
@@ -108,6 +108,8 @@ namespace Home.Persistence.Migrations
                     b.HasKey("ActivityRegionID");
 
                     b.HasIndex("ActivityID");
+
+                    b.HasIndex("CardSectionID");
 
                     b.ToTable("ActivityRegion", "home");
                 });
@@ -282,6 +284,32 @@ namespace Home.Persistence.Migrations
                         .HasDatabaseName("IX_Audit_Entity_EntityID");
 
                     b.ToTable("Audit", "home");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CardSection", b =>
+                {
+                    b.Property<long>("CardSectionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CardSectionID"));
+
+                    b.Property<long>("HouseholdID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.HasKey("CardSectionID");
+
+                    b.HasIndex("HouseholdID");
+
+                    b.ToTable("CardSection", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.ClientApplication", b =>
@@ -1130,7 +1158,16 @@ namespace Home.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_ActivityRegion_Activity");
 
+                    b.HasOne("Home.Domain.Entities.CardSection", "CardSection")
+                        .WithMany("Regions")
+                        .HasForeignKey("CardSectionID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_ActivityRegion_CardSection");
+
                     b.Navigation("Activity");
+
+                    b.Navigation("CardSection");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.ActivityState", b =>
@@ -1206,6 +1243,18 @@ namespace Home.Persistence.Migrations
                         .HasConstraintName("FK_Audit_User");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CardSection", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany("CardSections")
+                        .HasForeignKey("HouseholdID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CardSection_Household");
+
+                    b.Navigation("Household");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.IngredientNote", b =>
@@ -1524,11 +1573,18 @@ namespace Home.Persistence.Migrations
                     b.Navigation("Activities");
                 });
 
+            modelBuilder.Entity("Home.Domain.Entities.CardSection", b =>
+                {
+                    b.Navigation("Regions");
+                });
+
             modelBuilder.Entity("Home.Domain.Entities.Household", b =>
                 {
                     b.Navigation("Activities");
 
                     b.Navigation("ActivityStates");
+
+                    b.Navigation("CardSections");
 
                     b.Navigation("LightLocations");
 

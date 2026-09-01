@@ -18,7 +18,8 @@ public class GetActivityRegionsPresenter(IMapper mapper)
             Regions = [.. activityRegions.OrderBy(r => r.Sequence).Select(r => new GetActivityRegionDto()
             {
                 ActivityRegionID = r.ActivityRegionID,
-                Region = r.Region?.Name,
+                CardSectionID = r.CardSection.CardSectionID,
+                CardSectionName = r.CardSection.Name,
                 Sequence = r.Sequence
             })]
         }, cancellationToken);

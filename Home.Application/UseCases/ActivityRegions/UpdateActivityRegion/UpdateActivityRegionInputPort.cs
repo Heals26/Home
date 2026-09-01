@@ -5,6 +5,5 @@ namespace Home.Application.UseCases.ActivityRegions.UpdateActivityRegion;
 
 public record UpdateActivityRegionInputPort(
     long ActivityRegionID,
-    PropertyChangeTracker<string> Region,
     PropertyChangeTracker<int> Sequence)
     : IInputPort<IUpdateActivityRegionOutputPort>;

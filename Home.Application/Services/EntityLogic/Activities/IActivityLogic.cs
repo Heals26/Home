@@ -11,7 +11,10 @@ public interface IActivityLogic
 
     #region Methods
 
-    ActivityRegion AddRegion(CreateActivityRegionInputPort inputPort);
+    /// <summary>
+    /// Null when the section does not belong to the card's household.
+    /// </summary>
+    ActivityRegion? AddRegion(CreateActivityRegionInputPort inputPort);
     ActivityContent AddContent(CreateActivityContentInputPort inputPort);
 
     /// <summary>

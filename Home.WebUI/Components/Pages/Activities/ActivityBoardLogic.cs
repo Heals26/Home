@@ -67,27 +67,6 @@ public static class ActivityBoardLogic
     public static TimeSpan? ParseTime(string? value)
         => TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;
 
-    public static string RegionBlurb(string? region)
-        => region switch
-        {
-            "Description" => "The detail behind the title.",
-            "AcceptanceCriteria" => "The things that have to be true before this is finished.",
-            "Notes" => "Anything else worth remembering.",
-            _ => string.Empty
-        };
-
-    /// <summary>
-    /// The three groups are fixed by <c>RegionSE</c>; these are the same three in the words a
-    /// family would use.
-    /// </summary>
-    public static string RegionLabel(string? region)
-        => region switch
-        {
-            "Description" => "What needs doing",
-            "AcceptanceCriteria" => "How we'll know it's done",
-            "Notes" => "Notes",
-            _ => region ?? "Details"
-        };
 
     /// <summary>
     /// A label's colour is chosen by the family at runtime, so it can only ever go into an inline

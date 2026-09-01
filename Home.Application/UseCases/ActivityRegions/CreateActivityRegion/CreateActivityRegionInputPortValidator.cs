@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using Home.Application.Infrastructure.Validation;
-using Home.Domain.Enumerations;
 
 namespace Home.Application.UseCases.ActivityRegions.CreateActivityRegion;
 
@@ -11,16 +10,13 @@ public class CreateActivityRegionInputPortValidator : BaseValidator<CreateActivi
 
     public CreateActivityRegionInputPortValidator()
     {
-        var _RegionNames = BaseEnumeration.GetAll<RegionSE>().Select(r => r.Name).ToList();
-
         _ = this.RuleFor(r => r.ActivityID)
             .GreaterThan(0);
 
-        // The conversion to RegionSE throws on an unrecognised name, so it has to be caught here.
-        _ = this.RuleFor(r => r.Region)
-            .NotEmpty()
-            .Must(r => _RegionNames.Contains(r))
-            .WithMessage($"Region must be one of: {string.Join(", ", _RegionNames)}.");
+        // Which sections exist is a household question now, not a fixed list, so it is answered by
+        // the interactor against that household rather than by a rule here.
+        _ = this.RuleFor(r => r.CardSectionID)
+            .GreaterThan(0);
     }
 
     #endregion Constructors

@@ -17,7 +17,8 @@ public class GetActivityRegionDto
     #region Properties
 
     public long ActivityRegionID { get; set; }
-    public string Region { get; set; }
+    public long CardSectionID { get; set; }
+    public string CardSectionName { get; set; }
     public int Sequence { get; set; }
 
     #endregion Properties

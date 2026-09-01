@@ -1,6 +1,5 @@
 ﻿using Home.Domain;
 using Home.Domain.Entities;
-using Home.Domain.Enumerations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -17,13 +16,18 @@ public class ActivityRegionConfiguration : IEntityTypeConfiguration<ActivityRegi
         _ = entity.Property(e => e.ActivityRegionID)
             .ValueGeneratedOnAdd();
 
-        _ = entity.Property(e => e.Region)
-            .IsRequired()
-            .HasConversion(
-                v => v.Value,
-                v => (RegionSE)v);
-
         _ = entity.Property(e => e.Sequence)
+            .IsRequired();
+
+        // NoAction rather than Cascade: the household already reaches a card's sections through
+        // the activity, and SQL Server rejects a second cascade path into the same table. Deleting
+        // a section the household still uses is refused, which is also what a family wants.
+        _ = entity.Property<long>("CardSectionID");
+        _ = entity.HasOne(e => e.CardSection)
+            .WithMany(e => e.Regions)
+            .HasForeignKey("CardSectionID")
+            .HasConstraintName("FK_ActivityRegion_CardSection")
+            .OnDelete(DeleteBehavior.NoAction)
             .IsRequired();
 
         _ = entity.Property<long>("ActivityID");
