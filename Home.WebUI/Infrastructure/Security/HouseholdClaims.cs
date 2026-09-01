@@ -26,6 +26,16 @@ public static class HouseholdClaims
     public static string? GetRefreshToken(ClaimsPrincipal? principal)
         => principal?.FindFirst(RefreshToken)?.Value;
 
+    /// <summary>
+    /// Who is signed in on this device. Null when the claim is missing or unreadable, which the
+    /// caller must treat as "not this member" rather than as any particular member — a screen that
+    /// guessed would let someone edit or remove the wrong person.
+    /// </summary>
+    public static long? GetUserID(ClaimsPrincipal? principal)
+        => long.TryParse(principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var _UserID)
+            ? _UserID
+            : null;
+
     #endregion Methods
 
 }

@@ -4,9 +4,13 @@ using Home.WebUI.DataAccess.Households.UpdateHouseholdSettings;
 using Home.WebUI.DataAccess.Users.CreateUser;
 using Home.WebUI.DataAccess.Users.GetUsers;
 using Home.WebUI.DataAccess.Users.Models;
+using Home.WebUI.DataAccess.Users.UpdateUser;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
+using Home.WebUI.Infrastructure.Security;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Home.WebUI.Components.Pages.Settings;
 
@@ -45,12 +49,41 @@ public partial class SettingsPage : IDisposable
     private string m_MemberPassword = string.Empty;
     private bool m_AddingMember;
 
+    // Editing a member
+    private bool m_ShowEditMember;
+    private long? m_EditingUserID;
+    private bool m_EditingSelf;
+    private bool m_SavingMember;
+    private bool m_RemovingMember;
+
+    /// <summary>
+    /// Who is signed in on this device, read once from the cookie's claims. Null when the claim
+    /// cannot be read, which only costs the "You" badge and the guard against self-removal — both
+    /// fail closed, so an unknown member is never treated as this one.
+    /// </summary>
+    private long? m_SignedInUserID;
+
+    // Changing your own password
+    private bool m_ShowChangePassword;
+    private string m_NewPassword = string.Empty;
+    private string m_ConfirmPassword = string.Empty;
+    private bool m_ChangingPassword;
+
     #endregion Fields
+
+    #region Properties
+
+    [CascadingParameter] public Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    #endregion Properties
 
     #region Lifecycle Methods
 
     protected override async Task OnInitializedAsync()
     {
+        if (this.AuthenticationState != null)
+            this.m_SignedInUserID = HouseholdClaims.GetUserID((await this.AuthenticationState).User);
+
         await Task.WhenAll(this.LoadSettingsAsync(), this.LoadUsersAsync());
 
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
@@ -238,6 +271,128 @@ public partial class SettingsPage : IDisposable
             && !string.IsNullOrWhiteSpace(this.m_MemberLastName)
             && !string.IsNullOrWhiteSpace(this.m_MemberEmail)
             && !string.IsNullOrWhiteSpace(this.m_MemberPassword);
+
+    private bool IsSignedInMember(UserSummaryDto user)
+        => this.m_SignedInUserID != null && user.UserID == this.m_SignedInUserID;
+
+    private void OpenEditMemberModal(UserSummaryDto user)
+    {
+        this.m_EditingUserID = user.UserID;
+        this.m_EditingSelf = this.IsSignedInMember(user);
+        this.m_MemberFirstName = user.FirstName;
+        this.m_MemberLastName = user.LastName;
+        this.m_MemberEmail = user.Email;
+        this.m_ShowEditMember = true;
+    }
+
+    private bool CanSaveMember()
+        => !string.IsNullOrWhiteSpace(this.m_MemberFirstName)
+            && !string.IsNullOrWhiteSpace(this.m_MemberLastName)
+            && !string.IsNullOrWhiteSpace(this.m_MemberEmail);
+
+    /// <summary>
+    /// The password tracker is deliberately left unset — this form does not carry one, and a
+    /// tracker that arrived "set" to empty would blank the member's password.
+    /// </summary>
+    private async Task SaveMemberAsync()
+    {
+        if (this.m_SavingMember || !this.m_EditingUserID.HasValue || !this.CanSaveMember())
+            return;
+
+        this.m_SavingMember = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<UpdateUserWebAppRequest, bool>(
+            new UpdateUserWebAppRequest()
+            {
+                Email = new(this.m_MemberEmail.Trim()),
+                FirstName = new(this.m_MemberFirstName.Trim()),
+                LastName = new(this.m_MemberLastName.Trim())
+            },
+            ApiProvider.UpdateUser(this.m_EditingUserID.Value),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_SavingMember = false;
+
+        if (_Result != true)
+            return;
+
+        this.m_ShowEditMember = false;
+
+        await this.LoadUsersAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Users, this.m_CancellationTokenHandler.Token);
+    }
+
+    /// <summary>
+    /// History outlives the person: <c>Audit → User</c> is SetNull and <c>Audit.UserName</c> is
+    /// denormalised onto the row, so removing a member keeps what they did (15 Aug).
+    /// </summary>
+    private async Task RemoveMemberAsync()
+    {
+        if (this.m_RemovingMember || !this.m_EditingUserID.HasValue || this.m_EditingSelf)
+            return;
+
+        this.m_RemovingMember = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+            null!, ApiProvider.DeleteUser(this.m_EditingUserID.Value),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_RemovingMember = false;
+
+        if (_Result != true)
+            return;
+
+        this.m_ShowEditMember = false;
+
+        await this.LoadUsersAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.Users, this.m_CancellationTokenHandler.Token);
+    }
+
+    private void OpenChangePasswordModal()
+    {
+        this.m_NewPassword = string.Empty;
+        this.m_ConfirmPassword = string.Empty;
+        this.m_ShowChangePassword = true;
+    }
+
+    /// <summary>
+    /// Said out loud rather than left to a disabled button with no explanation — a control that
+    /// does nothing and says nothing is the frustration this product exists to avoid.
+    /// <para>
+    /// Only the confirmation is checked. There is deliberately no length or complexity rule here:
+    /// the API asks for a non-empty password and nothing more, and a rule invented on this side
+    /// would reject passwords the household already signs in with.
+    /// </para>
+    /// </summary>
+    private string PasswordProblem()
+        => this.m_ConfirmPassword.Length > 0 && this.m_ConfirmPassword != this.m_NewPassword
+            ? "Those two don't match."
+            : string.Empty;
+
+    private async Task ChangePasswordAsync()
+    {
+        if (this.m_ChangingPassword || this.m_SignedInUserID == null || this.PasswordProblem().Length > 0 || this.m_NewPassword.Length == 0)
+            return;
+
+        this.m_ChangingPassword = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<UpdateUserWebAppRequest, bool>(
+            new UpdateUserWebAppRequest() { Password = new(this.m_NewPassword) },
+            ApiProvider.UpdateUser(this.m_SignedInUserID.Value),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_ChangingPassword = false;
+
+        if (_Result != true)
+            return;
+
+        this.m_NewPassword = string.Empty;
+        this.m_ConfirmPassword = string.Empty;
+        this.m_ShowChangePassword = false;
+    }
 
     private static string Initials(string name)
     {

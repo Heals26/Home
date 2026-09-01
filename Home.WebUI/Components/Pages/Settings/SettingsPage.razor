@@ -40,16 +40,25 @@
                             }
                             else
                             {
-                                <div class="divide-y divide-ink-800">
+                                @* Tap the person to edit them, the same rule the recipe and shopping
+                                   rows follow. *@
+                                <div class="divide-y divide-ink-800 -mx-5">
                                     @foreach (var _User in this.m_Users)
                                     {
-                                        <div class="flex items-center gap-3 py-2.5">
+                                        <button type="button"
+                                                class="w-full flex items-center gap-3 px-5 py-2.5 min-h-[56px] text-left hover:bg-ink-800/50 active:bg-ink-800 transition-colors"
+                                                aria-label="@($"Edit {_User.FullName}")"
+                                                @onclick="() => this.OpenEditMemberModal(_User)">
                                             <span class="h-9 w-9 shrink-0 rounded-full bg-ink-800 text-ink-300 text-xs font-semibold flex items-center justify-center">@Initials(_User.FullName)</span>
                                             <div class="min-w-0 flex-1">
                                                 <p class="text-sm font-medium text-ink-50 truncate">@_User.FullName</p>
                                                 <p class="text-xs text-ink-500 truncate">@_User.Email</p>
                                             </div>
-                                        </div>
+                                            @if (this.IsSignedInMember(_User))
+                                            {
+                                                <span class="shrink-0 rounded-full border border-ink-700 px-2.5 py-0.5 text-xs text-ink-400">You</span>
+                                            }
+                                        </button>
                                     }
                                 </div>
                                 <div class="flex justify-end">
@@ -148,9 +157,15 @@
 
                 <HomeCard Title="Account">
                     <ChildContent>
-                        <div class="flex items-center justify-between gap-3">
-                            <p class="text-sm text-ink-400">Signing out returns this tablet to the login screen.</p>
-                            <HomeButton Variant="secondary" OnClick="this.SignOut">Sign out</HomeButton>
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-sm text-ink-400">Change the password you sign in with.</p>
+                                <HomeButton Variant="secondary" OnClick="this.OpenChangePasswordModal">Change password</HomeButton>
+                            </div>
+                            <div class="flex items-center justify-between gap-3 border-t border-ink-800 pt-4">
+                                <p class="text-sm text-ink-400">Signing out returns this tablet to the login screen.</p>
+                                <HomeButton Variant="secondary" OnClick="this.SignOut">Sign out</HomeButton>
+                            </div>
                         </div>
                     </ChildContent>
                 </HomeCard>
@@ -159,6 +174,80 @@
         }
     </div>
 </div>
+
+@* Edit-member modal. Removing lives in here rather than on the row, and is refused for whoever is
+   signed in — locking yourself out of your own household is not an undoable mistake. *@
+<HomeModal @bind-Visible="this.m_ShowEditMember" Title="Edit member" OnSubmit="this.SaveMemberAsync">
+    <ChildContent>
+        <div class="flex flex-col gap-4">
+            <div class="grid grid-cols-2 gap-3">
+                <HomeTextInput Label="First name"
+                               Name="given-name"
+                               AutoComplete="off"
+                               @bind-Value="this.m_MemberFirstName" />
+                <HomeTextInput Label="Last name"
+                               Name="family-name"
+                               AutoComplete="off"
+                               @bind-Value="this.m_MemberLastName" />
+            </div>
+            <HomeTextInput Label="Email"
+                           Type="email"
+                           Name="email"
+                           AutoComplete="off"
+                           @bind-Value="this.m_MemberEmail" />
+            <div class="flex items-center gap-3">
+                @if (!this.m_EditingSelf)
+                {
+                    <HomeButton Variant="ghost"
+                                Class="text-red-400 hover:text-red-300 hover:bg-red-950/40"
+                                Loading="this.m_RemovingMember"
+                                OnClick="this.RemoveMemberAsync">
+                        <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>
+                        Remove
+                    </HomeButton>
+                }
+                <div class="flex-1"></div>
+                <HomeButton Variant="ghost" OnClick="() => this.m_ShowEditMember = false">Cancel</HomeButton>
+                <HomeButton Loading="this.m_SavingMember"
+                            Disabled="@(!this.CanSaveMember())"
+                            OnClick="this.SaveMemberAsync">Save</HomeButton>
+            </div>
+            @if (this.m_EditingSelf)
+            {
+                <p class="text-xs text-ink-500">This is you. Change your own password from the Account card below.</p>
+            }
+        </div>
+    </ChildContent>
+</HomeModal>
+
+@* Change-password modal *@
+<HomeModal @bind-Visible="this.m_ShowChangePassword" Title="Change your password" OnSubmit="this.ChangePasswordAsync">
+    <ChildContent>
+        <div class="flex flex-col gap-4">
+            <HomePasswordInput Label="New password"
+                               Name="new-password"
+                               AutoComplete="new-password"
+                               @bind-Value="this.m_NewPassword" />
+            <HomePasswordInput Label="Confirm new password"
+                               Name="new-password"
+                               AutoComplete="new-password"
+                               @bind-Value="this.m_ConfirmPassword" />
+            @if (this.PasswordProblem() is { Length: > 0 } _Problem)
+            {
+                <p class="text-sm text-red-400">@_Problem</p>
+            }
+            <p class="text-xs text-ink-500">
+                Other devices stay signed in — changing the password does not end sessions that are already running.
+            </p>
+            <div class="flex justify-end gap-3">
+                <HomeButton Variant="ghost" OnClick="() => this.m_ShowChangePassword = false">Cancel</HomeButton>
+                <HomeButton Loading="this.m_ChangingPassword"
+                            Disabled="@(this.PasswordProblem().Length > 0 || this.m_NewPassword.Length == 0 || this.m_ConfirmPassword.Length == 0)"
+                            OnClick="this.ChangePasswordAsync">Change password</HomeButton>
+            </div>
+        </div>
+    </ChildContent>
+</HomeModal>
 
 @* Add-member modal *@
 <HomeModal @bind-Visible="this.m_ShowAddMember" Title="Add a member" OnSubmit="this.AddMemberAsync">
