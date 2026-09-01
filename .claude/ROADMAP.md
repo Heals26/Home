@@ -152,23 +152,41 @@ Naturally follows B1, which answers "who is this device".
 
 Not features, but they set the ceiling on everything above.
 
-- **C1 · Widen the test net — L.** Tests are one slice deep: Recipes and Lights interactors plus
-  the parser and mapper guards. Activities, Shopping Lists, Users, OAuth and *all* of
-  `Services/EntityLogic` are untested, as is every presenter and component. The session rework and
-  the photo pipeline were both verified by hand against a live browser — that doesn't scale.
-- **C2 · Drop the superseded columns — S.** `Ingredient` and `ShoppingListItem` both still carry
-  `Quantity`/`Volume`/`Weight` behind `Amount`/`Unit`, kept "until the move is proven" (15 Aug).
-  Prove it, then drop six columns and the fallback branches that read them.
-- **C3 · Nullable and the warning backlog — L.** ~145 warnings, ~115 of them `CS8618`, and
-  `Home.WebApi` alone has `<Nullable>disable</Nullable>` while every other project enables it.
-- **C4 · Refresh `known-gaps.md` — S.** It's stale in ways that could misdirect a decision: it
-  claims `Light`, `LightGroup` and `LightLocation` "are dead tables" (they've been live since the
-  14 Aug sync work), and its per-migration cleanup instruction was made obsolete by the 20 Aug
-  column-default fix. The `HomeButton` finding it flags *is* still real — `@attributes` splats
-  after `class`, so a caller passing `class` silently wipes the button's styling.
+*Every number here was measured on 1 Sep 2026 against commit `841af10` — clean rebuild, full test
+run, and queries against the live database. Re-measure before trusting them again.*
+
+- **C1 · Widen the test net — L.** **109 tests.** Broader than this list used to claim: Recipes,
+  Lights, LightGroups, Households, MealPlanEntries, OAuth and one ShoppingLists interactor are
+  covered, along with the text parser, the sun calculator, the tracker's JSON converter, and guards
+  pinning the AutoMapper configuration and the three measurement-unit lists. Still untested:
+  **Activities, ActivityContents, ActivityRegions, ActivityStates, Announcements, IngredientNotes,
+  MealSlots, Notes, RecipeImages, RecipeIngredients, RecipeNotes, RecipeSteps, ShoppingListItems,
+  Tags, Users, Weather**, all of `Services/EntityLogic`, and every presenter and component. The two
+  slices added on 31 Aug went in untested and are both household-scoped reads — the exact category
+  the 14 Aug isolation sweep says to pin.
+- **C2 · Drop the superseded columns — S, and nearly free.** Measured: `ShoppingListItem` has
+  **0 of 37 rows** using `Quantity`/`Volume`/`Weight`. `Ingredient` has **1 of 23** — a single row
+  ("ham", Quantity 1). Migrate that one row to `Amount`, then drop six columns and the fallback
+  branches in `RecipeDisplayLogic` and `ShoppingListItemLogic`. The move is proven; this is now
+  smaller than it looks.
+- **C3 · Nullable — L, and it is *not* a warning backlog.** A clean build emits **1 warning**, not
+  ~145. That is not progress: `Home.WebApi` sets `<Nullable>disable</Nullable>` while every other
+  project enables it, and the API models and controllers are where the `CS8618`s lived. They are
+  suppressed, not fixed. The job is turning nullable *on* there and absorbing what comes back in
+  one go.
+- **C4 · Refresh `known-gaps.md` — done 1 Sep 2026.** Rewritten against measured reality, with a
+  "corrections to what this file used to say" section kept deliberately, because three of its claims
+  had actively misdirected work: it said there were zero `.razor.cs` files (there are 49, against 52
+  `.razor`, with no inline `@code` left anywhere), that `[EditorRequired]` was never used (4 uses),
+  and that the Light tables were dead (live since 14 Aug). It gained one new landmine: **`dotnet ef
+  database update` silently targets LocalDB**, because the design-time factory outranks the startup
+  project — that cost a wrong-database migration on 31 Aug. The `HomeButton` finding it flags is
+  still real and still open.
 - **C5 · Configuration and first-run — M.** No `appsettings.json` at all; three secrets live in
   user secrets and only `apiBaseUrl` is validated at startup. A misconfigured deploy currently
-  fails at the point of use.
+  fails at the point of use. **Also: `CLAUDE.md` documents `apiBaseUrl` wrongly** as
+  `http://localhost:57175/api/` — `ApiProvider` already prefixes `api`, so that value yields
+  `…/api/api/Recipes`. A fresh clone following the docs breaks on every call.
 
 ---
 
@@ -178,4 +196,5 @@ Not features, but they set the ceiling on everything above.
 finished", and none needs a decision.
 **Next:** A4 with B5 (both are ordering), then A6 and A7 together (both are the board's vocabulary).
 **Then:** the B1 decision, because B10 and half of B2's value depend on knowing who's using it.
-**Alongside:** C4 immediately (it's stale documentation actively misinforming), C1 continuously.
+**Alongside:** C1 continuously. *(C4 was done on 1 Sep — the numbers in Track C above are measured
+rather than remembered, and `known-gaps.md` now records when it was last checked.)*

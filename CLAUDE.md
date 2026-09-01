@@ -52,11 +52,13 @@ dotnet ef database update --project Home.Persistence --context PersistenceContex
 ### 3. Give the WebUI the API's address
 
 ```bash
-dotnet user-secrets set "apiBaseUrl" "http://localhost:57175/api/" --project Home.WebUI
+dotnet user-secrets set "apiBaseUrl" "http://localhost:57175" --project Home.WebUI
 ```
 
 Startup throws `InvalidOperationException: API base URL is not configured.` without it. The value
-must be an absolute URI and should end in a trailing slash.
+must be an absolute URI and must be **the origin only, with no path** — `ApiProvider` already
+prefixes every route with `api`, so a base ending in `/api/` produces `…/api/api/Recipes` and every
+call 404s.
 
 ### Optional: a LIFX token for the Lights page
 

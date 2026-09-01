@@ -7,75 +7,107 @@ the `anthropic-skills` plugin at `code-review/references/csharp-blazor-style.md`
 Neither list is a licence to refactor. Fix an item when it is the task, or when you are already
 editing that exact code and the fix is a line or two. Otherwise mention it and move on.
 
-Last verified: 12 August 2026, against commit `30da990`.
+**Last verified: 1 September 2026**, against commit `841af10`, by rebuilding clean, running the
+suite, and querying the live database. Every count below was measured, not remembered — if you are
+reading this more than a month later, re-measure before trusting a number.
 
 ---
 
 ## Part 1 — What the repo doesn't do
 
-### Test coverage is one slice deep
+### Test coverage is thin, but no longer one slice deep
 
-`Home.Application.Tests` exists (xUnit + Moq + FluentAssertions) and covers the Recipes and Lights
-interactors — 19 tests. Everything else in `Home.Application` is untested: Activities, Shopping
-Lists, Users, OAuth, and all of the `EntityLogic` services. There are no tests at all for
-`Home.WebApi` presenters or `Home.WebUI` components.
+`Home.Application.Tests` (xUnit + Moq + FluentAssertions, pinned to 7.x) runs **109 tests**. What is
+actually covered:
+
+| Covered | |
+|---|---|
+| Interactors | Recipes (Create, Get, Import), Lights (Get, SetState, StartEffect, SyncLights), LightGroups (management, SetState), Households (GetSetupStatus, RegisterHousehold), MealPlanEntries (Create), ShoppingLists (AddMealPlanToShoppingList), OAuth (CreateRefreshGrant) |
+| Pure logic | `ShoppingListItemLogic` (the text parser), `SunCalculator`, `PropertyChangeTracker`'s JSON converter |
+| Guards | The whole AutoMapper configuration, and the three measurement-unit lists pinned to each other |
+
+Everything else has no tests: **Activities, ActivityContents, ActivityRegions, ActivityStates,
+Announcements, IngredientNotes, MealSlots, Notes, RecipeImages, RecipeIngredients, RecipeNotes,
+RecipeSteps, ShoppingListItems, Tags, Users and Weather**, plus all of `Services/EntityLogic`. There
+are still no tests for `Home.WebApi` presenters or `Home.WebUI` components.
+
+The two newest slices — `GetIngredientSuggestions` and `SetRecipeIngredientSequence` — went in
+untested on 31 Aug. Both are household-scoped reads, which is exactly the category the 14 Aug
+isolation sweep says to pin.
 
 The pattern to copy is in `Infrastructure/TestServiceFactory.cs`: interactors have no constructor,
 so the `ServiceFactory` delegate is the only seam.
 
-### 145 compiler warnings
+### The warning count is 1 — because `Home.WebApi` opts out of nullable
 
-A clean `dotnet build` produces 145 warnings, 0 errors. Effectively all of them are nullable
-reference warnings:
+This corrects a long-standing claim here of "145 warnings, ~115 of them `CS8618`". A clean build of
+the whole solution now emits **one** warning: a `CS8625` in `CreateRecipeInteractorTests.cs`.
 
-| Code | ~Count | Cause |
-|---|---|---|
-| `CS8618` | 115 | Non-nullable property never initialised — mostly domain entities and API models |
-| `CS8603` / `CS8601` / `CS8604` | 20 | Possible null return / assignment |
-| `CS8765` / `CS8767` | 4 | Nullability mismatch on an override or interface implementation |
-| `CS1998` | 2 | `async` with no `await` |
+Do not read that as the nullable backlog having been paid off. `Home.WebApi` still sets
+`<Nullable>disable</Nullable>` while every other project enables it, and the API models and
+controllers are where most of those `CS8618`s lived — they are suppressed, not fixed. Turning
+nullable on in `Home.WebApi` will bring a few hundred warnings back in one go, which is the real
+shape of that job. `CS1591` is also suppressed there, because `GenerateDocumentationFile` is on for
+Swagger rather than for documentation coverage.
 
-The practical rule: **don't introduce a new *category* of warning.** Clearing the CS8618 backlog
-means either `required` modifiers or nullable annotations across the entity layer — a real piece of
-work, not a drive-by.
+Files that need nullable-aware contracts inside `Home.WebApi` opt in with `#nullable enable` at the
+top — `Infrastructure/Lights/LifxLightService.cs` is the example.
 
-### `Home.WebApi` has nullable disabled
+### `dotnet ef database update` targets LocalDB, not the real database
 
-Every other project sets `<Nullable>enable</Nullable>`. `Home.WebApi` sets `disable`, and suppresses
-`CS1591` because `GenerateDocumentationFile` is on for Swagger rather than for documentation
-coverage. Files that need nullable-aware contracts opt in with a `#nullable enable` at the top —
-`Infrastructure/Lights/LifxLightService.cs` is the example.
+`PersistenceContextDesignTimeFactory` exists so migrations can be *added* while the API is running
+and holding its output folder locked. But EF prefers an `IDesignTimeDbContextFactory` to the startup
+project's service provider, so **`database update` comes through the factory too** and never reads
+`Home.WebApi`'s user secrets — it silently falls back to
+`Server=(localdb)\MSSQLLocalDB;Database=Home`.
 
-### The Light entities are now orphaned
+This bit on 31 Aug: a migration reported "Applying… Done" against a LocalDB copy while the real
+database was untouched. Set the connection string explicitly:
 
-`Light`, `LightGroup` and `LightLocation` have entities, EF configurations and migrations, and are
-referenced by nothing. The Lights feature proxies LIFX live rather than persisting topology, because
-LIFX already returns group and location with every bulb and is the source of truth for state.
+```bash
+HOME_DESIGNTIME_CONNECTIONSTRING="<the real one>" dotnet ef database update --project Home.Persistence --context PersistenceContext --startup-project Home.WebApi
+```
 
-They're harmless but they are dead tables. Either drop them in a migration, or use them for the
-thing the API can't give you — per-household display order, friendlier room names, favourites.
-That's a decision for Mitch, not a cleanup.
-
-### Model drift was resolved by `AddLightStateAndHouseholdScoping` — check before assuming
-
-`Activity.Household` had existed on the entity since around Sept 2025 without ever being migrated,
-along with duplicate `ActivityStateID` / `ActivityStatusID` shadow columns and a stale
-`ActivityContent` FK column name. The 12 Aug 2026 migration swept all of that up together with the
-Light changes, which was safe only because no database had any rows in it.
-
-The lesson worth keeping: **`Note.CreatedOnUTC` has a `defaultValue` that regenerates on every
-scaffold**, so every future migration will contain a spurious `AlterColumn` for it. Delete that
-operation before committing, or the noise compounds.
+The API also calls `Database.Migrate()` at startup, so a missed migration self-corrects the next
+time the API runs — which is exactly what makes the failure quiet.
 
 ### Configuration lives entirely outside the repo
 
 `Home.WebApi` has no `appsettings.json`. `databaseConnectionString`, `lifxApiToken` (API) and
-`apiBaseUrl` (WebUI) all come from user secrets. `CLAUDE.md` documents them; nothing validates them
-at startup beyond `apiBaseUrl`.
+`apiBaseUrl` (WebUI) all come from user secrets, and nothing validates them at startup beyond
+`apiBaseUrl`.
+
+Note that `CLAUDE.md` documents `apiBaseUrl` as `http://localhost:57175/api/`, which is **wrong**:
+`ApiProvider.GetBaseApiUrl()` already returns `"api"`, so that value produces `…/api/api/Recipes`.
+The base URL must be the origin only, with no path.
+
+### Sessions accumulate and are never cleaned up
+
+`UserAuthentication` had 24 rows for a single household on 1 Sept, one per sign-in, none ever
+removed. They are harmless — every one carries a 90-day expiry and rotation is off — but nothing
+prunes expired rows, and the table still carries the `SupersededByAuthenticationMetadataID` /
+`SupersededOnUTC` columns that died with the 19 Aug no-rotation decision.
 
 ### Minor inconsistency
 
 `CancellationTokenHandler` declares `#region Properties` twice, the first containing a field.
+
+---
+
+## Corrections to what this file used to say
+
+Kept deliberately, because three of these actively misdirected work:
+
+- **"Everything is inline `@code`; 0 `.razor.cs`."** Reversed. There are **49 code-behind partials
+  against 52 `.razor` files, and zero files with an inline `@code` block** — the 13 Aug decision was
+  carried all the way through. Home now *agrees* with the work style guide here.
+- **"`[EditorRequired]` is never used."** It is used **4 times** now, out of 199 `[Parameter]`
+  declarations. Still the exception rather than the rule.
+- **"`Light`, `LightGroup` and `LightLocation` are dead tables."** They have been live since the
+  14 Aug sync work — `LightStateSyncRunner` writes to them every five minutes. Do not drop them.
+- **"`Note.CreatedOnUTC` has a scaffold default, so delete the spurious `AlterColumn` from every
+  migration."** Fixed on 20 Aug by moving it to `HasDefaultValueSql("SYSUTCDATETIME()")`. Migrations
+  come out clean now; the 31 Aug one needed no hand-editing.
 
 ---
 
@@ -88,22 +120,22 @@ codebase. This list exists so the difference is a decision, not an accident.
 ### Where they already agree
 
 Australian English, file-scoped namespaces, `internal` infrastructure, expression bodies on the line
-below the signature, composition over inheritance in components, kebab-case CSS class names.
+below the signature, composition over inheritance in components, kebab-case CSS class names, and —
+since the 13 Aug decision was completed — **code-behind `.razor.cs` for component logic**.
 
 ### Where Home differs
 
-| Work rule | Home | Verified |
+| Work rule | Home | Verified 1 Sep |
 |---|---|---|
-| Required parameters get `[EditorRequired]` | Never used | 0 of 77 `[Parameter]` declarations |
+| Required parameters get `[EditorRequired]` | Used, but rarely | 4 of 199 `[Parameter]` declarations |
 | Don't use cascading parameters | Core to the cancellation pattern | 6 files |
-| Code-behind `.razor.cs` for non-trivial logic | Everything is inline `@code` | 0 `.razor.cs`; 27 of 30 `.razor` have `@code`; `RecipeDetailPage.razor` has a 402-line block |
 | Component styles in co-located `.razor.css` | Tailwind utilities inline | 1 `.razor.css` in the whole project |
 | Global CSS is theme tokens only | `input.css` also holds the icon system and component classes | `@layer components` |
 | Chained calls: every call on its own line | First call stays on the source line | `_PersistenceContext.GetEntities<Recipe>()` then `.Where(...)` indented |
 | Booleans set by name only, not `="true"` | Mixed — newer code uses name-only | `ShowBack="true"` ×3, `Propagation="true"`, `Default="true"` |
-| Splatted attributes filter `class`/`style` | `HomeButton` builds its own `class` *and* splats `@attributes` unfiltered | `@attributes` sits after `class=`, so a splatted `class` wins |
+| Splatted attributes filter `class`/`style` | `HomeButton` builds its own `class` *and* splats `@attributes` unfiltered | `@attributes` on line 10, after `class=` on line 7 |
 | Component parameters alphabetically ordered | Ordered by importance | `HomeButton`: `ChildContent`, `Variant`, `Size`, `Disabled`… |
-| `[Inject]` fields are private | No `[Inject]`; two services `@inject`-ed globally in `_Imports.razor` | Every component gets `ApiAccess` whether it needs it or not |
+| `[Inject]` fields are private | No `[Inject]`; four services `@inject`-ed globally in `_Imports.razor` | Every component gets `ApiAccess` whether it needs it or not |
 
 ### Conventions Home has that work doesn't
 
@@ -116,12 +148,13 @@ fluent calls.
 
 ### The one worth acting on
 
-`HomeButton` is the only entry above with teeth. Because `@attributes` is declared *after*
-`class="@this.GetClasses()"`, a caller who splats a `class` silently replaces the button's entire
-computed styling instead of adding to it — and `HomeButton` already has a `Class` parameter that does
-the right thing, so there are two ways in and one of them is wrong. No caller does this today, so it
-is latent rather than broken. Filtering `class` and `style` out of `AdditionalAttributes` closes it.
+`HomeButton` is the only entry above with teeth, and it is still open. Because `@attributes` is
+declared *after* `class="@this.GetClasses()"`, a caller who splats a `class` silently replaces the
+button's entire computed styling instead of adding to it — and `HomeButton` already has a `Class`
+parameter that does the right thing, so there are two ways in and one of them is wrong. No caller
+does this today, so it is latent rather than broken. Filtering `class` and `style` out of
+`AdditionalAttributes` closes it.
 
-The rest are style, and Home's answers are defensible. Tailwind-in-markup and inline `@code` in
-particular are not sloppiness — they are what you get from choosing Tailwind, and reversing them
-would mean unpicking the design system.
+The rest are style, and Home's answers are defensible. Tailwind-in-markup in particular is not
+sloppiness — it is what you get from choosing Tailwind, and reversing it would mean unpicking the
+design system.
