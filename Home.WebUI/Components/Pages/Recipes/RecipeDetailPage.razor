@@ -196,20 +196,20 @@
                             else
                             {
                                 <div class="flex flex-col gap-2 -mb-1">
+                                    @* Tap the note to fix it — the same rule as everywhere else. A note
+                                       is the thing people most often want to correct, and until now it
+                                       could only be deleted and rewritten. *@
                                     @foreach (var _Note in this.m_Recipe.Notes.OrderByDescending(n => n.CreatedOnUTC))
                                     {
-                                        <div class="flex items-start gap-3 bg-ink-800/50 rounded-lg px-4 py-3 group">
+                                        <button type="button"
+                                                class="w-full flex items-start gap-3 bg-ink-800/50 hover:bg-ink-800 active:bg-ink-700/60 transition-colors rounded-lg px-4 py-3 text-left"
+                                                aria-label="Edit note"
+                                                @onclick="() => this.OpenEditNoteModal(_Note)">
                                             <div class="flex-1 min-w-0">
                                                 <HomeMarkdown Content="@_Note.Content" />
                                                 <p class="text-xs text-ink-600 mt-1">@_Note.CreatedOnUTC.ToLocalTime().ToString("d MMM yyyy")</p>
                                             </div>
-                                            <button class="text-ink-600 hover:text-red-400 transition-colors shrink-0 p-2 min-h-[44px] min-w-[44px]"
-                                                    type="button" title="Remove"
-                                                    aria-label="Remove note"
-                                                    @onclick="() => this.RemoveNoteAsync(_Note.NoteID)">
-                                                <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
-                                            </button>
-                                        </div>
+                                        </button>
                                     }
                                 </div>
                             }
@@ -413,7 +413,7 @@
 </HomeModal>
 
 @* Note modal *@
-<HomeModal @bind-Visible="this.m_ShowNote" Title="Add note" OnSubmit="this.SaveNoteAsync">
+<HomeModal @bind-Visible="this.m_ShowNote" Title="@(this.m_EditingNoteID.HasValue ? "Edit note" : "Add note")" OnSubmit="this.SaveNoteAsync">
     <ChildContent>
         <div class="flex flex-col gap-1.5">
             <label for="recipe-note-content" class="text-sm font-medium text-ink-300">Note</label>
@@ -422,9 +422,24 @@
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
             <p class="text-xs text-ink-500">Markdown works here — **bold**, *italic*, - bullet lists.</p>
         </div>
-        <div class="mt-4 flex justify-end gap-3">
+        <div class="mt-4 flex items-center gap-3">
+            @if (this.m_EditingNoteID.HasValue)
+            {
+                <HomeButton Variant="ghost"
+                            Class="text-red-400 hover:text-red-300 hover:bg-red-950/40"
+                            OnClick="this.RemoveEditingNoteAsync">
+                    <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>
+                    Remove
+                </HomeButton>
+            }
+            <div class="flex-1"></div>
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowNote = false">Cancel</HomeButton>
-            <HomeButton Loading="this.m_Saving" OnClick="this.SaveNoteAsync">Add note</HomeButton>
+            <HomeButton Loading="this.m_Saving"
+                        Disabled="@string.IsNullOrWhiteSpace(this.m_NoteContent)"
+                        DisabledReason="Write something first."
+                        OnClick="this.SaveNoteAsync">
+                @(this.m_EditingNoteID.HasValue ? "Save" : "Add note")
+            </HomeButton>
         </div>
     </ChildContent>
 </HomeModal>

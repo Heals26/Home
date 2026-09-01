@@ -3,6 +3,7 @@ using Home.WebUI.Components.Pages.ShoppingList;
 using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
 using Home.WebUI.DataAccess.MealSlots.Models;
+using Home.WebUI.DataAccess.Notes.UpdateNote;
 using Home.WebUI.DataAccess.RecipeIngredients.AddRecipeIngredient;
 using Home.WebUI.DataAccess.RecipeIngredients.GetIngredientSuggestions;
 using Home.WebUI.DataAccess.RecipeIngredients.SetRecipeIngredientSequence;
@@ -92,6 +93,7 @@ public partial class RecipeDetailPage : IDisposable
 
     // Note
     private bool m_ShowNote;
+    private long? m_EditingNoteID;
     private string m_NoteContent = string.Empty;
 
     // Add to list
@@ -655,32 +657,73 @@ public partial class RecipeDetailPage : IDisposable
 
     private void OpenAddNoteModal()
     {
+        this.m_EditingNoteID = null;
         this.m_NoteContent = string.Empty;
         this.m_ShowNote = true;
     }
 
+    private void OpenEditNoteModal(RecipeNoteDto note)
+    {
+        this.m_EditingNoteID = note.NoteID;
+        this.m_NoteContent = note.Content;
+        this.m_ShowNote = true;
+    }
+
+    /// <summary>
+    /// One sheet for both, because writing a note and fixing one are the same act — the only
+    /// difference is which call it ends in.
+    /// </summary>
     private async Task SaveNoteAsync()
     {
-        if (this.m_Saving) return;
+        if (this.m_Saving || string.IsNullOrWhiteSpace(this.m_NoteContent)) return;
         this.m_Saving = true;
 
-        var _Request = new AddRecipeNoteWebAppRequest()
-        {
-            Content = this.m_NoteContent,
-            RecipeID = this.RecipeID
-        };
+        bool _Result;
 
-        var _Response = await this.ApiAccess.SendRequestAsync<AddRecipeNoteWebAppRequest, AddRecipeNoteWebAppResponse>(
-            _Request, ApiProvider.AddRecipeNote(),
-            e => this.m_ErrorHandler?.AddError(e),
-            this.m_CancellationTokenHandler.Token);
+        if (this.m_EditingNoteID.HasValue)
+        {
+            _Result = await this.ApiAccess.SendRequestAsync<UpdateNoteWebAppRequest, bool>(
+                new UpdateNoteWebAppRequest() { Content = new PropertyChangeTracker<string>(this.m_NoteContent) },
+                ApiProvider.UpdateNote(this.m_EditingNoteID.Value),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.m_CancellationTokenHandler.Token) == true;
+        }
+        else
+        {
+            var _Request = new AddRecipeNoteWebAppRequest()
+            {
+                Content = this.m_NoteContent,
+                RecipeID = this.RecipeID
+            };
+
+            _Result = await this.ApiAccess.SendRequestAsync<AddRecipeNoteWebAppRequest, AddRecipeNoteWebAppResponse>(
+                _Request, ApiProvider.AddRecipeNote(),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.m_CancellationTokenHandler.Token) != null;
+        }
 
         this.m_Saving = false;
 
-        if (_Response == null) return;
+        if (!_Result) return;
 
         this.m_ShowNote = false;
         await this.ReloadAndPublishAsync();
+    }
+
+    /// <summary>
+    /// Removing from inside the sheet closes it first, so the note it was opened from is gone by
+    /// the time the list comes back.
+    /// </summary>
+    private async Task RemoveEditingNoteAsync()
+    {
+        if (!this.m_EditingNoteID.HasValue)
+            return;
+
+        var _NoteID = this.m_EditingNoteID.Value;
+
+        this.m_ShowNote = false;
+
+        await this.RemoveNoteAsync(_NoteID);
     }
 
     private async Task RemoveNoteAsync(long noteID)
