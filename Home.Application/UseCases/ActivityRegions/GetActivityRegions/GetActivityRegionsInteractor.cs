@@ -30,6 +30,7 @@ internal class GetActivityRegionsInteractor : IInteractor<GetActivityRegionsInpu
                 Regions = a.Regions.Select(r => new
                 {
                     Region = r,
+                    r.CardSection,
                     r.Fields
                 })
             })

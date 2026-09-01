@@ -27,6 +27,7 @@ internal class GetActivityRegionInteractor : IInteractor<GetActivityRegionInputP
             .Select(r => new
             {
                 Region = r,
+                r.CardSection,
                 r.Fields
             })
             .SingleOrDefault()
