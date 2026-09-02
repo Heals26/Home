@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Home.Application.Tests.Infrastructure.Mapping;
 
@@ -16,19 +15,6 @@ public class MapperConfigurationTests
     #region Methods
 
     /// <summary>
-    /// Mirrors the registration in <c>Home.WebApi/Program.cs</c>; if an assembly is added there,
-    /// it belongs here too or its profiles go unchecked.
-    /// </summary>
-    private static MapperConfiguration BuildConfiguration()
-        => new(
-            cfg => cfg.AddMaps(
-                Application.AssemblyUtility.GetAssembly(),
-                Domain.AssemblyUtility.GetAssembly(),
-                Persistence.AssemblyUtility.GetAssembly(),
-                WebApi.AssemblyUtility.GetAssembly()),
-            NullLoggerFactory.Instance);
-
-    /// <summary>
     /// The message is captured rather than the exception allowed to escape: AutoMapper's
     /// configuration exception does not survive the test runner's serialisation, and a test that
     /// throws it disappears from the run instead of failing it.
@@ -37,7 +23,7 @@ public class MapperConfigurationTests
     {
         try
         {
-            BuildConfiguration().AssertConfigurationIsValid();
+            TestMapper.BuildConfiguration().AssertConfigurationIsValid();
             return null;
         }
         catch (Exception _Exception)

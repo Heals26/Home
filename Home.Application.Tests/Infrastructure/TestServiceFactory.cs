@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Microsoft.Extensions.Time.Testing;
 
 namespace Home.Application.Tests.Infrastructure;
@@ -11,7 +11,7 @@ namespace Home.Application.Tests.Infrastructure;
 /// fixed, controllable time without every test having to wire one up.
 /// </para>
 /// </summary>
-internal class TestServiceFactory
+public class TestServiceFactory
 {
 
     #region Constants
