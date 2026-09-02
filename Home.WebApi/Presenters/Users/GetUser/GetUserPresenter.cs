@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Home.WebApi.UseCases.Users.GetUser;
 using Home.Application.UseCases.Users.GetUser;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -11,10 +12,18 @@ public class GetUserPresenter(IMapper mapper) : OutputPortPresenter(mapper), IGe
     #region Methods
 
     Task IGetUserOutputPort.PresentUserAsync(User user, CancellationToken cancellationToken)
-        => this.OkAsync(user, cancellationToken);
+        => this.OkAsync(new GetUserApiResponse()
+        {
+            Email = user.Email,
+            FirstName = user.FirstName,
+            FullName = user.UserName,
+            LastName = user.LastName,
+            MiddleNames = user.MiddleNames,
+            UserID = user.UserID
+        }, cancellationToken);
 
     Task IGetUserOutputPort.PresentUserNotFoundAsync(long userID, CancellationToken cancellationToken)
-        => this.NotFoundAsync("User Not Found", cancellationToken);
+        => this.NotFoundAsync($"User {userID} Not Found", cancellationToken);
 
     #endregion Methods
 

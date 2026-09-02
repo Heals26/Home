@@ -58,7 +58,8 @@ public class UsersController : BaseController
 
     [Version1]
     [HttpGet("{userID}")]
-    [ProducesResponseType<GetUserApiRequest>(StatusCodes.Status200OK)]
+    [ProducesResponseType<GetUserApiResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUser(
         [FromServices] GetUserPresenter presenter,
         [FromRoute] long userID,
