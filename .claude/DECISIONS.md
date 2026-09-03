@@ -5,6 +5,56 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-03 — Read slices are tested against a real database and their real presenter
+
+Three screens have now shipped broken the same way: a presenter reads `x.Y.Z` and the interactor's
+projection never named `x.Y`, so EF hands back a null and the screen either throws or quietly
+answers zero. `GetShoppingList` (17 Aug, caught by the AutoMapper guard), the `CardCount` delete
+guard (1 Sep, caught by hand) and every activity card (1 Sep, caught by Mitch).
+
+**A mocked `IPersistenceContext` cannot catch this**, which is why the existing tests never did.
+`stored.AsQueryable()` hands the interactor an object graph that is already fully connected, so a
+projection that forgets a navigation still passes — nothing was ever unloaded. Tests over that mock
+prove the `Where` clause and nothing about what gets loaded.
+
+So `TestDatabase` builds a real `PersistenceContext` over the EF in-memory provider, seeding through
+one context and reading through another. The projection then decides what is loaded, exactly as in
+production. `InteractorTest` drives the **real presenter** rather than a mocked output port, because
+the fault only exists where the two meet — a mocked port reads nothing, so it can never dereference
+a null. Reverting any of the three fixes now fails the suite with the same `NullReferenceException`
+the family saw.
+
+Every one of the 24 read slices is covered, each with a neighbouring household seeded alongside so
+the isolation invariant (14 Aug) is pinned rather than assumed. The in-memory provider was chosen
+over SQLite because it ignores DDL entirely — the 12 Aug decision deleted the SQLite path precisely
+because the migrations are SQL Server-shaped, and that reasoning still holds; this is not a route
+back to it.
+
+Writes remain untested. That is the next tranche, not a decision against it.
+
+## 2026-09-03 — Adding a card section refuses cleanly instead of failing
+
+`ActivityLogic.AddRegion` returns null for a section belonging to another household — the guard
+that stops one family writing under another family's heading — and `CreateActivityRegionInteractor`
+added that null to the card's collection and then read an ID off it. The guard was a 500. It never
+fired in normal use, because the UI only ever offers the household's own sections, which is why it
+survived a manual test two days earlier; it was the solution's only production compiler warning
+(`CS8604`) all along. The port gained `PresentCardSectionNotFoundAsync` so it answers 404 like every
+other slice.
+
+Writing the test for it is also what established that the harness must resolve the signed-in
+household through the read context: `AddRegion` reads `Activity.Household` without projecting it and
+depends on the authorisation call having already tracked it. See `known-gaps.md`.
+
+## 2026-09-03 — A member lookup answers with a response model, not the entity
+
+`GetUserPresenter` passed the `User` entity to `OkAsync` whole, putting the stored password on the
+wire for any member who asked, and the interactor handed a null straight to the same method — so a
+member of another household got 200 with an empty body while `PresentUserNotFoundAsync` sat
+unreachable. Both were found by writing the tests for the slice, and both were fixed rather than
+pinned, because a test asserting the current behaviour would have cemented it. The endpoint is
+reachable only from the API; nothing in the WebUI calls it.
+
 ## 2026-09-01 — Card sections belong to the household, and the second board axis is gone
 
 Two decisions from the same complaint: the family board still spoke like a software ticket.

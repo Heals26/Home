@@ -155,15 +155,15 @@ Not features, but they set the ceiling on everything above.
 *Every number here was measured on 1 Sep 2026 against commit `841af10` — clean rebuild, full test
 run, and queries against the live database. Re-measure before trusting them again.*
 
-- **C1 · Widen the test net — L.** **109 tests.** Broader than this list used to claim: Recipes,
-  Lights, LightGroups, Households, MealPlanEntries, OAuth and one ShoppingLists interactor are
-  covered, along with the text parser, the sun calculator, the tracker's JSON converter, and guards
-  pinning the AutoMapper configuration and the three measurement-unit lists. Still untested:
-  **Activities, ActivityContents, ActivityRegions, ActivityStates, Announcements, IngredientNotes,
-  MealSlots, Notes, RecipeImages, RecipeIngredients, RecipeNotes, RecipeSteps, ShoppingListItems,
-  Tags, Users, Weather**, all of `Services/EntityLogic`, and every presenter and component. The two
-  slices added on 31 Aug went in untested and are both household-scoped reads — the exact category
-  the 14 Aug isolation sweep says to pin.
+- **C1 · Widen the test net — M, and half done.** **205 tests** (was 109 on 1 Sep). Every one of
+  the **32 read slices** is now covered, each driving its real presenter against a real database
+  with a neighbouring household seeded alongside, so both the projection contract and the 14 Aug
+  isolation invariant are pinned rather than assumed. Reverting any of the three shipped
+  missing-projection bugs now fails the suite. **What remains is writes**: roughly 60 Create /
+  Update / Delete / Set slices, the rest of `Services/EntityLogic`, and every `Home.WebUI`
+  component. Presenters are exercised, but only through the reads that drive them. The harness to
+  copy is `Infrastructure/InteractorTest.cs`; the trap it exists to catch is written up in
+  `known-gaps.md`.
 - **C2 · Drop the superseded columns — S, and nearly free.** Measured: `ShoppingListItem` has
   **0 of 37 rows** using `Quantity`/`Volume`/`Weight`. `Ingredient` has **1 of 23** — a single row
   ("ham", Quantity 1). Migrate that one row to `Amount`, then drop six columns and the fallback
@@ -196,5 +196,6 @@ run, and queries against the live database. Re-measure before trusting them agai
 finished", and none needs a decision.
 **Next:** A4 with B5 (both are ordering), then A6 and A7 together (both are the board's vocabulary).
 **Then:** the B1 decision, because B10 and half of B2's value depend on knowing who's using it.
-**Alongside:** C1 continuously. *(C4 was done on 1 Sep — the numbers in Track C above are measured
-rather than remembered, and `known-gaps.md` now records when it was last checked.)*
+**Alongside:** C1 continuously — the read half landed on 3 Sep, so the next tranche is writes.
+*(C4 was done on 1 Sep — the numbers in Track C above are measured rather than remembered, and
+`known-gaps.md` now records when it was last checked.)*

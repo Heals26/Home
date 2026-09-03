@@ -7,36 +7,70 @@ the `anthropic-skills` plugin at `code-review/references/csharp-blazor-style.md`
 Neither list is a licence to refactor. Fix an item when it is the task, or when you are already
 editing that exact code and the fix is a line or two. Otherwise mention it and move on.
 
-**Last verified: 1 September 2026**, against commit `841af10`, by rebuilding clean, running the
-suite, and querying the live database. Every count below was measured, not remembered — if you are
-reading this more than a month later, re-measure before trusting a number.
+**Last verified: 3 September 2026** (test coverage) and **1 September 2026** (everything else),
+against commit `841af10`, by rebuilding clean, running the suite, and querying the live database.
+Every count below was measured, not remembered — if you are reading this more than a month later,
+re-measure before trusting a number.
 
 ---
 
 ## Part 1 — What the repo doesn't do
 
-### Test coverage is thin, but no longer one slice deep
+### Every read is covered; no write is
 
-`Home.Application.Tests` (xUnit + Moq + FluentAssertions, pinned to 7.x) runs **109 tests**. What is
-actually covered:
+`Home.Application.Tests` (xUnit + Moq + FluentAssertions, pinned to 7.x) runs **205 tests**.
 
 | Covered | |
 |---|---|
-| Interactors | Recipes (Create, Get, Import), Lights (Get, SetState, StartEffect, SyncLights), LightGroups (management, SetState), Households (GetSetupStatus, RegisterHousehold), MealPlanEntries (Create), ShoppingLists (AddMealPlanToShoppingList), OAuth (CreateRefreshGrant) |
-| Pure logic | `ShoppingListItemLogic` (the text parser), `SunCalculator`, `PropertyChangeTracker`'s JSON converter |
+| Reads | **All 32 `Get*` slices**, each driving the real presenter against a real database, and each with a neighbouring household seeded alongside so isolation is pinned rather than assumed |
+| Writes | Recipes (Create, Import), Lights (SetState, StartEffect, SyncLights), LightGroups (management, SetState), Households (RegisterHousehold), MealPlanEntries (Create), ShoppingLists (AddMealPlanToShoppingList), OAuth (CreateRefreshGrant) |
+| Pure logic | `ShoppingListItemLogic` (the text parser), `SunCalculator`, `PropertyChangeTracker`'s JSON converter, and `ShoppingListLogic.GetItems` through `GetShoppingListItems` |
 | Guards | The whole AutoMapper configuration, and the three measurement-unit lists pinned to each other |
 
-Everything else has no tests: **Activities, ActivityContents, ActivityRegions, ActivityStates,
-Announcements, IngredientNotes, MealSlots, Notes, RecipeImages, RecipeIngredients, RecipeNotes,
-RecipeSteps, ShoppingListItems, Tags, Users and Weather**, plus all of `Services/EntityLogic`. There
-are still no tests for `Home.WebApi` presenters or `Home.WebUI` components.
+**The gap is now writes**, not reads: roughly 60 Create / Update / Delete / Set slices have no test
+at all. So does the rest of `Services/EntityLogic`, and there are no tests for `Home.WebUI`
+components. Presenters are exercised, but only through the read slices that drive them.
 
-The two newest slices — `GetIngredientSuggestions` and `SetRecipeIngredientSequence` — went in
-untested on 31 Aug. Both are household-scoped reads, which is exactly the category the 14 Aug
-isolation sweep says to pin.
+Two harnesses live side by side and the choice matters:
 
-The pattern to copy is in `Infrastructure/TestServiceFactory.cs`: interactors have no constructor,
-so the `ServiceFactory` delegate is the only seam.
+- **`InteractorTest`** (with `TestDatabase`) — a real `PersistenceContext` over the EF in-memory
+  provider, seeded through one context and read through another, presenting through the real
+  presenter. **Use this for anything that queries.** It is the only harness that can see a
+  projection which forgets a navigation; see the read-slice trap below.
+- **`TestServiceFactory` alone, with a mocked `IPersistenceContext`** — fine for a slice that never
+  queries (`GetWeather`, `GetHouseholdSettings`) or where the point is that a service was called.
+
+### The read-slice trap: a presenter reading what the projection never loaded
+
+**If a presenter touches `x.Y.Z`, the interactor's projection must name `x.Y`.** Nothing enforces
+this — not the compiler, not the AutoMapper guard, not a mocked context — and it has broken three
+screens:
+
+| | Fault | How it surfaced |
+|---|---|---|
+| 17 Aug | `GetShoppingList` items unmapped | Caught by the AutoMapper configuration guard |
+| 1 Sep | `GetCardSections` did not project `Regions` | `CardCount` read 0, so the settings sheet offered to delete a section in use — caught by hand |
+| 1 Sep | `GetActivity` did not project `CardSection` | `NullReferenceException`; **every activity card failed to open** — caught by Mitch |
+
+It takes two shapes. A dereferenced navigation (`r.CardSection.Name`) throws and the screen 500s. A
+counted collection (`s.Regions.Count`) silently reads zero, which is worse — nothing looks broken.
+Both are pinned by tests now, and reverting any of the three fixes fails the suite.
+
+The reason a mock cannot catch it: `stored.AsQueryable()` hands the interactor an object graph that
+is already fully connected, so the projection changes nothing. Against a real context the projection
+is what decides.
+
+### Some code leans on the authorisation call having warmed the change tracker
+
+`AuthorisationService.GetHousehold()` queries the **same scoped context** the interactor uses, so
+the household ends up tracked and EF fixes it up onto everything loaded afterwards. At least one
+place depends on that without saying so: `ActivityLogic.AddRegion` reads `_Activity.Household`
+having projected only `a.Regions`, and works solely because the authorisation call already put the
+household in the tracker.
+
+`InteractorTest` copies this deliberately — it resolves the signed-in household and member through
+the read context rather than handing over a detached stand-in — because a harness that skipped it
+would fail where production passes. Worth knowing before changing either side.
 
 ### The warning count is 1 — because `Home.WebApi` opts out of nullable
 
