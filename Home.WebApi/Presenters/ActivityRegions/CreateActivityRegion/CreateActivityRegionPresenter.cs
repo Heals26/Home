@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.ActivityRegions.CreateActivityRegion;
 using Home.WebApi.Infrastructure.Presenters;
 using Home.WebApi.UseCases.ActivityRegions.CreateActivityRegion;
@@ -16,6 +16,9 @@ public class CreateActivityRegionPresenter(IMapper mapper)
 
     Task ICreateActivityRegionOutputPort.PresentActivityNotFoundAsync(long activityID, CancellationToken cancellationToken)
         => this.NotFoundAsync($"Activity {activityID} Not Found", cancellationToken);
+
+    Task ICreateActivityRegionOutputPort.PresentCardSectionNotFoundAsync(long cardSectionID, CancellationToken cancellationToken)
+        => this.NotFoundAsync($"Card Section {cardSectionID} Not Found", cancellationToken);
 
     #endregion Methods
 

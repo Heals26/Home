@@ -12,6 +12,12 @@ public interface ICreateActivityRegionOutputPort
     Task PresentActivityNotFoundAsync(long activityID, CancellationToken cancellationToken);
     Task PresentActivityRegionCreatedAsync(long activityRegionID, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// The section does not exist, or belongs to another household — which reads the same to a
+    /// caller who is not entitled to know the difference.
+    /// </summary>
+    Task PresentCardSectionNotFoundAsync(long cardSectionID, CancellationToken cancellationToken);
+
     #endregion Methods
 
 }

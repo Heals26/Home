@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions;
+using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Application.Tests.Infrastructure.Mapping;
 using Home.Domain.Entities;
@@ -79,9 +80,6 @@ public abstract class InteractorTest : IDisposable
 
         this.SignedInHousehold = this.Ours;
         this.SignedInUser = this.Member;
-
-        _ = this.AuthorisationService.Setup(a => a.GetHousehold()).Returns(() => this.SignedInHousehold);
-        _ = this.AuthorisationService.Setup(a => a.GetUser()).Returns(() => this.SignedInUser);
     }
 
     #endregion Constructors
@@ -139,11 +137,46 @@ public abstract class InteractorTest : IDisposable
     /// <summary>
     /// The service factory an interactor resolves from. Each call hands out a context that has
     /// never seen the seeded rows, so a navigation is only ever populated by the query under test.
+    /// <para>
+    /// The signed-in household and member are resolved <em>through that same context</em>, because
+    /// the real <c>AuthorisationService</c> does — it queries the scoped context, which leaves the
+    /// household tracked and lets EF fix it up onto everything the interactor loads afterwards.
+    /// Some code leans on that: <c>ActivityLogic.AddRegion</c> reads <c>Activity.Household</c>
+    /// without ever projecting it, and only works because the authorisation call already put the
+    /// household in the change tracker. A detached stand-in here would fail where production
+    /// passes, so the harness copies production instead of second-guessing it.
+    /// </para>
+    /// <para>
+    /// A household nobody seeded falls back to the in-memory one, which is what the two slices
+    /// that never touch the database — weather and household settings — rely on.
+    /// </para>
     /// </summary>
     protected TestServiceFactory Services()
-        => new TestServiceFactory()
-            .With(this.Database.Read())
+        => this.Services(out _);
+
+    /// <summary>
+    /// As <see cref="Services()"/>, but hands the read context back so a test can build a service
+    /// that has to share it. <c>IShoppingListLogic</c> is the only one today.
+    /// </summary>
+    protected TestServiceFactory Services(out IPersistenceContext context)
+    {
+        var _Context = this.Database.Read();
+        context = _Context;
+
+        _ = this.AuthorisationService.Setup(a => a.GetHousehold())
+            .Returns(() => _Context.GetEntities<Household>()
+                .FirstOrDefault(h => h.HouseholdID == this.SignedInHousehold.HouseholdID)
+                ?? this.SignedInHousehold);
+
+        _ = this.AuthorisationService.Setup(a => a.GetUser())
+            .Returns(() => _Context.GetEntities<User>()
+                .FirstOrDefault(u => u.UserID == this.SignedInUser.UserID)
+                ?? this.SignedInUser);
+
+        return new TestServiceFactory()
+            .With(_Context)
             .With(this.AuthorisationService.Object);
+    }
 
     protected static void ShouldBeNotFound(OutputPortPresenter presenter)
     {

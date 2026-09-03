@@ -45,16 +45,12 @@ public class GetShoppingListItemsInteractorTests : InteractorTest
 
     private Task HandleAsync(long shoppingListID)
     {
-        var _Context = this.Database.Read();
+        var _Services = this.Services(out var _Context);
 
         return new GetShoppingListItemsInteractor().HandleAsync(
             new GetShoppingListItemsInputPort(shoppingListID),
             this.m_Presenter,
-            new TestServiceFactory()
-                .With(_Context)
-                .With(this.AuthorisationService.Object)
-                .With<IShoppingListLogic>(new ShoppingListLogic(_Context))
-                .Build(),
+            _Services.With<IShoppingListLogic>(new ShoppingListLogic(_Context)).Build(),
             CancellationToken.None);
     }
 

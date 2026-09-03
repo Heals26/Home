@@ -42,7 +42,17 @@ internal class CreateActivityRegionInteractor : IInteractor<CreateActivityRegion
             return;
         }
 
+        // AddRegion returns null for a section belonging to another household — the guard that stops
+        // one family writing under another family's heading. Adding that null to the collection and
+        // then reading an ID off it turned the guard into a five hundred.
         var _ActivityRegion = _ActivityLogic.AddRegion(inputPort);
+
+        if (_ActivityRegion == null)
+        {
+            await outputPort.PresentCardSectionNotFoundAsync(inputPort.CardSectionID, cancellationToken);
+            return;
+        }
+
         _Activity.Regions.Add(_ActivityRegion);
 
         _AuditLogic.UpdateAudit(_Activity);
