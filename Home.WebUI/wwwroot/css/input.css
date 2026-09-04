@@ -103,6 +103,12 @@
     background-color: rgb(var(--ink-700));
     color: rgb(var(--ink-50));
   }
+  /* Nothing here is reachable by tab — a page heading and a modal panel only ever take focus
+     because code put it there, to tell a screen reader what just changed. Drawing a ring around
+     something the user did not choose reads as the app highlighting itself. */
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
   /* A modal draws its own backdrop, because that layer is also the tap target that closes it.
      The browser's would only sit underneath ours and darken everything twice. */
   dialog::backdrop {
