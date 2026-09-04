@@ -6,6 +6,10 @@ module.exports = {
     './**/*.razor',
     './**/*.html',
     './**/*.cshtml',
+    // Code-behind counts. A class named only in a .razor.cs — the nav rail builds its whole icon
+    // list there — is invisible to a scanner that only reads markup, so the rule is purged and the
+    // icon renders as a bare grey square. That is what happened to the Home icon.
+    './**/*.cs',
     '!./node_modules/**/*',
     '!./obj/**/*',
     '!./bin/**/*'
