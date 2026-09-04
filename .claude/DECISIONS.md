@@ -5,6 +5,29 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-04 — Focus moves to the heading on navigation, without dragging the page with it
+
+Blazor's `FocusOnNavigate` parks focus on the new page's `h1` so a screen reader announces where you
+have landed. It does that with a plain `.focus()`, and focusing an element also scrolls it into
+view, so a moment after the dashboard settled the browser pulled the heading up under the top edge
+and the whole page appeared to lurch. Mitch reported it as the heading looking highlighted and the
+screen auto-scrolling. Both were the same call.
+
+`HomeFocusOnNavigate` replaces it: same contract, but it takes the scroll container to the top
+first and then focuses with `preventScroll`. The announcement is kept, the lurch is gone, and
+navigating to a page still starts you at the top of it rather than wherever the last page was left.
+A companion rule in `input.css` drops the focus ring on any `[tabindex="-1"]`, since nothing with
+that attribute is reachable by tab and a ring around something nobody clicked reads as the app
+highlighting itself.
+
+## 2026-09-04 — Tailwind scans the code-behind as well as the markup
+
+The `content` globs covered `.razor`, `.html` and `.cshtml`, so any class named only in a
+`.razor.cs` was invisible to the scanner and its rule was purged. `HomeNavRail` builds its whole
+icon list in code-behind, which is why the Home icon rendered as a bare grey square while every
+other icon in the rail was fine. Adding `./**/*.cs` costs about 5% on the built stylesheet and
+removes a failure mode that gives no error anywhere.
+
 ## 2026-09-03 — Read slices are tested against a real database and their real presenter
 
 Three screens have now shipped broken the same way: a presenter reads `x.Y.Z` and the interactor's

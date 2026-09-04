@@ -1,14 +1,14 @@
 ---
 name: home-conventions
-description: The coding conventions of the Home solution (C:\Repos\Home) — a .NET 8 clean-architecture household app (recipes, shopping lists, activities) built on CleanArchitecture.Mediator with a Blazor Server + Tailwind front end. Load this BEFORE writing, editing, reviewing or reorganising any file in Home.Domain, Home.Application, Home.Persistence, Home.WebApi or Home.WebUI — including .cs, .razor and .css files. Covers naming (_PascalCase locals, m_ fields, mandatory this., ID/UTC casing), the #region layout every type follows, the vertical-slice folder structure, and the end-to-end recipe for adding a use case. Also triggers on "add a use case", "new endpoint", "new page", "does this match my conventions", "why is this file laid out like that", or any question about how Home is structured. Do NOT use for the backgammon app in Documents\Claude or for work (OnSite Companion / OSCAPI) code — those follow different rules.
+description: The coding conventions of the Home solution (C:\Repos\Home), a .NET 8 clean-architecture household app (recipes, shopping lists, activities) built on CleanArchitecture.Mediator with a Blazor Server + Tailwind front end. Load this BEFORE writing, editing, reviewing or reorganising any file in Home.Domain, Home.Application, Home.Persistence, Home.WebApi or Home.WebUI, including .cs, .razor and .css files. Covers naming (_PascalCase locals, m_ fields, mandatory this., ID/UTC casing), the #region layout every type follows, the vertical-slice folder structure, and the end-to-end recipe for adding a use case. Also triggers on "add a use case", "new endpoint", "new page", "does this match my conventions", "why is this file laid out like that", or any question about how Home is structured. Do NOT use for the backgammon app in Documents\Claude or for work (OnSite Companion / OSCAPI) code, which follow different rules.
 ---
 
 # Home solution conventions
 
-Conventions in this repo are **descriptive** — they are what the 483 `.cs` and 30 `.razor` files
+Conventions in this repo are **descriptive**. They are what the 483 `.cs` and 30 `.razor` files
 actually do, not aspirations. New code blends in with old code. Where the repo has genuine gaps or
-disagrees with Mitch's work standards, see `references/known-gaps.md` — do not silently "fix" those
-while doing unrelated work.
+disagrees with Mitch's work standards, see `references/known-gaps.md`, and do not silently "fix"
+those while doing unrelated work.
 
 ## Solution map
 
@@ -18,10 +18,10 @@ Dependencies point inwards. `Home.Domain` references nothing.
 |---|---|---|
 | `Home.Domain` | EF entities, enumerations, domain services | Anaemic entities: properties only, no behaviour |
 | `Home.Application` | Input ports, interactors, output port interfaces, entity logic, validators | The use case layer. Interactors are `internal` |
-| `Home.Persistence` | `PersistenceContext`, EF configurations, migrations | SQL Server; WebApi can also run SQLite |
+| `Home.Persistence` | `PersistenceContext`, EF configurations, migrations | SQL Server only. The SQLite path was deleted on 12 Aug 2026 |
 | `Home.WebApi` | Controllers, presenters, API request/response models, external-service adapters | Thin. Controllers only invoke the pipeline |
 | `Home.WebUI` | Blazor Server components, DataAccess models, API providers | Tailwind, no MudBlazor |
-| `Home.Application.Tests` | xUnit + Moq + FluentAssertions (pinned to 7.x) | Interactors only, so far |
+| `Home.Application.Tests` | xUnit + Moq + FluentAssertions (pinned to 7.x) | Every read slice, driven against a real database through its real presenter. Writes largely untested |
 
 Two solution filters exist: `API.slnf` (backend only) and `WebApp.slnf` (front end).
 
@@ -58,7 +58,7 @@ public class Recipe
 
 Strictly. `Audits`, `Household`, `Ingredients`, `Notes`, `Steps`. A commit exists purely to enforce
 this (`Alphabetise methods within regions across all new files`). The exception is Blazor component
-fields, which group by purpose — see `references/blazor-ui.md`.
+fields, which group by purpose. See `references/blazor-ui.md`.
 
 ### 3. Local variables are `_PascalCase`
 
@@ -87,7 +87,7 @@ On every instance member access, in C# and in Razor markup:
 ### 6. Australian English
 
 `Authorisation`, `Initialise`, `Colour`, `Licence`. Only deviate when an external API fixes the
-spelling (`IAuthorizationHandler`, `[Authorize]` — framework types keep their US spelling).
+spelling (`IAuthorizationHandler`, `[Authorize]`, because framework types keep their US spelling).
 
 ### 7. Discard the return of fluent/builder calls
 
@@ -118,7 +118,7 @@ public class Thing(TimeProvider timeProvider)                                   
 ```
 
 Two traps worth knowing. A `static` helper cannot capture a primary-constructor parameter
-(`CS9105`) — pass the timestamp in instead. And an AutoMapper `Profile` is constructed without DI,
+(`CS9105`), so pass the timestamp in instead. And an AutoMapper `Profile` is constructed without DI,
 so anything time-dependent goes in an `IValueResolver`, which is resolved from the container
 (`Infrastructure/AutoMapper/Resolvers/TokenExpiresInResolver.cs`).
 
@@ -144,7 +144,7 @@ Use collection expressions (`[]`, `[.. source.Select(...)]`) rather than `new Li
 - One type per file. The file is named after the type.
 - `Nullable` is `enable` everywhere except `Home.WebApi` (see `references/known-gaps.md`).
 
-## Folder structure — vertical slices
+## Folder structure: vertical slices
 
 Every use case gets its own folder, named after the use case, in every layer that participates:
 
@@ -168,8 +168,8 @@ Verbs are consistent: `Create`, `Get`, `GetMany` (pluralised, e.g. `GetRecipes`)
 ## Adding a use case
 
 Read `references/use-case-slice.md`. It walks the seven files end to end with the exact shape of
-each, using `GetRecipe` as the worked example. Do not improvise this — the pipeline wiring is
-convention-driven and easy to get subtly wrong.
+each, using `GetRecipe` as the worked example. Do not improvise this, because the pipeline wiring
+is convention-driven and easy to get subtly wrong.
 
 ## Talking to something outside the database
 
@@ -197,15 +197,22 @@ and the `ApiProvider` + `IHomeHttpClient` call pattern.
 
 ## Building and running
 
-The solution **will not build from a clean clone** until npm packages are installed —
+`README.md` has the whole six-step setup and is the place to fix it if a step is wrong. Two things
+catch people out often enough to repeat here.
+
+The solution **will not build from a clean clone** until the npm packages are installed, because
 `Home.WebUI.csproj` runs `npm run build:css` as a pre-build step:
 
 ```bash
 cd Home.WebUI && npm install
 ```
 
-The API needs a `databaseConnectionString` user secret (`UserSecretsId`
-`f6b1d435-a9e7-483c-bb25-be7f9fd4bdba`); there is no `appsettings.json` in `Home.WebApi`.
+**A fresh database cannot be signed into.** Nothing seeds `home.ClientApplication`, and the API
+rejects a client it does not know, so the row has to be inserted by hand and matched to the five
+`OAuth:AccessToken:*` secrets on `Home.WebUI`. `README.md` step 4 has the SQL.
+
+There is no `appsettings.json` in `Home.WebApi`; it reads `databaseConnectionString` from user
+secrets (`UserSecretsId` `f6b1d435-a9e7-483c-bb25-be7f9fd4bdba`).
 
 Migrations:
 
@@ -213,12 +220,16 @@ Migrations:
 dotnet ef migrations add [Explanation] --project Home.Persistence --context PersistenceContext --startup-project Home.WebApi
 ```
 
+`dotnet ef` reads `HOME_DESIGNTIME_CONNECTIONSTRING`, not the API's secret. Set it, or an update
+lands on LocalDB.
+
 ## Before you finish
 
 - Members alphabetised within regions, `#endregion` labels match.
 - `dotnet test` passes.
-- No new compiler warnings **of a category the build doesn't already emit** — the repo carries ~145
-  nullable warnings, so "zero warnings" is not the bar yet, but a new code is a regression. If you
-  need a nullable annotation inside `Home.WebApi`, put `#nullable enable` at the top of that file
-  rather than letting `CS8632` appear.
+- No new compiler warnings **of a category the build doesn't already emit**. A clean build emits
+  one warning, not the ~145 this file used to claim, so a new code is a regression. That count is
+  low because `Home.WebApi` opts out of nullable, not because the backlog was paid off. If you need
+  a nullable annotation inside `Home.WebApi`, put `#nullable enable` at the top of that file rather
+  than letting `CS8632` appear.
 - `Home.WebUI/wwwroot/css/app.css` is generated and gitignored. Edit `wwwroot/css/input.css`.
