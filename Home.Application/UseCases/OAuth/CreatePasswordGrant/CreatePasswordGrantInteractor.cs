@@ -37,8 +37,13 @@ internal class CreatePasswordGrantInteractor : IInteractor<CreatePasswordGrantIn
             return;
         }
 
+        // The secret is compared, not merely required to be present. Until 4 Sep 2026 this looked
+        // the client up by ID alone, so any caller who could reach the endpoint could mint a token
+        // with client_id=1 and no knowledge of the secret at all. CreateRefreshGrant has always
+        // compared it, which is what says this was an oversight rather than a decision.
         var _ClientApplication = _PersistenceContext.GetEntities<ClientApplication>()
-            .SingleOrDefault(ca => ca.ClientApplicationID == inputPort.ClientID);
+            .SingleOrDefault(ca => ca.ClientApplicationID == inputPort.ClientID
+                && ca.Secret == inputPort.ClientSecret);
 
         if (_ClientApplication == null)
         {
