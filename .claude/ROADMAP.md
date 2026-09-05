@@ -113,19 +113,41 @@ corrections are recorded rather than quietly absorbed.
   deliberately, because it is a behaviour change to the refresh path and does not belong in a pass
   labelled free cleanup. Carried to `BACKLOG.md`.
 
-## Phase 4 · One responsive pass over the app chrome, L *(was A10)*
+## Phase 4 · One responsive pass over the app chrome, L *(was A10)* **DONE 5 Sep 2026**
 
-`MainLayout`, `HomeNavRail` and `HomeTopBar` contain **zero** breakpoints, and `input.css` has
-exactly one `@media` query (`prefers-reduced-motion`). 21 of 30 pages have no breakpoints at all.
+Done by measuring at 375x812 rather than by adding breakpoints until it looked right, which is why
+most of what the plan listed turned out not to need changing. What was actually broken:
 
-Landscape tablet is the design target and that is fine, but the shopping list is the one screen that
-lives on a phone in a supermarket and `ShoppingListComponent` has none. Responsive work has been
-reactive and per-screen so far; this is doing it once, deliberately. Folds in the outstanding phone
-complaints: viewport slightly zoomed out, bottom bar overlapping content.
+- **The top bar destroyed the page title.** On a phone the three actions on a recipe took 248px of
+  375, leaving the title **23px**: "Pork Roast with Crispy Pork Crackling" rendered as "P.". The
+  actions now drop to their own line below the title, and the title wraps to two lines rather than
+  truncating, because a page's own name is the one thing worth the extra line. Measured after:
+  283px and fully visible.
 
-Worth knowing before starting: the `rail:` breakpoint is
-`(min-width: 768px) and (orientation: landscape)`, so the app already has two quite different
-layouts and which one you get depends on window shape, not width. That surprises people.
+  That uses `sm:`, not `rail:`, and the difference is the point. The nav asks where a thumb can
+  reach, so orientation decides it. The top bar asks whether the text fits, so width decides it.
+  A tablet held upright answers those two questions differently and they should not share a
+  breakpoint.
+
+- **The shopping list was a two-pane split forced onto a phone**, with the picker permanently
+  holding the top of the screen and an empty pane below reading "Choose a shopping list from the
+  left" when there was no left. It now collapses to a plain navigation: picker, or items with a
+  back button, decided by the route it already had. Both panes still show side by side from `lg:`.
+
+- **`h-screen` on the shell.** On iOS Safari `100vh` is the viewport with the browser toolbars
+  hidden, so the shell was laid out taller than the visible screen: the bottom bar sat below the
+  fold and the page read as slightly too big. That is both outstanding phone complaints, and an
+  emulator cannot reproduce either. Replaced with `.app-viewport` (`100dvh`, `100vh` fallback).
+  **Unverified on a real phone**, because the fix is specifically for a browser not available here.
+
+Measured and deliberately left alone:
+
+- **The bottom bar is fine.** 54x61 tap targets across seven items at 375px, no label overflow.
+- **No page overflows horizontally at 375px.** The wide containers on `/recipes` and `/activities`
+  are intentional `overflow-x-auto` (filter chips, the kanban board), and the ones in Settings are
+  the deliberate `-mx-5` card bleed.
+- **21 of 30 pages still have no breakpoints, and that is correct.** A single-column page of cards
+  does not need one. Adding breakpoints to pages that measure clean is churn.
 
 ## Phase 5 · Who is using this, XL *(was B1)*
 

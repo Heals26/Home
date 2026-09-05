@@ -5,6 +5,39 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-05 · Two breakpoints, asking two different questions
+
+The app now uses `rail:` and `sm:`/`lg:` for different things, and mixing them up will produce
+layouts that are wrong in one hand position or another.
+
+`rail: (min-width: 768px) and (orientation: landscape)` decides **where navigation lives**. That is
+a question about reach: a tall device is held in two hands and the top-left corner is out of thumb
+range, so the nav becomes a bottom bar regardless of how wide the screen is.
+
+Plain width breakpoints decide **whether content fits**. The top bar puts its actions on their own
+line below `sm:` because three buttons and a display-face title cannot share 375px, and the shopping
+list shows one pane below `lg:` because two will not fit. Neither has anything to do with how the
+device is held.
+
+A tablet held upright is the case that separates them: it wants the bottom bar (`rail:` is false)
+and it wants the wide content layout (768px is plenty). Using `rail:` for a fitting question would
+give it a phone layout on a screen with room to spare.
+
+## 2026-09-05 · The app shell is sized in dvh, not vh
+
+`MainLayout` uses `.app-viewport` (`height: 100dvh` with a `100vh` fallback) rather than Tailwind's
+`h-screen`. On iOS Safari `100vh` means the viewport with the browser's toolbars hidden, which is
+taller than what is actually visible while they show, so a shell sized to it puts the fixed bottom
+bar below the fold and the whole page reads as slightly too large for the screen. Both of those had
+been reported from a phone and neither reproduces in a desktop emulator.
+
+It is a rule in `input.css` rather than two Tailwind classes because the fallback only works if
+`100vh` is declared before `100dvh`, and the order Tailwind emits utilities in is not ours to set.
+
+Left alone deliberately: the three auth pages use `min-h-screen`, which is a floor rather than a
+fixed height, so nothing is pinned to a bottom edge that moves.
+
+
 ## 2026-09-05 · An ingredient is not shared, so an ingredient note reaches one recipe
 
 The schema models `Recipe` to `Ingredient` as many-to-many through `RecipeIngredient`, which reads

@@ -186,7 +186,32 @@ Styles are **Tailwind utility classes in the markup**. There is exactly one `.ra
 (`MainLayout.razor.css`); CSS isolation is not the pattern here.
 
 Anything that can't be a utility goes in `wwwroot/css/input.css` under `@layer base` or
-`@layer components` (e.g. `.app-scrollable`). Never edit `wwwroot/css/app.css` — it is generated.
+`@layer components` (e.g. `.app-scrollable`). Never edit `wwwroot/css/app.css`, it is generated.
+
+### Breakpoints: pick the one that matches the question
+
+There are two kinds and they are not interchangeable.
+
+`rail:` is `(min-width: 768px) and (orientation: landscape)`. Use it for **where navigation lives**,
+and nothing else. It is a question about reach: a tall device is held in two hands, the top-left
+corner is out of thumb range, so the nav becomes a bottom bar however wide the screen is.
+
+Plain width breakpoints (`sm:`, `lg:`) are for **whether content fits**. A title and three buttons
+sharing a line, two panes sharing a screen, a grid changing column count. None of that depends on
+how the device is held.
+
+The case that separates them is a tablet held upright: `rail:` is false so it wants the bottom bar,
+but 768px is plenty of width so it wants the wide content layout. Reaching for `rail:` on a fitting
+question gives that device a phone layout on a screen with room to spare.
+
+### Full-height layouts
+
+Use `.app-viewport`, not `h-screen`, for anything sized to the whole window. `100vh` on iOS Safari
+means the viewport with the browser toolbars hidden, which is taller than what is on screen, so a
+fixed bottom bar ends up below the fold. `.app-viewport` is `100dvh` with a `100vh` fallback, in
+that order, which is why it is a rule in `input.css` rather than two classes in the markup.
+
+`min-h-screen` is fine and is still used on the auth pages: a floor is not a bottom edge.
 
 ### Icons
 
@@ -198,7 +223,7 @@ No icon library. Icons are CSS masks with inline data-URI SVGs, declared once in
 
 Colour comes from `currentColor`, so set it with a `text-*` class on the span or an ancestor. Adding
 an icon means adding a `.home-icon-{name}` rule to `input.css` with both `mask-image` and
-`-webkit-mask-image`. There are 16 today.
+`-webkit-mask-image`. There are 43 today, counted 5 Sep 2026.
 
 ### Rebuilding the CSS
 
