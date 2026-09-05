@@ -1,4 +1,6 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.DataAccess.Devices.GetDevices;
+using Home.WebUI.DataAccess.Devices.SignOutOtherDevices;
 using Home.WebUI.DataAccess.Households.GetHouseholdSettings;
 using Home.WebUI.DataAccess.Households.UpdateHouseholdSettings;
 using Home.WebUI.DataAccess.Users.CreateUser;
@@ -49,6 +51,19 @@ public partial class SettingsPage : IDisposable
     private string m_MemberPassword = string.Empty;
     private bool m_AddingMember;
 
+    // Devices
+    private List<DeviceDto>? m_Devices;
+    private long? m_SigningOutDeviceID;
+    private bool m_ShowAllDevices;
+    private bool m_SigningOutOthers;
+
+    /// <summary>
+    /// How many devices the card shows before it stops. A household accumulates a session per
+    /// sign-in, so the full list can run to dozens and a wall of rows is not a screen anybody
+    /// reads. Enough to cover the devices a family actually uses.
+    /// </summary>
+    private const int VisibleDeviceCount = 5;
+
     // Editing a member
     private bool m_ShowEditMember;
     private long? m_EditingUserID;
@@ -58,7 +73,7 @@ public partial class SettingsPage : IDisposable
 
     /// <summary>
     /// Who is signed in on this device, read once from the cookie's claims. Null when the claim
-    /// cannot be read, which only costs the "You" badge and the guard against self-removal — both
+    /// cannot be read, which only costs the "You" badge and the guard against self-removal. Both
     /// fail closed, so an unknown member is never treated as this one.
     /// </summary>
     private long? m_SignedInUserID;
@@ -84,7 +99,7 @@ public partial class SettingsPage : IDisposable
         if (this.AuthenticationState != null)
             this.m_SignedInUserID = HouseholdClaims.GetUserID((await this.AuthenticationState).User);
 
-        await Task.WhenAll(this.LoadSettingsAsync(), this.LoadUsersAsync());
+        await Task.WhenAll(this.LoadSettingsAsync(), this.LoadUsersAsync(), this.LoadDevicesAsync());
 
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
             this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
@@ -184,7 +199,7 @@ public partial class SettingsPage : IDisposable
         await this.LoadSettingsAsync();
     }
 
-    // An empty token disconnects — the server clears it.
+    // An empty token disconnects, because the server clears it.
     private async Task DisconnectLifxAsync()
     {
         if (this.m_SavingConnection)
@@ -225,6 +240,101 @@ public partial class SettingsPage : IDisposable
 
         if (_Result != null)
             this.m_Users = _Result.Users;
+    }
+
+    private async Task LoadDevicesAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetDevicesWebAppResponse>(
+            null!, ApiProvider.GetDevices(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        if (_Result != null)
+            this.m_Devices = _Result.Devices;
+    }
+
+    /// <summary>
+    /// The rows to draw, which is all of them once the family has asked to see them.
+    /// </summary>
+    private IEnumerable<DeviceDto> VisibleDevices()
+        => this.m_ShowAllDevices || this.m_Devices == null
+            ? this.m_Devices ?? []
+            : this.m_Devices.Take(VisibleDeviceCount);
+
+    private int HiddenDeviceCount()
+        => Math.Max(0, (this.m_Devices?.Count ?? 0) - VisibleDeviceCount);
+
+    private int OtherDeviceCount()
+        => this.m_Devices?.Count(d => !d.IsCurrentDevice) ?? 0;
+
+    /// <summary>
+    /// Named for what it does to how many, so the button says the same thing the confirmation will.
+    /// </summary>
+    private string SignOutOthersLabel()
+        => this.OtherDeviceCount() == 1
+            ? "Sign out 1 other"
+            : $"Sign out {this.OtherDeviceCount()} others";
+
+    private async Task SignOutOtherDevicesAsync()
+    {
+        if (this.m_SigningOutOthers)
+            return;
+
+        this.m_SigningOutOthers = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, SignOutOtherDevicesWebAppResponse>(
+            null!, ApiProvider.SignOutOtherDevices(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_SigningOutOthers = false;
+
+        if (_Result == null)
+            return;
+
+        this.m_ShowAllDevices = false;
+
+        await this.LoadDevicesAsync();
+    }
+
+    private async Task SignOutDeviceAsync(DeviceDto device)
+    {
+        if (this.m_SigningOutDeviceID != null)
+            return;
+
+        this.m_SigningOutDeviceID = device.AuthenticationMetadataID;
+
+        _ = await this.ApiAccess.SendRequestAsync<object, object>(
+            null!, ApiProvider.SignOutDevice(device.AuthenticationMetadataID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_SigningOutDeviceID = null;
+
+        await this.LoadDevicesAsync();
+    }
+
+    /// <summary>
+    /// How long ago something happened, at the coarsest useful grain. A list of devices answers
+    /// "is this one still in use", which minutes and seconds do not help with.
+    /// </summary>
+    private string DescribeWhen(DateTime? whenUTC)
+    {
+        if (whenUTC == null)
+            return "Not used since signing in";
+
+        var _Elapsed = this.TimeProvider.GetUtcNow().UtcDateTime - whenUTC.Value;
+
+        return _Elapsed switch
+        {
+            { TotalMinutes: < 2 } => "Active now",
+            { TotalMinutes: < 60 } => $"{(int)_Elapsed.TotalMinutes} minutes ago",
+            { TotalHours: < 2 } => "An hour ago",
+            { TotalHours: < 24 } => $"{(int)_Elapsed.TotalHours} hours ago",
+            { TotalDays: < 2 } => "Yesterday",
+            { TotalDays: < 31 } => $"{(int)_Elapsed.TotalDays} days ago",
+            _ => whenUTC.Value.ToLocalTime().ToString("d MMM yyyy")
+        };
     }
 
     private void OpenAddMemberModal()
@@ -291,7 +401,7 @@ public partial class SettingsPage : IDisposable
             && !string.IsNullOrWhiteSpace(this.m_MemberEmail);
 
     /// <summary>
-    /// The password tracker is deliberately left unset — this form does not carry one, and a
+    /// The password tracker is deliberately left unset, because this form does not carry one and a
     /// tracker that arrived "set" to empty would blank the member's password.
     /// </summary>
     private async Task SaveMemberAsync()
@@ -358,7 +468,7 @@ public partial class SettingsPage : IDisposable
     }
 
     /// <summary>
-    /// Said out loud rather than left to a disabled button with no explanation — a control that
+    /// Said out loud rather than left to a disabled button with no explanation. A control that
     /// does nothing and says nothing is the frustration this product exists to avoid.
     /// <para>
     /// Only the confirmation is checked. There is deliberately no length or complexity rule here:

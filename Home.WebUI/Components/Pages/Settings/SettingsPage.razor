@@ -69,7 +69,7 @@
                     </ChildContent>
                 </HomeCard>
 
-                <HomeCard Title="Location" Subtitle="Sets where sunrise and sunset happen for this home — light schedules can follow the sun.">
+                <HomeCard Title="Location" Subtitle="Sets where sunrise and sunset happen for this home, so light schedules can follow the sun.">
                     <ChildContent>
                         <div class="flex flex-col gap-4">
                             <div class="grid grid-cols-2 gap-3">
@@ -89,7 +89,7 @@
                                 </div>
                             </div>
                             <p class="text-xs text-ink-500">
-                                Decimal degrees — south and west are negative. Brisbane is roughly -27.47, 153.03.
+                                Decimal degrees, with south and west negative. Brisbane is roughly -27.47, 153.03.
                             </p>
                             <div class="flex items-center justify-end gap-3">
                                 @if (this.m_LocationSaved)
@@ -144,13 +144,85 @@
                     </ChildContent>
                 </HomeCard>
 
-                <HomeCard Title="Appearance" Subtitle="Applies to this device only — every other screen keeps its own choice.">
+                <HomeCard Title="Appearance" Subtitle="Applies to this device only. Every other screen keeps its own choice.">
                     <ChildContent>
                         <div class="flex flex-col gap-3">
                             <HomeThemeToggle />
                             <p class="text-xs text-ink-500">
                                 Dark is the default, and stays the default on any device that hasn't chosen.
                             </p>
+                        </div>
+                    </ChildContent>
+                </HomeCard>
+
+                @* Sessions are 90 days and sliding, so this list is the only way to end one from
+                   somewhere else. The current device is shown but cannot be signed out from here:
+                   the browser would keep a cookie for a session that no longer exists. *@
+                <HomeCard Title="Devices" Subtitle="Where this household is signed in.">
+                    <ChildContent>
+                        <div class="flex flex-col gap-3">
+                            @if (this.m_Devices == null)
+                            {
+                                <HomeLoader Class="py-4" />
+                            }
+                            else if (this.m_Devices.Count == 0)
+                            {
+                                <p class="text-sm text-ink-500 py-2">Nothing is signed in, which cannot be right if you are reading this.</p>
+                            }
+                            else
+                            {
+                                <div class="divide-y divide-ink-800 -mx-5">
+                                    @foreach (var _Device in this.VisibleDevices())
+                                    {
+                                        <div class="flex items-center gap-3 px-5 py-2.5 min-h-[56px]">
+                                            @* Both class names are written out, never assembled: a
+                                               name Tailwind cannot find in the source gets purged
+                                               and the icon renders as a grey square. *@
+                                            <span class="home-icon home-icon-device h-5 w-5 shrink-0 @(_Device.IsCurrentDevice ? "text-ink-50" : "text-ink-500")"></span>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-sm font-medium text-ink-50 truncate">@_Device.Name</p>
+                                                <p class="text-xs text-ink-500 truncate">@this.DescribeWhen(_Device.LastUsedOnUTC)</p>
+                                            </div>
+                                            @if (_Device.IsCurrentDevice)
+                                            {
+                                                <span class="shrink-0 rounded-full border border-ink-700 px-2.5 py-0.5 text-xs text-ink-400">This device</span>
+                                            }
+                                            else
+                                            {
+                                                <HomeButton Size="sm"
+                                                            Variant="secondary"
+                                                            Disabled="this.m_SigningOutDeviceID != null"
+                                                            OnClick="() => this.SignOutDeviceAsync(_Device)">Sign out</HomeButton>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (!this.m_ShowAllDevices && this.HiddenDeviceCount() > 0)
+                                {
+                                    <button type="button"
+                                            class="text-sm text-ink-400 hover:text-ink-50 underline underline-offset-4 self-start min-h-[44px]"
+                                            @onclick="() => this.m_ShowAllDevices = true">
+                                        Show @this.HiddenDeviceCount() more
+                                    </button>
+                                }
+
+                                @* The explanation only earns its place next to a control that needs
+                                   it. On the last remaining device there is nothing to sign out, so
+                                   the whole footer goes rather than sitting there unactionable. *@
+                                @if (this.OtherDeviceCount() > 0)
+                                {
+                                    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-ink-800 pt-4">
+                                        <p class="text-sm text-ink-400">
+                                            Signing a device out means it has to sign in again next time it is used.
+                                        </p>
+                                        <HomeButton Size="sm"
+                                                    Variant="secondary"
+                                                    Disabled="this.m_SigningOutOthers"
+                                                    OnClick="this.SignOutOtherDevicesAsync">@this.SignOutOthersLabel()</HomeButton>
+                                    </div>
+                                }
+                            }
                         </div>
                     </ChildContent>
                 </HomeCard>
@@ -176,7 +248,7 @@
 </div>
 
 @* Edit-member modal. Removing lives in here rather than on the row, and is refused for whoever is
-   signed in — locking yourself out of your own household is not an undoable mistake. *@
+   signed in, because locking yourself out of your own household is not an undoable mistake. *@
 <HomeModal @bind-Visible="this.m_ShowEditMember" Title="Edit member" OnSubmit="this.SaveMemberAsync">
     <ChildContent>
         <div class="flex flex-col gap-4">
@@ -237,7 +309,7 @@
                 <p class="text-sm text-red-400">@_Problem</p>
             }
             <p class="text-xs text-ink-500">
-                Other devices stay signed in — changing the password does not end sessions that are already running.
+                Other devices stay signed in. Changing the password does not end sessions that are already running.
             </p>
             <div class="flex justify-end gap-3">
                 <HomeButton Variant="ghost" OnClick="() => this.m_ShowChangePassword = false">Cancel</HomeButton>
