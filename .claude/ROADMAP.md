@@ -1,7 +1,7 @@
 ﻿# Roadmap
 
-*Ten phases, in the order they should be done. Each one is shippable on its own and leaves the app
-better than it found it. Nothing here is half a feature that needs the next phase to be worth
+*Eleven phases, in the order they should be done. Each one is shippable on its own and leaves the
+app better than it found it. Nothing here is half a feature that needs the next phase to be worth
 having.*
 
 *Read with `VISION.md` (what the product is for), `DECISIONS.md` (why things are as they are) and
@@ -24,6 +24,8 @@ name them still make sense.*
 | **Half of C1** *(3 Sep 2026)* | All 32 read slices tested against a real database through their real presenters. |
 | **Phase 1** *(4 Sep 2026)* | Startup validation of every setting, non-secret configuration moved into appsettings, and a sign-in page that says which of three things went wrong. |
 | **Phase 2** *(4 Sep 2026)* | All 114 use case slices tested, writes included, at 557 tests. |
+| **Phase 3** *(5 Sep 2026)* | Ingredient notes reachable, a signed-in devices card with bulk sign-out, and the superseded amount columns dropped. |
+| **Phase 4** *(5 Sep 2026)* | The page title stopped losing to its own buttons on a phone, the shopping list collapses to one pane, and the shell is sized in `dvh`. |
 
 ---
 
@@ -149,7 +151,48 @@ Measured and deliberately left alone:
 - **21 of 30 pages still have no breakpoints, and that is correct.** A single-column page of cards
   does not need one. Adding breakpoints to pages that measure clean is churn.
 
-## Phase 5 · Who is using this, XL *(was B1)*
+## Phase 5 · One way to draw each control, M *(new, 5 Sep 2026)*
+
+Home already has a component library, 19 `Home*` components, and the pages mostly use it: 107
+`<HomeButton>` against 72 raw `<button>`, 43 `<HomeTextInput>` against 13 raw `<input>`. This is not
+about building the layer. It is about the controls that never got one, and the pages that quietly
+went around the ones that exist.
+
+**There is no `HomeSelect`, and it shows.** `<select>` appears **18 times across 9 files**, and the
+same control is written six different ways:
+
+| Written as | Times |
+|---|---|
+| `bg-ink-800` + focus ring + `focus:border-transparent`, `min-h-[48px]` | 4 |
+| `bg-ink-800`, `min-h-[48px]`, **no focus styling at all** | 4 |
+| `bg-ink-800` + focus ring, no `focus:border-transparent` | 4 |
+| `bg-ink-900`/`border-ink-800`, `min-h-[44px]`, `text-ink-200` | 3 |
+| two more one-offs | 3 |
+
+Three focus treatments, two colour schemes and two tap-target heights for one control. **12 form
+controls across the app have no visible focus ring**, which is not an inconsistency, it is a
+keyboard user unable to see where they are. That is the reason to do this, not tidiness.
+
+There is no `HomeTextArea` either: 4 raw ones across 2 files, and one of those was added during
+phase 3 by copying the classes off a neighbouring field, which is exactly how the six variants above
+happened.
+
+The work:
+
+- **`HomeSelect`**, then the 18 call sites. One focus treatment, one height, one palette.
+- **`HomeTextArea`**, then the 4 call sites.
+- **Audit the 72 raw `<button>`s.** Many are legitimate: a whole list row that happens to be
+  tappable is not a `HomeButton`, and forcing it to be one would be worse. The ones to convert are
+  those wearing button styling by hand. Do not convert on sight, convert what duplicates.
+- **Write the rule down** in `home-conventions/references/blazor-ui.md`: a form control gets a
+  `Home*` component before it gets a second call site, and copying a class list off a neighbouring
+  field is the smell that says one is missing.
+
+Deliberately not in scope: extracting a component that wraps a single element. That reads worse and,
+for anything reading the code afterwards, costs more to follow than the markup it replaced. The rule
+that pays is extracting what is repeated **across files**.
+
+## Phase 6 · Who is using this, XL *(was B1)*
 
 The biggest gap against VISION's "family-proof… used by every member of the family". There is one
 household login. `GetAssignedActivities` is a complete slice with its own presenter and
@@ -162,7 +205,7 @@ a "My day" view, per-person chore lists, and who-did-what that means something.
 
 This phase is why it sits here rather than later: it changes what phases 6 and 10 are worth.
 
-## Phase 6 · The app remembers, M *(was B2, B6)*
+## Phase 7 · The app remembers, M *(was B2, B6)*
 
 Two features that surface data already being captured and stored.
 
@@ -174,7 +217,7 @@ Two features that surface data already being captured and stored.
   "you had this three days ago", "cook once eat twice", or "you haven't made this in six months".
   Turns the planner from a schedule into something that gives advice.
 
-## Phase 7 · The shop gets smarter, M *(was B4, B5)*
+## Phase 8 · The shop gets smarter, M *(was B4, B5)*
 
 Both are shopping-list intelligence over the same data, so they share the groundwork.
 
@@ -187,7 +230,7 @@ Both are shopping-list intelligence over the same data, so they share the ground
   category (produce, dairy, freezer) learned from history, and group the list by it so a shop is one
   walk through the store instead of a scavenger hunt.
 
-## Phase 8 · Nullable on in the API, L *(was C3)*
+## Phase 9 · Nullable on in the API, L *(was C3)*
 
 A clean build emits **one** warning, not the ~145 this file used to claim. That is not progress:
 `Home.WebApi` sets `<Nullable>disable</Nullable>` while every other project enables it, and the API
@@ -196,7 +239,7 @@ models and controllers are where the `CS8618`s lived. They are suppressed, not f
 The job is turning nullable on there and absorbing what comes back in one go. No user-visible value,
 which is why it sits this late, but it gets harder every phase that adds API models.
 
-## Phase 9 · Beyond lights: a second device integration, L *(was B9)*
+## Phase 10 · Beyond lights: a second device integration, L *(was B9)*
 
 `DECISIONS.md` (12 Aug) establishes the adapter template: service interface in `Application`,
 adapter in `WebApi`, an unreachable provider is a return value rather than an exception, vendor wire
@@ -204,7 +247,7 @@ types stay at the boundary. VISION says "other devices as they come" and nothing
 researched. A thermostat, robot vacuum or smart plug is the obvious next one, and the pattern is
 ready and proven.
 
-## Phase 10 · The ones blocked on their own decisions, L each *(was B7, B10)*
+## Phase 11 · The ones blocked on their own decisions, L each *(was B7, B10)*
 
 Both are in `BACKLOG.md` with the open question written down. Neither is blocked on effort.
 
