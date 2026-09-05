@@ -22,10 +22,21 @@ internal class UpdateMealPlanEntryInteractor : IInteractor<UpdateMealPlanEntryIn
         var _Household = _AuthorisationService.GetHousehold();
 
         // The household is reached through the recipe, the same path the entry itself hangs from.
+        //
+        // MealSlot is projected because this slice can clear it, and clearing a navigation that was
+        // never loaded is not a change EF can see: the tracker compares null against null, finds
+        // nothing, and leaves the foreign key where it was. Taking a meal out of its slot answered
+        // 204 and did nothing at all until 4 Sep 2026.
         var _Entry = _PersistenceContext.GetEntities<MealPlanEntry>()
             .Where(e => e.MealPlanEntryID == inputPort.MealPlanEntryID
                 && e.Recipe.Household.HouseholdID == _Household.HouseholdID)
-            .SingleOrDefault();
+            .Select(e => new
+            {
+                Entry = e,
+                e.MealSlot
+            })
+            .SingleOrDefault()
+            ?.Entry;
 
         if (_Entry == null)
         {
