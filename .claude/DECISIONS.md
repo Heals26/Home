@@ -5,6 +5,21 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-04 · A slice that can clear a navigation has to project it
+
+The write-side twin of the missing-projection trap, and quieter. Setting a reference navigation to
+null on an entity whose navigation was never loaded is not a change EF can see: the tracker compares
+null against null, finds nothing, and leaves the foreign key where it was. The save succeeds, the
+endpoint answers 204, and nothing happened.
+
+`UpdateActivity` could not unassign a member from a card. `UpdateMealPlanEntry` could not take a
+meal out of its slot, and its own comment claimed the behaviour it did not have. Both are fixed by
+naming the navigation in the query.
+
+Scalars are unaffected, which is what makes it hard to spot: on the same card, clearing the
+completion date worked while clearing the column did not. Both were found by writing the tests, and
+neither was reachable by reading the code carefully.
+
 ## 2026-09-04 · The password grant compares the client secret
 
 `CreatePasswordGrantInteractor` looked its `ClientApplication` up by ID alone. The secret was

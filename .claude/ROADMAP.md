@@ -23,6 +23,7 @@ name them still make sense.*
 | **C4** *(1 Sep 2026)* | `known-gaps.md` rewritten against measured reality. |
 | **Half of C1** *(3 Sep 2026)* | All 32 read slices tested against a real database through their real presenters. |
 | **Phase 1** *(4 Sep 2026)* | Startup validation of every setting, non-secret configuration moved into appsettings, and a sign-in page that says which of three things went wrong. |
+| **Phase 2** *(4 Sep 2026)* | All 114 use case slices tested, writes included, at 557 tests. |
 
 ---
 
@@ -49,16 +50,22 @@ so in words rather than as a 401.
 Found and fixed on the way: the password grant looked its client application up by ID alone, so the
 secret was required to be present and never compared. The refresh grant had always compared it.
 
-## Phase 2 · Writes are tested, M *(was the rest of C1)*
+## Phase 2 · Writes are tested, done 4 Sep 2026 *(was the rest of C1)*
 
-205 tests cover every read. **Roughly 60 Create, Update, Delete and Set slices have none**, and
-writes are where the household-isolation invariant is actually enforced rather than merely read.
-`CreateActivityRegion` shipped on 1 Sep turning its own cross-household guard into a 500, and that
-was found by writing one test.
+**557 tests across all 114 use case slices**, reads and writes, every one with a neighbouring
+household seeded alongside so the isolation invariant is pinned rather than assumed. Each write is
+read back through a context that never saw it, because an interactor that forgets to save looks
+identical from inside its own.
 
-The harness exists: `Infrastructure/InteractorTest.cs`, with the trap it catches written up in
-`known-gaps.md`. Also outstanding here: the rest of `Services/EntityLogic`, and every `Home.WebUI`
-component. Presenters are exercised, but only through the reads that drive them.
+Found and fixed on the way: **clearing a navigation that the query never loaded does nothing at
+all.** EF compares null against null, sees no change, and leaves the foreign key alone; the save
+succeeds and the endpoint answers 204. It meant a card could not be unassigned from a member and a
+meal could not be taken out of its slot. Both are the write-side twin of the missing-projection
+trap, and both are written up in `known-gaps.md`.
+
+What remains uncovered is `Home.WebUI` components, and presenters other than through the slices
+that drive them. Both are markup-heavy and want a different harness, so they are not a tail of this
+phase.
 
 ## Phase 3 · The small unreachable things, S each *(was B3, B8, C2)*
 
