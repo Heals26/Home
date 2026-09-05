@@ -30,7 +30,9 @@ missing, because it is the one a fork reads. The short version:
 4. Insert a row into `home.ClientApplication` **by hand**. Nothing seeds one, sign-in fails without
    it, and that is deliberate rather than unfinished. Do not add seeding to make setup easier; the
    decision to remove the requirement altogether is parked in `BACKLOG.md`.
-5. Set `apiBaseUrl` and the five `OAuth:AccessToken:*` secrets on `Home.WebUI`.
+5. Set the two `OAuth:AccessToken:*` secrets on `Home.WebUI`. Everything else it needs is in
+   `appsettings.json`, and both projects name any missing setting at startup rather than failing
+   at the point of use.
 6. `dotnet run` both projects.
 
 ```bash

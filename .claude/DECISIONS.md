@@ -5,7 +5,42 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
-## 2026-09-04 — Focus moves to the heading on navigation, without dragging the page with it
+## 2026-09-04 · The password grant compares the client secret
+
+`CreatePasswordGrantInteractor` looked its `ClientApplication` up by ID alone. The secret was
+required to be present and then never compared, so anyone who could reach the token endpoint could
+mint a token with `client_id=1` and any secret at all, given a real username and password. The
+endpoint is anonymous, so the `Authorization: Basic` header the web app also sends it is never read;
+`BasicAuthenticationHandler` guards the rest of the API, not this.
+
+`CreateRefreshGrantInteractor` has always compared the secret, which is what says this was an
+oversight rather than a decision, and is also what made the fix safe to make without being able to
+test a real sign-in: refresh working in daily use is proof the configured secret matches the row.
+
+The setup ceremony this makes real is still worth removing, for the reasons in `BACKLOG.md`. It
+should be removed deliberately, not by leaving it unenforced.
+
+## 2026-09-04 · Configuration is checked at startup, and the defaults live in appsettings
+
+Setting the app up took six user secrets, five of them undocumented, and every way of getting one
+wrong produced a 401 that the sign-in page reported as a wrong password. That cost an evening on a
+second machine on 3 Sep.
+
+Three changes. `RequiredConfiguration` in each project lists everything wrong at once with the
+command that fixes each, rather than failing at the point of use. The values that are identical on
+every installation moved into `appsettings.json`, leaving two genuine secrets. And the sign-in page
+now distinguishes an unreachable API, an installation whose own credentials were refused, and a
+wrong password, because telling somebody to retype a password that was never the problem is the
+worst of the three answers.
+
+`apiBaseUrl` deliberately stayed out of `appsettings.json` and sits in the Development file only, so
+a deployment has to say where its API is instead of silently pointing at localhost.
+
+The token endpoint now answers with the RFC 6749 error code in the body rather than an empty 401.
+That is what lets the client tell `invalid_client` from `invalid_grant`. Neither code reveals
+whether a username exists.
+
+## 2026-09-04 · Focus moves to the heading on navigation, without dragging the page with it
 
 Blazor's `FocusOnNavigate` parks focus on the new page's `h1` so a screen reader announces where you
 have landed. It does that with a plain `.focus()`, and focusing an element also scrolls it into
@@ -20,7 +55,7 @@ A companion rule in `input.css` drops the focus ring on any `[tabindex="-1"]`, s
 that attribute is reachable by tab and a ring around something nobody clicked reads as the app
 highlighting itself.
 
-## 2026-09-04 — Tailwind scans the code-behind as well as the markup
+## 2026-09-04 · Tailwind scans the code-behind as well as the markup
 
 The `content` globs covered `.razor`, `.html` and `.cshtml`, so any class named only in a
 `.razor.cs` was invisible to the scanner and its rule was purged. `HomeNavRail` builds its whole
@@ -28,7 +63,7 @@ icon list in code-behind, which is why the Home icon rendered as a bare grey squ
 other icon in the rail was fine. Adding `./**/*.cs` costs about 5% on the built stylesheet and
 removes a failure mode that gives no error anywhere.
 
-## 2026-09-03 — Read slices are tested against a real database and their real presenter
+## 2026-09-03 · Read slices are tested against a real database and their real presenter
 
 Three screens have now shipped broken the same way: a presenter reads `x.Y.Z` and the interactor's
 projection never named `x.Y`, so EF hands back a null and the screen either throws or quietly
@@ -55,7 +90,7 @@ back to it.
 
 Writes remain untested. That is the next tranche, not a decision against it.
 
-## 2026-09-03 — Adding a card section refuses cleanly instead of failing
+## 2026-09-03 · Adding a card section refuses cleanly instead of failing
 
 `ActivityLogic.AddRegion` returns null for a section belonging to another household — the guard
 that stops one family writing under another family's heading — and `CreateActivityRegionInteractor`
@@ -69,7 +104,7 @@ Writing the test for it is also what established that the harness must resolve t
 household through the read context: `AddRegion` reads `Activity.Household` without projecting it and
 depends on the authorisation call having already tracked it. See `known-gaps.md`.
 
-## 2026-09-03 — A member lookup answers with a response model, not the entity
+## 2026-09-03 · A member lookup answers with a response model, not the entity
 
 `GetUserPresenter` passed the `User` entity to `OkAsync` whole, putting the stored password on the
 wire for any member who asked, and the interactor handed a null straight to the same method — so a
@@ -78,7 +113,7 @@ unreachable. Both were found by writing the tests for the slice, and both were f
 pinned, because a test asserting the current behaviour would have cemented it. The endpoint is
 reachable only from the API; nothing in the WebUI calls it.
 
-## 2026-09-01 — Card sections belong to the household, and the second board axis is gone
+## 2026-09-01 · Card sections belong to the household, and the second board axis is gone
 
 Two decisions from the same complaint: the family board still spoke like a software ticket.
 
@@ -99,7 +134,7 @@ still holding writing is what a family wants. The UI refuses it too, and the cou
 that has to be **projected** — an unloaded `Regions` collection counts zero and would have offered
 to delete a section with a card's writing under it.
 
-## 2026-09-01 — Archiving is not deleting, and a copy is one call
+## 2026-09-01 · Archiving is not deleting, and a copy is one call
 
 A shopping list can now be renamed, copied and archived. Archiving keeps everything — the items,
 the prices, what was ticked — and only takes the list out of the picker, so last Christmas's shop
@@ -111,7 +146,7 @@ Copying is a server-side slice, not the screen looping over the item endpoints �
 as clearing a list on 17 Aug. Nothing arrives ticked and nothing arrives priced: "this week's like
 last week's" means the same things to buy, not last week's trolley or last week's receipt.
 
-## 2026-09-01 — One move control, and the sequence swap is the pattern
+## 2026-09-01 · One move control, and the sequence swap is the pattern
 
 `HomeReorder` is the single up/down affordance, now used by recipe ingredients, recipe steps,
 shopping items, light scenes, card sections and cards within a board column. Chevrons rather than
@@ -129,7 +164,7 @@ Two new `Sequence` columns fell out of this — `RecipeIngredient.Sequence` (31 
 `Activity.Sequence` — both backfilled so existing rows keep the order they were already shown in
 rather than all landing on zero, which is the arbitrary ordering the column exists to end.
 
-## 2026-08-31 — A modal is a `<dialog>`, so the browser owns its keyboard
+## 2026-08-31 · A modal is a `<dialog>`, so the browser owns its keyboard
 
 `HomeModal` was a `<div>` with `fixed inset-0`, which gets none of the behaviour a modal is
 expected to have: Escape did nothing on any of the twenty-one modals, Tab walked straight out of
@@ -145,7 +180,7 @@ is stretched over the viewport with its user-agent frame stripped (`m-0`, `max-w
 `max-h-none`, `p-0`, `border-0`), because `dialog:modal` ships a `calc(100% - 38px)` max-width and
 an `auto` margin that would otherwise inset the whole overlay.
 
-## 2026-08-31 — Tapping a row opens the thing; only its own control acts on it
+## 2026-08-31 · Tapping a row opens the thing; only its own control acts on it
 
 Supersedes the tap-to-tick half of the 17 Aug shopping list entry. The whole row being the tick
 target meant reading a line to check the amount crossed it off — in a supermarket, mid-shop, a
@@ -159,7 +194,7 @@ of them across Recipes. Ingredient rows became tap-to-open with removal moved in
 steps, notes and recipe cards simply stopped hiding their controls. **Rule: never gate a control
 on hover. A finger has no pointer, and `group-hover` is a desktop-only affordance.**
 
-## 2026-08-31 — An ingredient's position belongs to the recipe, not to the ingredient
+## 2026-08-31 · An ingredient's position belongs to the recipe, not to the ingredient
 
 Ingredients rendered in whatever order the database returned. They are ordered now, and the order
 is *order of use in the method* — what a cookbook does, and what you read down while cooking.
@@ -171,7 +206,7 @@ row is created fresh for every line and never reused, so putting it on the ingre
 worked — and would have quietly blocked the ingredient-catalogue rework, where one shared onion
 cannot hold one recipe's position. Moving is the board's two-call sequence swap, not a new verb.
 
-## 2026-08-31 — A unit knows its own singular, because English does not derive one
+## 2026-08-31 · A unit knows its own singular, because English does not derive one
 
 "1 packets" and "1 tins" were being rendered because a unit carried exactly one abbreviation.
 Each now carries both forms explicitly rather than being pluralised by rule: leaf becomes leaves,
@@ -184,7 +219,7 @@ comment held them together. `MeasurementUnitTests` pins all three to the enumera
 added to one and forgotten in the others fails the build rather than showing an empty dropdown
 entry or silently dropping a typed unit.
 
-## 2026-08-20 — Recipe photos live in the database and stream through the web app
+## 2026-08-20 · Recipe photos live in the database and stream through the web app
 
 The "no image bytes, that forces a hosting decision" stance on `Recipe.ImageUrl` is superseded:
 Mitch asked for his own photos, and for a household app the database *is* the hosting decision.
@@ -198,7 +233,7 @@ which turns the sign-in cookie into a bearer token and proxies the API — an im
 a cookie, and the API's household scoping stays in charge. An uploaded photo beats the ImageUrl
 link everywhere.
 
-## 2026-08-20 — Applying a light scene first saves how the room looked
+## 2026-08-20 · Applying a light scene first saves how the room looked
 
 "Previous look" is one reserved scene per household (`LightScene.IsPreviousLook`), rewritten by
 every scene apply with a snapshot of the *whole* household's lights taken before the apply mutates
@@ -206,7 +241,7 @@ anything. That makes it an undo — and tapping it twice toggles, because applyi
 what it replaced. It is pinned first in the scene list, cannot be scheduled (it changes on every
 apply, so a schedule would set lights nobody chose), and is never created until the first apply.
 
-## 2026-08-20 — Planning a meal can create the recipe on the spot
+## 2026-08-20 · Planning a meal can create the recipe on the spot
 
 The meal-plan picker gained search, orders recipes tagged with the meal being planned first, and
 offers "Add *X* as a new dinner recipe" when the search matches nothing exactly — created, tagged
@@ -215,14 +250,14 @@ SetRecipeMealSlots and CreateMealPlanEntry slices rather than a new API shape. R
 add spaghetti bolognese but haven't added it as a recipe" ended in a five-screen round trip, which
 is a plan abandoned.
 
-## 2026-08-20 — Nothing defaults to a CLR-evaluated timestamp
+## 2026-08-20 · Nothing defaults to a CLR-evaluated timestamp
 
 `Note.CreatedOnUTC` carried `HasDefaultValue(DateTime.UtcNow)` — frozen at scaffold time, so every
 Note defaulted to the same stale moment *and every migration since re-altered the column* as the
 "default" moved. It is `HasDefaultValueSql("SYSUTCDATETIME()")` now. Rule: a column default is the
 database's clock or a constant, never the model's.
 
-## 2026-08-19 — The session is the cookie; browser storage is out of the auth path entirely
+## 2026-08-19 · The session is the cookie; browser storage is out of the auth path entirely
 
 Supersedes the session mechanics of the 15 Aug entry below. That fix kept the token in
 `ProtectedLocalStorage`, which means identity had to be *read back out of the browser over JS
@@ -256,7 +291,7 @@ Verified end-to-end on 19 Aug against a live browser and a disposable DB user: s
 cookie, F5 stays signed in, killing and restarting the WebUI stays signed in, sign-out clears it,
 and presenting the same refresh token twice returns the same token both times.
 
-## 2026-08-19 — The reconnect overlay is ours, and a dead circuit reloads itself
+## 2026-08-19 · The reconnect overlay is ours, and a dead circuit reloads itself
 
 Blazor's default overlay is white in an app that is dark by default, and once it gives up it
 leaves a page that looks alive and does nothing — the tablet's worst failure mode. The element
@@ -266,7 +301,7 @@ circuit gone) reloads immediately, and a failed one retries with a HEAD probe an
 moment the server answers. Reloading is safe precisely because of the cookie entry above — the
 reload comes back signed in on the same page.
 
-## 2026-08-17 — Adding to a shopping list is one text box, not a form
+## 2026-08-17 · Adding to a shopping list is one text box, not a form
 
 The add-item modal is gone. There is a single input that stays on screen, takes the whole line as
 written — "2 kg potatoes", "500g mince", "1/2 cup rice" — and keeps the cursor after each add, so
@@ -276,7 +311,7 @@ the name exactly as typed, because losing what someone wrote is worse than missi
 Reason: this is the most-used action in the app and it was costing four taps and a modal per item,
 which is precisely the comparison against Bring! and AnyList that the product has to win.
 
-## 2026-08-17 — What a household buys is offered back to it
+## 2026-08-17 · What a household buys is offered back to it
 
 `GetShoppingListItemSuggestions` returns the household's distinct item names ordered by how often
 they have been added, each carrying the amount and price from the last time it was bought. The
@@ -286,7 +321,7 @@ what a family usually buys does not change between keystrokes. Picking a suggest
 last price with it, which is how the running total fills in without anyone typing prices. An
 amount already typed beats the remembered one.
 
-## 2026-08-17 — Emptying a list is one call, not one call per line
+## 2026-08-17 · Emptying a list is one call, not one call per line
 
 `DeleteTickedShoppingListItems` and `UntickShoppingListItems` exist as their own slices rather
 than the screen looping over the per-item endpoints. Thirty round trips over a supermarket
@@ -294,14 +329,14 @@ connection is the difference between a list emptying and a list draining. Cleari
 because there is no undo; unticking is not, because nothing is lost. Both are household-scoped
 the same way as everything else — a list that isn't yours simply matches nothing.
 
-## 2026-08-17 — A shopping item's cost is the line price, not a unit price
+## 2026-08-17 · A shopping item's cost is the line price, not a unit price
 
 `ListTotal` sums `Cost` and no longer multiplies it by an amount. "$3.50 for 2 kg of potatoes" is
 three fifty, and multiplying turned it into seven. The field is labelled "Price for the line" so
 the meaning is on screen rather than assumed. Consequence: there is no per-kilo price anywhere,
 and adding one later means a new column rather than reinterpreting this one.
 
-## 2026-08-17 — The web app's item requests carry Amount and Unit
+## 2026-08-17 · The web app's item requests carry Amount and Unit
 
 The web app was still posting `Quantity`/`Volume`/`Weight` after the API moved to `Amount`/`Unit`,
 so a quantity typed into the add form was serialised, ignored by the API and silently lost — and
@@ -309,7 +344,7 @@ the row rendered the legacy column, which was always empty, so the loss was invi
 request models now match the API. The legacy properties stay on the *response* model because rows
 written before units existed still read through them.
 
-## 2026-08-17 — The whole AutoMapper configuration is asserted in a test
+## 2026-08-17 · The whole AutoMapper configuration is asserted in a test
 
 AutoMapper only validates a map the first time it is used, so a missing one is invisible until
 the screen that needs it returns a 500 — which had happened more than once, most recently on
@@ -326,7 +361,7 @@ having no usable constructor. That last one is why `UsersController` now builds 
 directly, like every other controller — mapping onto a positional record is fragile, because
 `ForMember(...).Ignore()` cannot ignore a constructor parameter.
 
-## 2026-08-15 — Every relationship is configured explicitly, or EF quietly invents a bad one
+## 2026-08-15 · Every relationship is configured explicitly, or EF quietly invents a bad one
 
 Deleting a recipe failed on `FK_RecipeStep_Recipe_RecipeID`. The cause was an *absence*:
 `RecipeStepConfiguration` never declared the relationship, so EF inferred one from `Recipe.Steps`
@@ -341,7 +376,7 @@ from the recipe (a single path: the household already reaches them through it); 
 for exactly that reason. Rule: configure every relationship explicitly, and never trust an
 inferred one — a missing configuration is silent until a delete fails in front of the family.
 
-## 2026-08-15 — There is a light theme now, but dark is still the default
+## 2026-08-15 · There is a light theme now, but dark is still the default
 
 Supersedes the 13 Aug "dark only, no toggle" decision. Mitch listed "No light mode" as a
 complaint, so light is now an opt-in **per-device** preference in Settings → Appearance:
@@ -363,7 +398,7 @@ server-side pass to put it on and an inline script is the only thing that beats 
 Rule for later: a new colour goes in `input.css` as a token pair, never as a hex in the config
 or in markup.
 
-## 2026-08-15 — A household session is expected to last months, not an hour
+## 2026-08-15 · A household session is expected to last months, not an hour
 
 Mitch: "If I close the application or browser I have to relog back in. I should not have to."
 Three independent faults, all fixed together because fixing one alone changes nothing visible.
@@ -380,7 +415,7 @@ protection key ring is pinned with `SetApplicationName` so moving the folder no 
 invalidates every device. Refresh tokens now live 90 days and slide. Rule: never let a transport
 failure reach `SignOutAsync`.
 
-## 2026-08-15 — Board columns belong to the household, and are named for a home
+## 2026-08-15 · Board columns belong to the household, and are named for a home
 
 `ActivityState` was a global lookup seeded with Todo/Refining/Progressing/Blocked/Testing/Done —
 software-process jargon on a family board, and the one table the 14 Aug isolation sweep could not
@@ -390,7 +425,7 @@ replaced**, so every card stayed where the family left it; new households get
 To do → Doing → Waiting on → Done from `IHouseholdSetupLogic`, which also seeds the meal slots.
 Seeding moved out of `Program.cs`: a global row is now unreachable by every scoped query.
 
-## 2026-08-15 — One "meal" vocabulary, not two
+## 2026-08-15 · One "meal" vocabulary, not two
 
 `MealSlot` is household-defined and serves both jobs: which meal a `MealPlanEntry` is for
 (nullable one-to-many) and how the recipe book is filtered (`RecipeMealSlot`, many-to-many —
@@ -399,7 +434,7 @@ apart in the family's head. `MealPlanEntry → MealSlot` is Restrict, not Cascad
 already reached through the recipe, and a second cascade path is rejected by SQL Server — refusing
 to delete a slot still holding a week of dinners is also the behaviour a family wants.
 
-## 2026-08-15 — Migrations against a live family database are additive and rehearsed
+## 2026-08-15 · Migrations against a live family database are additive and rehearsed
 
 The database now holds real data, so the earlier "no rows existed" safety net is gone. This
 migration drops **nothing**: measurement units arrived as new `Amount`/`Unit` columns beside the
@@ -409,7 +444,7 @@ session-expiry backfill was conditional, and because the column default stamps t
 the condition never matched, so every existing session would have been born expired. Rule for
 later: rehearse a data-moving migration against a restored copy, and read what it actually did.
 
-## 2026-08-14 — Every interactor is scoped to the caller's household
+## 2026-08-14 · Every interactor is scoped to the caller's household
 
 Roughly forty interactors loaded entities by raw ID (`Find<T>(id)`), so any authenticated user
 could read, change or delete another household's recipes, lists, activities, members and notes
@@ -422,7 +457,7 @@ called SaveChangesAsync and dereferenced an unloaded navigation, so item updates
 persist. Rule for later: any interactor that takes an ID must scope it to the household — an
 unscoped `Find` is a cross-household hole, not a shortcut.
 
-## 2026-08-14 — Live cross-device updates go through a hub on the API, not in-process events
+## 2026-08-14 · Live cross-device updates go through a hub on the API, not in-process events
 
 Mitch: don't assume one Blazor Server instance (Azure auto-scale), and client satisfaction beats
 battery when they conflict. So change notifications relay through `ChangeNotificationsHub` on
@@ -436,7 +471,7 @@ connections are server-to-server, so devices carry nothing extra. The dashboard'
 a five-minute fallback for hub outages. If hosting lands on Azure with API scale-out, Azure
 SignalR Service is a one-line `.AddAzureSignalR()` swap.
 
-## 2026-08-14 — Meal planning is the connective tissue, not a fifth pillar
+## 2026-08-14 · Meal planning is the connective tissue, not a fifth pillar
 
 `MealPlanEntry` (a recipe on a calendar day, reached through the recipe to keep one cascade
 path) powers /meal-plan, the dashboard's "Tonight" hero tile, and "add week to list" — which
@@ -445,7 +480,7 @@ recipe planned twice (doubling quantities is the shop's decision, not the app's)
 vision's dashboard question "what's for dinner" had no answer anywhere, and this makes recipes,
 shopping and the board reinforce each other rather than stay three separate mini-apps.
 
-## 2026-08-14 — Recipe import reads JSON-LD only, and fails honestly
+## 2026-08-14 · Recipe import reads JSON-LD only, and fails honestly
 
 POST api/Recipes/Import fetches a page and reads the schema.org Recipe most cooking sites embed
 as JSON-LD (`JsonLdRecipeImportService`, regex + System.Text.Json, no scraping packages). If a
@@ -453,7 +488,7 @@ page carries no structured recipe, the import returns a 422 with a plain explana
 guessing at HTML — a wrong-looking import erodes trust faster than a failed one. Ingredient
 lines stay whole ("2 cups flour") because splitting quantities reliably is a losing game.
 
-## 2026-08-14 — The board stays fresh by itself: background sync, sun triggers, auto-refresh
+## 2026-08-14 · The board stays fresh by itself: background sync, sun triggers, auto-refresh
 
 The bulb-list reconcile moved out of SyncLightsInteractor into shared `ILightSyncLogic`, and a
 second hosted runner (`LightStateSyncRunner`, five-minute tick) refreshes every tokened
@@ -464,7 +499,7 @@ gained sunrise/sunset triggers (`Trigger` + `OffsetMinutes`, Almanac `SunCalcula
 lat/long) — the "follow the sun" promise the Settings page copy was already making. Both
 runners keep the existing single-token background limitation, noted in LifxAuthenticationHandler.
 
-## 2026-08-14 — Members surfaced, assignment shipped, avatar-switching deferred
+## 2026-08-14 · Members surfaced, assignment shipped, avatar-switching deferred
 
 The Settings page grew a Members card over the existing CreateUser/new GetUsers slices, and
 activities now expose the assignee end-to-end (the domain, DB and API always supported it — no
@@ -472,7 +507,7 @@ UI ever sent it). Passwordless tap-your-avatar user switching was deliberately N
 weakens auth on a possibly-internet-facing app, and the first-run registration entry already
 rejected auth bypasses. It needs its own decision (per-user PIN? device-trusted sessions?).
 
-## 2026-08-14 — Kitchen-mode details: cook screen, family notes, trolley ticking
+## 2026-08-14 · Kitchen-mode details: cook screen, family notes, trolley ticking
 
 /recipes/{id}/cook shows one step at a time in display type with tap-to-start timers parsed
 from the step text ("simmer 20 minutes" becomes a button) and holds the tablet awake via the
@@ -483,7 +518,7 @@ a running "in the trolley" total against the list total. EF migrations can now b
 while the API is running via `PersistenceContextDesignTimeFactory`
 (`--startup-project Home.Persistence`); `Database.Migrate()` still applies them at API startup.
 
-## 2026-08-14 — PropertyChangeTracker crosses the wire through a JsonConverter
+## 2026-08-14 · PropertyChangeTracker crosses the wire through a JsonConverter
 
 Saving the LIFX token failed with "Name cannot be empty": System.Text.Json deserialised every
 tracker property through its `Value` setter, which flips `HasBeenSet` to true — so a partial
@@ -494,7 +529,7 @@ writes `{hasBeenSet, value}` and on read returns `default` unless `hasBeenSet` i
 later: never let a tracker round-trip through property-by-property deserialisation; the converter
 is the only wire path, and `Home.Application.Tests/Infrastructure/ChangeTrackers` pins it.
 
-## 2026-08-14 — Form inputs declare autocomplete, and labels are wired to their controls
+## 2026-08-14 · Form inputs declare autocomplete, and labels are wired to their controls
 
 `HomeTextInput`/`HomePasswordInput` now render a per-instance `id` their label points at, plus
 optional `Name`, `AutoComplete` and `InputMode` parameters, and `aria-invalid`/`aria-describedby`
@@ -505,7 +540,7 @@ fields a browser might mistake for personal data (anything labelled "Name") get 
 text fields get `InputMode` so tablets show the right keyboard. Raw `<select>`/`<textarea>`/date
 and time inputs get explicit `id`/`for` pairs.
 
-## 2026-08-13 — Registration is first-run only
+## 2026-08-13 · Registration is first-run only
 
 `POST api/Households/register` (anonymous) creates the household and its first member in one
 step, and refuses with 409 the moment any user exists — the login page offers "Set up your
@@ -516,14 +551,14 @@ a Members section in Settings is the obvious future home — no UI yet). No auth
 for local use: sessions persist via refresh tokens, and a bypass flag would be a foot-gun given
 cloud hosting is still an open option.
 
-## 2026-08-13 — Components use .razor.cs code-behind
+## 2026-08-13 · Components use .razor.cs code-behind
 
 Mitch: component logic lives in a `.razor.cs` partial class beside the markup so the C# language
 server can analyse it — inline `@code` blocks get little to no LSP support in most editors. Markup
 and directives (`@page`, `@inject`, `@typeparam`) stay in the `.razor`; everything else moves to
 the partial. Supersedes the earlier inline-`@code` convention.
 
-## 2026-08-13 — Household settings live in SQL, not user secrets
+## 2026-08-13 · Household settings live in SQL, not user secrets
 
 Mitch: assume cloud-hosted SQL storage. Household-wide settings (name, latitude/longitude for
 future sunrise/sunset triggers, the LIFX API token) are stored on the household row and edited
@@ -531,7 +566,7 @@ from the Settings page — setup must not be a CLI exercise. The token is write-
 API: GET returns `HasLifxApiToken`, never the value. `lifxApiToken` in user secrets remains as a
 developer fallback when the household has no token stored.
 
-## 2026-08-13 — The design system: warm ink neutrals, Fraunces display, pillar hues
+## 2026-08-13 · The design system: warm ink neutrals, Fraunces display, pillar hues
 
 The zinc/teal look was the stock "dark dashboard with a single accent" — indistinguishable from
 template output. Replaced with: warm stone neutrals (`ink` scale), Fraunces as an editorial
@@ -540,7 +575,7 @@ display face over Inter UI text, light-on-dark primary buttons, and one hue per 
 navigates by colour without reading. The dashboard is a live "family board" (glance, don't
 navigate), and `HomeNavRail` keeps every page one tap from anywhere, so no screen is a dead end.
 
-## 2026-08-13 — UI direction: upgrade, tablet-first, not generic
+## 2026-08-13 · UI direction: upgrade, tablet-first, not generic
 
 Mitch: the UI should be "upgraded, not generic, functional, good UX, and won't make a user
 frustrated". Combined with the product vision (kitchen tablet, family-proof — see `VISION.md`),
@@ -549,7 +584,7 @@ language is the starting point, but the bar is a deliberate, product-specific de
 extending template defaults. Scenes/Schedules/Effects screens and any reworked pages are built
 against that bar.
 
-## 2026-08-13 — Stashed desktop work triaged, not merged wholesale
+## 2026-08-13 · Stashed desktop work triaged, not merged wholesale
 
 A GitHub Desktop stash on the desktop clone held pre-rewrite local work. Most of it had been
 independently superseded by the remote's Activities feature, so it was *not* applied. The genuinely
@@ -560,26 +595,26 @@ retry throws), Basic client credentials on token refresh, and sign-out on failed
 stash is preserved on branch `backup/stashed-local-work` if anything else turns out to matter.
 `start.bat` was deliberately left behind (`start.ps1` and `.claude/launch.json` cover it).
 
-## 2026-08-13 — Commit messages carry no AI co-author trailers
+## 2026-08-13 · Commit messages carry no AI co-author trailers
 
 The 12 Aug history rewrite existed solely to strip `Co-Authored-By: Claude` trailers from 33
 commits. Don't add them to new commits; that recreates the problem the rewrite fixed.
 
-## 2026-08-12 — History rewritten; stale clones reset, never merged
+## 2026-08-12 · History rewritten; stale clones reset, never merged
 
 Every commit from 18 May 2026 onward has a new SHA (content identical, trailers stripped). A stale
 clone that still has the old chain must `git fetch origin && git reset --hard origin/master` — a
 pull produces a giant self-merge of identical content (this bit the desktop clone on 13 Aug; it was
 recovered by exactly that reset). The `main` branch was deleted; `master` is the only branch.
 
-## 2026-08-12 — Home owns light grouping, not LIFX
+## 2026-08-12 · Home owns light grouping, not LIFX
 
 A sync refreshes a bulb's name and state but never moves it between Home groups. Reason: the
 family's mental model of the house ("kitchen", "kids' rooms") belongs to Home, not to whatever the
 provider app happened to be configured with. A test pins this. Related: a whole room is one API
 call (LIFX accepts 25 comma-separated selectors), so Home-defined groups cost nothing extra.
 
-## 2026-08-12 — An unreachable provider is a return value, not an exception
+## 2026-08-12 · An unreachable provider is a return value, not an exception
 
 `ILightService` returns `null` or a `LightCommandResult`; the presenter maps that to a 503.
 Adapters catch `HttpRequestException`/`TaskCanceledException`/`JsonException` themselves, and 429s
@@ -587,49 +622,49 @@ are logged with their rate-limit headers and treated as unavailable. Reason: a k
 degrade gracefully — "lights unavailable" is a state, not a crash. The same rule applies to any
 future external integration.
 
-## 2026-08-12 — Vendor wire types stay in the adapter
+## 2026-08-12 · Vendor wire types stay in the adapter
 
 `LifxLight` and friends never escape `Home.WebApi/Infrastructure/Lights/`; they map to
 `LightSnapshot` at the boundary. Use cases never learn which vendor is on the other end. This is
 the template for every future smart-home integration.
 
-## 2026-08-12 — Light effects are gated on detected hardware capability
+## 2026-08-12 · Light effects are gated on detected hardware capability
 
 Capabilities are read from `product.capabilities` on sync; the UI offers only what the bulb can do.
 Move/morph/flame are excluded (they need multizone strips or tiles). Reason: offering a control
 that silently does nothing is exactly the frustration the product exists to avoid.
 
-## 2026-08-12 — Nothing reads the clock directly
+## 2026-08-12 · Nothing reads the clock directly
 
 Everything resolves `TimeProvider` (.NET 8) — interactors via `serviceFactory`, services via
 constructor, Razor via the global inject. Reason: testability (`FakeTimeProvider` with exact-time
 asserts) and consistent "now" within a render. `DateTime.UtcNow`/`.Now` appear only in migrations.
 
-## 2026-08-12 — SQLite path deleted; SQL Server only
+## 2026-08-12 · SQLite path deleted; SQL Server only
 
 The migrations are SQL Server-shaped (filtered indexes etc.) and SQLite rejects them. LocalDB
 serves local dev. Consequence: distribution will likely want Docker Compose with Postgres one day,
 which would reopen this — that's the known trade.
 
-## 2026-08-12 — Two cascade paths deliberately removed
+## 2026-08-12 · Two cascade paths deliberately removed
 
 `LightSceneState` does not cascade from `Light` (SyncLights clears scene entries itself), and
 `LightSchedule` hangs off its scene without a second `Household` FK. SQL Server rejects the
 multiple-cascade-path graph otherwise. Adding either back breaks the migration.
 
-## 2026-06 — The audit table is polymorphic on purpose
+## 2026-06 · The audit table is polymorphic on purpose
 
 `ResourceTypeSE` enum + `long EntityID`, no FK. The database can't enforce it, but audit rows must
 outlive the entities they describe, and a per-table audit design creates FK cycles.
 
-## 2026-05/06 — MudBlazor stripped; Tailwind + an owned component library
+## 2026-05/06 · MudBlazor stripped; Tailwind + an owned component library
 
 Every UI element is either a `Home*` component or raw Tailwind utilities. Reason: owning the design
 language end-to-end (see the 2026-08-13 UI direction entry — this decision is what makes
 "not generic" achievable). Icons are CSS masks in `input.css`, no icon library. Dark zinc/teal
 palette; `darkMode: false` because dark *is* the palette.
 
-## 2025-09 → — Clean architecture on CleanArchitecture.Mediator, vertical slices
+## 2025-09 → · Clean architecture on CleanArchitecture.Mediator, vertical slices
 
 Input port → pipeline (auth → validation → interactor) → output port, one folder per use case in
 every layer, interactors `internal`, controllers thin, presenters map to HTTP. The package resolves

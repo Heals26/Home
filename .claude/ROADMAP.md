@@ -22,25 +22,32 @@ name them still make sense.*
 | **A1 to A9** *(1 Sep 2026)* | Members you can manage, rename and archive shopping lists, search and sort the recipe book, reorder everything with a `Sequence`, edit a recipe note, retire the second board axis, household-defined card sections, board filtering and empty states, move a planned meal. |
 | **C4** *(1 Sep 2026)* | `known-gaps.md` rewritten against measured reality. |
 | **Half of C1** *(3 Sep 2026)* | All 32 read slices tested against a real database through their real presenters. |
+| **Phase 1** *(4 Sep 2026)* | Startup validation of every setting, non-secret configuration moved into appsettings, and a sign-in page that says which of three things went wrong. |
 
 ---
 
-## Phase 1 · Anyone can install it, M *(was C5)*
+## Phase 1 · Anyone can install it, done 4 Sep 2026 *(was C5)*
 
-**The app cannot currently be handed to another person, and that is the only thing on this list
-that is true of.** It cost an evening on a second machine on 3 Sep 2026.
+Setting the app up now takes **two secrets instead of six**, and every way of getting it wrong says
+so in words rather than as a 401.
 
-Three parts:
+- **Both projects check their settings at startup**, list everything that is wrong in one go, and
+  print the command that fixes each. `apiBaseUrl` is checked for the documented `/api/` mistake as
+  well as for being absent, so that one fails on boot rather than as a 404 on every call.
+- **The settings that are the same everywhere moved into `appsettings.json`**: client ID, grant type
+  and scope. `apiBaseUrl` sits in `appsettings.Development.json` only, so a real deployment has to
+  say where its API is rather than quietly pointing at localhost. `Home.WebApi` gained the
+  `appsettings.json` it never had.
+- **The sign-in page says which of three things went wrong.** All of them used to read "that
+  username and password didn't match", including an API that was not running and an installation
+  whose own credentials were refused, and only a real credential refusal now counts towards the
+  lockout.
+- **A fresh database still cannot be signed into**, and that stays deliberate. Nothing seeds
+  `home.ClientApplication`; the decision to remove the requirement is parked in `BACKLOG.md` and
+  `README.md` says the step is manual on purpose.
 
-- **Nothing validates the configuration at startup except `apiBaseUrl`.** The five
-  `OAuth:AccessToken:*` values are read at the moment of use, so a missing one surfaces as a 401
-  with nothing in the log. Validate all six on boot and name the one that is wrong.
-- **A fresh database cannot be signed into.** Nothing seeds `home.ClientApplication`. The options,
-  and the reason option 3 is the one worth having, are written up in `BACKLOG.md`. Until that is
-  settled, setup stays manual and `README.md` says so in as many words.
-- **There is no `appsettings.json` in either project.** Values that are not secret at all
-  (`GrantType`, `Scope`, the API's own URL) live in user secrets purely because there is nowhere
-  else to put them, and user secrets do not travel to a deployment.
+Found and fixed on the way: the password grant looked its client application up by ID alone, so the
+secret was required to be present and never compared. The refresh grant had always compared it.
 
 ## Phase 2 · Writes are tested, M *(was the rest of C1)*
 

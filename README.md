@@ -79,23 +79,31 @@ SELECT ClientApplicationID, Name FROM home.ClientApplication;
 
 Keep the `ClientApplicationID` that comes back. It is almost always `1`, and step 5 needs it.
 
-### 5. Give the web app its secrets
+### 5. Give the web app its two secrets
 
-`Home.WebUI` needs six values. The three OAuth credentials have to match the row you just inserted,
-or every sign-in returns 401 with no explanation on screen.
+The two strings you just invented are the only settings you have to supply. Everything else the web
+app needs is already in `appsettings.json` (the client ID, grant type and scope) and
+`appsettings.Development.json` (the API's address on a development machine).
 
 ```bash
-dotnet user-secrets set "apiBaseUrl" "http://localhost:57175" --project Home.WebUI
-dotnet user-secrets set "OAuth:AccessToken:ClientID" "1" --project Home.WebUI
 dotnet user-secrets set "OAuth:AccessToken:AccessToken" "replace-with-a-random-string" --project Home.WebUI
 dotnet user-secrets set "OAuth:AccessToken:ClientSecret" "replace-with-another-random-string" --project Home.WebUI
-dotnet user-secrets set "OAuth:AccessToken:GrantType" "password" --project Home.WebUI
-dotnet user-secrets set "OAuth:AccessToken:Scope" "WebApp" --project Home.WebUI
 ```
 
-`apiBaseUrl` must be **the origin only, with no path**. `ApiProvider` already puts `api` in front of
-every route, so a value ending in `/api/` produces `.../api/api/Recipes` and every call 404s.
-It is the one setting validated at startup, and only for being a well formed absolute URI.
+If your `ClientApplicationID` came back as anything other than 1, override it as well:
+
+```bash
+dotnet user-secrets set "OAuth:AccessToken:ClientID" "<the ID from step 4>" --project Home.WebUI
+```
+
+**Deploying rather than developing?** `apiBaseUrl` is deliberately not in `appsettings.json`, so a
+real deployment has to say where its API is rather than quietly pointing at localhost. Set it, and
+make it **the origin only, with no path**: `ApiProvider` already puts `api` in front of every route,
+so a value ending in `/api/` produces `.../api/api/Recipes` and every call 404s. The app refuses to
+start on that mistake rather than letting you find it one 404 at a time.
+
+Every setting above is checked when the app starts. A missing or malformed one is named, along with
+the command that fixes it, before anything else happens.
 
 ### 6. Run both projects
 
@@ -176,18 +184,21 @@ HOME_DESIGNTIME_CONNECTIONSTRING="Server=.\;Database=Home;Trusted_Connection=Tru
 
 This has already cost one migration applied to the wrong database.
 
-### Signing in returns 401 and the page says nothing useful
+### Signing in does not work
 
-Almost always step 4 or step 5. Check, in order:
+The sign-in page says which of the three things went wrong, so start there.
 
-1. There is a row in `home.ClientApplication`.
-2. `OAuth:AccessToken:AccessToken` and `OAuth:AccessToken:ClientSecret` match that row's
-   `AccessToken` and `Secret` exactly.
-3. `OAuth:AccessToken:ClientID` matches its `ClientApplicationID`.
-4. The API is running, and `apiBaseUrl` points at it with no trailing path.
+| It says | It means |
+|---|---|
+| "This copy of Home isn't set up correctly" | Step 4 or step 5. The client credentials do not match a row in `home.ClientApplication`, and no password will get past that. |
+| "Home can't reach the server" | The API is not running, or `apiBaseUrl` points somewhere else. |
+| "That username and password didn't match" | Exactly that. Only this one counts towards the lockout. |
 
-The API records every rejected request in `home.ApiAuditEntry` with the reason, which is the fastest
-way to tell a bad client credential from a bad password.
+For the first, check in order that there is a row in `home.ClientApplication`, that
+`OAuth:AccessToken:AccessToken` and `OAuth:AccessToken:ClientSecret` match that row's `AccessToken`
+and `Secret` exactly, and that `OAuth:AccessToken:ClientID` matches its `ClientApplicationID`.
+
+The API also records every rejected request in `home.ApiAuditEntry` with the reason.
 
 ## Working on it
 

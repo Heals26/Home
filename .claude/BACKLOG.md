@@ -30,6 +30,12 @@ Option 3 is the one worth having and the one that needs the decision, because it
 the door open for a real third-party client later. Until it is decided, **every installation does
 step 4 of `README.md` by hand, and the documentation says so.**
 
+Worth knowing when that decision is taken: the token endpoint is anonymous, so the `Authorization:
+Basic` header the web app sends it is **never read**. `BasicAuthenticationHandler` guards the rest
+of the API, not this. The client is identified entirely by the `client_id` and `client_secret` form
+fields, which the two grant interactors check for themselves. Whatever replaces this has one caller
+to satisfy, not two.
+
 Related: C5 in `ROADMAP.md` (nothing validates the OAuth secrets at startup, so a missing one is
 also a silent 401).
 
