@@ -13,10 +13,17 @@ namespace Home.WebUI.Infrastructure.HttpClients;
 /// Talks to the API on behalf of whoever this circuit belongs to. It no longer knows anything about
 /// signing in: the cookie does that, <see cref="IHouseholdSession"/> turns it into an access token,
 /// and a 401 here is a token to replace rather than a session to end.
+/// <para>
+/// When it does turn out to be a session to end, this asks
+/// <see cref="ISessionEndedNavigator"/> for the login page rather than reporting it. Telling
+/// someone "please sign in" on a screen with no way to sign in is not an error message, it is a
+/// dead end, and a page firing six requests produced six of them.
+/// </para>
 /// </summary>
 public class HomeHttpClient(
     HttpClient httpClient,
-    IHouseholdSession householdSession)
+    IHouseholdSession householdSession,
+    ISessionEndedNavigator sessionEndedNavigator)
     : IHomeHttpClient
 {
 
@@ -72,13 +79,9 @@ public class HomeHttpClient(
             }
             else if (!apiProvider.AllowsAnonymous)
             {
-                errors.Invoke(new()
-                {
-                    Title = "Not signed in.",
-                    Status = (int)HttpStatusCode.Unauthorized,
-                    Detail = "Please sign in to access this resource.",
-                    Errors = new Dictionary<string, string[]>()
-                });
+                // The cookie can still be valid while the session behind it is gone, which is how
+                // the route authorises, the page renders, and nothing on it can load.
+                sessionEndedNavigator.SessionHasEnded();
                 return default;
             }
 
@@ -112,13 +115,8 @@ public class HomeHttpClient(
                 case HttpStatusCode.Unauthorized:
                     if (!allowRefresh)
                     {
-                        errors.Invoke(new ValidationProblemDetails()
-                        {
-                            Title = "Not signed in.",
-                            Status = (int)HttpStatusCode.Unauthorized,
-                            Detail = "Your sign-in was not accepted. Please sign in again.",
-                            Errors = new Dictionary<string, string[]>()
-                        });
+                        // A token minted moments ago and refused anyway. Nothing is left to retry.
+                        sessionEndedNavigator.SessionHasEnded();
                         return default;
                     }
 
@@ -127,16 +125,11 @@ public class HomeHttpClient(
                         case TokenRefreshOutcome.Refreshed:
                             return await this.SendAsync<TRequest, TResponse>(request, apiProvider, errors, false, cancellationToken);
                         case TokenRefreshOutcome.Rejected:
-                            // Nothing is signed out from here. The cookie is what holds the session
-                            // and only the sign-out endpoint may clear it; a refused refresh means
-                            // this page needs reloading, which the reconnect handling takes care of.
-                            errors.Invoke(new ValidationProblemDetails()
-                            {
-                                Title = "Signed out.",
-                                Status = (int)HttpStatusCode.Unauthorized,
-                                Detail = "Your session has ended. Please sign in again.",
-                                Errors = new Dictionary<string, string[]>()
-                            });
+                            // Still nothing signed out from here: the cookie holds the session and
+                            // only the sign-out endpoint may clear it. Going to the login page is
+                            // navigation, not sign-out, and it is the page that can deal with the
+                            // cookie because it is the one that renders statically.
+                            sessionEndedNavigator.SessionHasEnded();
                             return default;
                         default:
                             // The API could not be asked whether the session is still good, so it

@@ -70,7 +70,12 @@ _ = _Builder.Services.AddHttpClient(HttpClientValues.ApiClientName, options => o
 
 _ = _Builder.Services.AddScoped<IHomeHttpClient>(sp => new HomeHttpClient(
     sp.GetRequiredService<IHttpClientFactory>().CreateClient(HttpClientValues.ApiClientName),
-    sp.GetRequiredService<IHouseholdSession>()));
+    sp.GetRequiredService<IHouseholdSession>(),
+    sp.GetRequiredService<ISessionEndedNavigator>()));
+
+// Scoped so the "already going to the login page" latch is per circuit: a page asks the API for
+// six things at once and every one of them fails the same way when the session is over.
+_Builder.Services.AddScoped<ISessionEndedNavigator, SessionEndedNavigator>();
 
 // The token endpoint is reached from two places that must not depend on each other: the sign-in
 // endpoint during a request, and the circuit's session when its access token runs out.
