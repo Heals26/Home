@@ -5,6 +5,37 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-05 · A session that has ended navigates to login, it does not report itself
+
+Refines the 19 Aug session entry, which said "a refused refresh surfaces as an error". That is
+still right about what this app may not do and wrong about what it should do instead.
+
+The failure it produced: the sign-in cookie can be perfectly valid while the session behind it is
+gone, because the two are separate things. The cookie carries the refresh token; the session is a
+row in `home.UserAuthentication`. Sign that row out from another device and the cookie is untouched,
+so `<NotAuthorized>` never fires, the route authorises, the page renders, the navigation works, and
+every request for data fails. Three stacked "Not signed in. Please sign in to access this resource."
+messages on a screen with nowhere to sign in, one per call the page made.
+
+`ISessionEndedNavigator` replaces those messages with a `forceLoad` to
+`/login?returnUrl=<where they were>`. Three things make that correct rather than a workaround:
+
+- **It is not signing out.** Nothing client-side clears the cookie, which is the rule the 19 Aug
+  entry set and it stands. This navigates. The login page is the one that renders statically, so
+  going there is precisely how the cookie reaches a response that can deal with it.
+- **It latches, scoped to the circuit.** A page asks the API for six things at once and all six
+  fail identically. The first navigates and the rest return quietly, which is what stops the stack
+  of identical messages as much as the navigation does.
+- **Only three branches use it**: no access token at all, a refresh the token endpoint refused, and
+  a 401 against a token minted moments earlier. An unreachable API keeps its own message and does
+  **not** navigate, because "the API is not running" and "you are signed out" are different
+  problems and only one of them is fixed by signing in again.
+
+Found by signing 23 stale sessions out of this household while testing the devices card, which is
+also the honest reason it had never been seen: the state needs someone else to end your session
+while you are sitting in the app.
+
+
 ## 2026-09-05 · Two breakpoints, asking two different questions
 
 The app now uses `rail:` and `sm:`/`lg:` for different things, and mixing them up will produce
