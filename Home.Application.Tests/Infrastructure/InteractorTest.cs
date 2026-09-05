@@ -178,6 +178,24 @@ public abstract class InteractorTest : IDisposable
             .With(this.AuthorisationService.Object);
     }
 
+    /// <summary>
+    /// What the database holds now, read through a context that never saw the write.
+    /// <para>
+    /// A write is only proven by reading it back. An interactor that changes a tracked entity and
+    /// forgets to save looks identical from inside its own context, and so does one that adds an
+    /// entity the model cannot actually persist.
+    /// </para>
+    /// <para>
+    /// <b>Navigations are not loaded.</b> Nothing here projects, so <c>Stored&lt;Activity&gt;()
+    /// .Single().State</c> is always null and asserting that it "should be null" passes whatever
+    /// the interactor did. Put the navigation in the query instead, where it is translated rather
+    /// than read off an object: <c>Count(a =&gt; a.State != null &amp;&amp; a.State.ActivityStateID
+    /// == 120)</c>.
+    /// </para>
+    /// </summary>
+    protected IQueryable<TEntity> Stored<TEntity>() where TEntity : class
+        => this.Database.Read().GetEntities<TEntity>();
+
     protected static void ShouldBeNotFound(OutputPortPresenter presenter)
     {
         _ = presenter.PresentedSuccessfully.Should().BeFalse("a missing entity is not a successful presentation");

@@ -25,8 +25,20 @@ internal class UpdateActivityInteractor : IInteractor<UpdateActivityInputPort, I
 
         var _Household = _AuthorisationService.GetHousehold();
 
+        // State and User are projected because this slice can clear them, and clearing a navigation
+        // that was never loaded is not a change EF can see: the tracker compares null against null,
+        // finds nothing, and leaves the foreign key exactly where it was. Unassigning a member
+        // answered 204 and did nothing at all until 4 Sep 2026.
         var _Activity = _PersistenceContext.GetEntities<Activity>()
-            .SingleOrDefault(a => a.ActivityID == inputPort.ActivityID && a.Household.HouseholdID == _Household.HouseholdID);
+            .Where(a => a.ActivityID == inputPort.ActivityID && a.Household.HouseholdID == _Household.HouseholdID)
+            .Select(a => new
+            {
+                Activity = a,
+                a.State,
+                a.User
+            })
+            .SingleOrDefault()
+            ?.Activity;
 
         if (_Activity == null)
         {
