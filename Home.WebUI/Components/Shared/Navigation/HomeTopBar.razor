@@ -1,15 +1,23 @@
-﻿@* Page header: eyebrow (the pillar's name in its hue), display-face title, optional back
+@* Page header: eyebrow (the pillar's name in its hue), display-face title, optional back
    button for detail pages, and an actions slot. The nav rail carries top-level wayfinding,
-   so ShowBack is only for drill-in pages. *@
+   so ShowBack is only for drill-in pages.
 
-<header class="flex items-end justify-between gap-3 px-6 pt-6 pb-4 shrink-0">
+   Title and actions share a line only when there is width for both. On a phone three buttons
+   took 248px of 375 and left the title 23, which rendered a recipe called "Pork Roast with
+   Crispy Pork Crackling" as "P.". The actions drop to their own line below instead.
+
+   Width, not orientation, decides that, so this uses `sm:` rather than the `rail:` breakpoint
+   the nav uses. The nav asks where a thumb can reach; this asks whether the text fits, and a
+   tablet held upright answers those two questions differently. *@
+
+<header class="flex flex-col gap-3 px-6 pt-5 pb-3 shrink-0 sm:flex-row sm:items-end sm:justify-between sm:pt-6 sm:pb-4">
     <div class="flex items-center gap-2 min-w-0">
         @if (this.ShowBack)
         {
             <button type="button"
                     title="Back"
                     aria-label="Back"
-                    class="p-2 -ml-2 mb-0.5 text-ink-400 hover:text-ink-50 rounded-lg transition-colors shrink-0 min-h-[44px] min-w-[44px]"
+                    class="p-2 -ml-2 mb-0.5 text-ink-400 hover:text-ink-50 rounded-lg transition-colors shrink-0 min-h-[44px] min-w-[44px] @this.BackClass"
                     @onclick="this.GoBack">
                 <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
             </button>
@@ -19,7 +27,9 @@
             {
                 <p class="text-xs font-semibold uppercase tracking-widest truncate @this.EyebrowClass">@this.Eyebrow</p>
             }
-            <h1 class="font-display text-3xl text-ink-50 truncate mt-0.5">@this.Title</h1>
+            @* Two lines rather than an ellipsis. The page's own name is the one thing on screen
+               worth wrapping for, and the clamp still stops a pasted-in title running away. *@
+            <h1 class="font-display text-2xl text-ink-50 line-clamp-2 mt-0.5 sm:text-3xl">@this.Title</h1>
             @if (!string.IsNullOrEmpty(this.Subtitle))
             {
                 <p class="text-sm text-ink-500 truncate mt-0.5">@this.Subtitle</p>
@@ -28,9 +38,10 @@
     </div>
     @if (this.ActionsContent != null)
     {
-        <div class="flex items-center gap-2 shrink-0 pb-1">
+        @* Wraps rather than scrolls sideways: a control hidden off the right edge of a header is
+           a control nobody finds. *@
+        <div class="flex flex-wrap items-center gap-2 shrink-0 sm:pb-1">
             @this.ActionsContent
         </div>
     }
 </header>
-

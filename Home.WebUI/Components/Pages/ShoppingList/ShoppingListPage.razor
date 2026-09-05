@@ -1,16 +1,28 @@
-﻿@page "/shopping-lists"
+@page "/shopping-lists"
 @page "/shopping-lists/{ShoppingListID:long}"
 
 <HomePageTitle Title="Shopping" />
 
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
     <div class="flex flex-col h-full">
-        <HomeTopBar Title="Shopping lists" Eyebrow="For the shop" EyebrowClass="text-shopping" />
+        @* The title stays "Shopping lists" on both layouts, because the selected list already
+           names itself in its own card header and saying it twice on a phone wastes the line. *@
+        <HomeTopBar Title="Shopping lists"
+                    Eyebrow="For the shop"
+                    EyebrowClass="text-shopping"
+                    ShowBack="this.ShoppingListID != null"
+                    BackClass="lg:hidden"
+                    BackHref="/shopping-lists" />
+
+        @* Two panes side by side where there is room for both, and a plain navigation where there
+           is not. The narrow case is a phone in a supermarket: the picker there is a step on the
+           way to the items, not something worth a permanent third of the screen, and the list
+           already lives in the route so going back to it costs nothing to keep track of. *@
         <div class="flex-1 flex flex-col lg:flex-row gap-4 px-6 pb-6 app-scrollable">
-            <div class="lg:w-1/3 shrink-0">
+            <div class="@(this.ShoppingListID == null ? "" : "hidden lg:block") lg:w-1/3 shrink-0">
                 <ShoppingListsComponent ShoppingListID="this.ShoppingListID" />
             </div>
-            <div class="flex-1 min-w-0">
+            <div class="@(this.ShoppingListID == null ? "hidden lg:block" : "") flex-1 min-w-0">
                 @* Keyed so switching lists builds a fresh component rather than reusing one
                    that still holds the previous list's items and open modal. *@
                 <ShoppingListComponent @key="this.ShoppingListID" ShoppingListID="this.ShoppingListID" />

@@ -117,6 +117,20 @@
 }
 
 @layer components {
+  /* The app shell's height, and the reason it is not just `h-screen`.
+
+     On iOS Safari `100vh` is the viewport with the browser's own toolbars hidden, which is taller
+     than what you can actually see while they are showing. The shell is laid out to that taller
+     figure, so the fixed bottom bar sits below the fold and the page reads as slightly too big for
+     the screen. `100dvh` is the height that is really there, and it changes as the toolbars slide
+     away. The `100vh` line above it is the fallback for anything that does not know `dvh`; the
+     order matters and is why this is a rule here rather than two Tailwind classes, whose order in
+     the generated stylesheet is not ours to decide. */
+  .app-viewport {
+    height: 100vh;
+    height: 100dvh;
+  }
+
   .app-scrollable {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;

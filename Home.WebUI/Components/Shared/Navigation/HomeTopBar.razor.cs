@@ -8,6 +8,14 @@ public partial class HomeTopBar
     #region Properties
 
     [Parameter] public RenderFragment? ActionsContent { get; set; }
+
+    /// <summary>
+    /// Extra classes on the back button, for a caller whose back only applies at some widths. A
+    /// page that collapses two panes into one needs back on the narrow layout and not on the wide
+    /// one, and only CSS knows which of those is on screen.
+    /// </summary>
+    [Parameter] public string? BackClass { get; set; }
+
     [Parameter] public string BackHref { get; set; } = "/";
     [Parameter] public string? Eyebrow { get; set; }
     [Parameter] public string EyebrowClass { get; set; } = "text-ink-500";
