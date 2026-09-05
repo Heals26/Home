@@ -19,6 +19,10 @@ database.
 Six steps. Every one is required, and the app fails in a different confusing way for each one you
 skip, so do not stop early. Run everything from the repository root unless a step says otherwise.
 
+There is no install script and no first-run wizard. Setting this up is a manual job every time,
+including steps 4 and 5, which are the two with no error message worth reading. Follow them in
+order rather than skimming.
+
 ### 1. Install the npm packages
 
 ```bash
@@ -49,8 +53,19 @@ It will quietly build the database somewhere you did not ask for.
 
 ### 4. Create a client application row
 
-The API will not accept a sign-in from a client it does not know. Nothing creates that row for you,
-so a fresh database has no way to log in until you add one.
+**This step is manual on purpose, and there is no command that does it for you.** The API refuses a
+sign-in from a client it does not recognise, and nothing seeds the row, so a fresh database cannot
+be logged into until you insert one by hand.
+
+That is deliberate rather than unfinished. Nothing in this application is seeded globally any more
+(`DECISIONS.md`, 1 Sep 2026), and a build that quietly creates its own credentials on startup is
+the kind of thing you find out about later. Doing it by hand means the two secrets are yours, you
+know they exist, and you know where they live.
+
+The requirement itself should eventually go away: the bundled web app is not a third-party client
+and arguably should not need a client application row at all. That is written up in `BACKLOG.md`
+under "Drop the client application row for the bundled web app". **Until that is decided and built,
+every new installation does this step by hand.**
 
 Pick two random strings of your own. They are shared secrets between the two projects and nothing
 outside this repository ever sees them.

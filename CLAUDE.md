@@ -27,7 +27,9 @@ missing, because it is the one a fork reads. The short version:
 1. `cd Home.WebUI && npm install`, before the first build.
 2. Set `databaseConnectionString` on `Home.WebApi`.
 3. `dotnet ef database update`.
-4. Insert a row into `home.ClientApplication`. Nothing seeds one, and sign-in fails without it.
+4. Insert a row into `home.ClientApplication` **by hand**. Nothing seeds one, sign-in fails without
+   it, and that is deliberate rather than unfinished. Do not add seeding to make setup easier; the
+   decision to remove the requirement altogether is parked in `BACKLOG.md`.
 5. Set `apiBaseUrl` and the five `OAuth:AccessToken:*` secrets on `Home.WebUI`.
 6. `dotnet run` both projects.
 
