@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.Components;
+using Home.WebUI.Infrastructure.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using Home.WebUI.Endpoints;
 using Home.WebUI.Infrastructure.ChangeNotifications;
@@ -59,13 +60,11 @@ _ = _Builder.Services.AddDataProtection()
     .SetApplicationName("Home.WebUI")
     .SetDefaultKeyLifetime(TimeSpan.FromDays(365));
 
-var _ApiBaseUrlString = _Builder.Configuration["apiBaseUrl"];
+// Every setting this app needs, checked in one pass so a fresh install is told all of what is
+// wrong rather than one thing at a time. Nothing below may read configuration without it.
+RequiredConfiguration.Validate(_Builder.Configuration);
 
-if (string.IsNullOrWhiteSpace(_ApiBaseUrlString))
-    throw new InvalidOperationException("API base URL is not configured.");
-
-if (!Uri.TryCreate(_ApiBaseUrlString, UriKind.Absolute, out var _ApiBaseUrl))
-    throw new InvalidOperationException("API base URL is malformed.");
+var _ApiBaseUrl = new Uri(_Builder.Configuration["apiBaseUrl"]!, UriKind.Absolute);
 
 _ = _Builder.Services.AddHttpClient(HttpClientValues.ApiClientName, options => options.BaseAddress = _ApiBaseUrl);
 

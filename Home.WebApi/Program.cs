@@ -27,6 +27,7 @@ using Home.Persistence.Database;
 using Home.WebApi;
 using Home.WebApi.Infrastructure.AutoMapper.Resolvers;
 using Home.WebApi.Infrastructure.ChangeNotifications;
+using Home.WebApi.Infrastructure.Configuration;
 using Home.WebApi.Infrastructure.Extensions;
 using Home.WebApi.Infrastructure.Filters;
 using Home.WebApi.Infrastructure.Lights;
@@ -46,6 +47,11 @@ SetupLogging(_Builder.Logging);
 SetupScopedServices(_Builder.Services);
 SetupScrutorServices(_Builder.Services);
 SetupSecrets(_Builder);
+
+// Straight after the secrets are loaded and before anything reads them, so a missing setting is
+// named here rather than surfacing later as a provider error from whichever query ran first.
+RequiredConfiguration.Validate(_Builder.Configuration);
+
 SetupMediator(_Builder.Services);
 SetupInfrastructure(_Builder.Services);
 SetupLights(_Builder.Services, _Builder.Configuration);
