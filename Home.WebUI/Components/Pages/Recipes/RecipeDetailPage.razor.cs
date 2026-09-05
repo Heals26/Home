@@ -1,6 +1,7 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
 using Home.WebUI.Components.Pages.ShoppingList;
 using Home.WebUI.Components.Shared.Inputs;
+using Home.WebUI.DataAccess.IngredientNotes.AddIngredientNote;
 using Home.WebUI.DataAccess.MealSlots.GetMealSlots;
 using Home.WebUI.DataAccess.MealSlots.Models;
 using Home.WebUI.DataAccess.Notes.UpdateNote;
@@ -75,6 +76,13 @@ public partial class RecipeDetailPage : IDisposable
     private string m_IngName = string.Empty;
     private string m_IngAmount = string.Empty;
     private string m_IngUnit = string.Empty;
+
+    // The note is held against the ingredient rather than this recipe, so it is only offered once
+    // the ingredient exists. The original is kept alongside it so an untouched note is left alone
+    // rather than patched with the same text on every save.
+    private string m_IngNote = string.Empty;
+    private string m_IngNoteOriginal = string.Empty;
+    private long? m_IngNoteID;
 
     /// <summary>
     /// How many of the household's ingredients the name box offers at once. Enough to recognise
@@ -389,6 +397,11 @@ public partial class RecipeDetailPage : IDisposable
         this.m_IngName = ingredient.Name;
         this.m_IngAmount = ingredient.Amount?.ToString("0.##") ?? string.Empty;
         this.m_IngUnit = (ingredient.Unit ?? MeasurementUnits.All[0].Value).ToString();
+        // Coalesced because the initialiser on the DTO is no defence against a null arriving over
+        // the wire, and a null here took the whole page down rather than showing an empty box.
+        this.m_IngNote = ingredient.Note ?? string.Empty;
+        this.m_IngNoteOriginal = this.m_IngNote;
+        this.m_IngNoteID = ingredient.NoteID;
         this.m_ShowIngredient = true;
     }
 
@@ -412,6 +425,9 @@ public partial class RecipeDetailPage : IDisposable
                 _Request, ApiProvider.UpdateRecipeIngredient(this.m_EditingIngredientID.Value),
                 e => this.m_ErrorHandler?.AddError(e),
                 this.m_CancellationTokenHandler.Token) == true;
+
+            if (_Result)
+                _Result = await this.SaveIngredientNoteAsync(this.m_EditingIngredientID.Value);
         }
         else
         {
@@ -450,6 +466,57 @@ public partial class RecipeDetailPage : IDisposable
         }
 
         await this.ReloadAndPublishAsync();
+    }
+
+    /// <summary>
+    /// Brings the ingredient's note in line with what the box now says. Emptying it removes the
+    /// note rather than storing a blank one, so an ingredient either carries something worth
+    /// reading or carries nothing.
+    /// <para>
+    /// Returns true when there was nothing to do, because leaving a note alone is not a failure.
+    /// </para>
+    /// </summary>
+    private async Task<bool> SaveIngredientNoteAsync(long ingredientID)
+    {
+        var _Note = this.m_IngNote.Trim();
+
+        if (_Note == this.m_IngNoteOriginal.Trim())
+            return true;
+
+        if (_Note.Length == 0)
+        {
+            if (this.m_IngNoteID == null)
+                return true;
+
+            return await this.ApiAccess.SendRequestAsync<object, bool>(
+                null!, ApiProvider.RemoveIngredientNote(ingredientID, this.m_IngNoteID.Value),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.m_CancellationTokenHandler.Token) == true;
+        }
+
+        if (this.m_IngNoteID != null)
+        {
+            var _UpdateRequest = new UpdateNoteWebAppRequest()
+            {
+                Content = new PropertyChangeTracker<string>(_Note)
+            };
+
+            return await this.ApiAccess.SendRequestAsync<UpdateNoteWebAppRequest, bool>(
+                _UpdateRequest, ApiProvider.UpdateIngredientNote(this.m_IngNoteID.Value),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.m_CancellationTokenHandler.Token) == true;
+        }
+
+        var _AddRequest = new AddIngredientNoteWebAppRequest()
+        {
+            Content = _Note,
+            IngredientID = ingredientID
+        };
+
+        return await this.ApiAccess.SendRequestAsync<AddIngredientNoteWebAppRequest, AddIngredientNoteWebAppResponse>(
+            _AddRequest, ApiProvider.AddIngredientNote(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token) != null;
     }
 
     private async Task RemoveIngredientAsync(long ingredientID)

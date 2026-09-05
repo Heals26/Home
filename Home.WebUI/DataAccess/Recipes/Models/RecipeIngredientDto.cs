@@ -21,7 +21,19 @@ public class RecipeIngredientDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Where it sits in this recipe's list — the order it is reached for while cooking.
+    /// What the household knows about buying this ingredient, such as a brand or which shop. Empty
+    /// when there is no note.
+    /// </summary>
+    public string Note { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The ID of the note in <see cref="Note"/>, needed to change or clear it. Null when there is
+    /// no note yet, which is what tells an edit to add one instead.
+    /// </summary>
+    public long? NoteID { get; set; }
+
+    /// <summary>
+    /// Where it sits in this recipe's list, the order it is reached for while cooking.
     /// </summary>
     public long Sequence { get; set; }
 

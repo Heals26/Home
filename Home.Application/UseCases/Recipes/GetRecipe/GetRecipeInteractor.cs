@@ -29,7 +29,15 @@ internal class GetRecipeInteractor : IInteractor<GetRecipeInputPort, IGetRecipeO
                 Ingredients = r.Ingredients.Select(ri => new
                 {
                     RecipeIngredient = ri,
-                    ri.Ingredient
+                    ri.Ingredient,
+                    // The note belongs to the ingredient rather than to this recipe, so it has to
+                    // come through the ingredient. Left out of the projection it loads as empty and
+                    // every ingredient silently reads as having no note.
+                    IngredientNotes = ri.Ingredient.Notes.Select(n => new
+                    {
+                        IngredientNote = n,
+                        n.Note
+                    })
                 }),
                 MealSlots = r.MealSlots.Select(rms => new
                 {

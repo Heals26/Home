@@ -30,6 +30,8 @@ public class GetRecipePresenter(IMapper mapper)
                 IngredientID = ri.IngredientID,
                 Amount = ri.Ingredient.Amount,
                 Name = ri.Ingredient.Name,
+                Note = ri.Ingredient.Notes.OrderBy(n => n.Note.CreatedOnUTC).FirstOrDefault()?.Note.Content ?? string.Empty,
+                NoteID = ri.Ingredient.Notes.OrderBy(n => n.Note.CreatedOnUTC).FirstOrDefault()?.NoteID,
                 Sequence = ri.Sequence,
                 Unit = ri.Ingredient.Unit
             })],

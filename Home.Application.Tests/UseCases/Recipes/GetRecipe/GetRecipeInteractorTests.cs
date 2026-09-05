@@ -49,6 +49,19 @@ public class GetRecipeInteractorTests : InteractorTest
     {
         var _Recipe = this.BuildRecipe(120, this.Ours);
 
+        var _Mince = new Ingredient() { Amount = 500, IngredientID = 130, Name = "Beef mince", Unit = MeasurementUnitSE.Grams.Value };
+
+        // The note hangs off the ingredient, two joins from the recipe, which is far enough away
+        // to be left out of the projection and come back empty without anything saying so.
+        _Mince.Notes =
+        [
+            new IngredientNote()
+            {
+                Ingredient = _Mince,
+                Note = new Note() { Content = "The butcher on Vulture Street", CreatedOnUTC = new DateTime(2026, 8, 20), NoteID = 141 }
+            }
+        ];
+
         _Recipe.Ingredients =
         [
             new RecipeIngredient()
@@ -59,7 +72,7 @@ public class GetRecipeInteractorTests : InteractorTest
             },
             new RecipeIngredient()
             {
-                Ingredient = new Ingredient() { Amount = 500, IngredientID = 130, Name = "Beef mince", Unit = MeasurementUnitSE.Grams.Value },
+                Ingredient = _Mince,
                 Recipe = _Recipe,
                 Sequence = 1
             }
@@ -109,6 +122,25 @@ public class GetRecipeInteractorTests : InteractorTest
             ["Beef mince", "Onion"],
             "the order lives on the join, because the position belongs to the recipe and not the thing itself");
         _ = _Ingredients.Select(i => i.Amount).Should().Equal([500, 2]);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ReadsTheNoteHeldAgainstTheIngredientItself()
+    {
+        _ = this.Database.Seed(this.BuildWholeRecipe());
+
+        await this.HandleAsync(120);
+
+        var _Ingredients = Ok<GetRecipeApiResponse>(this.m_Presenter).Ingredients;
+
+        _ = _Ingredients.Single(i => i.Name == "Beef mince").Note.Should().Be(
+            "The butcher on Vulture Street",
+            "an unprojected note loads as an empty collection and the ingredient silently reads as having none");
+        _ = _Ingredients.Single(i => i.Name == "Beef mince").NoteID.Should().Be(141);
+        _ = _Ingredients.Single(i => i.Name == "Onion").Note.Should().BeEmpty(
+            "an ingredient with no note reads as empty rather than null, so the caller needs no guard");
+        _ = _Ingredients.Single(i => i.Name == "Onion").NoteID.Should().BeNull(
+            "the ID is what says whether a note exists");
     }
 
     [Fact]

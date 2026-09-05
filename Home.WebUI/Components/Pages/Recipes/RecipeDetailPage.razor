@@ -85,11 +85,11 @@
                         <ChildContent>
                             @if (!this.m_Recipe.Ingredients.Any())
                             {
-                                <p class="text-sm text-ink-500 py-2">No ingredients yet — add the first one.</p>
+                                <p class="text-sm text-ink-500 py-2">No ingredients yet. Add the first one.</p>
                             }
                             else
                             {
-                                @* The row is the control — tap it to open the ingredient. The pencil and
+                                @* The row is the control: tap it to open the ingredient. The pencil and
                                    bin that used to sit here only appeared on hover, which on the tablet
                                    this lives on meant they never appeared at all; removing is now offered
                                    inside the sheet the row opens. *@
@@ -110,7 +110,18 @@
                                                 {
                                                     <span class="shrink-0 min-w-[4.5rem] text-sm text-ink-400 tabular-nums">@RecipeDisplayLogic.DescribeAmount(_Ingredient)</span>
                                                 }
-                                                <span class="flex-1 min-w-0 text-sm font-medium text-ink-50 truncate">@_Ingredient.Name</span>
+                                                @* The note sits under the name rather than beside
+                                                   it: it is the thing you read at the shelf, and
+                                                   sharing the line would push it off the end of a
+                                                   long ingredient. Two lines at most, so a note
+                                                   pasted in from somewhere cannot swallow the row. *@
+                                                <span class="flex-1 min-w-0">
+                                                    <span class="block text-sm font-medium text-ink-50 truncate">@_Ingredient.Name</span>
+                                                    @if (!string.IsNullOrWhiteSpace(_Ingredient.Note))
+                                                    {
+                                                        <span class="block text-xs text-ink-500 mt-0.5 line-clamp-2">@_Ingredient.Note</span>
+                                                    }
+                                                </span>
                                             </button>
                                             <HomeReorder Label="@_Ingredient.Name"
                                                          CanMoveUp="@(!this.m_Saving && this.m_Recipe.Ingredients.First().IngredientID != _Ingredient.IngredientID)"
@@ -135,7 +146,7 @@
                         <ChildContent>
                             @if (!this.m_Recipe.Steps.Any())
                             {
-                                <p class="text-sm text-ink-500 py-2">No steps yet — write the first one.</p>
+                                <p class="text-sm text-ink-500 py-2">No steps yet. Write the first one.</p>
                             }
                             else
                             {
@@ -191,12 +202,12 @@
                         <ChildContent>
                             @if (!this.m_Recipe.Notes.Any())
                             {
-                                <p class="text-sm text-ink-500 py-2">No notes yet — jot down what worked.</p>
+                                <p class="text-sm text-ink-500 py-2">No notes yet. Jot down what worked.</p>
                             }
                             else
                             {
                                 <div class="flex flex-col gap-2 -mb-1">
-                                    @* Tap the note to fix it — the same rule as everywhere else. A note
+                                    @* Tap the note to fix it, the same rule as everywhere else. A note
                                        is the thing people most often want to correct, and until now it
                                        could only be deleted and rewritten. *@
                                     @foreach (var _Note in this.m_Recipe.Notes.OrderByDescending(n => n.CreatedOnUTC))
@@ -233,7 +244,7 @@
             <HomeTextInput Label="Picture URL (optional)" Type="url" AutoComplete="off" @bind-Value="this.m_EditImageUrl" Placeholder="https://..." />
         </div>
 
-        @* The household's own photo — stored with the recipe, and it beats the URL above. *@
+        @* The household's own photo, stored with the recipe, and it beats the URL above. *@
         <div class="mt-3 flex flex-col gap-1.5">
             <span class="text-sm font-medium text-ink-300">Your own photo</span>
             <div class="flex items-center gap-3">
@@ -305,7 +316,7 @@
 @* Ingredient modal (add + edit) *@
 <HomeModal @bind-Visible="this.m_ShowIngredient" Title="@(this.m_EditingIngredientID.HasValue ? "Edit ingredient" : "Add ingredient")" OnSubmit="this.SaveIngredientAsync">
     <ChildContent>
-        @* Enter saves, and an add stays open with the cursor back in the name box — a recipe is
+        @* Enter saves, and an add stays open with the cursor back in the name box, because a recipe is
            a dozen ingredients, and a tap on plus per line is eleven taps too many. *@
         @{ var _IngredientSuggestions = this.VisibleIngredientSuggestions().ToList(); }
         <div>
@@ -363,6 +374,24 @@
                 </select>
             </div>
         </div>
+        @* Only offered once the ingredient exists, for two reasons: there is nothing to attach a
+           note to until then, and adding is a chain of eleven ingredients where a third field would
+           be in the way every time. Writing a note is a separate, deliberate visit to the row.
+
+           No line underneath explaining where the note reaches. The schema allows an ingredient to
+           be shared between recipes, but neither adding nor importing ever reuses one, so a note
+           reaches exactly this recipe and saying otherwise would be a promise the app does not
+           keep. *@
+        @if (this.m_EditingIngredientID.HasValue)
+        {
+            <div class="flex flex-col gap-1.5 mt-3">
+                <label for="ingredient-note" class="text-sm font-medium text-ink-300">Note</label>
+                <textarea id="ingredient-note" @bind="this.m_IngNote" rows="2"
+                          placeholder="e.g. the one in the green tin"
+                          class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
+            </div>
+        }
+
         @* Remove lives here now rather than on the row, so the row can be the thing you tap to
            open. It sits apart from Save so the two are never a mis-tap away from each other. *@
         <div class="mt-4 flex items-center gap-3">
@@ -396,7 +425,7 @@
                       placeholder="Describe this step..."
                       spellcheck="true"
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
-            <p class="text-xs text-ink-500">Markdown works here — **bold**, *italic*, - bullet lists.</p>
+            <p class="text-xs text-ink-500">Markdown works here: **bold**, *italic*, - bullet lists.</p>
         </div>
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowStep = false">
@@ -420,7 +449,7 @@
             <textarea id="recipe-note-content" @bind="this.m_NoteContent" rows="4"
                       placeholder="Write a note..."
                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
-            <p class="text-xs text-ink-500">Markdown works here — **bold**, *italic*, - bullet lists.</p>
+            <p class="text-xs text-ink-500">Markdown works here: **bold**, *italic*, - bullet lists.</p>
         </div>
         <div class="mt-4 flex items-center gap-3">
             @if (this.m_EditingNoteID.HasValue)
@@ -505,7 +534,7 @@
                 }
                 else
                 {
-                    <p class="text-sm text-ink-500">No shopping lists yet — create one below.</p>
+                    <p class="text-sm text-ink-500">No shopping lists yet. Create one below.</p>
                 }
 
                 <div class="mt-4 pt-4 border-t border-ink-800">
