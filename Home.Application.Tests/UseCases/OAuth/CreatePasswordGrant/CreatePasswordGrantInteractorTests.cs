@@ -54,7 +54,7 @@ public class CreatePasswordGrantInteractorTests
         _ = this.m_TokenFactory.Setup(f => f.GetOAuthToken()).Returns("a-token");
 
         return new CreatePasswordGrantInteractor().HandleAsync(
-            new CreatePasswordGrantInputPort(clientID, clientSecret, OAuthValues.GrantTypePassword.Name, password, "WebApp", username),
+            new CreatePasswordGrantInputPort(clientID, clientSecret, "Chrome on Windows", OAuthValues.GrantTypePassword.Name, password, "WebApp", username),
             this.m_OutputPort.Object,
             new TestServiceFactory()
                 .With(this.m_PasswordService.Object)
@@ -77,6 +77,19 @@ public class CreatePasswordGrantInteractorTests
         this.m_OutputPort.Verify(
             o => o.PresentAuthorisationGrantedAsync(It.IsAny<UserAuthentication>(), It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_NamesTheDeviceOnTheSessionItCreates()
+    {
+        await this.HandleAsync(1, ClientSecret);
+
+        this.m_OutputPort.Verify(
+            o => o.PresentAuthorisationGrantedAsync(
+                It.Is<UserAuthentication>(a => a.DeviceLabel == "Chrome on Windows"),
+                It.IsAny<CancellationToken>()),
+            Times.Once,
+            "a signed-in devices screen showing 24 unnamed rows is no better than showing token IDs");
     }
 
     [Fact]

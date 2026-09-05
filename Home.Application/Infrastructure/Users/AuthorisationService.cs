@@ -26,8 +26,13 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor, IPer
         if (_UserIDValue == null || _ClientIDValue == null)
             throw new UnauthorizedAccessException("Required authentication claims are missing.");
 
+        // Absent on the token endpoint, which authenticates a client rather than a session, so this
+        // one is read leniently where the other two are required.
+        var _SessionIDValue = _Service.User.FindFirst(nameof(AuthenticationMetadata.AuthenticationMetadataID))?.Value;
+
         return new()
         {
+            AuthenticationMetadataID = long.TryParse(_SessionIDValue, out var _SessionID) ? _SessionID : null,
             UserID = long.Parse(_UserIDValue),
             ClientApplicationID = long.Parse(_ClientIDValue),
             ClientName = _Service.User.FindFirst(nameof(AuthenticationMetadata.ClientName))?.Value,

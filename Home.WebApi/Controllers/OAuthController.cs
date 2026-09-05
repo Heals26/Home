@@ -1,4 +1,5 @@
-﻿using Home.Application.Infrastructure.Values;
+﻿using Home.Application.Infrastructure.Security;
+using Home.Application.Infrastructure.Values;
 using Home.Application.UseCases.OAuth.CreatePasswordGrant;
 using Home.Application.UseCases.OAuth.CreateRefreshGrant;
 using Home.WebApi.Infrastructure.Attributes;
@@ -31,7 +32,14 @@ public class OAuthController : BaseController
         {
             case string _GrantType when _GrantType == OAuthValues.GrantTypePassword.Name:
                 {
-                    await this.Pipeline.InvokeAsync(this.Mapper.Map<CreatePasswordGrantInputPort>(apiRequest), passwordPresenter, this.ServiceFactory, cancellationToken);
+                    // The User-Agent is only readable here, so the controller names the device and
+                    // the interactor just stores what it is handed.
+                    var _InputPort = this.Mapper.Map<CreatePasswordGrantInputPort>(apiRequest) with
+                    {
+                        DeviceLabel = DeviceLabelLogic.Describe(this.Request.Headers.UserAgent.ToString())
+                    };
+
+                    await this.Pipeline.InvokeAsync(_InputPort, passwordPresenter, this.ServiceFactory, cancellationToken);
 
                     return passwordPresenter.Result;
                 }

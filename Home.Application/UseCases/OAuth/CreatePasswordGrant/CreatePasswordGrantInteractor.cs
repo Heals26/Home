@@ -71,6 +71,7 @@ internal class CreatePasswordGrantInteractor : IInteractor<CreatePasswordGrantIn
             AccessToken = _AccessToken,
             ClientApplication = _ClientApplication,
             DateSetUTC = _Now,
+            DeviceLabel = inputPort.DeviceLabel,
             ExpiresOnUTC = _Now.Add(SessionValues.RefreshTokenLifetime),
             LastUsedOnUTC = _Now,
             RefreshToken = _RefreshToken,

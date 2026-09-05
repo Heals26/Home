@@ -79,6 +79,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
             var _OAuthMetadata = new AuthenticationMetadata()
             {
+                AuthenticationMetadataID = _AuthenticationMetadata.AuthenticationMetadataID,
                 ClientApplicationID = _AuthenticationMetadata.ClientApplication.ClientApplicationID,
                 ClientName = _AuthenticationMetadata.ClientApplication.Name,
                 Scopes = _AuthenticationMetadata.Scopes,
@@ -88,6 +89,7 @@ public class BearerAuthenticationHandler : AuthenticationHandler<AuthenticationS
             var _ClaimsPrincipal = new ClaimsPrincipal(
                 new ClaimsIdentity(
                     new List<Claim>([
+                        new(nameof(AuthenticationMetadata.AuthenticationMetadataID), _OAuthMetadata.AuthenticationMetadataID.ToString(), ClaimValueTypes.Integer64),
                         new(nameof(AuthenticationMetadata.UserID), _OAuthMetadata.UserID.ToString(), ClaimValueTypes.Integer64),
                         new(nameof(AuthenticationMetadata.ClientApplicationID), _OAuthMetadata.ClientApplicationID.ToString(), ClaimValueTypes.Integer64),
                         new(nameof(AuthenticationMetadata.Scopes), _OAuthMetadata.Scopes, ClaimValueTypes.String),
