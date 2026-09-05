@@ -21,11 +21,6 @@ public class RecipeIngredientDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Quantity { get; set; }
-
-    /// <summary>
     /// Where it sits in this recipe's list — the order it is reached for while cooking.
     /// </summary>
     public long Sequence { get; set; }
@@ -40,15 +35,6 @@ public class RecipeIngredientDto
     /// </summary>
     public string UnitAbbreviation { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Volume { get; set; }
-
-    /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Weight { get; set; }
 
     #endregion Properties
 

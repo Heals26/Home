@@ -25,34 +25,16 @@ public class RecipeLogic : IRecipeLogic
                     && i.Unit == _Ingredient.Unit);
 
             if (_ExistingItem != null)
-            {
                 _ExistingItem.Amount = CombineValues(_ExistingItem.Amount, _Ingredient.Amount);
-
-                // Rows written before amounts carried a unit still hold the old columns, so
-                // those keep adding up until every row has moved across.
-                if (_ExistingItem.Amount == null)
-                {
-                    _ExistingItem.Quantity = CombineValues(_ExistingItem.Quantity, _Ingredient.Quantity);
-                    _ExistingItem.Volume = CombineValues(_ExistingItem.Volume, _Ingredient.Volume);
-                    _ExistingItem.Weight = CombineValues(_ExistingItem.Weight, _Ingredient.Weight);
-                }
-            }
             else
-            {
-                var _IsLegacy = _Ingredient.Amount == null;
-
                 shoppingList.Items.Add(new ShoppingListItem()
                 {
                     Amount = _Ingredient.Amount,
                     InBasket = false,
                     Name = _Ingredient.Name,
-                    Quantity = _IsLegacy ? _Ingredient.Quantity : null,
                     Sequence = shoppingList.Items.Count + 1,
-                    Unit = _Ingredient.Unit,
-                    Volume = _IsLegacy ? _Ingredient.Volume : null,
-                    Weight = _IsLegacy ? _Ingredient.Weight : null
+                    Unit = _Ingredient.Unit
                 });
-            }
         }
     }
 

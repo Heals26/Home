@@ -29,17 +29,6 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
             .HasMaxLength(200)
             .IsRequired();
 
-        _ = entity.Property(e => e.Quantity)
-            .HasPrecision(18, 4)
-            .IsRequired(false);
-
-        _ = entity.Property(e => e.Volume)
-            .HasPrecision(18, 4)
-            .IsRequired(false);
-
-        _ = entity.Property(e => e.Weight)
-            .HasPrecision(18, 4)
-            .IsRequired(false);
     }
 
     #endregion Methods

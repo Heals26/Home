@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using Home.WebUI.DataAccess.Recipes.Models;
 using Home.WebUI.DataAccess.ShoppingLists.Models;
@@ -47,28 +47,8 @@ public static partial class ShoppingListItemLogic
 
     #region Methods
 
-    /// <summary>
-    /// Amounts written before units existed only had a bare quantity, a volume in millilitres or
-    /// a weight in grams, so those are still read when there is no amount to show.
-    /// </summary>
     public static string DescribeAmount(ShoppingListItemDto item)
-    {
-        if (item.Amount != null)
-            return DescribeAmount(item.Amount, item.Unit, item.UnitAbbreviation);
-
-        List<string> _Legacy = [];
-
-        if (item.Quantity != null)
-            _Legacy.Add($"{item.Quantity:0.##}");
-
-        if (item.Volume != null)
-            _Legacy.Add($"{item.Volume:0.##} ml");
-
-        if (item.Weight != null)
-            _Legacy.Add($"{item.Weight:0.##} g");
-
-        return string.Join(", ", _Legacy);
-    }
+        => DescribeAmount(item.Amount, item.Unit, item.UnitAbbreviation);
 
     public static string DescribeAmount(decimal? amount, long? unit, string? unitAbbreviation)
     {

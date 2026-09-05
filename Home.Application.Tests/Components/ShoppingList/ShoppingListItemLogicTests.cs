@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Home.WebUI.Components.Pages.ShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.Models;
 
@@ -89,11 +89,6 @@ public class ShoppingListItemLogicTests
     public void DescribeAmount_ResolvesTheUnitWhenTheApiSentNoAbbreviation()
         => ShoppingListItemLogic.DescribeAmount(new ShoppingListItemDto() { Amount = 500, Unit = 2 })
             .Should().Be("500 g");
-
-    [Fact]
-    public void DescribeAmount_FallsBackToTheColumnsUsedBeforeUnitsExisted()
-        => ShoppingListItemLogic.DescribeAmount(new ShoppingListItemDto() { Quantity = 2, Weight = 500 })
-            .Should().Be("2, 500 g");
 
     [Fact]
     public void DescribeAmount_SaysNothingForAnItemWithNoAmount()

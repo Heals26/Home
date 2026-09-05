@@ -29,11 +29,6 @@ public class GetRecipeIngredientApiResponse
     public List<IngredientNoteDto> Notes { get; set; }
 
     /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Quantity { get; set; }
-
-    /// <summary>
     /// The measurement the amount is in.
     /// </summary>
     public long? Unit { get; set; }
@@ -44,15 +39,6 @@ public class GetRecipeIngredientApiResponse
     public string UnitAbbreviation
         => MeasurementUnitLogic.GetAbbreviation(this.Unit, this.Amount);
 
-    /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Volume { get; set; }
-
-    /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Weight { get; set; }
 
     #endregion Properties
 

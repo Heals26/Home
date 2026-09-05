@@ -19,10 +19,7 @@ public class GetRecipeIngredientPresenter(IMapper mapper)
             IngredientID = ingredient.IngredientID,
             Amount = ingredient.Amount,
             Name = ingredient.Name,
-            Quantity = ingredient.Quantity,
             Unit = ingredient.Unit,
-            Volume = ingredient.Volume,
-            Weight = ingredient.Weight,
             Notes = [.. ingredient.Notes.Select(n => new IngredientNoteDto()
             {
                 NoteID = n.NoteID,

@@ -3,25 +3,21 @@
 namespace Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItems;
 
 /// <summary>
-/// Gets the shopping list items
+/// Everything on one shopping list, in the order it was written.
 /// </summary>
 public record GetShoppingListItemsApiResponse(List<GetShoppingListItemDto> Items);
 
 /// <summary>
-/// A shopping list item. Quantity, Volume and Weight are kept only so rows written before
-/// amounts carried a unit still read correctly.
+/// One line on a shopping list.
 /// </summary>
 public record GetShoppingListItemDto(
     decimal? Amount,
     decimal? Cost,
     bool InBasket,
     string Name,
-    decimal? Quantity,
     long Sequence,
     long ShoppingListItemID,
-    long? Unit,
-    decimal? Volume,
-    decimal? Weight)
+    long? Unit)
 {
 
     #region Properties

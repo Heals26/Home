@@ -20,11 +20,6 @@ public class RecipeIngredientDto
     /// </summary>
     public long Sequence { get; set; }
 
-    /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Quantity { get; set; }
-
     public long? Unit { get; set; }
 
     /// <summary>
@@ -32,9 +27,6 @@ public class RecipeIngredientDto
     /// </summary>
     public string UnitAbbreviation
         => MeasurementUnitLogic.GetAbbreviation(this.Unit, this.Amount);
-
-    public decimal? Volume { get; set; }
-    public decimal? Weight { get; set; }
 
     #endregion Properties
 

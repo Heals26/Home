@@ -18,12 +18,9 @@ public class GetShoppingListItemPresenter(IMapper mapper)
             shoppingListItem.Cost,
             shoppingListItem.InBasket,
             shoppingListItem.Name,
-            shoppingListItem.Quantity,
             shoppingListItem.Sequence,
             shoppingListItem.ShoppingListItemID,
-            shoppingListItem.Unit,
-            shoppingListItem.Volume,
-            shoppingListItem.Weight),
+            shoppingListItem.Unit),
             cancellationToken);
 
     Task IGetShoppingListItemOutputPort.PresentShoppingListItemNotFoundAsync(long shoppingListItemID, CancellationToken cancellationToken)

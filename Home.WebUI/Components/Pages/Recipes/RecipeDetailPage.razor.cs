@@ -387,7 +387,7 @@ public partial class RecipeDetailPage : IDisposable
     {
         this.m_EditingIngredientID = ingredient.IngredientID;
         this.m_IngName = ingredient.Name;
-        this.m_IngAmount = (ingredient.Amount ?? ingredient.Quantity)?.ToString("0.##") ?? string.Empty;
+        this.m_IngAmount = ingredient.Amount?.ToString("0.##") ?? string.Empty;
         this.m_IngUnit = (ingredient.Unit ?? MeasurementUnits.All[0].Value).ToString();
         this.m_ShowIngredient = true;
     }

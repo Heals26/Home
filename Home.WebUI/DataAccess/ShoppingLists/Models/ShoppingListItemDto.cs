@@ -26,11 +26,6 @@ public class ShoppingListItemDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Quantity { get; set; }
-
-    /// <summary>
     /// The display sequence of the item.
     /// </summary>
     public long Sequence { get; set; }
@@ -50,15 +45,6 @@ public class ShoppingListItemDto
     /// </summary>
     public string UnitAbbreviation { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Volume { get; set; }
-
-    /// <summary>
-    /// Kept only so rows written before amounts carried a unit still read correctly.
-    /// </summary>
-    public decimal? Weight { get; set; }
 
     #endregion Properties
 

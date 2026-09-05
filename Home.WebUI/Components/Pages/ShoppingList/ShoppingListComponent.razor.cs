@@ -1,4 +1,4 @@
-using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
 using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.ShoppingListItems.CreateShoppingListItem;
 using Home.WebUI.DataAccess.ShoppingListItems.GetShoppingListItemSuggestions;
@@ -276,7 +276,7 @@ public partial class ShoppingListComponent : IDisposable
     {
         this.m_EditingItemID = item.ShoppingListItemID;
         this.m_EditName = item.Name;
-        this.m_EditAmount = (item.Amount ?? item.Quantity)?.ToString("0.##") ?? string.Empty;
+        this.m_EditAmount = item.Amount?.ToString("0.##") ?? string.Empty;
         this.m_EditCost = item.Cost?.ToString("0.00") ?? string.Empty;
         this.m_EditUnit = item.Unit?.ToString() ?? string.Empty;
         this.m_ShowEditItem = true;

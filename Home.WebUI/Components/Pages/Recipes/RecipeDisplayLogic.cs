@@ -11,35 +11,18 @@ public static class RecipeDisplayLogic
 
     #region Methods
 
-    /// <summary>
-    /// Amounts written before units existed only had a bare quantity, a volume in millilitres
-    /// or a weight in grams, so those are still read when there is no amount to show.
-    /// </summary>
     public static string DescribeAmount(RecipeIngredientDto ingredient)
     {
-        if (ingredient.Amount != null)
-        {
-            var _Abbreviation = string.IsNullOrWhiteSpace(ingredient.UnitAbbreviation)
-                ? MeasurementUnits.GetAbbreviation(ingredient.Unit, ingredient.Amount)
-                : ingredient.UnitAbbreviation;
+        if (ingredient.Amount == null)
+            return string.Empty;
 
-            return string.IsNullOrWhiteSpace(_Abbreviation)
-                ? $"{ingredient.Amount:0.##}"
-                : $"{ingredient.Amount:0.##} {_Abbreviation}";
-        }
+        var _Abbreviation = string.IsNullOrWhiteSpace(ingredient.UnitAbbreviation)
+            ? MeasurementUnits.GetAbbreviation(ingredient.Unit, ingredient.Amount)
+            : ingredient.UnitAbbreviation;
 
-        List<string> _Legacy = [];
-
-        if (ingredient.Quantity != null)
-            _Legacy.Add($"{ingredient.Quantity:0.##}");
-
-        if (ingredient.Volume != null)
-            _Legacy.Add($"{ingredient.Volume:0.##} ml");
-
-        if (ingredient.Weight != null)
-            _Legacy.Add($"{ingredient.Weight:0.##} g");
-
-        return string.Join(", ", _Legacy);
+        return string.IsNullOrWhiteSpace(_Abbreviation)
+            ? $"{ingredient.Amount:0.##}"
+            : $"{ingredient.Amount:0.##} {_Abbreviation}";
     }
 
     public static string DescribeComplexity(long? complexity)

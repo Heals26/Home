@@ -8,15 +8,14 @@ public class ShoppingListItem
     public long ShoppingListItemID { get; set; }
 
     /// <summary>
-    /// How much to buy, in <see cref="Unit"/>. Supersedes the three unitless columns below,
-    /// which are kept only until the data move is proven and are no longer written to.
+    /// How much to buy, in <see cref="Unit"/>. Replaced three unitless columns (Quantity, Volume
+    /// and Weight), which were dropped on 4 Sep 2026 once every row had moved across.
     /// </summary>
     public decimal? Amount { get; set; }
 
     public decimal? Cost { get; set; }
     public bool InBasket { get; set; }
     public string Name { get; set; } = string.Empty;
-    public decimal? Quantity { get; set; }
     public long Sequence { get; set; }
 
     /// <summary>
@@ -24,8 +23,6 @@ public class ShoppingListItem
     /// </summary>
     public long? Unit { get; set; }
 
-    public decimal? Volume { get; set; }
-    public decimal? Weight { get; set; }
 
     public ShoppingList ShoppingList { get; set; } = null!;
 

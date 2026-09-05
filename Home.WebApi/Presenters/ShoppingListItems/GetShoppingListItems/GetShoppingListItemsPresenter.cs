@@ -19,12 +19,9 @@ public class GetShoppingListItemsPresenter(IMapper mapper)
                 sli.Cost,
                 sli.InBasket,
                 sli.Name,
-                sli.Quantity,
                 sli.Sequence,
                 sli.ShoppingListItemID,
-                sli.Unit,
-                sli.Volume,
-                sli.Weight))]
+                sli.Unit))]
         ), cancellationToken);
 
     Task IGetShoppingListItemsOutputPort.PresentShoppingListNotFoundAsync(long shoppingListID, CancellationToken cancellationToken)

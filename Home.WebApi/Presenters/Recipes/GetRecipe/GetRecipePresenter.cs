@@ -30,11 +30,8 @@ public class GetRecipePresenter(IMapper mapper)
                 IngredientID = ri.IngredientID,
                 Amount = ri.Ingredient.Amount,
                 Name = ri.Ingredient.Name,
-                Quantity = ri.Ingredient.Quantity,
                 Sequence = ri.Sequence,
-                Unit = ri.Ingredient.Unit,
-                Volume = ri.Ingredient.Volume,
-                Weight = ri.Ingredient.Weight
+                Unit = ri.Ingredient.Unit
             })],
             MealSlots = [.. recipe.MealSlots.Select(rms => rms.MealSlot).OrderBy(ms => ms.Sequence).Select(ms => new RecipeMealSlotDto()
             {

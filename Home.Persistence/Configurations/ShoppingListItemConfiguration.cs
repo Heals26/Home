@@ -33,21 +33,9 @@ public class ShoppingListItemConfiguration : IEntityTypeConfiguration<ShoppingLi
         _ = entity.Property(e => e.Unit)
             .IsRequired(false);
 
-        _ = entity.Property(e => e.Quantity)
-            .HasPrecision(18, 4)
-            .IsRequired(false);
-
         _ = entity.Property(e => e.Sequence)
             .HasDefaultValue(0)
             .IsRequired();
-
-        _ = entity.Property(e => e.Volume)
-            .HasPrecision(18, 4)
-            .IsRequired(false);
-
-        _ = entity.Property(e => e.Weight)
-            .HasPrecision(18, 4)
-            .IsRequired(false);
 
         _ = entity.Property<long>("ShoppingListID");
         _ = entity.HasOne(e => e.ShoppingList)
