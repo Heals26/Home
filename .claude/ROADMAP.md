@@ -67,23 +67,51 @@ What remains uncovered is `Home.WebUI` components, and presenters other than thr
 that drive them. Both are markup-heavy and want a different harness, so they are not a tail of this
 phase.
 
-## Phase 3 · The small unreachable things, S each *(was B3, B8, C2)*
+## Phase 3 · The small unreachable things, S each *(was B3, B8, C2)* **DONE 5 Sep 2026**
 
-Three small items that can go in one pass. Two are backend that already works with no way to reach
-it, one is free cleanup.
+Three small items in one pass. Two were backend that already worked with no way to reach it, one
+was cleanup. All three shipped. Two of them turned up something the plan had wrong, and both
+corrections are recorded rather than quietly absorbed.
 
-- **Ingredient notes.** `IngredientNotesController` exists in full (add, edit, remove) and is
-  entirely unreachable. "The good olive oil", "Woolies brand only", "the one in the green tin": the
-  household knowledge that makes a shopping list usable by whoever is doing the shop.
-- **Signed-in devices.** `UserAuthentication.DeviceLabel` carries its own docstring saying it exists
-  *"so a future 'signed-in devices' screen can name the tablet rather than a token ID"*, alongside
-  `LastUsedOnUTC`. Neither appears in any UI. Show the household's devices and let one be signed out
-  remotely. Good hygiene now that sessions last 90 days. The same table still carries the
-  `Superseded*` rotation columns, dead since the 19 Aug no-rotation decision.
-- **Drop the superseded columns.** Measured: `ShoppingListItem` has 0 of 37 rows using
-  `Quantity`/`Volume`/`Weight`; `Ingredient` has 1 of 23, a single "ham" row. Migrate that one row
-  to `Amount`, then drop six columns and the fallback branches in `RecipeDisplayLogic` and
-  `ShoppingListItemLogic`.
+- **Ingredient notes.** Done. The note shows under the ingredient on the recipe and is written from
+  the row that opens it. Emptying the box removes the note rather than storing a blank one.
+
+  The plan described this as "the household knowledge that makes a shopping list usable by whoever
+  is doing the shop". It does not reach the shopping list, and it cannot: `ShoppingListItem` has a
+  free-text `Name` and no link to `Ingredient`, so there is nothing to carry a note across. Getting
+  it there needs a schema change, now in `BACKLOG.md`.
+
+  An ingredient is never shared between recipes either. The schema models it as many-to-many, but
+  `AddRecipeIngredient` and `ImportRecipe` both create a fresh `Ingredient` every time and nothing
+  anywhere reuses one, so a note reaches exactly one recipe today. The interface deliberately says
+  nothing about scope rather than promising otherwise. Making sharing real is not a small change:
+  `Amount` sits on the shared row, so two recipes sharing "olive oil" would share "1 tbsp", which
+  would be wrong in one of them.
+
+- **Signed-in devices.** Done. `DeviceLabel` is written at sign-in from the User-Agent ("Chrome on
+  Windows", "Safari on iPad"), the session ID travels on the authenticated principal so the list
+  can mark the row reading it, and Settings shows the household's devices with per-device sign-out.
+
+  This household had **24** sessions stacked up, all unlabelled, because nothing prunes one and
+  sessions last 90 days. A list of 24 identical rows with 23 individual sign-out buttons is not a
+  screen anyone would use, so the card shows five and asks before the rest, and a single
+  "Sign out N others" ends everything except the device reading it.
+
+- **Drop the superseded columns.** Done for the amount columns: `Quantity`, `Volume` and `Weight`
+  are gone from `Ingredient` and `ShoppingListItem` along with the fallback branches, migration
+  `DropSupersededAmountColumns`.
+
+  **The `UserAuthentication.Superseded*` columns are a separate thing and were not dead.** The item
+  above called them "dead since the 19 Aug no-rotation decision". They are read on every refresh:
+  `CreateRefreshGrantInteractor.ResolveSupersededSession` follows the pointer from an old token to
+  the session that replaced it. Dropping the columns without removing that branch first would have
+  signed out any device still holding a pre-19-Aug rotated token.
+
+  Measured 5 Sep 2026, after the bulk sign-out above: 1 session in the table, 0 rows carrying a
+  superseded pointer. Nothing exercises the branch any more and it can now go, in this order:
+  delete `ResolveSupersededSession` and its call site, then drop the two columns. Left undone
+  deliberately, because it is a behaviour change to the refresh path and does not belong in a pass
+  labelled free cleanup. Carried to `BACKLOG.md`.
 
 ## Phase 4 · One responsive pass over the app chrome, L *(was A10)*
 

@@ -68,3 +68,42 @@ with the Lights slice as the worked example). The hard part is not the API, it i
 OAuth **per user**, not a single household token like LIFX, so it needs a real authorisation-code
 flow with refresh, a callback URL, and a decision about whose account the tablet plays from.
 Playback control also requires Spotify Premium. Settle the account question before scoping.
+
+## Retire the superseded-session branch, then drop the two columns
+
+**Found 5 Sep 2026 while doing phase 3.** Small, but it changes the refresh path, so it is not the
+cleanup phase 3 assumed.
+
+`UserAuthentication.SupersededOnUTC` and `SupersededByAuthenticationMetadataID` are read on every
+refresh by `CreateRefreshGrantInteractor.ResolveSupersededSession`, which follows the pointer from
+an old token to the session that replaced it. It is backwards compatibility for tokens issued
+before the 19 Aug no-rotation decision, and the roadmap wrongly recorded it as dead code.
+
+Measured 5 Sep 2026: 1 row in the table, 0 carrying a superseded pointer, so nothing exercises the
+branch. Order matters, because doing it the other way signs out anyone still holding such a token:
+
+1. Re-check that no row has `SupersededOnUTC` set.
+2. Delete `ResolveSupersededSession` and its call site in `CreateRefreshGrantInteractor`.
+3. Drop the two columns from the entity, the EF configuration, and the table.
+
+## Let a shopping list item point at an ingredient
+
+**Found 5 Sep 2026 while doing phase 3.** Blocks the thing ingredient notes were actually for.
+
+`ShoppingListItem` carries a free-text `Name` and nothing else. It has no link to `Ingredient`, so
+an ingredient note ("Woolies brand only", "the one in the green tin") cannot follow the ingredient
+onto the list, which is the one place the person doing the shop would read it.
+
+Two problems sit behind this and the second is the real one:
+
+- The list item needs an optional `IngredientID`, set when the item came from a recipe and null
+  when someone typed it straight in.
+- Nothing in the application ever reuses an `Ingredient`. `AddRecipeIngredient` and `ImportRecipe`
+  both create a fresh row per recipe, so "olive oil" is a different ingredient in every recipe that
+  uses it and a note on one of them means nothing to the others. Pointing a list item at one of
+  those rows is pointing at a duplicate.
+
+Deduplicating ingredients is the prerequisite, and it is not free: `Amount` and `Unit` live on the
+`Ingredient` row, not on the `RecipeIngredient` join, so sharing a row today would mean sharing
+"1 tbsp" between two recipes that need different amounts. Moving `Amount` and `Unit` onto the join
+comes first, then deduplication, then this.

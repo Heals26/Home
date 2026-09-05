@@ -5,6 +5,37 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-05 · An ingredient is not shared, so an ingredient note reaches one recipe
+
+The schema models `Recipe` to `Ingredient` as many-to-many through `RecipeIngredient`, which reads
+as though "olive oil" is one thing the whole household knows about. It is not. `AddRecipeIngredient`
+and `ImportRecipe` both create a fresh `Ingredient` row every time, and nothing anywhere reuses one,
+so every recipe has its own private copy of every ingredient it uses.
+
+That was discovered while making ingredient notes reachable, and it decided the copy: the note field
+says nothing about where the note reaches, because the obvious sentence ("shows in every recipe that
+uses it") would have been a promise the application does not keep.
+
+Deduplicating is not a small fix and is deliberately not being done now. `Amount` and `Unit` live on
+the `Ingredient` row rather than on the join, so sharing a row would mean two recipes sharing one
+amount. `Amount` and `Unit` move to the join first, then deduplication, then a shopping list item
+can point at an ingredient and carry its note to the shop. All three steps are in `BACKLOG.md`.
+
+## 2026-09-05 · The devices card shows five, and offers one control for the rest
+
+This household had 24 signed-in sessions when the screen was first built, every one unlabelled.
+Nothing prunes a session and they last 90 days, so that number only grows.
+
+Twenty-four rows each with its own sign-out button is a wall, not a screen, and clearing it would
+have been 23 taps. The card shows five, asks before rendering the rest, and offers a single
+"Sign out N others" that ends everything except the device reading it. The per-device button stays,
+because signing out one specific device is a different intent from clearing the pile.
+
+The current session is identified by an `AuthenticationMetadataID` claim added at authentication.
+Without it the bulk action cannot tell which row to keep, so it refuses rather than guessing and
+signing the caller out along with everything else.
+
+
 ## 2026-09-04 · A slice that can clear a navigation has to project it
 
 The write-side twin of the missing-projection trap, and quieter. Setting a reference navigation to
