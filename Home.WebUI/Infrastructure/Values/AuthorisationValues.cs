@@ -1,4 +1,4 @@
-namespace Home.WebUI.Infrastructure.Values;
+﻿namespace Home.WebUI.Infrastructure.Values;
 
 public static class AuthorisationValues
 {
@@ -12,6 +12,13 @@ public static class AuthorisationValues
     /// username and password.
     /// </summary>
     public const string RefreshGrantType = "refresh_token";
+
+    /// <summary>
+    /// The code the token endpoint answers with when it refused this installation rather than the
+    /// person signing in. It means the client application row and the configured credentials do
+    /// not match, and no amount of retyping a password will help.
+    /// </summary>
+    public const string InvalidClientError = "invalid_client";
 
     #endregion Fields
 

@@ -133,6 +133,18 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// A 401 carrying a reason. Only the token endpoint uses this, because RFC 6749 defines the
+    /// codes it answers with and the sign-in page needs them to tell a misconfigured installation
+    /// apart from a mistyped password. Everywhere else an unauthorised response stays empty: the
+    /// caller is not entitled to know why.
+    /// </summary>
+    protected Task UnauthorisedWithErrorAsync<TResult>(TResult error, CancellationToken cancellationToken)
+    {
+        this.Result = new UnauthorizedObjectResult(error);
+        return Task.CompletedTask;
+    }
+
     protected Task UnprocessableContent(ValidationProblemDetails problemDetails, CancellationToken cancellationToken)
     {
         this.Result = new UnprocessableEntityObjectResult(problemDetails);

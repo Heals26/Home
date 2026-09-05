@@ -1,7 +1,8 @@
-using Home.WebUI.DataAccess.Households.GetSetupStatus;
+﻿using Home.WebUI.DataAccess.Households.GetSetupStatus;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Security;
+using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
@@ -74,14 +75,21 @@ public partial class Login
             return;
         }
 
-        var _Grant = await this.OAuthClient.TryPasswordGrantAsync(this.Username, this.Password, this.m_CancellationTokenHandler.Token);
+        var _Result = await this.OAuthClient.TryPasswordGrantAsync(this.Username, this.Password, this.m_CancellationTokenHandler.Token);
 
-        if (_Grant == null)
+        // Only a refusal of what was typed counts against the throttle. Locking someone out
+        // because the server was down, or because this installation is misconfigured, punishes
+        // them for something they cannot fix.
+        if (_Result.Outcome != TokenRefreshOutcome.Refreshed || _Result.Token == null)
         {
-            this.LoginThrottle.RecordFailure(this.Username);
-            this.m_Error = "That username and password didn't match. Try again.";
+            if (_Result.Outcome == TokenRefreshOutcome.Rejected)
+                this.LoginThrottle.RecordFailure(this.Username);
+
+            this.m_Error = SignInLogic.DescribeFailure(_Result.Outcome);
             return;
         }
+
+        var _Grant = _Result.Token;
 
         this.LoginThrottle.RecordSuccess(this.Username);
 

@@ -1,8 +1,9 @@
-using Home.WebUI.DataAccess.Households.GetSetupStatus;
+﻿using Home.WebUI.DataAccess.Households.GetSetupStatus;
 using Home.WebUI.DataAccess.Households.RegisterHousehold;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Security;
+using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
@@ -94,13 +95,17 @@ public partial class SetupPage
 
         // Sign the first member straight in — landing on a login form right after typing
         // the same details would be pure friction.
-        var _Grant = await this.OAuthClient.TryPasswordGrantAsync(this.Email, this.Password, this.m_CancellationTokenHandler.Token);
+        var _SignIn = await this.OAuthClient.TryPasswordGrantAsync(this.Email, this.Password, this.m_CancellationTokenHandler.Token);
 
-        if (_Grant == null)
+        // The household was created either way, so the fallback is the login page rather than an
+        // error. It is the one place that can explain why signing in did not work.
+        if (_SignIn.Outcome != TokenRefreshOutcome.Refreshed || _SignIn.Token == null)
         {
             this.NavigationManager.NavigateTo("/login");
             return;
         }
+
+        var _Grant = _SignIn.Token;
 
         await this.HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,

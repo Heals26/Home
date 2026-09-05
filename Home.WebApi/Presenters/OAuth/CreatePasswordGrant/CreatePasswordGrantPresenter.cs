@@ -4,6 +4,7 @@ using Home.Application.UseCases.OAuth.CreatePasswordGrant;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
 using Home.WebApi.UseCases.OAuth.CreateRefreshGrant;
+using Home.WebApi.UseCases.OAuth.Models;
 
 namespace Home.WebApi.Presenters.OAuth.CreatePasswordGrant;
 
@@ -16,7 +17,7 @@ public class CreatePasswordGrantPresenter(IMapper mapper) : OutputPortPresenter(
         => this.OkAsync(mapper.Map<CreateRefreshGrantApiResponse>(data), cancellationToken);
 
     Task ICreatePasswordGrantOutputPort.PresentNotAuthorisedAsync(OAuthValues error, CancellationToken cancellationToken)
-        => this.UnauthorisedAsync(new(error.Name), cancellationToken);
+        => this.UnauthorisedWithErrorAsync(new OAuthErrorApiResponse() { Error = error.Name }, cancellationToken);
 
     #endregion Methods
 

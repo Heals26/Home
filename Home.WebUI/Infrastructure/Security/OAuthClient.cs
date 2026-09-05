@@ -1,5 +1,6 @@
-using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
+﻿using Home.WebUI.DataAccess.OAuth.CreatePasswordGrant;
 using Home.WebUI.DataAccess.OAuth.CreateRefreshGrant;
+using Home.WebUI.DataAccess.OAuth.Models;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
@@ -21,11 +22,28 @@ public class OAuthClient(IConfiguration configurationManager, HttpClient httpCli
 
     #region Methods
 
+    /// <summary>
+    /// The error code out of a refusal, or null when the body is not one. An endpoint that answers
+    /// 401 with something else entirely, such as a reverse proxy, must not be read as a verdict on
+    /// anybody's credentials.
+    /// </summary>
+    private static string? ReadErrorCode(string body)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<OAuthErrorWebAppResponse>(body, JsonOptions.DefaultOptions)?.Error;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     private string GetClientCredentials()
         => Convert.ToBase64String(Encoding.UTF8.GetBytes(
             $"{configurationManager.GetValue<string>("OAuth:AccessToken:AccessToken")!}:{configurationManager.GetValue<string>("OAuth:AccessToken:ClientSecret")!}"));
 
-    async Task<CreatePasswordGrantWebAppResponse?> IOAuthClient.TryPasswordGrantAsync(
+    async Task<TokenGrantResult<CreatePasswordGrantWebAppResponse>> IOAuthClient.TryPasswordGrantAsync(
         string username,
         string password,
         CancellationToken cancellationToken)
@@ -40,9 +58,7 @@ public class OAuthClient(IConfiguration configurationManager, HttpClient httpCli
             Username = username
         };
 
-        var _Response = await this.SendAsync<CreatePasswordGrantWebAppRequest, CreatePasswordGrantWebAppResponse>(_Request, cancellationToken);
-
-        return _Response is { Outcome: TokenRefreshOutcome.Refreshed } ? _Response.Token : null;
+        return await this.SendAsync<CreatePasswordGrantWebAppRequest, CreatePasswordGrantWebAppResponse>(_Request, cancellationToken);
     }
 
     async Task<TokenGrantResult<CreateRefreshGrantWebAppResponse>> IOAuthClient.RefreshAsync(
@@ -82,15 +98,21 @@ public class OAuthClient(IConfiguration configurationManager, HttpClient httpCli
             _Message.Headers.Authorization = new AuthenticationHeaderValue("Basic", this.GetClientCredentials());
 
             var _HttpResponse = await httpClient.SendAsync(_Message, HttpCompletionOption.ResponseContentRead, cancellationToken);
+            var _Body = await _HttpResponse.Content.ReadAsStringAsync(cancellationToken);
 
             if (!_HttpResponse.IsSuccessStatusCode)
-                return new(_HttpResponse.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.BadRequest
-                    ? TokenRefreshOutcome.Rejected
-                    : TokenRefreshOutcome.Unavailable, null);
+            {
+                if (_HttpResponse.StatusCode is not (HttpStatusCode.Unauthorized or HttpStatusCode.BadRequest))
+                    return new(TokenRefreshOutcome.Unavailable, null);
 
-            var _Token = JsonSerializer.Deserialize<TResponse>(
-                await _HttpResponse.Content.ReadAsStringAsync(cancellationToken),
-                JsonOptions.DefaultOptions);
+                // The endpoint names which of its own preconditions failed, so a refusal of this
+                // installation's credentials can be told apart from a refusal of the person's.
+                return new(ReadErrorCode(_Body) == AuthorisationValues.InvalidClientError
+                    ? TokenRefreshOutcome.ClientRejected
+                    : TokenRefreshOutcome.Rejected, null);
+            }
+
+            var _Token = JsonSerializer.Deserialize<TResponse>(_Body, JsonOptions.DefaultOptions);
 
             return _Token == null
                 ? new(TokenRefreshOutcome.Unavailable, null)
