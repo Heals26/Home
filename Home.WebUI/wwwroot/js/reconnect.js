@@ -11,9 +11,18 @@
 
     var RETRY_DELAY_MS = 3000;
 
+    // Below this, the tab was away for a glance at a notification and the socket almost certainly
+    // survived. Above it, on a phone, it almost certainly did not.
+    var HIDDEN_GRACE_MS = 8000;
+
+    // How long the circuit gets to answer before it is treated as gone. Generous, because a phone
+    // waking up is also reconnecting its radio.
+    var PING_TIMEOUT_MS = 4000;
+
     var element = null;
     var reloading = false;
     var pending = null;
+    var hiddenAt = 0;
 
     function reload() {
         if (reloading)
@@ -41,6 +50,47 @@
                 .then(reload)
                 .catch(reloadWhenReachable);
         }, RETRY_DELAY_MS);
+    }
+
+    // A locked phone freezes the tab. The socket dies, but nothing on the page runs to notice, so
+    // it comes back looking alive and does nothing when tapped. Blazor works it out from its own
+    // keepalive, which was frozen too, so the page can sit there dead for a long time.
+    //
+    // This asks the circuit directly. The call can only complete if there is a circuit alive to
+    // run it, so the answer is in whether it comes back at all, not in what it returns. Anything
+    // else, a rejection or silence, means the page is a corpse and reloading is the fix.
+    function verifyCircuit() {
+        if (reloading || typeof DotNet === "undefined")
+            return;
+
+        var settled = false;
+
+        var timer = window.setTimeout(function () {
+            if (settled)
+                return;
+
+            settled = true;
+            reloadWhenReachable();
+        }, PING_TIMEOUT_MS);
+
+        var done = function (alive) {
+            if (settled)
+                return;
+
+            settled = true;
+            window.clearTimeout(timer);
+
+            if (!alive)
+                reloadWhenReachable();
+        };
+
+        try {
+            DotNet.invokeMethodAsync("Home.WebUI", "HomeCircuitPing")
+                .then(function () { done(true); })
+                .catch(function () { done(false); });
+        } catch (e) {
+            done(false);
+        }
     }
 
     function onClassChange() {
@@ -72,8 +122,22 @@
         // already dropped. Asking Blazor to prove the connection now means the overlay appears
         // and resolves before anyone taps something that silently does nothing.
         document.addEventListener("visibilitychange", function () {
-            if (document.visibilityState === "visible" && element.classList.contains("components-reconnect-rejected"))
+            if (document.visibilityState === "hidden") {
+                hiddenAt = Date.now();
+                return;
+            }
+
+            if (element.classList.contains("components-reconnect-rejected")) {
                 reload();
+                return;
+            }
+
+            var away = hiddenAt === 0 ? 0 : Date.now() - hiddenAt;
+
+            hiddenAt = 0;
+
+            if (away >= HIDDEN_GRACE_MS)
+                verifyCircuit();
         });
     }
 
