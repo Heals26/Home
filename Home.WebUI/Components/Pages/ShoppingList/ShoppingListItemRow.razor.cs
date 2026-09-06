@@ -10,7 +10,16 @@ public partial class ShoppingListItemRow
 
     [Parameter] public bool CanMoveDown { get; set; }
     [Parameter] public bool CanMoveUp { get; set; }
+
+    /// <summary>
+    /// Whether this row can be picked up with a mouse. Off for anything already in the trolley,
+    /// where the order is history and not worth arranging.
+    /// </summary>
+    [Parameter] public bool Draggable { get; set; }
+
     [Parameter, EditorRequired] public ShoppingListItemDto Item { get; set; } = null!;
+    [Parameter] public EventCallback<ShoppingListItemDto> OnDragStart { get; set; }
+    [Parameter] public EventCallback<ShoppingListItemDto> OnDrop { get; set; }
     [Parameter] public EventCallback<ShoppingListItemDto> OnEdit { get; set; }
     [Parameter] public EventCallback<ShoppingListItemDto> OnMoveDown { get; set; }
     [Parameter] public EventCallback<ShoppingListItemDto> OnMoveUp { get; set; }

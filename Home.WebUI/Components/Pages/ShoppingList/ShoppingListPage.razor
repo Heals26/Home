@@ -3,6 +3,8 @@
 
 <HomePageTitle Title="Shopping" />
 
+@* The drag is cascaded because it starts in one pane and finishes in the other. *@
+<CascadingValue Value="this.m_Drag">
 <CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
     <div class="flex flex-col h-full">
         @* The title stays "Shopping lists" on both layouts, because the selected list already
@@ -29,4 +31,5 @@
             </div>
         </div>
     </div>
+</CascadingValue>
 </CascadingValue>

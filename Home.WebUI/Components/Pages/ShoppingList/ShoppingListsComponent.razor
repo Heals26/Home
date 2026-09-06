@@ -25,7 +25,13 @@
             <div class="divide-y divide-ink-800 -mx-5 -mb-5">
                 @foreach (var _List in this.VisibleLists())
                 {
-                    <div class="flex items-center gap-1 hover:bg-ink-800 transition-colors">
+                    @* A drop target so an item can be dragged out of the pane on the right and onto
+                       the list it should have been on. Highlighted only while something is actually
+                       being dragged, and never on the list it is already on. board.js is what lets
+                       the drop happen at all. *@
+                    <div class="flex items-center gap-1 transition-colors @(this.IsDropTarget(_List) ? "bg-shopping/10 ring-1 ring-inset ring-shopping/40" : "hover:bg-ink-800")"
+                         data-drop-target=""
+                         @ondrop="() => this.DropOnListAsync(_List)">
                         <button class="flex-1 min-w-0 text-left px-5 py-4"
                                 @onclick="() => this.SelectList(_List)">
                             <p class="text-sm font-medium truncate @(this.ShoppingListID == _List.ShoppingListID ? "text-shopping" : "text-ink-50")">@_List.Name</p>

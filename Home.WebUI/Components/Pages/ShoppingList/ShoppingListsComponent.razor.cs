@@ -43,6 +43,7 @@ public partial class ShoppingListsComponent : IDisposable
     #region Properties
 
     [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
+    [CascadingParameter] public ShoppingListDrag? Drag { get; set; }
     [Parameter] public long? ShoppingListID { get; set; }
     [Parameter] public EventCallback<long> ShoppingListIDChanged { get; set; }
 
@@ -56,10 +57,23 @@ public partial class ShoppingListsComponent : IDisposable
 
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
             this.OnHouseholdChangedAsync, this.CancellationToken);
+
+        // The drag is a cascaded object that gets mutated rather than replaced, which Blazor has no
+        // way to notice, so it says when it has changed and this pane redraws itself.
+        if (this.Drag != null)
+            this.Drag.Changed += this.OnDragChanged;
     }
 
     public void Dispose()
-        => this.m_ChangeSubscription?.Dispose();
+    {
+        if (this.Drag != null)
+            this.Drag.Changed -= this.OnDragChanged;
+
+        this.m_ChangeSubscription?.Dispose();
+    }
+
+    private void OnDragChanged()
+        => _ = this.InvokeAsync(this.StateHasChanged);
 
     #endregion Lifecycle Methods
 
@@ -93,6 +107,38 @@ public partial class ShoppingListsComponent : IDisposable
 
     private void SelectList(GetShoppingListDto list)
         => this.NavigationManager.NavigateTo($"/shopping-lists/{list.ShoppingListID}");
+
+    /// <summary>
+    /// Whether a row should light up as somewhere the thing being dragged could land. The list it
+    /// came from is not, because dropping it back where it started is not a move.
+    /// </summary>
+    private bool IsDropTarget(GetShoppingListDto list)
+        => this.Drag?.Item != null && this.Drag.FromShoppingListID != list.ShoppingListID;
+
+    /// <summary>
+    /// An item was dropped onto a list. It lands at the end of it, because dropping onto a list is
+    /// saying which list and not where in it.
+    /// </summary>
+    private async Task DropOnListAsync(GetShoppingListDto list)
+    {
+        if (this.Drag?.Item is not { } _Item || this.Drag.FromShoppingListID == list.ShoppingListID)
+            return;
+
+        this.Drag.Clear();
+
+        var _Moved = await this.ApiAccess.SendRequestAsync<object, bool>(
+            null!, ApiProvider.MoveShoppingListItem(_Item.ShoppingListItemID, list.ShoppingListID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.CancellationToken) == true;
+
+        if (!_Moved)
+            return;
+
+        await this.LoadListsAsync();
+
+        // Both lists changed, and the items pane is the one showing the list it left.
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
+    }
 
     private async Task CreateShoppingListAsync()
     {

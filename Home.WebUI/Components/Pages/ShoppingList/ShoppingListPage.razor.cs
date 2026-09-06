@@ -10,6 +10,12 @@ public partial class ShoppingListPage
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
 
+    /// <summary>
+    /// Held by the page rather than either pane, because a drag starts in the items and can finish
+    /// on a list, and neither of those two components can see the other.
+    /// </summary>
+    private readonly ShoppingListDrag m_Drag = new();
+
     #endregion Fields
 
     #region Properties

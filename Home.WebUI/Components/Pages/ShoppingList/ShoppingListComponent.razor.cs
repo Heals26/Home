@@ -58,11 +58,18 @@ public partial class ShoppingListComponent : IDisposable
     private bool m_SavingItem;
     private bool m_Reordering;
 
+    /// <summary>
+    /// What is being dragged. Only a pointer device ever sets this: touch fires no drag events at
+    /// all, which is why the reorder chevrons on each row are the primary way to move something.
+    /// </summary>
+    private ShoppingListItemDto? m_DraggedItem;
+
     #endregion Fields
 
     #region Properties
 
     [CascadingParameter(Name = "CancellationToken")] public CancellationToken CancellationToken { get; set; }
+    [CascadingParameter] public ShoppingListDrag? Drag { get; set; }
     [Parameter] public long? ShoppingListID { get; set; }
 
     #endregion Properties
@@ -342,9 +349,6 @@ public partial class ShoppingListComponent : IDisposable
     /// </summary>
     private async Task MoveItemAsync(ShoppingListItemDto item, int direction)
     {
-        if (this.m_Reordering)
-            return;
-
         var _ToGet = this.ItemsToGet().ToList();
         var _Index = _ToGet.FindIndex(i => i.ShoppingListItemID == item.ShoppingListItemID);
         var _TargetIndex = _Index + direction;
@@ -352,13 +356,23 @@ public partial class ShoppingListComponent : IDisposable
         if (_Index < 0 || _TargetIndex < 0 || _TargetIndex >= _ToGet.Count)
             return;
 
-        var _Target = _ToGet[_TargetIndex];
+        await this.MoveItemToAsync(item, _ToGet[_TargetIndex]);
+    }
+
+    /// <summary>
+    /// Puts one item where another one is. One call: the API takes it out of the order and puts it
+    /// back at that position, closing the gap behind it. This used to be a pair of calls swapping
+    /// two sequences, which only ever worked for neighbours and is not what a drop onto a row four
+    /// places away means.
+    /// </summary>
+    private async Task MoveItemToAsync(ShoppingListItemDto item, ShoppingListItemDto target)
+    {
+        if (this.m_Reordering || item.ShoppingListItemID == target.ShoppingListItemID)
+            return;
+
         this.m_Reordering = true;
 
-        var _Moved = await this.SetItemSequenceAsync(item, _Target.Sequence);
-
-        if (_Moved)
-            _ = await this.SetItemSequenceAsync(_Target, item.Sequence);
+        var _Moved = await this.SetItemSequenceAsync(item, target.Sequence);
 
         this.m_Reordering = false;
 
@@ -367,6 +381,29 @@ public partial class ShoppingListComponent : IDisposable
 
         await this.LoadListAsync();
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
+    }
+
+    private void StartDraggingItem(ShoppingListItemDto item)
+    {
+        this.m_DraggedItem = item;
+
+        // Also published to the page, so the lists pane knows what would land on it.
+        this.Drag?.Start(item, this.ShoppingListID);
+    }
+
+    /// <summary>
+    /// A row was dropped on. Only meaningful for something dragged from this same list; the lists
+    /// pane handles a drag that lands on a different list.
+    /// </summary>
+    private async Task DropOnItemAsync(ShoppingListItemDto target)
+    {
+        if (this.m_DraggedItem is not { } _Dragged)
+            return;
+
+        this.m_DraggedItem = null;
+        this.Drag?.Clear();
+
+        await this.MoveItemToAsync(_Dragged, target);
     }
 
     /// <summary>

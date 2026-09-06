@@ -2,6 +2,7 @@
 using Home.Application.UseCases.ShoppingListItems.DeleteShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.GetShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.GetShoppingListItemSuggestions;
+using Home.Application.UseCases.ShoppingListItems.MoveShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
@@ -9,6 +10,7 @@ using Home.WebApi.Presenters.ShoppingListItems.CreateShoppingListItem;
 using Home.WebApi.Presenters.ShoppingListItems.DeleteShoppingListItem;
 using Home.WebApi.Presenters.ShoppingListItems.GetShoppingListItem;
 using Home.WebApi.Presenters.ShoppingListItems.GetShoppingListItemSuggestions;
+using Home.WebApi.Presenters.ShoppingListItems.MoveShoppingListItem;
 using Home.WebApi.Presenters.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebApi.UseCases.ShoppingListItems.CreateShoppingListItem;
 using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItem;
@@ -74,6 +76,28 @@ public class ShoppingListItemsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(new GetShoppingListItemSuggestionsInputPort(), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    /// <summary>
+    /// Moves the item onto another list, landing at the end of it. Its own route rather than a
+    /// field on the patch, because moving lists also gives the item a new position and the two
+    /// belong together.
+    /// </summary>
+    [HttpPut("{shoppingListItemID}/List/{shoppingListID}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> MoveShoppingListItem(
+        [FromServices] MoveShoppingListItemPresenter presenter,
+        [FromRoute] long shoppingListItemID,
+        [FromRoute] long shoppingListID,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(
+            new MoveShoppingListItemInputPort(shoppingListID, shoppingListItemID),
+            presenter,
+            this.ServiceFactory,
+            cancellationToken);
 
         return presenter.Result;
     }

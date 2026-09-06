@@ -4,7 +4,14 @@
    The circle keeps a 56px hit area of its own so the tick target did not shrink to the 24px ring
    you can see, and the pencil is gone because the words now do its job. *@
 
-<div class="flex items-center hover:bg-ink-800/50 transition-colors">
+@* Draggable only where there is a pointer to drag with. Touch fires no drag events, so the row's
+   chevrons stay the way a finger reorders and this is the mouse's shortcut for the same move. The
+   drop target attribute is what board.js watches for to allow the drop. *@
+<div class="flex items-center hover:bg-ink-800/50 transition-colors @(this.Draggable ? "cursor-grab active:cursor-grabbing" : "")"
+     draggable="@(this.Draggable ? "true" : "false")"
+     data-drop-target=""
+     @ondragstart="() => this.OnDragStart.InvokeAsync(this.Item)"
+     @ondrop="() => this.OnDrop.InvokeAsync(this.Item)">
     <button type="button"
             class="shrink-0 flex items-center justify-center pl-5 pr-3 py-3 min-h-[56px]"
             aria-pressed="@this.Item.InBasket"
