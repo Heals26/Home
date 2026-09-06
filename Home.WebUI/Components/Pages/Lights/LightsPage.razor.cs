@@ -66,6 +66,8 @@ public partial class LightsPage : IDisposable
     private int m_ScheduleOffsetMinutes;
     private int m_ScheduleDays;
     private bool m_CreatingSchedule;
+    private LightScheduleDto? m_ScheduleToDelete;
+    private bool m_DeletingSchedule;
 
     private static readonly List<HomeSegmentedControl<LightScheduleTrigger>.SegmentOption> TriggerOptions =
     [
@@ -508,15 +510,24 @@ public partial class LightsPage : IDisposable
         await this.PublishLightsChangedAsync();
     }
 
-    private async Task DeleteScheduleAsync(LightScheduleDto schedule)
+    private async Task ConfirmDeleteScheduleAsync()
     {
+        if (this.m_DeletingSchedule || this.m_ScheduleToDelete == null)
+            return;
+
+        this.m_DeletingSchedule = true;
+
         var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
-            null!, ApiProvider.DeleteLightSchedule(schedule.LightScheduleID),
+            null!, ApiProvider.DeleteLightSchedule(this.m_ScheduleToDelete.LightScheduleID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
+        this.m_DeletingSchedule = false;
+
         if (_Result != true)
             return;
+
+        this.m_ScheduleToDelete = null;
 
         await this.LoadSchedulesAsync();
         await this.PublishLightsChangedAsync();

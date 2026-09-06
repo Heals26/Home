@@ -6,7 +6,9 @@
     <div class="flex flex-col h-full max-w-4xl mx-auto w-full">
         <HomeTopBar Title="Lights" Eyebrow="Around the house" EyebrowClass="text-lights">
             <ActionsContent>
-                @if (this.m_Groups?.Count > 0)
+                @* Scenes as well as groups, because this used to hang off groups alone and a
+                   household with scenes and no groups had no way to remove one. *@
+                @if (this.m_Groups?.Count > 0 || this.m_Scenes?.Count > 0)
                 {
                     <HomeButton Size="sm"
                                 Variant="@(this.m_EditMode ? "primary" : "ghost")"
@@ -201,14 +203,17 @@
                                                 @_Schedule.SceneName · @FormatTrigger(_Schedule) · @FormatDays(_Schedule.DaysOfWeek)
                                             </p>
                                         </div>
-                                        @if (this.m_EditMode)
-                                        {
-                                            <button type="button" title="Delete schedule" aria-label="@($"Delete {_Schedule.Name}")"
-                                                    class="h-11 w-11 rounded-lg text-ink-500 hover:text-red-400 shrink-0"
-                                                    @onclick="() => this.DeleteScheduleAsync(_Schedule)">
-                                                <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
-                                            </button>
-                                        }
+                                        @* Not behind the page's Edit mode. A schedule row showed a
+                                           toggle and nothing else, so the only way to remove one
+                                           was to already know that a button at the top of the page
+                                           reveals it, and there is no reading of the row that says
+                                           so. Few enough schedules exist for the bin to live here,
+                                           and it asks before it does anything. *@
+                                        <button type="button" title="Delete schedule" aria-label="@($"Delete {_Schedule.Name}")"
+                                                class="h-11 w-11 rounded-lg text-ink-500 hover:text-red-400 hover:bg-red-950/40 shrink-0 transition-colors"
+                                                @onclick="() => this.m_ScheduleToDelete = _Schedule">
+                                            <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
+                                        </button>
                                     </div>
                                 }
                             </div>
@@ -411,6 +416,21 @@
                         DisabledReason="Pick a colour for the effect first.">Start</HomeButton>
         </div>
     </FooterContent>
+</HomeModal>
+
+<HomeModal Visible="this.m_ScheduleToDelete != null"
+           VisibleChanged="visible => { if (!visible) this.m_ScheduleToDelete = null; }"
+           Title="Delete schedule"
+           OnSubmit="this.ConfirmDeleteScheduleAsync">
+    <ChildContent>
+        <p class="text-sm text-ink-300">
+            @($"\"{this.m_ScheduleToDelete?.Name}\" will stop running. The scene it fires is not affected.")
+        </p>
+        <div class="mt-4 flex justify-end gap-3">
+            <HomeButton Variant="ghost" OnClick="() => this.m_ScheduleToDelete = null">Cancel</HomeButton>
+            <HomeButton Variant="danger" Loading="this.m_DeletingSchedule" OnClick="this.ConfirmDeleteScheduleAsync">Delete it</HomeButton>
+        </div>
+    </ChildContent>
 </HomeModal>
 
 <ErrorHandler @ref="this.m_ErrorHandler" />
