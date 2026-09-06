@@ -1,6 +1,6 @@
 ﻿# Roadmap
 
-*Twelve phases, in the order they should be done. Each one is shippable on its own and leaves the
+*Fourteen phases, in the order they should be done. Each one is shippable on its own and leaves the
 app better than it found it. Nothing here is half a feature that needs the next phase to be worth
 having.*
 
@@ -353,3 +353,61 @@ Both are in `BACKLOG.md` with the open question written down. Neither is blocked
   authorisation-code flow with refresh, a callback URL, and a decision about whose account the
   kitchen tablet plays from. Needs Premium. Naturally follows phase 7, which answers "who is this
   device".
+
+## Phase 13 · Where we have been, L *(from the phase ideas list, 6 Sep 2026)*
+
+The household already keeps what it cooks, what it buys and what it has to do. It keeps nothing
+about where it went. "That playground with the shade", "the Thai place we liked", "the beach we
+drove an hour to and would not again" is exactly the kind of thing a family asks each other and
+nobody can remember, and it is the same shape as the notes work already done twice: knowledge that
+belongs to the household rather than to whoever happened to be there.
+
+Two things in one, and the phase has to decide how much of each:
+
+- **A place the household knows.** A name, roughly where it is, what kind of thing it is, and what
+  the family thinks of it. This is a directory and it is the half that answers "where could we go".
+- **A visit.** A place on a date, with who went and how it was. This is a log and it is the half
+  that answers "when were we last there".
+
+The directory is worth having on its own; the log is not, which is the order to build them in.
+
+Decide first:
+
+- **Does a visit become a calendar entry?** Phase 6 settles what a thing on a day is, and a visit
+  is one. Building this before that means a fifth answer to a question that phase exists to have
+  one answer to, so this sits behind it.
+- **How is a place located?** A name and a suburb costs nothing and is probably enough to jog a
+  memory. Coordinates and a map is a different project, and the household row already carries a
+  latitude and longitude for sunrise if it turns out to be wanted.
+- **Whose opinion is it?** A single household verdict, or one per person. Per person needs phase 7,
+  the same coupling the calendar has.
+
+Deliberately not in scope: check-ins, anything that tracks location automatically, and anything
+that talks to a third party for reviews or opening hours. This is the household's own memory of its
+own outings, which is the only version of this that is worth keeping and the only one that does not
+need a privacy decision first.
+
+## Phase 14 · It looks like something, M *(from the phase ideas list, 6 Sep 2026)*
+
+`VISION.md` asks for a product that does not look assembled from template defaults, and the type
+and colour work carries that. The identity does not exist at all yet:
+
+- **The favicon is the framework's.** `wwwroot/favicon.png` is the stock 32px purple mark that came
+  with the project on 19 May and has not been touched since. Its purple appears nowhere else in the
+  app.
+- **There is no app icon and no web manifest.** The delivery surface for this product is a tablet
+  running it full screen on a kitchen bench. Added to a home screen today it gets a generic icon
+  and a URL for a name, which is the first thing anyone sees of it and the last thing anyone
+  configured.
+- **There is no wordmark.** Every place the product names itself, it does so in body type.
+
+The work is an icon at the sizes a home screen and a browser tab actually ask for, a manifest so
+installing it produces something with a name, and a wordmark that uses the display face already
+chosen rather than introducing another. Everything else in the visual system stays: this phase is
+the mark, not a redesign.
+
+**No generated images.** Drawn, photographed, set in type or built from the geometry of the palette.
+This applies to the icon, to any illustration an empty state ever gets, and to anything that ships
+in `wwwroot`. A house that cooks its own food should not have a stock photo of a kitchen on the
+wall.
+
