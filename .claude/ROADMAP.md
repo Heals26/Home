@@ -1,6 +1,6 @@
 ﻿# Roadmap
 
-*Fourteen phases, in the order they should be done. Each one is shippable on its own and leaves the
+*Fifteen phases, in the order they should be done. Each one is shippable on its own and leaves the
 app better than it found it. Nothing here is half a feature that needs the next phase to be worth
 having.*
 
@@ -410,4 +410,64 @@ the mark, not a redesign.
 This applies to the icon, to any illustration an empty state ever gets, and to anything that ships
 in `wwwroot`. A house that cooks its own food should not have a stock photo of a kitchen on the
 wall.
+
+
+## Phase 15 · A board the household arranges itself, L *(new, 6 Sep 2026)*
+
+The dashboard fits without scrolling as of 6 Sep, on a landscape tablet, with the seven tiles that
+exist today. That is the cheaper half of the answer and it is already showing its edges: "fits"
+was measured at 1280x800 and 1024x768, it needed a third column and a density pass to get there,
+and it holds only until the eighth tile is added or a household plans enough activities to make a
+tile taller. Every tile added from here reopens the question.
+
+The other half is letting the household decide. Which tiles it wants, in what order, at what size.
+That is also the honest answer to why a tile should be there at all: a home with no smart lights
+has a Lights tile it will never look at, and no way to be rid of it.
+
+**Gridstack is the candidate.** It is the library for exactly this shape of problem: a vanilla
+TypeScript grid whose cells drag, resize and reflow, built for dashboards, and it carries its own
+drag implementation rather than leaning on HTML5 drag events. That last point is worth more here
+than it sounds: this app's existing drag works with a mouse and does nothing on a touch screen,
+which is why every drag added so far has a button beside it. A library that drags under a finger
+would be the first thing in the app that does.
+
+### What the planning has to settle
+
+1. **Whose layout is it?** A board arranged on the kitchen tablet and a board on someone's phone
+   are not the same board, and the same screen may be read by four people. Per device is the
+   simplest and probably right, since the appearance preference already works that way. Per person
+   needs phase 7 first, the same coupling the calendar has.
+
+2. **Does Blazor or Gridstack own those DOM nodes?** This is the technical risk and it should be
+   proven before anything is designed around it. Gridstack moves elements; Blazor's renderer
+   believes it owns the tree and will fight anything that rearranges it underneath. The workable
+   shape is usually that Blazor renders each tile's contents and never re-renders the container
+   Gridstack is managing, which means deliberate `ShouldRender` and `@key` discipline. There are
+   community Blazor wrappers to look at rather than starting cold. **Spike this first**: if it
+   cannot be made stable, the phase becomes a simpler show-and-hide-and-order with no resizing,
+   which delivers most of the value.
+
+3. **Is this the app's first external JavaScript dependency?** Everything in `wwwroot/js` today is
+   ours and small: `board.js` is 25 lines. Taking a library is a reasonable trade for this problem
+   and a decision to make on purpose, including where it is served from, given the fonts already
+   taught us what an unreachable CDN does to a kitchen tablet.
+
+4. **What does resizing actually mean for a tile?** A tile is not a chart. Half-width Shopping
+   showing four lists and full-width Shopping showing four lists is the same tile in a wider box.
+   Either sizes change what a tile shows, which is real work per tile, or sizing is dropped and
+   only order and visibility are offered. Decide before building, because the answer changes how
+   every tile is written.
+
+5. **How does it get back to normal?** Anything arrangeable needs a way to undo an arrangement,
+   and on a shared screen it needs it more, because whoever broke the layout is not necessarily
+   whoever wants it fixed.
+
+### Deliberately not in scope
+
+- **Tiles from anywhere but this app.** No embeds, no arbitrary widgets.
+- **A layout that syncs between devices.** That is the per-person question above wearing a hat, and
+  it is the wrong default: the tablet's board and a phone's board want different things.
+- **Retiring the fitted layout.** It stays as what a household gets before it has arranged anything,
+  because a board that starts empty or starts scrolling is a worse first run than the one that
+  exists now.
 
