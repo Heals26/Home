@@ -15,7 +15,12 @@ set it up.
    *in the kitchen*.
 2. **Shopping lists** — the family's shared lists, added to during the week, used at the shop.
 3. **Weekly tasks** — see the family's tasks for the week at a glance and manage them.
-4. **Home control** — if the household has smart-home gear set up (lights today, via LIFX; other
+4. **The calendar** *(added 6 Sep 2026)* — what the family has on, and when. This is what a
+   household goes looking for on a screen in the kitchen, and while it lives somewhere else this
+   is the second thing they check rather than the one they rely on. It is also the app's time
+   axis: meals, tasks and light schedules are all already things on a day, and they should agree
+   on what a day is. See the phase 6 entry in `ROADMAP.md` for what has to be decided first.
+5. **Home control** — if the household has smart-home gear set up (lights today, via LIFX; other
    devices as they come), control it from the same screen. This is a bonus pillar, not the core:
    the app must be fully useful with zero smart-home hardware.
 
