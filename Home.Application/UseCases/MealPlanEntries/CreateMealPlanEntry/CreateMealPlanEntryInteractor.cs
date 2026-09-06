@@ -22,14 +22,30 @@ internal class CreateMealPlanEntryInteractor
 
         var _Household = _AuthorisationService.GetHousehold();
 
-        // Scoped to the household so one family cannot plan another family's recipe.
-        var _Recipe = _PersistenceContext.GetEntities<Recipe>()
-            .Where(r => r.RecipeID == inputPort.RecipeID && r.Household.HouseholdID == _Household.HouseholdID)
-            .SingleOrDefault();
+        var _Title = inputPort.Title?.Trim();
 
-        if (_Recipe == null)
+        Recipe? _Recipe = null;
+
+        if (inputPort.RecipeID != null)
         {
-            await outputPort.PresentRecipeNotFoundAsync(inputPort.RecipeID, cancellationToken);
+            // Scoped to the household so one family cannot plan another family's recipe.
+            _Recipe = _PersistenceContext.GetEntities<Recipe>()
+                .Where(r => r.RecipeID == inputPort.RecipeID && r.Household.HouseholdID == _Household.HouseholdID)
+                .SingleOrDefault();
+
+            if (_Recipe == null)
+            {
+                await outputPort.PresentRecipeNotFoundAsync(inputPort.RecipeID.Value, cancellationToken);
+                return;
+            }
+
+            // The recipe's own name is the answer, so a title alongside it would be a second one
+            // that goes stale the moment the recipe is renamed.
+            _Title = null;
+        }
+        else if (string.IsNullOrWhiteSpace(_Title))
+        {
+            await outputPort.PresentNothingToPlanAsync(cancellationToken);
             return;
         }
 
@@ -52,8 +68,10 @@ internal class CreateMealPlanEntryInteractor
         var _Entry = new MealPlanEntry()
         {
             Date = inputPort.Date.Date,
+            Household = _Household,
             MealSlot = _MealSlot,
-            Recipe = _Recipe
+            Recipe = _Recipe,
+            Title = _Title
         };
 
         _PersistenceContext.Add(_Entry);

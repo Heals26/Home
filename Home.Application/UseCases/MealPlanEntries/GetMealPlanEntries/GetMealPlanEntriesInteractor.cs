@@ -27,7 +27,7 @@ internal class GetMealPlanEntriesInteractor
         var _ToDate = inputPort.ToDate.Date;
 
         var _Entries = _PersistenceContext.GetEntities<MealPlanEntry>()
-            .Where(e => e.Recipe.Household.HouseholdID == _Household.HouseholdID
+            .Where(e => e.Household.HouseholdID == _Household.HouseholdID
                 && e.Date >= _FromDate
                 && e.Date <= _ToDate)
             .Select(e => new

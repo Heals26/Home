@@ -22,8 +22,8 @@ public class GetMealPlanEntriesPresenter(IMapper mapper)
                 MealPlanEntryID = e.MealPlanEntryID,
                 MealSlotID = e.MealSlot?.MealSlotID,
                 MealSlotName = e.MealSlot?.Name ?? string.Empty,
-                RecipeID = e.Recipe.RecipeID,
-                RecipeName = e.Recipe.Name
+                Name = e.Recipe?.Name ?? e.Title ?? string.Empty,
+                RecipeID = e.Recipe?.RecipeID
             })]
         }, cancellationToken);
 

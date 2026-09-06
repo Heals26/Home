@@ -19,11 +19,11 @@
                 class="flex max-w-full min-w-0 items-center rounded-full border border-ink-700 bg-ink-800 px-3 py-1.5 min-h-[32px] text-left transition-colors hover:border-ink-600 hover:bg-ink-700 disabled:opacity-50"
                 draggable="true"
                 disabled="@this.Moving"
-                title="@_Entry.RecipeName"
-                aria-label="@($"{_Entry.RecipeName}, open meal options")"
+                title="@_Entry.Name"
+                aria-label="@($"{_Entry.Name}, open meal options")"
                 @ondragstart="() => this.OnDragStart.InvokeAsync(_Entry)"
                 @onclick="() => this.OnSelect.InvokeAsync(_Entry)">
-            <span class="truncate text-xs text-ink-100">@_Entry.RecipeName</span>
+            <span class="truncate text-xs text-ink-100">@_Entry.Name</span>
         </button>
     }
     <button type="button"

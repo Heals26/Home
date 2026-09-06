@@ -29,12 +29,12 @@ public class MealPlanEntryDto
     /// <summary>
     /// The ID of the planned recipe.
     /// </summary>
-    public long RecipeID { get; set; }
+    public long? RecipeID { get; set; }
 
     /// <summary>
     /// The name of the planned recipe.
     /// </summary>
-    public string RecipeName { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     #endregion Properties
 

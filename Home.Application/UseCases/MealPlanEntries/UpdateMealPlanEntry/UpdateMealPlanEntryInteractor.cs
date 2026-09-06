@@ -29,7 +29,7 @@ internal class UpdateMealPlanEntryInteractor : IInteractor<UpdateMealPlanEntryIn
         // 204 and did nothing at all until 4 Sep 2026.
         var _Entry = _PersistenceContext.GetEntities<MealPlanEntry>()
             .Where(e => e.MealPlanEntryID == inputPort.MealPlanEntryID
-                && e.Recipe.Household.HouseholdID == _Household.HouseholdID)
+                && e.Household.HouseholdID == _Household.HouseholdID)
             .Select(e => new
             {
                 Entry = e,

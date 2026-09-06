@@ -27,6 +27,7 @@ public class UpdateMealPlanEntryInteractorTests : InteractorTest
         => new()
         {
             Date = date,
+            Household = recipe.Household,
             MealPlanEntryID = mealPlanEntryID,
             MealSlot = mealSlot,
             Recipe = recipe

@@ -33,7 +33,7 @@ public class CreateMealPlanEntryInteractorTests
             .Build();
 
         return new CreateMealPlanEntryInteractor().HandleAsync(
-            new CreateMealPlanEntryInputPort(date, null, recipeID),
+            new CreateMealPlanEntryInputPort(date, null, recipeID, null),
             this.m_OutputPort.Object,
             _ServiceFactory,
             CancellationToken.None);

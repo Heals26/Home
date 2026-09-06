@@ -137,7 +137,7 @@
                 </div>
                 @if (this.TomorrowsMeals().Any())
                 {
-                    <p class="text-sm text-ink-500 mt-3 truncate">Tomorrow: @string.Join(" · ", this.TomorrowsMeals().Select(m => m.RecipeName))</p>
+                    <p class="text-sm text-ink-500 mt-3 truncate">Tomorrow: @string.Join(" · ", this.TomorrowsMeals().Select(m => m.Name))</p>
                 }
             }
             else

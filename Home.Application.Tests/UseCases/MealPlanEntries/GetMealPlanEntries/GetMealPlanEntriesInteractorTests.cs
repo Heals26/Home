@@ -8,8 +8,9 @@ using Home.WebApi.UseCases.MealPlanEntries.GetMealPlanEntries;
 namespace Home.Application.Tests.UseCases.MealPlanEntries.GetMealPlanEntries;
 
 /// <summary>
-/// The week's meals. An entry carries no household of its own — it is reached through the recipe —
-/// and the presenter names that recipe on every row, so the query has to load it.
+/// The week's meals. An entry owns its household outright, because one that is only a title has no
+/// recipe to be reached through. The presenter names the recipe on every row that has one, so the
+/// query still has to load it.
 /// </summary>
 public class GetMealPlanEntriesInteractorTests : InteractorTest
 {
@@ -26,9 +27,23 @@ public class GetMealPlanEntriesInteractorTests : InteractorTest
         => new()
         {
             Date = date,
+            Household = recipe.Household,
             MealPlanEntryID = mealPlanEntryID,
             MealSlot = mealSlot,
             Recipe = recipe
+        };
+
+    /// <summary>
+    /// An entry with no recipe behind it, which is how an occasion is planned.
+    /// </summary>
+    private static MealPlanEntry BuildOccasion(long mealPlanEntryID, DateTime date, Household household, string title, MealSlot? mealSlot = null)
+        => new()
+        {
+            Date = date,
+            Household = household,
+            MealPlanEntryID = mealPlanEntryID,
+            MealSlot = mealSlot,
+            Title = title
         };
 
     private static Recipe BuildRecipe(long recipeID, Household household, string name)
@@ -59,7 +74,7 @@ public class GetMealPlanEntriesInteractorTests : InteractorTest
         var _Entry = Ok<GetMealPlanEntriesApiResponse>(this.m_Presenter).Entries.Single();
 
         _ = _Entry.RecipeID.Should().Be(120);
-        _ = _Entry.RecipeName.Should().Be(
+        _ = _Entry.Name.Should().Be(
             "Bolognese",
             "the presenter reads the recipe on every row, so the query has to load it");
         _ = _Entry.MealSlotID.Should().Be(110);
@@ -115,7 +130,41 @@ public class GetMealPlanEntriesInteractorTests : InteractorTest
         await this.HandleAsync(new DateTime(2026, 8, 10), new DateTime(2026, 8, 16));
 
         _ = Ok<GetMealPlanEntriesApiResponse>(this.m_Presenter).Entries
-            .Select(e => e.RecipeName).Should().Equal(["Bolognese"]);
+            .Select(e => e.Name).Should().Equal(["Bolognese"]);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ReadsAnOccasionThatHasNoRecipeBehindIt()
+    {
+        _ = this.Database.Seed(
+            BuildEntry(150, new DateTime(2026, 8, 12), BuildRecipe(120, this.Ours, "Bolognese")),
+            BuildOccasion(151, new DateTime(2026, 8, 13), this.Ours, "Father's Day"));
+
+        await this.HandleAsync(new DateTime(2026, 8, 10), new DateTime(2026, 8, 16));
+
+        var _Entries = Ok<GetMealPlanEntriesApiResponse>(this.m_Presenter).Entries;
+
+        _ = _Entries.Select(e => e.Name).Should().Equal(
+            ["Bolognese", "Father's Day"],
+            "the name is whichever of the two the entry actually has");
+        _ = _Entries.Select(e => e.RecipeID).Should().Equal(
+            [120, null],
+            "a null recipe is what tells a screen the name is not something it can open");
+    }
+
+    [Fact]
+    public async Task HandleAsync_KeepsAnOccasionOutOfAnotherHouseholdsWeek()
+    {
+        _ = this.Database.Seed(
+            BuildOccasion(150, new DateTime(2026, 8, 12), this.Ours, "Father's Day"),
+            BuildOccasion(950, new DateTime(2026, 8, 12), this.Theirs, "Their barbecue"));
+
+        await this.HandleAsync(new DateTime(2026, 8, 10), new DateTime(2026, 8, 16));
+
+        _ = Ok<GetMealPlanEntriesApiResponse>(this.m_Presenter).Entries
+            .Select(e => e.Name).Should().Equal(
+                ["Father's Day"],
+                "an occasion has no recipe to be scoped through, which is why the entry owns its household");
     }
 
     #endregion Methods

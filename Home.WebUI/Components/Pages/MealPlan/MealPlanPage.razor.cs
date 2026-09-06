@@ -245,7 +245,18 @@ public partial class MealPlanPage : IDisposable
             await this.CreateAndPlanRecipeAsync();
     }
 
-    private async Task PlanRecipeAsync(long recipeID)
+    private Task PlanRecipeAsync(long recipeID)
+        => this.PlanAsync(recipeID, null);
+
+    /// <summary>
+    /// Puts what was typed on the day as it stands, with no recipe behind it. Not everything a
+    /// family eats is cooked from something: a takeaway, leftovers, or a day that is the occasion
+    /// rather than the food.
+    /// </summary>
+    private Task PlanOccasionAsync()
+        => this.PlanAsync(null, this.m_PickerSearch.Trim());
+
+    private async Task PlanAsync(long? recipeID, string? title)
     {
         if (this.m_Planning)
             return;
@@ -257,7 +268,8 @@ public partial class MealPlanPage : IDisposable
             {
                 Date = this.m_PickerDate,
                 MealSlotID = this.m_PickerMealSlotID,
-                RecipeID = recipeID
+                RecipeID = recipeID,
+                Title = title
             },
             ApiProvider.CreateMealPlanEntry(),
             e => this.m_ErrorHandler?.AddError(e),

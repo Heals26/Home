@@ -246,6 +246,20 @@
                         }
                     </span>
                 </button>
+
+                @* Not everything a family eats is cooked from something. A takeaway, leftovers, or
+                   a day that is the occasion rather than the food all belong on the week, and
+                   making a recipe out of "Father's Day" to get it there would be silly. *@
+                <button type="button"
+                        class="mt-2 w-full flex items-center gap-3 rounded-lg border border-dashed border-ink-700 px-4 py-3 min-h-[48px] text-left hover:border-ink-500 hover:bg-ink-800 transition-colors disabled:opacity-50"
+                        disabled="@this.m_Planning"
+                        @onclick="this.PlanOccasionAsync">
+                    <span class="home-icon home-icon-calendar h-4 w-4 shrink-0 text-ink-400"></span>
+                    <span class="min-w-0">
+                        <span class="block text-sm text-ink-50">Just plan <span class="font-medium">@this.m_PickerSearch.Trim()</span></span>
+                        <span class="block text-xs text-ink-500">No recipe behind it, for a takeaway or an occasion</span>
+                    </span>
+                </button>
             }
         }
     </ChildContent>
@@ -383,7 +397,7 @@
    icon buttons left the recipe name a sliver of a seven-day column. There is room for words. *@
 <HomeModal Visible="this.m_SelectedEntry != null"
            VisibleChanged="visible => { if (!visible) this.m_SelectedEntry = null; }"
-           Title="@(this.m_SelectedEntry?.RecipeName ?? "Planned meal")">
+           Title="@(this.m_SelectedEntry?.Name ?? "Planned meal")">
     <ChildContent>
         @if (this.m_SelectedEntry is { } _Selected)
         {
@@ -392,11 +406,15 @@
             </p>
 
             <div class="mt-4 flex flex-col gap-2">
-                <a href="/recipes/@_Selected.RecipeID"
-                   class="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-800/40 px-4 py-3 min-h-[48px] text-sm text-ink-50 transition-colors hover:border-ink-600">
-                    <span class="home-icon home-icon-book h-4 w-4 shrink-0 text-recipes"></span>
-                    Open the recipe
-                </a>
+                @* An occasion has no recipe to open, so it is not offered one. *@
+                @if (_Selected.RecipeID is { } _RecipeID)
+                {
+                    <a href="/recipes/@_RecipeID"
+                       class="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-800/40 px-4 py-3 min-h-[48px] text-sm text-ink-50 transition-colors hover:border-ink-600">
+                        <span class="home-icon home-icon-book h-4 w-4 shrink-0 text-recipes"></span>
+                        Open the recipe
+                    </a>
+                }
 
                 <div class="grid grid-cols-2 gap-2">
                     <HomeButton Variant="secondary"

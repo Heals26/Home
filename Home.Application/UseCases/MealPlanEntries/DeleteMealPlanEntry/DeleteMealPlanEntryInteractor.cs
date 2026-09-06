@@ -24,7 +24,7 @@ internal class DeleteMealPlanEntryInteractor
 
         var _Entry = _PersistenceContext.GetEntities<MealPlanEntry>()
             .Where(e => e.MealPlanEntryID == inputPort.MealPlanEntryID
-                && e.Recipe.Household.HouseholdID == _Household.HouseholdID)
+                && e.Household.HouseholdID == _Household.HouseholdID)
             .SingleOrDefault();
 
         if (_Entry == null)

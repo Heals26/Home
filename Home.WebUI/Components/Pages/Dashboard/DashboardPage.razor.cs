@@ -294,7 +294,7 @@ public partial class DashboardPage : IDisposable
         => [.. (this.m_MealPlanEntries ?? [])
             .Where(e => e.Date.Date == this.TimeProvider.GetLocalNow().Date)
             .GroupBy(e => string.IsNullOrWhiteSpace(e.MealSlotName) ? "Planned" : e.MealSlotName)
-            .Select(g => new MealSlotGroup(g.Key, string.Join(" · ", g.Select(e => e.RecipeName))))];
+            .Select(g => new MealSlotGroup(g.Key, string.Join(" · ", g.Select(e => e.Name))))];
 
     private IEnumerable<MealPlanEntryDto> TomorrowsMeals()
         => (this.m_MealPlanEntries ?? []).Where(e => e.Date.Date == this.TimeProvider.GetLocalNow().Date.AddDays(1));

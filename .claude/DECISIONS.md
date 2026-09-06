@@ -5,6 +5,37 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-06 · A planned meal owns its household, and does not have to be a recipe
+
+A meal can be an occasion rather than something cooked. "Father's Day", "leftovers", "out for
+dinner" all belong on the week, and making a recipe out of one to get it there is silly. A
+`MealPlanEntry` now carries an optional `Recipe` and an optional `Title`, and exactly one of them
+is set.
+
+That forced an ownership change, which is the part worth recording. The entry used to reach its
+household *through the recipe*, and the configuration said so: "The recipe is the only owner.
+Household is reached through it, which keeps SQL Server to one cascade path." An entry that is only
+a title has no recipe to be reached through, so every query scoping the planner to one household
+would have had nothing to scope by. `MealPlanEntry` now has its own `HouseholdID`.
+
+Two cascade paths to one table is not allowed, so the household relationship is **Restrict** and
+the recipe stays **Cascade**:
+
+- Deleting a recipe still takes its planned meals with it, which is right. An entry pointing at a
+  deleted recipe is an answer to "what's for dinner" that nobody can cook.
+- Deleting a household is refused while it has a plan. Nothing in the application deletes a
+  household, so this costs nothing today.
+
+The migration backfills `HouseholdID` from the recipe before adding the constraint. Without it,
+every existing row keeps EF's `defaultValue: 0`, points at a household that does not exist, and the
+foreign key is rejected. Five rows on this database, all backfilled and verified at zero remaining.
+
+The read model exposes `Name` and a nullable `RecipeID` rather than `RecipeID` and `RecipeName`.
+`Name` is whichever of the two the entry actually has, so nothing rendering a week needs to know
+which kind it is looking at, and the nullable ID is what says whether the name is something that
+can be opened.
+
+
 ## 2026-09-06 · The calendar is a phase of its own, and its planning is front-loaded
 
 `VISION.md` has four pillars and a shared calendar is not one of them. It becomes one now, as

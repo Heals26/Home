@@ -25,6 +25,7 @@ public class DeleteMealPlanEntryInteractorTests : InteractorTest
         => new()
         {
             Date = new DateTime(2026, 8, 12),
+            Household = recipe.Household,
             MealPlanEntryID = mealPlanEntryID,
             Recipe = recipe
         };
