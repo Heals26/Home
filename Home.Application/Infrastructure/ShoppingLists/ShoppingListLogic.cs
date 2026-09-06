@@ -84,13 +84,30 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
         if (inputPort.Unit.HasBeenSet)
             _ShoppingListItem.Unit = inputPort.Unit.Value;
 
-        // Set, not insert. This used to shuffle every item at or after the target down by one and
-        // never assign the moved item its own sequence, so a reorder pushed the rest of the list
-        // apart and left the item exactly where it started. The caller reorders by swapping a pair,
-        // the same way the recipe ingredient list does, and a swap needs each half written where
-        // the other one was.
-        if (inputPort.Sequence.HasBeenSet)
-            _ShoppingListItem.Sequence = inputPort.Sequence.Value;
+        // Take the item out of the order and put it back at the position asked for, closing the gap
+        // it left and opening one where it lands. Everything else keeps its relative order.
+        //
+        // This used to shuffle the items at or after the target down by one and never assign the
+        // moved item its own sequence, so a reorder pushed the list apart and left the item exactly
+        // where it started. Doing it in one place server-side, rather than as a pair of swaps from
+        // the caller, is what lets a list be reordered by dropping an item anywhere in it and not
+        // only by nudging it past its neighbour.
+        if (inputPort.Sequence.HasBeenSet && inputPort.Sequence.Value != _ShoppingListItem.Sequence)
+        {
+            var _From = _ShoppingListItem.Sequence;
+            var _To = inputPort.Sequence.Value;
+
+            foreach (var _Other in _ShoppingListItem.ShoppingList.Items
+                .Where(i => i.ShoppingListItemID != _ShoppingListItem.ShoppingListItemID))
+            {
+                if (_To > _From && _Other.Sequence > _From && _Other.Sequence <= _To)
+                    _Other.Sequence--;
+                else if (_To < _From && _Other.Sequence >= _To && _Other.Sequence < _From)
+                    _Other.Sequence++;
+            }
+
+            _ShoppingListItem.Sequence = _To;
+        }
     }
 
     #endregion Methods

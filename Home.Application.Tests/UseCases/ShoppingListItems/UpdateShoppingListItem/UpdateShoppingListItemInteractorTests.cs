@@ -147,34 +147,58 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
             "ticking something off must not wipe what the line said");
     }
 
+    /// <summary>
+    /// The list in order, which is the only thing a reorder is judged by.
+    /// </summary>
+    private IEnumerable<string> StoredOrder()
+        => this.Stored<ShoppingListItem>().OrderBy(i => i.Sequence).ThenBy(i => i.ShoppingListItemID).Select(i => i.Name);
+
     [Fact]
-    public async Task HandleAsync_PuttingAnItemAtAPositionActuallyPutsItThere()
+    public async Task HandleAsync_MovingAnItemUpTheListPutsItThereAndClosesTheGap()
     {
-        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3)));
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3), (133, "Jam", 4)));
 
-        await this.HandleAsync(132, sequence: new(2));
+        await this.HandleAsync(133, sequence: new(2));
 
-        _ = this.Stored<ShoppingListItem>().Single(i => i.ShoppingListItemID == 132).Sequence.Should().Be(
-            2,
+        _ = this.StoredOrder().Should().Equal(
+            ["Milk", "Jam", "Bread", "Eggs"],
             "this used to move every other item and never the one being moved, so reordering did nothing");
-        _ = this.Stored<ShoppingListItem>().Single(i => i.ShoppingListItemID == 130).Sequence.Should().Be(
-            1,
-            "setting one item's position is not an insert and must not disturb the rest");
-        _ = this.Stored<ShoppingListItem>().Single(i => i.ShoppingListItemID == 131).Sequence.Should().Be(2);
     }
 
     [Fact]
-    public async Task HandleAsync_TwoCallsSwapAPairTheWayTheReorderButtonsDo()
+    public async Task HandleAsync_MovingAnItemDownTheListWorksTheSameWayInReverse()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3), (133, "Jam", 4)));
+
+        await this.HandleAsync(130, sequence: new(3));
+
+        _ = this.StoredOrder().Should().Equal(["Bread", "Eggs", "Milk", "Jam"]);
+    }
+
+    [Fact]
+    public async Task HandleAsync_LeavesTheListAloneWhenSomethingIsDroppedWhereItAlreadyWas()
     {
         _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3)));
 
-        // Exactly what the up and down buttons send: each half of the pair written where the other
-        // one was. Nothing else on the list may shift.
-        await this.HandleAsync(132, sequence: new(2));
-        await this.HandleAsync(131, sequence: new(3));
+        await this.HandleAsync(131, sequence: new(2));
 
-        _ = this.Stored<ShoppingListItem>().OrderBy(i => i.Sequence).Select(i => i.Name).Should().Equal(
-            ["Milk", "Eggs", "Bread"]);
+        _ = this.Stored<ShoppingListItem>().Select(i => i.Sequence).Should().Equal(
+            [1, 2, 3],
+            "a move to where it already is must not renumber anything");
+    }
+
+    [Fact]
+    public async Task HandleAsync_KeepsTheSequencesContiguousSoRepeatedMovesStayPredictable()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3), (133, "Jam", 4)));
+
+        await this.HandleAsync(133, sequence: new(1));
+        await this.HandleAsync(130, sequence: new(4));
+        await this.HandleAsync(132, sequence: new(2));
+
+        _ = this.Stored<ShoppingListItem>().OrderBy(i => i.Sequence).Select(i => i.Sequence).Should().Equal(
+            [1, 2, 3, 4],
+            "nothing may drift apart, or a later move lands between two items instead of on one");
     }
 
     [Fact]
