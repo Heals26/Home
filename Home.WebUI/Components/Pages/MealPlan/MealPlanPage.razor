@@ -96,8 +96,7 @@
                                           OnDrop="() => this.DropEntryAsync(_Day, _MealSlot.MealSlotID)"
                                           Moving="this.m_MovingEntry"
                                           OnDragStart="this.StartDraggingEntry"
-                                          OnShift="this.ShiftEntryAsync"
-                                          OnRemove="this.DeleteEntryAsync" />
+                                          OnSelect="this.OpenEntrySheet" />
                         }
                     }
 
@@ -116,8 +115,7 @@
                                           OnDrop="() => this.DropEntryAsync(_Day, null)"
                                           Moving="this.m_MovingEntry"
                                           OnDragStart="this.StartDraggingEntry"
-                                          OnShift="this.ShiftEntryAsync"
-                                          OnRemove="this.DeleteEntryAsync" />
+                                          OnSelect="this.OpenEntrySheet" />
                         }
                     }
                 </div>
@@ -143,8 +141,7 @@
                                                       OnDrop="() => this.DropEntryAsync(_Day, _MealSlot.MealSlotID)"
                                                       Moving="this.m_MovingEntry"
                                                       OnDragStart="this.StartDraggingEntry"
-                                                      OnShift="this.ShiftEntryAsync"
-                                                      OnRemove="this.DeleteEntryAsync" />
+                                                      OnSelect="this.OpenEntrySheet" />
                                     </div>
                                 }
                                 @if (this.EntriesFor(_Day, null).Any())
@@ -158,8 +155,7 @@
                                                       OnDrop="() => this.DropEntryAsync(_Day, null)"
                                                       Moving="this.m_MovingEntry"
                                                       OnDragStart="this.StartDraggingEntry"
-                                                      OnShift="this.ShiftEntryAsync"
-                                                      OnRemove="this.DeleteEntryAsync" />
+                                                      OnSelect="this.OpenEntrySheet" />
                                     </div>
                                 }
                             </div>
@@ -380,6 +376,54 @@
                             OnClick="this.CreateMealSlotAsync">Add meal</HomeButton>
             </div>
         </div>
+    </ChildContent>
+</HomeModal>
+
+@* Everything a planned meal can have done to it. In here rather than on the chip, where three
+   icon buttons left the recipe name a sliver of a seven-day column. There is room for words. *@
+<HomeModal Visible="this.m_SelectedEntry != null"
+           VisibleChanged="visible => { if (!visible) this.m_SelectedEntry = null; }"
+           Title="@(this.m_SelectedEntry?.RecipeName ?? "Planned meal")">
+    <ChildContent>
+        @if (this.m_SelectedEntry is { } _Selected)
+        {
+            <p class="text-sm text-ink-400">
+                @_Selected.Date.ToString("dddd d MMMM")@(string.IsNullOrWhiteSpace(_Selected.MealSlotName) ? "" : $" · {_Selected.MealSlotName}")
+            </p>
+
+            <div class="mt-4 flex flex-col gap-2">
+                <a href="/recipes/@_Selected.RecipeID"
+                   class="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-800/40 px-4 py-3 min-h-[48px] text-sm text-ink-50 transition-colors hover:border-ink-600">
+                    <span class="home-icon home-icon-book h-4 w-4 shrink-0 text-recipes"></span>
+                    Open the recipe
+                </a>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <HomeButton Variant="secondary"
+                                Disabled="this.m_MovingEntry"
+                                OnClick="() => this.ShiftEntryAsync(new MealPlanShift(_Selected, -1))">
+                        <span class="home-icon home-icon-chevron-left h-4 w-4 mr-1 inline-block"></span>
+                        A day earlier
+                    </HomeButton>
+                    <HomeButton Variant="secondary"
+                                Disabled="this.m_MovingEntry"
+                                OnClick="() => this.ShiftEntryAsync(new MealPlanShift(_Selected, 1))">
+                        A day later
+                        <span class="home-icon home-icon-chevron-right h-4 w-4 ml-1 inline-block"></span>
+                    </HomeButton>
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-between gap-3">
+                <HomeButton Variant="ghost"
+                            Class="text-red-400 hover:text-red-300 hover:bg-red-950/40"
+                            OnClick="this.RemoveSelectedEntryAsync">
+                    <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>
+                    Remove
+                </HomeButton>
+                <HomeButton Variant="ghost" OnClick="() => this.m_SelectedEntry = null">Done</HomeButton>
+            </div>
+        }
     </ChildContent>
 </HomeModal>
 

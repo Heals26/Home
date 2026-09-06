@@ -40,6 +40,12 @@ public partial class MealPlanPage : IDisposable
     // Picker modal
     private MealPlanEntryDto? m_DraggedEntry;
     private bool m_MovingEntry;
+
+    /// <summary>
+    /// The planned meal whose sheet is open. The actions live there rather than on the chip so the
+    /// chip can be the recipe's name and nothing else.
+    /// </summary>
+    private MealPlanEntryDto? m_SelectedEntry;
     private bool m_ShowPicker;
     private DateTime m_PickerDate;
     private long? m_PickerMealSlotID;
@@ -275,7 +281,24 @@ public partial class MealPlanPage : IDisposable
     /// finger uses; dragging is the same move with the target picked directly.
     /// </summary>
     private async Task ShiftEntryAsync(MealPlanShift shift)
-        => await this.MoveEntryAsync(shift.Entry, shift.Entry.Date.AddDays(shift.Days), shift.Entry.MealSlotID);
+    {
+        await this.MoveEntryAsync(shift.Entry, shift.Entry.Date.AddDays(shift.Days), shift.Entry.MealSlotID);
+
+        this.m_SelectedEntry = null;
+    }
+
+    private void OpenEntrySheet(MealPlanEntryDto entry)
+        => this.m_SelectedEntry = entry;
+
+    private async Task RemoveSelectedEntryAsync()
+    {
+        if (this.m_SelectedEntry is not { } _Entry)
+            return;
+
+        this.m_SelectedEntry = null;
+
+        await this.DeleteEntryAsync(_Entry);
+    }
 
     private void StartDraggingEntry(MealPlanEntryDto entry)
         => this.m_DraggedEntry = entry;

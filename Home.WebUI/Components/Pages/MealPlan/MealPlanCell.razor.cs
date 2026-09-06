@@ -13,15 +13,18 @@ public partial class MealPlanCell
     [Parameter] public IEnumerable<MealPlanEntryDto> Entries { get; set; } = [];
 
     /// <summary>
-    /// Whether a move is already in flight, so the chevrons cannot be tapped into a queue.
+    /// Whether a move is already in flight, so a chip cannot be tapped into a queue.
     /// </summary>
     [Parameter] public bool Moving { get; set; }
 
     [Parameter] public EventCallback<MealPlanEntryDto> OnDragStart { get; set; }
     [Parameter] public EventCallback OnDrop { get; set; }
     [Parameter] public EventCallback OnPlan { get; set; }
-    [Parameter] public EventCallback<MealPlanEntryDto> OnRemove { get; set; }
-    [Parameter] public EventCallback<MealPlanShift> OnShift { get; set; }
+
+    /// <summary>
+    /// A planned meal was tapped. The page opens the sheet that can move, open or remove it.
+    /// </summary>
+    [Parameter] public EventCallback<MealPlanEntryDto> OnSelect { get; set; }
 
     #endregion Properties
 

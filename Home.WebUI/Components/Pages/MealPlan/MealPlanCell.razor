@@ -1,44 +1,30 @@
-﻿@* One day-and-meal square of the planner. Shared by the wide matrix and the narrow day-by-day
+@* One day-and-meal square of the planner. Shared by the wide matrix and the narrow day-by-day
    list so the two layouts can never drift apart.
 
-   A planned meal can be moved rather than only deleted and re-added: drag it to another square on
-   a desktop, or shift it a day at a time with the chevrons, which is what a finger uses. The drop
-   target attribute is what board.js watches for to allow the drop. *@
+   The chip is the control: tapping it opens the sheet that moves, opens or removes the meal. It
+   used to carry a back chevron, a forward chevron and a cross inline, which is 84px of buttons in
+   a column that is about 130px wide on a seven-day tablet grid, leaving a recipe name almost no
+   room and no way to tell which meal you were looking at. The same trade was already settled this
+   way on the recipe ingredient row.
+
+   Dragging still works for anything with a mouse. The drop target attribute is what board.js
+   watches for to allow the drop. *@
 
 <div class="flex flex-wrap items-center gap-1.5 @this.Class"
      data-drop-target=""
      @ondrop="() => this.OnDrop.InvokeAsync()">
     @foreach (var _Entry in this.Entries)
     {
-        <span class="flex max-w-full items-center gap-1 rounded-full border border-ink-700 bg-ink-800 py-1 pl-3 pr-1"
-              draggable="true"
-              @ondragstart="() => this.OnDragStart.InvokeAsync(_Entry)">
-            <a href="/recipes/@_Entry.RecipeID" class="truncate text-xs text-ink-100 hover:underline underline-offset-4">@_Entry.RecipeName</a>
-
-            <button type="button"
-                    aria-label="@($"Move {_Entry.RecipeName} a day earlier")"
-                    title="A day earlier"
-                    class="h-7 w-7 shrink-0 rounded-full text-ink-500 hover:text-ink-100 disabled:opacity-25"
-                    disabled="@this.Moving"
-                    @onclick="() => this.OnShift.InvokeAsync(new MealPlanShift(_Entry, -1))">
-                <span class="home-icon home-icon-chevron-left h-3 w-3 inline-block"></span>
-            </button>
-            <button type="button"
-                    aria-label="@($"Move {_Entry.RecipeName} a day later")"
-                    title="A day later"
-                    class="h-7 w-7 shrink-0 rounded-full text-ink-500 hover:text-ink-100 disabled:opacity-25"
-                    disabled="@this.Moving"
-                    @onclick="() => this.OnShift.InvokeAsync(new MealPlanShift(_Entry, 1))">
-                <span class="home-icon home-icon-chevron-right h-3 w-3 inline-block"></span>
-            </button>
-
-            <button type="button"
-                    aria-label="@($"Remove {_Entry.RecipeName}")"
-                    class="h-7 w-7 shrink-0 rounded-full text-ink-500 hover:text-red-400"
-                    @onclick="() => this.OnRemove.InvokeAsync(_Entry)">
-                <span class="home-icon home-icon-x h-3 w-3 inline-block"></span>
-            </button>
-        </span>
+        <button type="button"
+                class="flex max-w-full min-w-0 items-center rounded-full border border-ink-700 bg-ink-800 px-3 py-1.5 min-h-[32px] text-left transition-colors hover:border-ink-600 hover:bg-ink-700 disabled:opacity-50"
+                draggable="true"
+                disabled="@this.Moving"
+                title="@_Entry.RecipeName"
+                aria-label="@($"{_Entry.RecipeName}, open meal options")"
+                @ondragstart="() => this.OnDragStart.InvokeAsync(_Entry)"
+                @onclick="() => this.OnSelect.InvokeAsync(_Entry)">
+            <span class="truncate text-xs text-ink-100">@_Entry.RecipeName</span>
+        </button>
     }
     <button type="button"
             aria-label="@this.AddLabel"
