@@ -1,6 +1,6 @@
 ﻿# Roadmap
 
-*Eleven phases, in the order they should be done. Each one is shippable on its own and leaves the
+*Twelve phases, in the order they should be done. Each one is shippable on its own and leaves the
 app better than it found it. Nothing here is half a feature that needs the next phase to be worth
 having.*
 
@@ -192,7 +192,101 @@ Deliberately not in scope: extracting a component that wraps a single element. T
 for anything reading the code afterwards, costs more to follow than the markup it replaced. The rule
 that pays is extracting what is repeated **across files**.
 
-## Phase 6 · Who is using this, XL *(was B1)*
+## Phase 6 · A shared calendar, and the time axis under it, XL *(new, 6 Sep 2026)*
+
+`VISION.md` says the dashboard answers "what's happening this week" without navigation. Today it
+answers that by making **seven separate API calls and assembling the answer by hand**, and there is
+still nowhere to put an appointment. No event, no calendar entity, nothing that holds "swimming,
+Tuesday, 4pm". A family keeps that somewhere, and while it is somewhere else, this is the second
+thing they have to look at rather than the one application they rely on.
+
+That is the feature. The reason it gets a planning stage instead of a design paragraph is
+underneath it: **the app already holds time four ways and they do not agree with each other.**
+
+| Where | How time is held | What that makes it |
+|---|---|---|
+| `MealPlanEntry.Date` | `DateTime`, deliberately no `UTC` suffix | a local calendar day |
+| `Activity.DueDateUTC`, `CompletedDateUTC` | `DateTime?` in UTC | an instant |
+| `LightSchedule` | `DaysOfWeek` bitmask, `TimeOfDay` as `TimeSpan`, `LastRunUTC` | a recurring wall-clock time |
+| `Announcement.CreatedOnUTC` | `DateTime` in UTC | an instant |
+
+Three genuinely different models of time, and `LightSchedule` is already the repo's only working
+recurrence. A calendar bolted on without reconciling them becomes a fourth model, and then every
+future feature that needs to ask "what is on this day" has to know which of four answers to trust.
+Since a lot of what comes after this is time-shaped, that question gets settled once, here, in
+writing, before any of it is built.
+
+### Stage 1 · The planning, and it is the bulk of the phase
+
+Nothing is built until `DECISIONS.md` carries an answer to each of these. Each one is cheap to
+decide now and expensive to change after there is data in the table.
+
+1. **Is the calendar a store, or a view over what already exists?** A planned meal, a task with a
+   due date and a light schedule are all already "things on a day". If the calendar stores its own
+   copy of them, they drift. If it only aggregates, it has nowhere to keep a plain appointment that
+   belongs to nothing else. The likely answer is both, an events table plus a read model that
+   folds the other four sources in, but "likely" is not a decision and this is the one that shapes
+   every other answer.
+
+2. **Whose event is it?** Household-level events need no identity and can be built now.
+   Per-person events cannot, and retrofitting an owner onto a table full of rows is the expensive
+   version. **If the answer is per-person, phase 7 moves in front of stage 2.** Deciding this
+   first is most of why the planning stage exists.
+
+3. **Recurrence, which is the hard part of every calendar ever written.** "Every Tuesday in term
+   time", "the first Monday of the month", "every Tuesday except this one". The choice is a full
+   RFC 5545 recurrence rule against a smaller home-grown model, and the trap in the smaller one is
+   never recurrence itself but the **exceptions**: one moved or deleted occurrence in an infinite
+   series. `LightSchedule.DaysOfWeek` is the prior art and it deliberately cannot express any of
+   the above. Decide how far this goes, and write down what it will not do.
+
+4. **All-day against timed, and what a "day" is.** An all-day event is a date, not an instant, and
+   storing it as midnight-UTC is the classic way to make a birthday land on the wrong day for half
+   the year. Everything in this repo is UTC-suffixed by convention, which is right for instants and
+   wrong for dates: `MealPlanEntry.Date` already got this right by leaving the suffix off. The
+   household row already carries latitude and longitude for sunrise, so there is a location to
+   derive a zone from if a zone is wanted.
+
+5. **Does it read the calendar the family already keeps?** Almost certainly the single highest
+   value question here, and the largest. A one-way ICS subscription is a modest piece of work and
+   makes the wall screen show the calendar that already exists. Two-way CalDAV is a different
+   project. Read-only import, two-way, or neither, but decide it now, because "we will add sync
+   later" is a sentence that changes the schema when it comes due.
+
+6. **What the dashboard actually shows.** The glanceable promise is the point of the whole product,
+   and today seven calls are stitched together in `DashboardPage`. Decide what one day looks like
+   at a glance from across a kitchen before deciding what the full calendar screen looks like, not
+   after. The dashboard is the screen that gets read; the calendar screen is the one that gets
+   edited, and it is used far less often.
+
+Stage 1 is done when those six have dated entries in `DECISIONS.md` and a schema sketch exists.
+Not before.
+
+### Stage 2 · The build
+
+Shaped by stage 1, so this is the expected shape rather than a commitment:
+
+- The entity, its EF configuration and a migration, scoped to the household through the same
+  ownership path everything else uses.
+- The slices, following the seven-file recipe: create, update, delete, and the read that answers
+  "what is on between these two dates". The read is the one that matters and the one to test first,
+  against a real database, because it is a projection across four sources and that is exactly the
+  bug class this repo keeps hitting.
+- A month and a week view, touch-first, and a day list that a phone can carry.
+- The dashboard, rebuilt on the new read model rather than on seven hand-assembled calls.
+
+### Deliberately not in scope
+
+- **Invitations, attendees and RSVPs.** This is a household's own calendar on its own wall, not a
+  scheduling product. Someone being on an event is a name on it.
+- **Notifications and reminders.** A separate concern with its own delivery problem, and worth
+  nothing until phase 7 knows who to notify.
+- **Rewriting `LightSchedule` onto whatever recurrence lands.** Tempting and wrong to bundle: it
+  works, it has no UI complaints against it, and folding a working feature into a new abstraction
+  on day one is how the abstraction gets shaped by the wrong requirement. Revisit once the calendar
+  has been in use.
+
+## Phase 7 · Who is using this, XL *(was B1)*
 
 The biggest gap against VISION's "family-proof… used by every member of the family". There is one
 household login. `GetAssignedActivities` is a complete slice with its own presenter and
@@ -203,21 +297,21 @@ Needs the deferred decision first: per-user PIN, device-trusted sessions, someth
 switching was refused on 14 Aug as weakening auth on a possibly-internet-facing app. The payoff is
 a "My day" view, per-person chore lists, and who-did-what that means something.
 
-This phase is why it sits here rather than later: it changes what phases 6 and 10 are worth.
+This phase is why it sits here rather than later: it changes what phases 8 and 11 are worth.
 
-## Phase 7 · The app remembers, M *(was B2, B6)*
+## Phase 8 · The app remembers, M *(was B2, B6)*
 
 Two features that surface data already being captured and stored.
 
 - **Show the audit trail.** `Audit` is written correctly by ~15 interactors and **read by nothing**.
   Every mutation already records who did what and when. "Who ticked this off", "what changed on this
   recipe", a household activity feed. The cheapest large-feeling feature on this list, and much
-  better after phase 5 gives the who a name.
+  better after phase 7 gives the who a name.
 - **Leftovers and meal history.** The meal plan knows what was cooked and when. Nothing surfaces
   "you had this three days ago", "cook once eat twice", or "you haven't made this in six months".
   Turns the planner from a schedule into something that gives advice.
 
-## Phase 8 · The shop gets smarter, M *(was B4, B5)*
+## Phase 9 · The shop gets smarter, M *(was B4, B5)*
 
 Both are shopping-list intelligence over the same data, so they share the groundwork.
 
@@ -230,7 +324,7 @@ Both are shopping-list intelligence over the same data, so they share the ground
   category (produce, dairy, freezer) learned from history, and group the list by it so a shop is one
   walk through the store instead of a scavenger hunt.
 
-## Phase 9 · Nullable on in the API, L *(was C3)*
+## Phase 10 · Nullable on in the API, L *(was C3)*
 
 A clean build emits **one** warning, not the ~145 this file used to claim. That is not progress:
 `Home.WebApi` sets `<Nullable>disable</Nullable>` while every other project enables it, and the API
@@ -239,7 +333,7 @@ models and controllers are where the `CS8618`s lived. They are suppressed, not f
 The job is turning nullable on there and absorbing what comes back in one go. No user-visible value,
 which is why it sits this late, but it gets harder every phase that adds API models.
 
-## Phase 10 · Beyond lights: a second device integration, L *(was B9)*
+## Phase 11 · Beyond lights: a second device integration, L *(was B9)*
 
 `DECISIONS.md` (12 Aug) establishes the adapter template: service interface in `Application`,
 adapter in `WebApi`, an unreachable provider is a return value rather than an exception, vendor wire
@@ -247,7 +341,7 @@ types stay at the boundary. VISION says "other devices as they come" and nothing
 researched. A thermostat, robot vacuum or smart plug is the obvious next one, and the pattern is
 ready and proven.
 
-## Phase 11 · The ones blocked on their own decisions, L each *(was B7, B10)*
+## Phase 12 · The ones blocked on their own decisions, L each *(was B7, B10)*
 
 Both are in `BACKLOG.md` with the open question written down. Neither is blocked on effort.
 
@@ -257,5 +351,5 @@ Both are in `BACKLOG.md` with the open question written down. Neither is blocked
   IPs, user agents and timing, so the substrate exists.
 - **Spotify.** OAuth is *per user* rather than one household token like LIFX, so it needs an
   authorisation-code flow with refresh, a callback URL, and a decision about whose account the
-  kitchen tablet plays from. Needs Premium. Naturally follows phase 5, which answers "who is this
+  kitchen tablet plays from. Needs Premium. Naturally follows phase 7, which answers "who is this
   device".
