@@ -6,12 +6,26 @@
 
 @* Draggable only where there is a pointer to drag with. Touch fires no drag events, so the row's
    chevrons stay the way a finger reorders and this is the mouse's shortcut for the same move. The
-   drop target attribute is what board.js watches for to allow the drop. *@
-<div class="flex items-center hover:bg-ink-800/50 transition-colors @(this.Draggable ? "cursor-grab active:cursor-grabbing" : "")"
+   drop target attribute is what board.js watches for to allow the drop.
+
+   dragenter rather than dragover: dragover fires continuously while the cursor moves, and a C#
+   handler on it would be a round trip per mouse movement over every row. dragenter fires once as
+   the row is crossed, which is exactly when the line needs to move.
+
+   The line is drawn where the item will land, which is not always the edge nearest the cursor.
+   See ShoppingListDropLine. *@
+<div class="relative flex items-center hover:bg-ink-800/50 transition-colors @(this.Draggable ? "cursor-grab active:cursor-grabbing" : "") @(this.IsBeingDragged ? "opacity-40" : "")"
      draggable="@(this.Draggable ? "true" : "false")"
      data-drop-target=""
      @ondragstart="() => this.OnDragStart.InvokeAsync(this.Item)"
+     @ondragenter="() => this.OnDragEnter.InvokeAsync(this.Item)"
+     @ondragend="() => this.OnDragEnd.InvokeAsync()"
      @ondrop="() => this.OnDrop.InvokeAsync(this.Item)">
+    @if (this.DropLine != ShoppingListDropLine.None)
+    {
+        <span aria-hidden="true"
+              class="pointer-events-none absolute left-0 right-0 h-0.5 bg-shopping @(this.DropLine == ShoppingListDropLine.Above ? "-top-px" : "-bottom-px")"></span>
+    }
     <button type="button"
             class="shrink-0 flex items-center justify-center pl-5 pr-3 py-3 min-h-[56px]"
             aria-pressed="@this.Item.InBasket"

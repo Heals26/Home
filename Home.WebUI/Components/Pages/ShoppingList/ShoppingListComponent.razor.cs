@@ -64,6 +64,11 @@ public partial class ShoppingListComponent : IDisposable
     /// </summary>
     private ShoppingListItemDto? m_DraggedItem;
 
+    /// <summary>
+    /// The row the cursor is currently over, which is where the line is drawn.
+    /// </summary>
+    private ShoppingListItemDto? m_DragOverItem;
+
     #endregion Fields
 
     #region Properties
@@ -81,8 +86,16 @@ public partial class ShoppingListComponent : IDisposable
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
             this.OnHouseholdChangedAsync, this.CancellationToken);
 
+        // Mutating a cascaded object tells Blazor nothing, so the drag says when it changed. This
+        // pane needs it to put its drop line away the moment the cursor reaches the picker.
+        if (this.Drag != null)
+            this.Drag.Changed += this.OnDragChanged;
+
         await this.LoadSuggestionsAsync();
     }
+
+    private void OnDragChanged()
+        => _ = this.InvokeAsync(this.StateHasChanged);
 
     protected override async Task OnParametersSetAsync()
     {
@@ -107,7 +120,12 @@ public partial class ShoppingListComponent : IDisposable
     }
 
     public void Dispose()
-        => this.m_ChangeSubscription?.Dispose();
+    {
+        if (this.Drag != null)
+            this.Drag.Changed -= this.OnDragChanged;
+
+        this.m_ChangeSubscription?.Dispose();
+    }
 
     #endregion Lifecycle Methods
 
@@ -386,9 +404,56 @@ public partial class ShoppingListComponent : IDisposable
     private void StartDraggingItem(ShoppingListItemDto item)
     {
         this.m_DraggedItem = item;
+        this.m_DragOverItem = null;
 
         // Also published to the page, so the lists pane knows what would land on it.
         this.Drag?.Start(item, this.ShoppingListID);
+    }
+
+    /// <summary>
+    /// The drag ended without a drop landing anywhere useful, so every trace of it goes.
+    /// </summary>
+    private void EndDraggingItem()
+    {
+        this.m_DraggedItem = null;
+        this.m_DragOverItem = null;
+
+        this.Drag?.Clear();
+    }
+
+    private void DragOverItem(ShoppingListItemDto item)
+    {
+        this.m_DragOverItem = item;
+
+        // Back off the picker and onto the items, so the list highlight lets go.
+        this.Drag?.LeaveLists();
+    }
+
+    /// <summary>
+    /// Which edge of a row gets the line. Dropping onto a row takes that row's position, so an item
+    /// travelling down the list ends up below the row it lands on and one travelling up ends up
+    /// above it. Drawing the line on the nearest edge instead would promise the wrong result half
+    /// the time.
+    /// </summary>
+    private ShoppingListDropLine DropLineFor(ShoppingListItemDto item, IReadOnlyList<ShoppingListItemDto> toGet)
+    {
+        // Over a list in the picker, so that is where it would land and the line here would be
+        // promising somewhere else.
+        if (this.Drag?.OverShoppingListID != null)
+            return ShoppingListDropLine.None;
+
+        if (this.m_DraggedItem is not { } _Dragged
+            || this.m_DragOverItem?.ShoppingListItemID != item.ShoppingListItemID
+            || _Dragged.ShoppingListItemID == item.ShoppingListItemID)
+            return ShoppingListDropLine.None;
+
+        var _From = toGet.ToList().FindIndex(i => i.ShoppingListItemID == _Dragged.ShoppingListItemID);
+        var _To = toGet.ToList().FindIndex(i => i.ShoppingListItemID == item.ShoppingListItemID);
+
+        if (_From < 0 || _To < 0)
+            return ShoppingListDropLine.None;
+
+        return _From < _To ? ShoppingListDropLine.Below : ShoppingListDropLine.Above;
     }
 
     /// <summary>
@@ -401,6 +466,7 @@ public partial class ShoppingListComponent : IDisposable
             return;
 
         this.m_DraggedItem = null;
+        this.m_DragOverItem = null;
         this.Drag?.Clear();
 
         await this.MoveItemToAsync(_Dragged, target);

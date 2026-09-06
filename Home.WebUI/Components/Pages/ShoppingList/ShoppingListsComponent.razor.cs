@@ -109,11 +109,25 @@ public partial class ShoppingListsComponent : IDisposable
         => this.NavigationManager.NavigateTo($"/shopping-lists/{list.ShoppingListID}");
 
     /// <summary>
-    /// Whether a row should light up as somewhere the thing being dragged could land. The list it
-    /// came from is not, because dropping it back where it started is not a move.
+    /// Whether a row could take the thing being dragged. The list it came from could not, because
+    /// dropping it back where it started is not a move.
     /// </summary>
     private bool IsDropTarget(GetShoppingListDto list)
         => this.Drag?.Item != null && this.Drag.FromShoppingListID != list.ShoppingListID;
+
+    /// <summary>
+    /// How a row looks during a drag. Somewhere it could land gets an outline; the one it would
+    /// actually land on fills in, so there is never a question of which list is about to receive it.
+    /// </summary>
+    private string DropTargetClasses(GetShoppingListDto list)
+    {
+        if (!this.IsDropTarget(list))
+            return "hover:bg-ink-800";
+
+        return this.Drag?.OverShoppingListID == list.ShoppingListID
+            ? "bg-shopping/20 ring-2 ring-inset ring-shopping"
+            : "ring-1 ring-inset ring-shopping/30";
+    }
 
     /// <summary>
     /// An item was dropped onto a list. It lands at the end of it, because dropping onto a list is

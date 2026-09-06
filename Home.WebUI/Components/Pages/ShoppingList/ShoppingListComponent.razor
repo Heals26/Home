@@ -127,7 +127,11 @@
                                                  CanMoveDown="@(!this.m_Reordering && _ToGet.IndexOf(_Item) < _ToGet.Count - 1)"
                                                  OnMoveUp="i => this.MoveItemAsync(i, -1)"
                                                  OnMoveDown="i => this.MoveItemAsync(i, 1)"
+                                                 IsBeingDragged="@(this.m_DraggedItem?.ShoppingListItemID == _Item.ShoppingListItemID)"
+                                                 DropLine="@this.DropLineFor(_Item, _ToGet)"
                                                  OnDragStart="this.StartDraggingItem"
+                                                 OnDragEnter="this.DragOverItem"
+                                                 OnDragEnd="this.EndDraggingItem"
                                                  OnDrop="this.DropOnItemAsync"
                                                  OnToggle="this.ToggleItemAsync"
                                                  OnEdit="this.OpenEditItem" />

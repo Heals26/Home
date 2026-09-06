@@ -37,17 +37,38 @@ public class ShoppingListDrag
     /// </summary>
     public ShoppingListItemDto? Item { get; private set; }
 
+    /// <summary>
+    /// The list currently under the cursor, when the cursor has left the items and is over the
+    /// picker. The items pane reads this to put its own drop line away: two indicators promising
+    /// two different landing places at once is worse than neither.
+    /// </summary>
+    public long? OverShoppingListID { get; private set; }
+
     #endregion Properties
 
     #region Methods
 
     public void Clear()
     {
-        if (this.Item == null)
+        if (this.Item == null && this.OverShoppingListID == null)
             return;
 
         this.Item = null;
         this.FromShoppingListID = null;
+        this.OverShoppingListID = null;
+
+        this.Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// The cursor moved over one of the lists in the picker.
+    /// </summary>
+    public void HoverList(long shoppingListID)
+    {
+        if (this.OverShoppingListID == shoppingListID)
+            return;
+
+        this.OverShoppingListID = shoppingListID;
 
         this.Changed?.Invoke();
     }
@@ -56,6 +77,20 @@ public class ShoppingListDrag
     {
         this.Item = item;
         this.FromShoppingListID = fromShoppingListID;
+        this.OverShoppingListID = null;
+
+        this.Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// The cursor came back off the picker and onto the items.
+    /// </summary>
+    public void LeaveLists()
+    {
+        if (this.OverShoppingListID == null)
+            return;
+
+        this.OverShoppingListID = null;
 
         this.Changed?.Invoke();
     }

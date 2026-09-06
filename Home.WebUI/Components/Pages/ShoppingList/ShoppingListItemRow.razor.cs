@@ -17,7 +17,20 @@ public partial class ShoppingListItemRow
     /// </summary>
     [Parameter] public bool Draggable { get; set; }
 
+    /// <summary>
+    /// Where to draw the line showing a pending drop, which is the edge the item will land on
+    /// rather than the one the cursor happens to be nearest.
+    /// </summary>
+    [Parameter] public ShoppingListDropLine DropLine { get; set; }
+
+    /// <summary>
+    /// Whether this is the row being carried, which is faded so it reads as picked up.
+    /// </summary>
+    [Parameter] public bool IsBeingDragged { get; set; }
+
     [Parameter, EditorRequired] public ShoppingListItemDto Item { get; set; } = null!;
+    [Parameter] public EventCallback OnDragEnd { get; set; }
+    [Parameter] public EventCallback<ShoppingListItemDto> OnDragEnter { get; set; }
     [Parameter] public EventCallback<ShoppingListItemDto> OnDragStart { get; set; }
     [Parameter] public EventCallback<ShoppingListItemDto> OnDrop { get; set; }
     [Parameter] public EventCallback<ShoppingListItemDto> OnEdit { get; set; }

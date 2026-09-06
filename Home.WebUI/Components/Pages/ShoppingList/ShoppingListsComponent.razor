@@ -26,11 +26,15 @@
                 @foreach (var _List in this.VisibleLists())
                 {
                     @* A drop target so an item can be dragged out of the pane on the right and onto
-                       the list it should have been on. Highlighted only while something is actually
-                       being dragged, and never on the list it is already on. board.js is what lets
-                       the drop happen at all. *@
-                    <div class="flex items-center gap-1 transition-colors @(this.IsDropTarget(_List) ? "bg-shopping/10 ring-1 ring-inset ring-shopping/40" : "hover:bg-ink-800")"
+                       the list it should have been on. board.js is what lets the drop happen.
+
+                       Two states, because "you may drop here" and "you are about to drop here" are
+                       different things: every list that can take the item gets a faint outline, and
+                       the one under the cursor fills in. dragenter rather than dragover, which
+                       would be a round trip per mouse movement. *@
+                    <div class="flex items-center gap-1 transition-colors @this.DropTargetClasses(_List)"
                          data-drop-target=""
+                         @ondragenter="() => this.Drag?.HoverList(_List.ShoppingListID)"
                          @ondrop="() => this.DropOnListAsync(_List)">
                         <button class="flex-1 min-w-0 text-left px-5 py-4"
                                 @onclick="() => this.SelectList(_List)">
