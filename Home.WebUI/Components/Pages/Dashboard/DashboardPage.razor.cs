@@ -62,6 +62,7 @@ public partial class DashboardPage : IDisposable
             this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
 
         _ = this.RefreshLoopAsync();
+        _ = this.ClockLoopAsync();
     }
 
     public void Dispose()
@@ -83,6 +84,35 @@ public partial class DashboardPage : IDisposable
             this.LoadRecipesAsync(),
             this.LoadShoppingListsAsync(),
             this.LoadWeatherAsync());
+
+    /// <summary>
+    /// Keeps the header clock honest. Separate from the refresh loop because this only redraws
+    /// what is already on screen: asking the API for everything once a minute to move a clock hand
+    /// would be seven calls a minute, all day, on a screen that is never turned off.
+    /// <para>
+    /// It waits out the current minute first so the display changes when the minute does, rather
+    /// than up to 59 seconds late and staying that way.
+    /// </para>
+    /// </summary>
+    private async Task ClockLoopAsync()
+    {
+        try
+        {
+            var _ToNextMinute = TimeSpan.FromSeconds(60 - this.TimeProvider.GetLocalNow().Second);
+
+            await Task.Delay(_ToNextMinute, this.TimeProvider, this.m_CancellationTokenHandler.Token);
+            await this.InvokeAsync(this.StateHasChanged);
+
+            using var _Timer = new PeriodicTimer(TimeSpan.FromMinutes(1), this.TimeProvider);
+
+            while (await _Timer.WaitForNextTickAsync(this.m_CancellationTokenHandler.Token))
+                await this.InvokeAsync(this.StateHasChanged);
+        }
+        catch (OperationCanceledException)
+        {
+            // Navigating away cancels the token — the loop simply ends with the page.
+        }
+    }
 
     private async Task RefreshLoopAsync()
     {
