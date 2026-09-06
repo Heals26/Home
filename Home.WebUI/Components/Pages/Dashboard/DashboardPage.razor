@@ -7,7 +7,7 @@
    each tile shows live content and navigates to its pillar. Failures degrade to a
    single quiet banner, never a stack of toasts. *@
 
-<div class="min-h-full max-w-5xl mx-auto px-6 pt-8 pb-6">
+<div class="min-h-full max-w-5xl board:max-w-none mx-auto px-6 pt-8 board:pt-4 pb-6 board:pb-2">
     @* Read once, so the date and the clock cannot land either side of a minute boundary and
        disagree with each other. *@
     @{ var _Now = this.TimeProvider.GetLocalNow(); }
@@ -15,10 +15,10 @@
     @* The clock sits on the greeting's baseline rather than above it, so the two big pieces of
        type read as one line from across the room. It wraps under on a narrow screen.
        `tabular-nums` stops the digits shuffling sideways as the minute changes. *@
-    <header class="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
+    <header class="mb-8 board:mb-2 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
         <div class="min-w-0">
             <p class="text-sm font-medium text-ink-400 tracking-wide">@_Now.ToString("dddd d MMMM")</p>
-            <h1 class="font-display text-5xl md:text-6xl text-ink-50 mt-1">Good @this.GetGreeting().</h1>
+            <h1 class="font-display text-5xl md:text-6xl board:text-5xl text-ink-50 mt-1 board:mt-0">Good @this.GetGreeting().</h1>
         </div>
         <p class="font-display text-4xl md:text-5xl text-ink-50 tabular-nums leading-none">
             @_Now.ToString("h:mm")<span class="ml-1 text-xl md:text-2xl text-ink-400">@_Now.ToString("tt").ToLowerInvariant()</span>
@@ -34,10 +34,10 @@
 
     @* Two columns only when the screen is genuinely landscape. Upright, halves of a tablet are
        narrower than a phone and every tile starts truncating, so the board runs as one column. *@
-    <div class="grid grid-cols-1 rail:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 rail:grid-cols-2 board:grid-cols-3 gap-4 board:gap-2">
 
         @* ── Outside ───────────────────────────────────────────────── *@
-        <div class="rail:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5">
+        <div class="rail:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5 board:p-4">
             <div class="flex items-center gap-2 text-ink-400 mb-3">
                 <span class="home-icon home-icon-weather-cloud-sun h-5 w-5"></span>
                 <span class="text-xs font-semibold uppercase tracking-widest">Outside</span>
@@ -64,7 +64,7 @@
             }
             else if (this.m_Weather.Current is { } _Current)
             {
-                <div class="flex flex-wrap items-center gap-x-8 gap-y-3">
+                <div class="flex flex-wrap items-center gap-x-8 gap-y-3 board:gap-y-2">
                     <div class="flex items-center gap-4">
                         <span class="home-icon home-icon-@_Current.IconName h-12 w-12 text-ink-200 shrink-0"></span>
                         <div>
@@ -92,7 +92,7 @@
 
                 @if (this.ForecastStrip().Any())
                 {
-                    <div class="mt-4 pt-4 border-t border-ink-800 grid grid-cols-3 gap-3">
+                    <div class="mt-4 board:mt-2 pt-4 board:pt-2 border-t border-ink-800 grid grid-cols-3 gap-3">
                         @foreach (var _Day in this.ForecastStrip())
                         {
                             <div class="flex items-center gap-3 min-w-0">
@@ -111,7 +111,7 @@
         </div>
 
         @* ── Today's meals ─────────────────────────────────────────── *@
-        <a href="/meal-plan" class="group rail:col-span-2 bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+        <a href="/meal-plan" class="group rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-2">
                 <span class="flex items-center gap-2 text-recipes">
                     <span class="home-icon home-icon-utensils h-5 w-5"></span>
@@ -148,7 +148,7 @@
         </a>
 
         @* ── This week ─────────────────────────────────────────────── *@
-        <a href="/activities" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+        <a href="/activities" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-week">
                     <span class="home-icon home-icon-board h-5 w-5"></span>
@@ -203,7 +203,7 @@
         </a>
 
         @* ── Shopping ──────────────────────────────────────────────── *@
-        <a href="/shopping-lists" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+        <a href="/shopping-lists" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-shopping">
                     <span class="home-icon home-icon-shopping-list h-5 w-5"></span>
@@ -240,7 +240,7 @@
         </a>
 
         @* ── Lights ────────────────────────────────────────────────── *@
-        <a href="/lights" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+        <a href="/lights" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-lights">
                     <span class="home-icon home-icon-lightbulb h-5 w-5"></span>
@@ -276,7 +276,7 @@
         </a>
 
         @* ── Recipes ───────────────────────────────────────────────── *@
-        <a href="/recipes" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 transition-all">
+        <a href="/recipes" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-recipes">
                     <span class="home-icon home-icon-book h-5 w-5"></span>
@@ -309,7 +309,7 @@
         </a>
 
         @* ── Family notes ──────────────────────────────────────────── *@
-        <div class="rail:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5">
+        <div class="rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 rounded-2xl p-5 board:p-4">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-household">
                     <span class="home-icon home-icon-note h-5 w-5"></span>

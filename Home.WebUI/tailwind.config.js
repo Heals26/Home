@@ -67,6 +67,10 @@ module.exports = {
       // bottom bar and a single column instead of a left rail and squeezed halves.
       screens: {
         rail: { raw: '(min-width: 768px) and (orientation: landscape)' },
+        // The kitchen tablet on its stand, which is the screen the dashboard is designed to fit
+        // without scrolling. Wider than `rail` because two columns of tiles still ran a third of
+        // a screen past the fold at 1280x800, and a third column is what closes that.
+        board: { raw: '(min-width: 1024px) and (orientation: landscape)' },
       },
     },
   },
