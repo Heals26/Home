@@ -90,6 +90,7 @@ public class DeleteMealSlotInteractorTests : InteractorTest
         _ = this.Database.Seed(new MealPlanEntry()
         {
             Date = new DateTime(2026, 8, 12),
+            Household = this.Ours,
             MealPlanEntryID = 150,
             MealSlot = _Dinner,
             Recipe = _Recipe

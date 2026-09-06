@@ -45,8 +45,11 @@ internal class AddMealPlanToShoppingListInteractor
         var _FromDate = inputPort.FromDate.Date;
         var _ToDate = inputPort.ToDate.Date;
 
+        // An entry with no recipe is an occasion rather than something cooked, so there is nothing
+        // of it to put on a list.
         var _Recipes = _PersistenceContext.GetEntities<MealPlanEntry>()
-            .Where(e => e.Recipe.Household.HouseholdID == _Household.HouseholdID
+            .Where(e => e.Household.HouseholdID == _Household.HouseholdID
+                && e.Recipe != null
                 && e.Date >= _FromDate
                 && e.Date <= _ToDate
                 && (inputPort.MealSlotID == null
@@ -54,10 +57,10 @@ internal class AddMealPlanToShoppingListInteractor
             .Select(e => new
             {
                 e.Recipe,
-                Ingredients = e.Recipe.Ingredients.Select(ri => new { RecipeIngredient = ri, ri.Ingredient })
+                Ingredients = e.Recipe!.Ingredients.Select(ri => new { RecipeIngredient = ri, ri.Ingredient })
             })
             .ToList()
-            .Select(e => e.Recipe)
+            .Select(e => e.Recipe!)
             .DistinctBy(r => r.RecipeID)
             .ToList();
 

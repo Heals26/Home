@@ -66,14 +66,35 @@ public class AddMealPlanToShoppingListInteractorTests
             5,
             [_List],
             [
-                new MealPlanEntry() { MealPlanEntryID = 1, Date = new DateTime(2026, 8, 17), Recipe = _Recipe },
-                new MealPlanEntry() { MealPlanEntryID = 2, Date = new DateTime(2026, 8, 19), Recipe = _Recipe }
+                new MealPlanEntry() { MealPlanEntryID = 1, Date = new DateTime(2026, 8, 17), Household = this.m_Household, Recipe = _Recipe },
+                new MealPlanEntry() { MealPlanEntryID = 2, Date = new DateTime(2026, 8, 19), Household = this.m_Household, Recipe = _Recipe }
             ]);
 
         this.m_RecipeLogic.Verify(l => l.AddIngredientsToShoppingList(_Recipe, _List, null), Times.Once);
         this.m_OutputPort.Verify(
             o => o.PresentMealPlanAddedToShoppingListAsync(1, It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_SkipsAnOccasionBecauseThereIsNothingToBuyForIt()
+    {
+        var _Recipe = new Recipe() { RecipeID = 7, Household = this.m_Household, Ingredients = [] };
+        var _List = new ShoppingList() { ShoppingListID = 5, Household = this.m_Household, Items = [] };
+
+        await this.HandleAsync(
+            5,
+            [_List],
+            [
+                new MealPlanEntry() { MealPlanEntryID = 1, Date = new DateTime(2026, 8, 17), Household = this.m_Household, Recipe = _Recipe },
+                new MealPlanEntry() { MealPlanEntryID = 2, Date = new DateTime(2026, 8, 18), Household = this.m_Household, Title = "Father's Day" }
+            ]);
+
+        this.m_RecipeLogic.Verify(l => l.AddIngredientsToShoppingList(_Recipe, _List, null), Times.Once);
+        this.m_OutputPort.Verify(
+            o => o.PresentMealPlanAddedToShoppingListAsync(1, It.IsAny<CancellationToken>()),
+            Times.Once,
+            "an entry with no recipe has no ingredients, and reaching for them would be a null");
     }
 
     [Fact]
@@ -85,7 +106,7 @@ public class AddMealPlanToShoppingListInteractorTests
         await this.HandleAsync(
             5,
             [_List],
-            [new MealPlanEntry() { MealPlanEntryID = 1, Date = new DateTime(2026, 8, 30), Recipe = _Recipe }]);
+            [new MealPlanEntry() { MealPlanEntryID = 1, Date = new DateTime(2026, 8, 30), Household = this.m_Household, Recipe = _Recipe }]);
 
         this.m_RecipeLogic.Verify(
             l => l.AddIngredientsToShoppingList(It.IsAny<Recipe>(), It.IsAny<ShoppingList>(), It.IsAny<IReadOnlyCollection<long>?>()),

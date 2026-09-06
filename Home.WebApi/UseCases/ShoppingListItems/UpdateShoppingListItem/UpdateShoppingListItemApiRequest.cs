@@ -10,7 +10,7 @@ public record UpdateShoppingListItemApiRequest(
     PropertyChangeTracker<decimal?> Cost,
     PropertyChangeTracker<bool> InBasket,
     PropertyChangeTracker<string> Name,
-    PropertyChangeTracker<string?> Note,
+    PropertyChangeTracker<string> Note,
     PropertyChangeTracker<long> Sequence,
     long ShoppingListItemID,
     PropertyChangeTracker<long?> Unit);

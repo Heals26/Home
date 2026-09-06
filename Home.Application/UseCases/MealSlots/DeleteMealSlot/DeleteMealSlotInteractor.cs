@@ -41,7 +41,7 @@ internal class DeleteMealSlotInteractor : IInteractor<DeleteMealSlotInputPort, I
         // Planned meals hold the slot on a restricted foreign key, so the refusal has to happen
         // here rather than as a failed save.
         var _IsPlanned = _PersistenceContext.GetEntities<MealPlanEntry>()
-            .Any(e => e.Recipe.Household.HouseholdID == _Household.HouseholdID
+            .Any(e => e.Household.HouseholdID == _Household.HouseholdID
                 && e.MealSlot != null
                 && e.MealSlot.MealSlotID == _MealSlot.MealSlotID);
 
