@@ -89,7 +89,7 @@
         }
         else if (this.m_Tab == "sections")
         {
-            <p class="text-sm text-ink-500 mb-3">The headings every card is written under. These used to be fixed — now they are yours.</p>
+            <p class="text-sm text-ink-500 mb-3">The headings every card is written under. These used to be fixed. Now they are yours.</p>
 
             <div class="divide-y divide-ink-800 border-y border-ink-800">
                 @for (var _Index = 0; _Index < this.m_CardSections.Count; _Index++)
@@ -112,7 +112,7 @@
                                      OnMoveUp="() => this.MoveSectionAsync(_Section, -1)"
                                      OnMoveDown="() => this.MoveSectionAsync(_Section, 1)" />
 
-                        @* A section still written on cards cannot be deleted — the writing would go
+                        @* A section still written on cards cannot be deleted, because the writing would go
                            with it and there is no undo. The count says why the button is off. *@
                         <button type="button"
                                 class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-400 hover:text-red-400 hover:bg-ink-800 disabled:opacity-25 disabled:hover:text-ink-400 transition"
@@ -128,7 +128,7 @@
 
             @if (this.m_CardSections.Count == 0)
             {
-                <p class="text-sm text-ink-600 py-4">No sections yet — a card will just have its title.</p>
+                <p class="text-sm text-ink-600 py-4">No sections yet, so a card will just have its title.</p>
             }
 
             <div class="flex items-end gap-2 mt-4">

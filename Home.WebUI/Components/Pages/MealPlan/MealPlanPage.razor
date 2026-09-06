@@ -59,7 +59,7 @@
             else if (this.m_MealSlots.Count == 0)
             {
                 <HomeEmptyState Title="No meals defined yet"
-                                Subtitle="Name the meals your family actually eats — breakfast, dinner, whatever you call them.">
+                                Subtitle="Name the meals your family actually eats: breakfast, dinner, whatever you call them.">
                     <ActionContent>
                         <HomeButton OnClick="this.OpenManageMealsModal">Set up meals</HomeButton>
                     </ActionContent>
@@ -222,11 +222,11 @@
             }
             else if (this.m_PickerSearch.Trim().Length == 0)
             {
-                <p class="text-sm text-ink-500">No recipes in the book yet — type a name above to start one.</p>
+                <p class="text-sm text-ink-500">No recipes in the book yet. Type a name above to start one.</p>
             }
 
             @* The meal that isn't a recipe yet gets made one on the spot, already tagged with the
-               meal it was planned for — leaving to the Recipes page and back is a plan abandoned. *@
+               meal it was planned for, because leaving to the Recipes page and back is a plan abandoned. *@
             @if (this.m_PickerSearch.Trim().Length > 0 && !this.PickerSearchMatchesExactly())
             {
                 <button type="button"
@@ -306,7 +306,7 @@
             }
             else
             {
-                <p class="text-sm text-ink-500">No shopping lists yet — create one below.</p>
+                <p class="text-sm text-ink-500">No shopping lists yet. Create one below.</p>
             }
 
             <div class="mt-4 pt-4 border-t border-ink-800">

@@ -174,7 +174,7 @@ public partial class LightsPage : IDisposable
     private void ToggleEditMode()
         => this.m_EditMode = !this.m_EditMode;
 
-    // Free — this reads Home's own records, not the provider.
+    // Free, because this reads Home's own records, not the provider.
     // A failed load keeps whatever was already on screen and otherwise settles on empty, so one
     // dropped request can never pin a section on its loading skeleton for good.
     private async Task LoadLightsAsync()
@@ -208,7 +208,7 @@ public partial class LightsPage : IDisposable
     }
 
     /// <summary>
-    /// Pulls live state from the provider. Capturing a scene needs this too, but silently — it
+    /// Pulls live state from the provider. Capturing a scene needs this too, but silently: it
     /// reports its own outcome rather than raising a toast.
     /// </summary>
     private async Task<bool> SendSyncAsync(bool reportErrors)
@@ -487,7 +487,7 @@ public partial class LightsPage : IDisposable
         if (this.m_ScheduleDays == 0)
             return "Pick at least one day of the week.";
 
-        return "That time doesn't read as a time — try something like 19:00.";
+        return "That time doesn't read as a time. Try something like 19:00.";
     }
 
     private async Task CreateScheduleAsync()

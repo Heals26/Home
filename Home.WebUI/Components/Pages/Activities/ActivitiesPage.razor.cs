@@ -290,7 +290,7 @@ public partial class ActivitiesPage : IDisposable
 
         var _StartOfWeek = ActivityBoardLogic.StartOfWeek(this.m_Anchor);
 
-        return $"{ActivityBoardLogic.DescribeDate(_StartOfWeek)} – {ActivityBoardLogic.DescribeDate(_StartOfWeek.AddDays(6))}";
+        return $"{ActivityBoardLogic.DescribeDate(_StartOfWeek)} to {ActivityBoardLogic.DescribeDate(_StartOfWeek.AddDays(6))}";
     }
 
     // Moving

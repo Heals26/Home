@@ -11,7 +11,7 @@
                 <span class="truncate">@this.StatusText()</span>
 
                 @* Home knows the bulb has addressable zones even though it can only set the whole
-                   strip at once — saying so beats pretending the hardware is something simpler. *@
+                   strip at once, and saying so beats pretending the hardware is something simpler. *@
                 @if (this.ZoneBadge() is { } _ZoneBadge)
                 {
                     <span class="shrink-0 rounded border border-ink-700 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-400"

@@ -27,7 +27,7 @@
             </ActionsContent>
         </HomeTopBar>
 
-        @* Search, sort and "what can I cook in half an hour" all filter the book on the device —
+        @* Search, sort and "what can I cook in half an hour" all filter the book on the device:
            it is already fetched whole, and the answer does not change between keystrokes. *@
         <div class="px-6 pb-3 shrink-0 flex flex-col gap-3 sm:flex-row sm:items-end">
             <div class="flex-1 min-w-0">
@@ -168,7 +168,7 @@
     </div>
 </CascadingValue>
 
-@* Enter submits whichever half has something in it — pasting a URL and hitting Enter imports,
+@* Enter submits whichever half has something in it, so pasting a URL and hitting Enter imports,
    typing a name and hitting Enter creates. *@
 <HomeModal @bind-Visible="this.m_ShowCreate" Title="New recipe" OnSubmit="this.SubmitCreateModalAsync">
     <ChildContent>

@@ -33,7 +33,7 @@ public partial class RecipesPage : IDisposable
     private long? m_MealSlotFilter;
 
     /// <summary>
-    /// How the book is ordered. A per-device preference like the layout — the tablet in the
+    /// How the book is ordered. A per-device preference like the layout, because the tablet in the
     /// kitchen and a phone in the aisle want different things out of the same book.
     /// </summary>
     private const string SortStorageKey = "home.recipes.sort";
@@ -234,7 +234,7 @@ public partial class RecipesPage : IDisposable
         => this.NavigationManager.NavigateTo($"/recipes/{recipeID}");
 
     /// <summary>
-    /// The modal has two ways in, so Enter follows whichever the user actually filled in — a
+    /// The modal has two ways in, so Enter follows whichever the user actually filled in: a
     /// pasted address imports, a typed name creates.
     /// </summary>
     private async Task SubmitCreateModalAsync()
@@ -321,7 +321,7 @@ public partial class RecipesPage : IDisposable
         if (_Search.Length > 0)
             _Recipes = _Recipes.Where(r => r.Name.Contains(_Search, StringComparison.OrdinalIgnoreCase));
 
-        // A recipe that has never been timed is not hidden by a time filter — it might well be
+        // A recipe that has never been timed is not hidden by a time filter, because it might well be
         // quick, and dropping it would quietly shrink the book for a value nobody entered.
         if (this.m_MaxMinutes is { } _MaxMinutes)
             _Recipes = _Recipes.Where(r => TotalMinutes(r) is not { } _Minutes || _Minutes <= _MaxMinutes);
@@ -337,7 +337,7 @@ public partial class RecipesPage : IDisposable
     }
 
     /// <summary>
-    /// Prep plus cook, or null when the household has timed neither — how long the recipe takes
+    /// Prep plus cook, or null when the household has timed neither. How long the recipe takes
     /// from starting to eating.
     /// </summary>
     private static int? TotalMinutes(GetRecipeDto recipe)
@@ -361,7 +361,7 @@ public partial class RecipesPage : IDisposable
 
     /// <summary>
     /// Whether anything is narrowing the book. An empty book and a book with nothing matching are
-    /// different situations and get different words — and only one of them wants "Add recipe".
+    /// different situations and get different words, and only one of them wants "Add recipe".
     /// </summary>
     private bool IsNarrowed()
         => this.m_MealSlotFilter != null || this.m_MaxMinutes != null || this.m_Search.Trim().Length > 0;
@@ -388,7 +388,7 @@ public partial class RecipesPage : IDisposable
     }
 
     /// <summary>
-    /// Clears everything narrowing the book at once — an empty screen should take one tap to get
+    /// Clears everything narrowing the book at once, because an empty screen should take one tap to get
     /// out of, not three.
     /// </summary>
     private async Task ShowEveryRecipeAsync()

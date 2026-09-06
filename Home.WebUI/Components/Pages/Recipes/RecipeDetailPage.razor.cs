@@ -270,7 +270,7 @@ public partial class RecipeDetailPage : IDisposable
     }
 
     /// <summary>
-    /// Reads the picked file straight away rather than at save time — the browser revokes the
+    /// Reads the picked file straight away rather than at save time, because the browser revokes the
     /// file handle if the user picks another one, and a failed read should be visible while the
     /// modal is still open.
     /// </summary>
@@ -333,7 +333,7 @@ public partial class RecipeDetailPage : IDisposable
 
     /// <summary>
     /// The household's whole larder in one call when the recipe opens, filtered on the device as
-    /// the name is typed — the same trade the shopping list makes, for the same reason.
+    /// the name is typed: the same trade the shopping list makes, for the same reason.
     /// </summary>
     private async Task LoadIngredientSuggestionsAsync()
     {
@@ -347,8 +347,8 @@ public partial class RecipeDetailPage : IDisposable
     }
 
     /// <summary>
-    /// What the name box is offering right now. Ingredients already in this recipe are left out —
-    /// they are the one thing being written that cannot be the answer.
+    /// What the name box is offering right now. Ingredients already in this recipe are left out,
+    /// because they are the one thing being written that cannot be the answer.
     /// </summary>
     private IEnumerable<GetIngredientSuggestionDto> VisibleIngredientSuggestions()
     {
@@ -744,7 +744,7 @@ public partial class RecipeDetailPage : IDisposable
     }
 
     /// <summary>
-    /// One sheet for both, because writing a note and fixing one are the same act — the only
+    /// One sheet for both, because writing a note and fixing one are the same act, and the only
     /// difference is which call it ends in.
     /// </summary>
     private async Task SaveNoteAsync()

@@ -165,7 +165,7 @@ public partial class MealPlanPage : IDisposable
     }
 
     /// <summary>
-    /// Recipes tagged with the meal being planned come first — someone filling in Tuesday's
+    /// Recipes tagged with the meal being planned come first, because someone filling in Tuesday's
     /// breakfast is almost always choosing among breakfasts.
     /// </summary>
     private IEnumerable<GetRecipeDto> PickerRecipes()
@@ -188,8 +188,8 @@ public partial class MealPlanPage : IDisposable
         => (this.m_Recipes ?? []).Any(r => string.Equals(r.Name, this.m_PickerSearch.Trim(), StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// Makes the typed name a real recipe — tagged with the meal being planned, so it sorts to
-    /// the top next time — then plans it into the cell that started all this.
+    /// Makes the typed name a real recipe, tagged with the meal being planned so it sorts to
+    /// the top next time, then plans it into the cell that started all this.
     /// </summary>
     private async Task CreateAndPlanRecipeAsync()
     {
@@ -569,7 +569,7 @@ public partial class MealPlanPage : IDisposable
         => Enumerable.Range(0, 7).Select(i => this.m_WeekStart.AddDays(i));
 
     private string WeekLabel()
-        => $"{this.m_WeekStart:d MMM} – {this.m_WeekStart.AddDays(6):d MMM}";
+        => $"{this.m_WeekStart:d MMM} to {this.m_WeekStart.AddDays(6):d MMM}";
 
     #endregion Methods
 

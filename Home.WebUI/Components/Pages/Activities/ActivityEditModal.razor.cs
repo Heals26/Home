@@ -39,7 +39,7 @@ public partial class ActivityEditModal
     [Parameter] public ErrorHandler? ErrorHandler { get; set; }
     [Parameter] public EventCallback OnDeleted { get; set; }
     /// <summary>
-    /// Supplied only where there is somewhere else to go — the card's own page does not link to
+    /// Supplied only where there is somewhere else to go. The card's own page does not link to
     /// itself.
     /// </summary>
     [Parameter] public EventCallback OnOpenCard { get; set; }
@@ -78,7 +78,7 @@ public partial class ActivityEditModal
 
         this.m_Title = _Activity.Title;
 
-        // Deliberately not truncated to the date — the time of day lives in its own column, and
+        // Deliberately not truncated to the date. The time of day lives in its own column, and
         // rounding the date here made a saved time look like a change and get wiped.
         this.m_DueDate = _Activity.DueDateUTC;
         this.m_HasTime = _Activity.DueTime.HasValue;
