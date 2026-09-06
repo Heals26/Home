@@ -8,6 +8,7 @@ public record UpdateShoppingListItemInputPort(
     PropertyChangeTracker<decimal?> Cost,
     PropertyChangeTracker<bool> InBasket,
     PropertyChangeTracker<string> Name,
+    PropertyChangeTracker<string?> Note,
     PropertyChangeTracker<long> Sequence,
     long ShoppingListItemID,
     PropertyChangeTracker<long?> Unit)

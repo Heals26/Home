@@ -51,12 +51,12 @@ public class CreateShoppingListItemInteractorTests : InteractorTest
         return _List;
     }
 
-    private Task HandleAsync(long shoppingListID, string name, decimal? amount = null, decimal? cost = null, long? unit = null, bool inBasket = false)
+    private Task HandleAsync(long shoppingListID, string name, decimal? amount = null, decimal? cost = null, long? unit = null, bool inBasket = false, string? note = null)
     {
         var _Services = this.Services(out var _Context);
 
         return new CreateShoppingListItemInteractor().HandleAsync(
-            new CreateShoppingListItemInputPort(amount, cost, inBasket, name, shoppingListID, unit),
+            new CreateShoppingListItemInputPort(amount, cost, inBasket, name, note, shoppingListID, unit),
             this.m_Presenter,
             _Services
                 .With(this.m_AuditLogic.Object)

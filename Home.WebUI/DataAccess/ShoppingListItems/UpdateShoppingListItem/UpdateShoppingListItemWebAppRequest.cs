@@ -31,6 +31,11 @@ public class UpdateShoppingListItemWebAppRequest
     public PropertyChangeTracker<string> Name { get; set; }
 
     /// <summary>
+    /// What the name does not say. Send it empty to clear it.
+    /// </summary>
+    public PropertyChangeTracker<string?> Note { get; set; }
+
+    /// <summary>
     /// Display order within the list.
     /// </summary>
     public PropertyChangeTracker<long> Sequence { get; set; }

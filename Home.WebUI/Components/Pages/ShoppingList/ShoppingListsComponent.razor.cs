@@ -118,7 +118,7 @@ public partial class ShoppingListsComponent : IDisposable
     }
 
     /// <summary>
-    /// Archived lists stay out of the way unless asked for — except the one being looked at, which
+    /// Archived lists stay out of the way unless asked for, except the one being looked at, which
     /// would otherwise vanish from under the reader the moment they archived it.
     /// </summary>
     private IEnumerable<GetShoppingListDto> VisibleLists()

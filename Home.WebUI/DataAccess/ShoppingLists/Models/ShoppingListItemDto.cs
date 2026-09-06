@@ -26,6 +26,12 @@ public class ShoppingListItemDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// What the name does not say: a brand, a size, which aisle, who it is for. Empty when the
+    /// line carries nothing extra.
+    /// </summary>
+    public string Note { get; set; } = string.Empty;
+
+    /// <summary>
     /// The display sequence of the item.
     /// </summary>
     public long Sequence { get; set; }

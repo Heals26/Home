@@ -58,13 +58,14 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
         PropertyChangeTracker<decimal?> cost = default,
         PropertyChangeTracker<bool> inBasket = default,
         PropertyChangeTracker<string> name = default,
+        PropertyChangeTracker<string?> note = default,
         PropertyChangeTracker<long> sequence = default,
         PropertyChangeTracker<long?> unit = default)
     {
         var _Services = this.Services(out var _Context);
 
         return new UpdateShoppingListItemInteractor().HandleAsync(
-            new UpdateShoppingListItemInputPort(amount, cost, inBasket, name, sequence, shoppingListItemID, unit),
+            new UpdateShoppingListItemInputPort(amount, cost, inBasket, name, note, sequence, shoppingListItemID, unit),
             this.m_Presenter,
             _Services.With<IShoppingListLogic>(new ShoppingListLogic(_Context)).Build(),
             CancellationToken.None);
@@ -107,6 +108,43 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
         _ = _Stored.Name.Should().Be("Milk");
         _ = _Stored.Sequence.Should().Be(3);
         _ = _Stored.Amount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task HandleAsync_KeepsWhatTheShopperNeedsToKnowAgainstTheLine()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Olive oil", 1)));
+
+        await this.HandleAsync(130, note: new("  The tall green bottle  "));
+
+        _ = this.Stored<ShoppingListItem>().Single().Note.Should().Be(
+            "The tall green bottle",
+            "the note is trimmed, because it is read at a shelf and not stored as typed");
+    }
+
+    [Fact]
+    public async Task HandleAsync_AnEmptiedNoteLeavesNothingBehindRatherThanAnEmptyOne()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Olive oil", 1)));
+
+        await this.HandleAsync(130, note: new("Woolies brand"));
+        await this.HandleAsync(130, note: new("   "));
+
+        _ = this.Stored<ShoppingListItem>().Single().Note.Should().BeNull(
+            "a line either carries something worth reading or carries nothing");
+    }
+
+    [Fact]
+    public async Task HandleAsync_LeavesTheNoteAloneWhenTheUpdateIsAboutSomethingElse()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Olive oil", 1)));
+
+        await this.HandleAsync(130, note: new("Woolies brand"));
+        await this.HandleAsync(130, inBasket: new(true));
+
+        _ = this.Stored<ShoppingListItem>().Single().Note.Should().Be(
+            "Woolies brand",
+            "ticking something off must not wipe what the line said");
     }
 
     [Fact]

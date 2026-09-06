@@ -29,6 +29,7 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
             Cost = inputPort.Cost,
             InBasket = inputPort.InBasket,
             Name = inputPort.Name,
+            Note = inputPort.Note,
             // Counting rather than taking the highest reuses a sequence after any deletion.
             Sequence = (_ShoppingList.Items?.Max(i => (long?)i.Sequence) ?? 0) + 1,
             Unit = inputPort.Unit
@@ -74,6 +75,11 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
 
         if (inputPort.Name.HasBeenSet)
             _ShoppingListItem.Name = inputPort.Name.Value;
+
+        // Blank comes back as nothing at all, so an emptied box leaves a clean line rather than a
+        // note that is there but says nothing.
+        if (inputPort.Note.HasBeenSet)
+            _ShoppingListItem.Note = string.IsNullOrWhiteSpace(inputPort.Note.Value) ? null : inputPort.Note.Value.Trim();
 
         if (inputPort.Unit.HasBeenSet)
             _ShoppingListItem.Unit = inputPort.Unit.Value;

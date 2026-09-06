@@ -54,6 +54,7 @@ public partial class ShoppingListComponent : IDisposable
     private string m_EditAmount = string.Empty;
     private string m_EditCost = string.Empty;
     private string m_EditUnit = string.Empty;
+    private string m_EditNote = string.Empty;
     private bool m_SavingItem;
     private bool m_Reordering;
 
@@ -209,7 +210,7 @@ public partial class ShoppingListComponent : IDisposable
     }
 
     /// <summary>
-    /// An amount already typed beats the one it was last bought with — someone who wrote "2 kg pot"
+    /// An amount already typed beats the one it was last bought with. Someone who wrote "2 kg pot"
     /// and then picked Potatoes wants two kilos, not whatever last week's shop had.
     /// </summary>
     private async Task AddSuggestionAsync(GetShoppingListItemSuggestionDto suggestion)
@@ -331,6 +332,7 @@ public partial class ShoppingListComponent : IDisposable
         this.m_EditAmount = item.Amount?.ToString("0.##") ?? string.Empty;
         this.m_EditCost = item.Cost?.ToString("0.00") ?? string.Empty;
         this.m_EditUnit = item.Unit?.ToString() ?? string.Empty;
+        this.m_EditNote = item.Note ?? string.Empty;
         this.m_ShowEditItem = true;
     }
 
@@ -402,6 +404,7 @@ public partial class ShoppingListComponent : IDisposable
                 Amount = new(decimal.TryParse(this.m_EditAmount, out var _Amount) ? _Amount : null),
                 Cost = new(decimal.TryParse(this.m_EditCost, out var _Cost) ? _Cost : null),
                 Name = new(_Name),
+                Note = new(this.m_EditNote),
                 ShoppingListItemID = this.m_EditingItemID.Value,
                 Unit = new(long.TryParse(this.m_EditUnit, out var _Unit) ? _Unit : null)
             },
@@ -458,7 +461,7 @@ public partial class ShoppingListComponent : IDisposable
     }
 
     /// <summary>
-    /// Both of these are one call rather than one per item — a thirty-line list emptying a line at
+    /// Both of these are one call rather than one per item, because a thirty-line list emptying a line at
     /// a time over a supermarket connection is the difference between instant and painful.
     /// </summary>
     private async Task RunListActionAsync(ApiProviderHelper apiProvider)
@@ -505,7 +508,7 @@ public partial class ShoppingListComponent : IDisposable
         => this.ItemCount() == 0 ? 0 : (int)Math.Round(this.TrolleyCount() * 100d / this.ItemCount());
 
     /// <summary>
-    /// A cost is what the line costs, not a price per kilo — multiplying it by an amount would
+    /// A cost is what the line costs, not a price per kilo, so multiplying it by an amount would
     /// turn "$3.50 for 2 kg of potatoes" into seven dollars.
     /// </summary>
     private decimal ListTotal()

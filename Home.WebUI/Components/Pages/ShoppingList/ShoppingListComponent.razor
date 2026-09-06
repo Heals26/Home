@@ -29,7 +29,7 @@
         }
     </ActionsContent>
     <ChildContent>
-        @* Only the first load of a list shows the spinner — a background refresh keeps the items
+        @* Only the first load of a list shows the spinner, because a background refresh keeps the items
            on screen rather than flashing. *@
         @if (this.m_ShoppingList == null && !this.ShoppingListID.HasValue)
         {
@@ -49,7 +49,7 @@
             var _ToGet = this.ItemsToGet().ToList();
             var _InTrolley = this.ItemsInTrolley().ToList();
 
-            @* Always on screen rather than behind a button — adding is the thing this page is
+            @* Always on screen rather than behind a button, because adding is the thing this page is
                asked to do most, and a modal per item is a modal too many. *@
             <div class="relative">
                 <div class="flex gap-2">
@@ -206,6 +206,13 @@
                        InputMode="decimal"
                        @bind-Value="this.m_EditCost"
                        Placeholder="e.g. 3.50" />
+        <div class="flex flex-col gap-1.5 mt-3">
+            <label for="shopping-item-note" class="text-sm font-medium text-ink-300">Note</label>
+            <textarea id="shopping-item-note" @bind="this.m_EditNote" rows="2"
+                      placeholder="e.g. Woolies brand, the big one"
+                      class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
+            <p class="text-xs text-ink-500">For whoever does the shop.</p>
+        </div>
         <div class="mt-4 flex justify-between gap-3">
             <HomeButton Variant="danger" Loading="this.m_SavingItem" OnClick="this.DeleteItemAsync">
                 <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>

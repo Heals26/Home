@@ -1,6 +1,6 @@
 ﻿@* One line of a shopping list, split into two targets: the circle ticks, the words open the item.
    The whole row used to tick, which meant reading a line and tapping it to check the amount
-   crossed it off instead — in a supermarket, with a trolley, that is a mis-tap you have to undo.
+   crossed it off instead, and in a supermarket with a trolley that is a mis-tap you have to undo.
    The circle keeps a 56px hit area of its own so the tick target did not shrink to the 24px ring
    you can see, and the pencil is gone because the words now do its job. *@
 
@@ -26,8 +26,18 @@
         {
             <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">@this.Detail()</span>
         }
+        @* Its own line with an icon rather than another entry on the detail line, because this is
+           the thing being read at the shelf and it is prose, not a measurement. Two lines at most
+           so a long one cannot turn a row into a paragraph. *@
+        @if (!string.IsNullOrWhiteSpace(this.Item.Note))
+        {
+            <span class="flex items-start gap-1.5 mt-1 text-xs @(this.Item.InBasket ? "text-ink-600" : "text-ink-400")">
+                <span class="home-icon home-icon-note h-3.5 w-3.5 shrink-0 mt-px"></span>
+                <span class="min-w-0 line-clamp-2">@this.Item.Note</span>
+            </span>
+        }
     </button>
-    @* Only what is still to get can be reordered — the order of the trolley is history, and the
+    @* Only what is still to get can be reordered, because the order of the trolley is history, and the
        list you walk the shop with is the one worth arranging. *@
     @if (this.ShowReorder)
     {

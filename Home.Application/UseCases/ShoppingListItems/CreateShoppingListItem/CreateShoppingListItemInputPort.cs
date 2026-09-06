@@ -7,6 +7,7 @@ public record CreateShoppingListItemInputPort(
     decimal? Cost,
     bool InBasket,
     string Name,
+    string? Note,
     long ShoppingListID,
     long? Unit)
     : IInputPort<ICreateShoppingListItemOutputPort>;

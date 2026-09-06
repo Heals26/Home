@@ -8,7 +8,7 @@ namespace Home.WebUI.Components.Pages.ShoppingList;
 /// <summary>
 /// The one place that turns what someone typed into an item, and an item back into words. Adding
 /// to a list is the thing this app is asked to do most often, so it accepts how people actually
-/// write a list — "2 kg potatoes", "500g mince", "1/2 cup rice" — rather than making them fill in
+/// write a list ("2 kg potatoes", "500g mince", "1/2 cup rice") rather than making them fill in
 /// three boxes.
 /// </summary>
 public static partial class ShoppingListItemLogic
@@ -18,7 +18,7 @@ public static partial class ShoppingListItemLogic
 
     /// <summary>
     /// Every way a unit gets written on a shopping list, mapped to the value the API stores. A
-    /// recognised entry with no value is a bare multiplier — "2 x eggs" is two eggs, not two of
+    /// recognised entry with no value is a bare multiplier: "2 x eggs" is two eggs, not two of
     /// some measurement.
     /// </summary>
     private static readonly IReadOnlyDictionary<string, long?> c_Units = new Dictionary<string, long?>(StringComparer.OrdinalIgnoreCase)

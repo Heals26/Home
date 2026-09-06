@@ -35,7 +35,7 @@ public class ShoppingListItemsController : BaseController
         CancellationToken cancellationToken)
     {
         await this.Pipeline.InvokeAsync(
-            new CreateShoppingListItemInputPort(request.Amount, request.Cost, request.InBasket, request.Name, request.ShoppingListID, request.Unit),
+            new CreateShoppingListItemInputPort(request.Amount, request.Cost, request.InBasket, request.Name, request.Note, request.ShoppingListID, request.Unit),
             presenter,
             this.ServiceFactory,
             cancellationToken);
@@ -91,6 +91,7 @@ public class ShoppingListItemsController : BaseController
             request.Cost,
             request.InBasket,
             request.Name,
+            request.Note,
             request.Sequence,
             shoppingListItemID,
             request.Unit),

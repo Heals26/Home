@@ -30,6 +30,10 @@ public class ShoppingListItemConfiguration : IEntityTypeConfiguration<ShoppingLi
             .HasPrecision(18, 4)
             .IsRequired(false);
 
+        _ = entity.Property(e => e.Note)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
         _ = entity.Property(e => e.Unit)
             .IsRequired(false);
 
