@@ -202,6 +202,13 @@
                                             <p class="text-xs text-ink-500 truncate">
                                                 @_Schedule.SceneName · @FormatTrigger(_Schedule) · @FormatDays(_Schedule.DaysOfWeek)
                                             </p>
+                                            @* Only when there is one. A schedule that always fires
+                                               is the normal case and saying so on every row would
+                                               be a line of noise on all of them. *@
+                                            @if (FormatCondition(_Schedule.Condition) is { } _Condition)
+                                            {
+                                                <p class="text-xs text-ink-600 truncate mt-0.5">@_Condition</p>
+                                            }
                                         </div>
                                         @* Not behind the page's Edit mode. A schedule row showed a
                                            toggle and nothing else, so the only way to remove one
@@ -352,6 +359,24 @@
                                 class="flex-1 min-h-[44px] rounded-lg border text-sm font-medium transition-colors @(this.IsDaySelected(_Day.Bit) ? "border-lights/60 bg-lights/10 text-lights" : "border-ink-700 text-ink-400 hover:text-ink-200")"
                                 @onclick="() => this.ToggleDay(_Day.Bit)">
                             @_Day.Label
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @* Written as three plain sentences rather than a dropdown of terms, because the whole
+               point of a condition is that someone can tell at a glance what it will do. *@
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-ink-300">When it comes due</label>
+                <div class="flex flex-col gap-1.5">
+                    @foreach (var _Option in ConditionOptions)
+                    {
+                        <button type="button"
+                                aria-pressed="@(this.m_ScheduleCondition == _Option.Value)"
+                                class="rounded-lg border px-4 py-3 min-h-[48px] text-left transition-colors @(this.m_ScheduleCondition == _Option.Value ? "border-lights/60 bg-lights/10" : "border-ink-700 hover:border-ink-600")"
+                                @onclick="() => this.m_ScheduleCondition = _Option.Value">
+                            <span class="block text-sm @(this.m_ScheduleCondition == _Option.Value ? "text-lights" : "text-ink-100")">@_Option.Label</span>
+                            <span class="block text-xs text-ink-500 mt-0.5">@_Option.Detail</span>
                         </button>
                     }
                 </div>

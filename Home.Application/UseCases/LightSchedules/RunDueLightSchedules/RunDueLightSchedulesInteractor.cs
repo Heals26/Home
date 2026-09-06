@@ -41,7 +41,7 @@ internal class RunDueLightSchedulesInteractor
             })
             .ToList()
             .Select(s => s.Schedule)
-            .Where(s => IsDue(s, _LocalNow))
+            .Where(s => IsDue(s, _LocalNow) && PassesCondition(s))
             .ToList();
 
         if (_Schedules.Count == 0)
@@ -101,6 +101,41 @@ internal class RunDueLightSchedulesInteractor
         var _DueTime = _Event.Value + TimeSpan.FromMinutes(schedule.OffsetMinutes);
 
         return _DueTime >= TimeSpan.Zero && _DueTime < TimeSpan.FromDays(1) ? _DueTime : null;
+    }
+
+    /// <summary>
+    /// Whether the schedule's condition lets it fire. Judged only against the lights its own scene
+    /// touches, because a schedule for the kitchen has no business asking about the bedroom.
+    /// <para>
+    /// Read from the state cached on each <see cref="Light"/>, which is what the scene logic writes
+    /// when it applies a scene and what a sync refreshes. That cache can be behind a bulb somebody
+    /// switched at the wall, which is a property of the whole lights feature rather than of this
+    /// check: every screen in the app reads the same values, and asking the provider on every tick
+    /// would be a round trip per household per minute for a question usually answered "always".
+    /// </para>
+    /// <para>
+    /// Disconnected bulbs are ignored. One that cannot be reached is not evidence that a room is
+    /// lit, and the scene skips them when it applies anyway.
+    /// </para>
+    /// </summary>
+    private static bool PassesCondition(LightSchedule schedule)
+    {
+        if (schedule.Condition == LightScheduleCondition.Always)
+            return true;
+
+        var _Lights = schedule.Scene.States
+            .Select(s => s.Light)
+            .Where(l => l.IsConnected)
+            .ToList();
+
+        // Nothing to look at is not a reason to skip, and a scene with no reachable bulbs is
+        // already a no-op when it runs.
+        if (_Lights.Count == 0)
+            return true;
+
+        return schedule.Condition == LightScheduleCondition.OnlyIfLightsAreOn
+            ? _Lights.Any(l => l.IsOn)
+            : !_Lights.Any(l => l.IsOn);
     }
 
     /// <summary>

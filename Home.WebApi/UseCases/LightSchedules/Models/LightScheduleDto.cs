@@ -43,6 +43,11 @@ public class LightScheduleDto
     /// <summary>
     /// What starts the schedule: a fixed time, sunrise, or sunset.
     /// </summary>
+    /// <summary>
+    /// The check made when it comes due, against the lights the scene touches.
+    /// </summary>
+    public LightScheduleCondition Condition { get; set; }
+
     public LightScheduleTrigger Trigger { get; set; }
 
     #endregion Properties

@@ -41,25 +41,62 @@ public class RunDueLightSchedulesInteractorTests : InteractorTest
         TimeSpan timeOfDay,
         bool isEnabled = true,
         int daysOfWeek = EveryDay,
-        DateTime? lastRunUTC = null)
-        => new()
+        DateTime? lastRunUTC = null,
+        LightScheduleCondition condition = LightScheduleCondition.Always,
+        params (bool IsOn, bool IsConnected)[] lights)
+    {
+        var _Scene = new LightScene()
         {
+            Household = household,
+            LightSceneID = lightScheduleID + 1000,
+            Name = $"Scene {lightScheduleID}",
+            Sequence = 1,
+            States = []
+        };
+
+        var _LightID = lightScheduleID * 10;
+
+        var _Location = new LightLocation()
+        {
+            Household = household,
+            ID = $"location-{lightScheduleID}",
+            LightLocationID = lightScheduleID,
+            Name = "Home"
+        };
+
+        _Scene.States =
+        [
+            .. lights.Select(l => new LightSceneState()
+            {
+                Brightness = 1,
+                IsOn = true,
+                Light = new Light()
+                {
+                    Group = new LightGroup() { LightGroupID = _LightID++, Location = _Location, Name = "Room" },
+                    ID = $"bulb-{_LightID}",
+                    IsConnected = l.IsConnected,
+                    IsOn = l.IsOn,
+                    LightID = _LightID,
+                    Name = $"Bulb {_LightID}"
+                },
+                LightSceneStateID = _LightID,
+                Scene = _Scene
+            })
+        ];
+
+        return new()
+        {
+            Condition = condition,
             DaysOfWeek = daysOfWeek,
             IsEnabled = isEnabled,
             LastRunUTC = lastRunUTC,
             LightScheduleID = lightScheduleID,
             Name = $"Schedule {lightScheduleID}",
-            Scene = new LightScene()
-            {
-                Household = household,
-                LightSceneID = lightScheduleID + 1000,
-                Name = $"Scene {lightScheduleID}",
-                Sequence = 1,
-                States = []
-            },
+            Scene = _Scene,
             TimeOfDay = timeOfDay,
             Trigger = LightScheduleTrigger.Time
         };
+    }
 
     private Task HandleAsync(LightCommandResult result = LightCommandResult.Applied)
     {
@@ -84,6 +121,74 @@ public class RunDueLightSchedulesInteractorTests : InteractorTest
         this.m_SceneLogic.Verify(l => l.ApplyAsync(It.IsAny<LightScene>(), It.IsAny<CancellationToken>()), Times.Once);
         this.m_OutputPort.Verify(o => o.PresentSchedulesRunAsync(1, 0, It.IsAny<CancellationToken>()), Times.Once);
         _ = this.Stored<LightSchedule>().Single().LastRunUTC.Should().Be(TestServiceFactory.DefaultNow.UtcDateTime);
+    }
+
+    [Fact]
+    public async Task HandleAsync_HoldsAnOnlyIfOffScheduleBackWhenSomethingIsAlreadyLit()
+    {
+        _ = this.Database.Seed(BuildSchedule(150, this.Ours, new TimeSpan(6, 0, 0),
+            condition: LightScheduleCondition.OnlyIfLightsAreOff,
+            lights: [(IsOn: true, IsConnected: true)]));
+
+        await this.HandleAsync();
+
+        this.m_SceneLogic.Verify(l => l.ApplyAsync(It.IsAny<LightScene>(), It.IsAny<CancellationToken>()), Times.Never);
+        _ = this.Stored<LightSchedule>().Single().LastRunUTC.Should().BeNull(
+            "a condition that fails is a skip, not a run");
+    }
+
+    [Fact]
+    public async Task HandleAsync_FiresAnOnlyIfOffScheduleIntoADarkRoom()
+    {
+        _ = this.Database.Seed(BuildSchedule(150, this.Ours, new TimeSpan(6, 0, 0),
+            condition: LightScheduleCondition.OnlyIfLightsAreOff,
+            lights: [(IsOn: false, IsConnected: true), (IsOn: false, IsConnected: true)]));
+
+        await this.HandleAsync();
+
+        this.m_SceneLogic.Verify(l => l.ApplyAsync(It.IsAny<LightScene>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_FiresAnOnlyIfOnScheduleWhenAnyOfTheScenesLightsIsLit()
+    {
+        _ = this.Database.Seed(BuildSchedule(150, this.Ours, new TimeSpan(6, 0, 0),
+            condition: LightScheduleCondition.OnlyIfLightsAreOn,
+            lights: [(IsOn: false, IsConnected: true), (IsOn: true, IsConnected: true)]));
+
+        await this.HandleAsync();
+
+        this.m_SceneLogic.Verify(l => l.ApplyAsync(It.IsAny<LightScene>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_DoesNotTreatAnUnreachableBulbAsEvidenceARoomIsLit()
+    {
+        _ = this.Database.Seed(BuildSchedule(150, this.Ours, new TimeSpan(6, 0, 0),
+            condition: LightScheduleCondition.OnlyIfLightsAreOff,
+            lights: [(IsOn: true, IsConnected: false), (IsOn: false, IsConnected: true)]));
+
+        await this.HandleAsync();
+
+        this.m_SceneLogic.Verify(
+            l => l.ApplyAsync(It.IsAny<LightScene>(), It.IsAny<CancellationToken>()),
+            Times.Once,
+            "a bulb nobody can reach is stale state, and the scene skips it when it applies anyway");
+    }
+
+    [Fact]
+    public async Task HandleAsync_StillFiresAConditionalScheduleWhoseSceneHasNoReachableLights()
+    {
+        _ = this.Database.Seed(BuildSchedule(150, this.Ours, new TimeSpan(6, 0, 0),
+            condition: LightScheduleCondition.OnlyIfLightsAreOff,
+            lights: [(IsOn: true, IsConnected: false)]));
+
+        await this.HandleAsync();
+
+        this.m_SceneLogic.Verify(
+            l => l.ApplyAsync(It.IsAny<LightScene>(), It.IsAny<CancellationToken>()),
+            Times.Once,
+            "nothing to look at is not a reason to skip, and applying it is already a no-op");
     }
 
     [Fact]

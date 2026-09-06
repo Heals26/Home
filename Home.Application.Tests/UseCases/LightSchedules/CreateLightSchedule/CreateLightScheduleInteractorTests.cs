@@ -39,9 +39,10 @@ public class CreateLightScheduleInteractorTests : InteractorTest
         LightScheduleTrigger trigger = LightScheduleTrigger.Time,
         TimeSpan timeOfDay = default,
         int offsetMinutes = 0,
-        int daysOfWeek = 127)
+        int daysOfWeek = 127,
+        LightScheduleCondition condition = LightScheduleCondition.Always)
         => new CreateLightScheduleInteractor().HandleAsync(
-            new CreateLightScheduleInputPort(name, lightSceneID, trigger, timeOfDay, offsetMinutes, daysOfWeek),
+            new CreateLightScheduleInputPort(name, lightSceneID, trigger, condition, timeOfDay, offsetMinutes, daysOfWeek),
             this.m_Presenter,
             this.Services().Build(),
             CancellationToken.None);

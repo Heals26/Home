@@ -7,6 +7,7 @@ public record CreateLightScheduleInputPort(
     string Name,
     long LightSceneID,
     LightScheduleTrigger Trigger,
+    LightScheduleCondition Condition,
     TimeSpan TimeOfDay,
     int OffsetMinutes,
     int DaysOfWeek)

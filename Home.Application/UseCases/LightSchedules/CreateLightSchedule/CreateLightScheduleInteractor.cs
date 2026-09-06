@@ -37,6 +37,7 @@ internal class CreateLightScheduleInteractor
         {
             Name = inputPort.Name.Trim(),
             Scene = _Scene,
+            Condition = inputPort.Condition,
             Trigger = inputPort.Trigger,
             TimeOfDay = inputPort.TimeOfDay,
             OffsetMinutes = inputPort.OffsetMinutes,

@@ -49,9 +49,10 @@ public class UpdateLightScheduleInteractorTests : InteractorTest
         PropertyChangeTracker<int> daysOfWeek = default,
         PropertyChangeTracker<bool> isEnabled = default,
         PropertyChangeTracker<string> name = default,
-        PropertyChangeTracker<TimeSpan> timeOfDay = default)
+        PropertyChangeTracker<TimeSpan> timeOfDay = default,
+        PropertyChangeTracker<LightScheduleCondition> condition = default)
         => new UpdateLightScheduleInteractor().HandleAsync(
-            new UpdateLightScheduleInputPort(lightScheduleID, name, isEnabled, timeOfDay, daysOfWeek),
+            new UpdateLightScheduleInputPort(lightScheduleID, name, isEnabled, timeOfDay, daysOfWeek, condition),
             this.m_Presenter,
             this.Services().Build(),
             CancellationToken.None);

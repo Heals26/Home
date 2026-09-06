@@ -33,6 +33,11 @@ public class CreateLightScheduleWebAppRequest
     public TimeSpan TimeOfDay { get; set; }
 
     /// <summary>
+    /// The check made when it comes due, against the lights the scene touches.
+    /// </summary>
+    public LightScheduleCondition Condition { get; set; }
+
+    /// <summary>
     /// What starts the schedule. Sun triggers need the household's location set in Settings.
     /// </summary>
     public LightScheduleTrigger Trigger { get; set; }

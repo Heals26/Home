@@ -19,6 +19,12 @@ public class LightSchedule
     /// </summary>
     public int DaysOfWeek { get; set; }
 
+    /// <summary>
+    /// Checked when the schedule comes due, against the lights the scene touches. A schedule that
+    /// fails its condition is skipped for the day rather than retried.
+    /// </summary>
+    public LightScheduleCondition Condition { get; set; }
+
     public bool IsEnabled { get; set; }
 
     /// <summary>

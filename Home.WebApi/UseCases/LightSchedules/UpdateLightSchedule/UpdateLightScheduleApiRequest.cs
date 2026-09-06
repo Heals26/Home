@@ -1,4 +1,5 @@
 using Home.Application.Infrastructure.ChangeTrackers;
+using Home.Domain.Enumerations;
 
 namespace Home.WebApi.UseCases.LightSchedules.UpdateLightSchedule;
 
@@ -9,4 +10,5 @@ public record UpdateLightScheduleApiRequest(
     PropertyChangeTracker<string> Name,
     PropertyChangeTracker<bool> IsEnabled,
     PropertyChangeTracker<TimeSpan> TimeOfDay,
-    PropertyChangeTracker<int> DaysOfWeek);
+    PropertyChangeTracker<int> DaysOfWeek,
+    PropertyChangeTracker<LightScheduleCondition> Condition);

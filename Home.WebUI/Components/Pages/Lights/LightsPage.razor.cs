@@ -30,6 +30,8 @@ public partial class LightsPage : IDisposable
 
     #region Records
 
+    private sealed record ConditionOption(string Label, string Detail, LightScheduleCondition Value);
+
     private sealed record ScheduleDay(string Label, int Bit);
 
     #endregion Records
@@ -65,9 +67,17 @@ public partial class LightsPage : IDisposable
     private string m_ScheduleTime = "19:00";
     private int m_ScheduleOffsetMinutes;
     private int m_ScheduleDays;
+    private LightScheduleCondition m_ScheduleCondition = LightScheduleCondition.Always;
     private bool m_CreatingSchedule;
     private LightScheduleDto? m_ScheduleToDelete;
     private bool m_DeletingSchedule;
+
+    private static readonly ConditionOption[] ConditionOptions =
+    [
+        new("Fire it every time", "The usual. It runs whenever it is due.", LightScheduleCondition.Always),
+        new("Only if the lights are off", "Leaves a room alone when someone has already lit it.", LightScheduleCondition.OnlyIfLightsAreOff),
+        new("Only if the lights are on", "For changing a room rather than lighting it, like dimming for bedtime.", LightScheduleCondition.OnlyIfLightsAreOn)
+    ];
 
     private static readonly List<HomeSegmentedControl<LightScheduleTrigger>.SegmentOption> TriggerOptions =
     [
@@ -419,6 +429,7 @@ public partial class LightsPage : IDisposable
         this.m_ScheduleTime = "19:00";
         this.m_ScheduleOffsetMinutes = 0;
         this.m_ScheduleDays = AllDaysOfWeek;
+        this.m_ScheduleCondition = LightScheduleCondition.Always;
         this.m_ShowScheduleModal = true;
     }
 
@@ -473,7 +484,8 @@ public partial class LightsPage : IDisposable
                     ? TimeSpan.Parse(this.m_ScheduleTime)
                     : TimeSpan.Zero,
                 OffsetMinutes = this.m_ScheduleTrigger == LightScheduleTrigger.Time ? 0 : this.m_ScheduleOffsetMinutes,
-                DaysOfWeek = this.m_ScheduleDays
+                DaysOfWeek = this.m_ScheduleDays,
+                Condition = this.m_ScheduleCondition
             },
             ApiProvider.CreateLightSchedule(),
             e => this.m_ErrorHandler?.AddError(e),
@@ -532,6 +544,17 @@ public partial class LightsPage : IDisposable
         await this.LoadSchedulesAsync();
         await this.PublishLightsChangedAsync();
     }
+
+    /// <summary>
+    /// How a condition reads on the schedule row, or null when there is nothing worth saying.
+    /// </summary>
+    private static string? FormatCondition(LightScheduleCondition condition)
+        => condition switch
+        {
+            LightScheduleCondition.OnlyIfLightsAreOff => "Only if the lights are off",
+            LightScheduleCondition.OnlyIfLightsAreOn => "Only if the lights are on",
+            _ => null
+        };
 
     private static string FormatTime(TimeSpan timeOfDay)
         => DateTime.MinValue.Add(timeOfDay).ToString("h:mm tt");

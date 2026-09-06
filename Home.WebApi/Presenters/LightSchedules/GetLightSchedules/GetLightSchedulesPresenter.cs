@@ -21,6 +21,7 @@ public class GetLightSchedulesPresenter(IMapper mapper)
                 LightScheduleID = s.LightScheduleID,
                 Name = s.Name,
                 IsEnabled = s.IsEnabled,
+                Condition = s.Condition,
                 Trigger = s.Trigger,
                 TimeOfDay = s.TimeOfDay,
                 OffsetMinutes = s.OffsetMinutes,

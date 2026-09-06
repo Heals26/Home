@@ -47,6 +47,9 @@ internal class UpdateLightScheduleInteractor
             _Schedule.LastRunUTC = serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime;
         }
 
+        if (inputPort.Condition.HasBeenSet)
+            _Schedule.Condition = inputPort.Condition.Value;
+
         if (inputPort.DaysOfWeek.HasBeenSet)
             _Schedule.DaysOfWeek = inputPort.DaysOfWeek.Value;
 

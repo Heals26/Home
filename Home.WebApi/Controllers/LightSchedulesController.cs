@@ -32,7 +32,7 @@ public class LightSchedulesController : BaseController
         [FromBody] CreateLightScheduleApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new CreateLightScheduleInputPort(request.Name, request.LightSceneID, request.Trigger, request.TimeOfDay, request.OffsetMinutes, request.DaysOfWeek), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new CreateLightScheduleInputPort(request.Name, request.LightSceneID, request.Trigger, request.Condition, request.TimeOfDay, request.OffsetMinutes, request.DaysOfWeek), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }
@@ -70,7 +70,7 @@ public class LightSchedulesController : BaseController
         [FromBody] UpdateLightScheduleApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new UpdateLightScheduleInputPort(lightScheduleID, request.Name, request.IsEnabled, request.TimeOfDay, request.DaysOfWeek), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new UpdateLightScheduleInputPort(lightScheduleID, request.Name, request.IsEnabled, request.TimeOfDay, request.DaysOfWeek, request.Condition), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

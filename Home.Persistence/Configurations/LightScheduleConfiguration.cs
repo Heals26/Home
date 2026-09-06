@@ -18,6 +18,7 @@ public class LightScheduleConfiguration : IEntityTypeConfiguration<LightSchedule
         _ = entity.Property(e => e.LightScheduleID)
             .ValueGeneratedOnAdd();
 
+        _ = entity.Property(e => e.Condition);
         _ = entity.Property(e => e.DaysOfWeek);
         _ = entity.Property(e => e.IsEnabled);
         _ = entity.Property(e => e.LastRunUTC);
