@@ -1,6 +1,6 @@
 ﻿# Roadmap
 
-*Fifteen phases, in the order they should be done. Each one is shippable on its own and leaves the
+*Seventeen phases, in the order they should be done. Each one is shippable on its own and leaves the
 app better than it found it. Nothing here is half a feature that needs the next phase to be worth
 having.*
 
@@ -470,4 +470,106 @@ would be the first thing in the app that does.
 - **Retiring the fitted layout.** It stays as what a household gets before it has arranged anything,
   because a board that starts empty or starts scrolling is a worse first run than the one that
   exists now.
+
+
+## Phase 16 · What this house pays for, M *(new, 6 Sep 2026)*
+
+Home knows what is for dinner, what is on the shopping list and what has to be done this week, and
+nothing at all about the eleven direct debits leaving the account. Streaming, insurance, the gym,
+school fees, the phone plan, the thing somebody signed up to in March and nobody has watched since.
+This is household admin of exactly the kind the other pillars already handle, and it is the one
+where forgetting costs money.
+
+The app already tracks spend in precisely one narrow place, `ShoppingListItem.Cost` and the
+list total, so money on a screen is not a new idea here. What is new is money that repeats.
+
+The single most valuable thing it can do is not the list. It is **the warning before the annual one
+lands**, and the free trial that is about to become a payment. Everything else is bookkeeping.
+
+### What it holds
+
+A subscription is a name, an amount, how often it is charged, and when it next is. Add to that
+whether it is still live, because a cancelled one is worth keeping: half the value of a list like
+this is seeing what you stopped paying for and when.
+
+### What the planning has to settle
+
+1. **How the repeat is expressed, which is phase 6's question again.** "The 15th of every month",
+   "annually in March", "every four weeks" are the same shape of problem the calendar has to solve,
+   and this must not become a fifth answer to it. **This phase sits behind phase 6** for that
+   reason alone, and it is a good early test of whatever recurrence model that phase lands on: if
+   it cannot express a billing cycle it is not finished.
+
+2. **What the headline number is.** A monthly total is the number people want, which means an
+   annual subscription has to be divisible by twelve to sit alongside a monthly one. Decide whether
+   the app normalises to a monthly equivalent, shows the real cadence, or shows both, because that
+   choice decides what the screen is for.
+
+3. **Does it warn, and how?** The calendar phase already parked notifications, because there is
+   nobody to notify until phase 7 knows who is here. Until then a warning is something the
+   dashboard shows rather than something that reaches a phone, which is a fair first version on a
+   screen that is always on anyway.
+
+4. **Does it earn a dashboard tile?** Probably, and that is exactly the pressure phase 15 exists
+   to relieve: the board fits today with seven tiles and an eighth reopens it. Whichever of the two
+   phases is done second inherits the problem.
+
+### Deliberately not in scope
+
+- **Reading a bank feed.** Connecting to an account to find subscriptions automatically is a
+  different product with a different trust conversation. This is a list the household keeps.
+- **Multiple currencies.** One household, one currency, until there is a reason.
+- **Paying anything.** It records what is charged. It never charges.
+
+## Phase 17 · Other households can pay for this, XL *(new, 6 Sep 2026)*
+
+The product bar for this app has always been that a family would pay for it rather than use the
+free thing. This is the phase that finds out.
+
+**The architecture is already multi-tenant and the front door is not.** Every query in the
+application scopes through an ownership path to `IAuthorisationService.GetHousehold()`, and every
+one of the 608 tests seeds a second household alongside the first to prove nothing leaks between
+them. That invariant is the expensive part of selling this to more than one family and it is
+already done and pinned.
+
+What is not done is letting a second family in at all:
+
+- **Registration is first-run only, on purpose.** `GetSetupStatus` returns true only while the
+  database has **no users whatsoever**, and the setup page disappears the moment the first one
+  exists. Today: 1 household, 1 user. The second household cannot sign up, by design.
+- **`home.ClientApplication` is still inserted by hand.** Deliberate, documented in `README.md`,
+  and parked in `BACKLOG.md`. A product people pay for cannot have a manual database step between
+  someone deciding to try it and seeing it.
+- **Phase 7 has not happened.** There is one login per household. Selling a family organiser whose
+  members cannot be themselves is selling the wrong thing.
+
+### What the planning has to settle
+
+1. **Where it runs.** `VISION.md` deliberately left hosting open, cloud or local, and asked that
+   nothing close either door without a decision here. **Charging for it closes that door**: taking
+   money means running it, backing it up, and being reachable when it breaks. That is the decision
+   this phase actually turns on, and it is bigger than the billing code.
+
+2. **What is free.** A paid tier only means something against a free one. Self-hosting staying free
+   and unlimited is one honest answer and it fits how this was built.
+
+3. **Who takes the money.** A payment provider, which brings a webhook, a subscription state
+   machine, dunning, refunds and tax. None of that is interesting and all of it is required. Note
+   the irony worth avoiding: this app would then have both a `Subscription` the household tracks
+   (phase 16) and a subscription the household *is*. Two different things and they must not share
+   a name in the code.
+
+4. **What happens when someone stops paying.** The answer cannot be that a family loses the
+   shopping list they are standing in a supermarket holding. Read-only, an export, a grace period:
+   decide it before the first payment, not after the first lapse.
+
+5. **What it costs.** The comparison is a category where a device plus a subscription runs to
+   hundreds a year and a good list app runs to about fifteen. Somewhere in between is a product;
+   at either end is a hobby or a bad deal.
+
+### Order
+
+Behind phase 7 and behind the hosting decision, both of which it depends on outright. Nothing here
+is hard next to what is already built; it is late because it is the one phase that changes what
+this project *is*, and the only one that cannot be undone by deleting some code.
 
