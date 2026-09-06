@@ -39,29 +39,18 @@
                                Placeholder="A name, or part of one" />
             </div>
             <div class="flex gap-3 shrink-0">
-                <div class="flex flex-col gap-1.5">
-                    <label for="recipe-sort" class="text-sm font-medium text-ink-300">Sort by</label>
-                    <select id="recipe-sort"
-                            class="bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300"
-                            value="@this.m_Sort"
-                            @onchange="this.SetSortAsync">
-                        <option value="name">Name</option>
-                        <option value="quickest">Quickest</option>
-                        <option value="simplest">Simplest</option>
-                    </select>
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label for="recipe-time" class="text-sm font-medium text-ink-300">Ready in</label>
-                    <select id="recipe-time"
-                            class="bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300"
-                            value="@(this.m_MaxMinutes?.ToString() ?? string.Empty)"
-                            @onchange="this.SetMaxMinutes">
-                        <option value="">Any time</option>
-                        <option value="15">15 min</option>
-                        <option value="30">30 min</option>
-                        <option value="60">1 hour</option>
-                    </select>
-                </div>
+                <HomeSelect TValue="string"
+                            Label="Sort by"
+                            FullWidth="false"
+                            Options="SortOptions"
+                            Value="this.m_Sort"
+                            ValueChanged="this.SetSortAsync" />
+                <HomeSelect TValue="int?"
+                            Label="Ready in"
+                            FullWidth="false"
+                            Options="MaxMinutesOptions"
+                            Value="this.m_MaxMinutes"
+                            ValueChanged="v => this.m_MaxMinutes = v" />
             </div>
         </div>
 

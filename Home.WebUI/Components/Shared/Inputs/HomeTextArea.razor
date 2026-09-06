@@ -1,0 +1,28 @@
+@* Multi-line text. For a single line use HomeTextInput. *@
+
+<div class="flex flex-col gap-1.5 @this.Class">
+    @if (!string.IsNullOrEmpty(this.Label))
+    {
+        <label for="@this.m_TextAreaID" class="text-sm font-medium text-ink-300">@this.Label</label>
+    }
+    <textarea @attributes="this.AdditionalAttributes"
+              id="@this.m_TextAreaID"
+              rows="@this.Rows"
+              placeholder="@this.Placeholder"
+              disabled="@this.Disabled"
+              spellcheck="true"
+              autocapitalize="sentences"
+              aria-invalid="@(string.IsNullOrEmpty(this.Error) ? null : "true")"
+              aria-describedby="@this.GetDescribedBy()"
+              value="@this.Value"
+              @oninput="this.OnInputChangedAsync"
+              class="@this.GetTextAreaClasses()"></textarea>
+    @if (!string.IsNullOrEmpty(this.Hint))
+    {
+        <p id="@this.HintID" class="text-xs text-ink-500">@this.Hint</p>
+    }
+    @if (!string.IsNullOrEmpty(this.Error))
+    {
+        <span id="@this.ErrorID" class="text-xs text-red-400">@this.Error</span>
+    }
+</div>

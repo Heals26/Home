@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.Activities.Models;
 using Home.WebUI.DataAccess.Activities.SetActivityTags;
 using Home.WebUI.DataAccess.Activities.UpdateActivity;
@@ -91,6 +92,20 @@ public partial class ActivityEditModal
 
     private async Task OnVisibleChangedAsync(bool visible)
         => await this.VisibleChanged.InvokeAsync(visible);
+
+    private List<HomeSelect<long?>.SelectOption> StateOptions()
+        =>
+        [
+            new("Not sorted", null),
+            .. this.States.Select(s => new HomeSelect<long?>.SelectOption(s.Name, s.ActivityStateID))
+        ];
+
+    private List<HomeSelect<long?>.SelectOption> UserOptions()
+        =>
+        [
+            new("Anyone", null),
+            .. this.Users.Select(u => new HomeSelect<long?>.SelectOption(u.FullName, u.UserID))
+        ];
 
     private void ToggleTag(long tagID)
     {

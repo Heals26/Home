@@ -52,7 +52,12 @@ public partial class RecipeDetailPage : IDisposable
     private string m_EditPrepMinutes = string.Empty;
     private string m_EditCookMinutes = string.Empty;
     private string m_EditServings = string.Empty;
-    private string m_EditComplexity = string.Empty;
+    private long? m_EditComplexity;
+    private static readonly List<HomeSelect<long?>.SelectOption> ComplexityOptions =
+    [
+        new("Not said", null),
+        .. RecipeComplexities.All.Select(c => new HomeSelect<long?>.SelectOption(c.Name, c.Value))
+    ];
     private HashSet<long> m_EditMealSlotIDs = [];
 
     /// <summary>
@@ -75,7 +80,9 @@ public partial class RecipeDetailPage : IDisposable
     private long? m_EditingIngredientID;
     private string m_IngName = string.Empty;
     private string m_IngAmount = string.Empty;
-    private string m_IngUnit = string.Empty;
+    private long? m_IngUnit;
+    private static readonly List<HomeSelect<long?>.SelectOption> UnitOptions =
+        [.. MeasurementUnits.All.Select(u => new HomeSelect<long?>.SelectOption(u.Name, u.Value))];
 
     // The note is held against the ingredient rather than this recipe, so it is only offered once
     // the ingredient exists. The original is kept alongside it so an untouched note is left alone
@@ -202,7 +209,7 @@ public partial class RecipeDetailPage : IDisposable
         this.m_EditPrepMinutes = this.m_Recipe.PrepMinutes?.ToString() ?? string.Empty;
         this.m_EditCookMinutes = this.m_Recipe.CookMinutes?.ToString() ?? string.Empty;
         this.m_EditServings = this.m_Recipe.Servings?.ToString() ?? string.Empty;
-        this.m_EditComplexity = this.m_Recipe.Complexity?.ToString() ?? string.Empty;
+        this.m_EditComplexity = this.m_Recipe.Complexity;
         this.m_EditMealSlotIDs = [.. this.m_Recipe.MealSlots.Select(m => m.MealSlotID)];
         this.m_PendingPhoto = null;
         this.m_PendingPhotoName = string.Empty;
@@ -228,7 +235,7 @@ public partial class RecipeDetailPage : IDisposable
 
         var _Request = new UpdateRecipeWebAppRequest()
         {
-            Complexity = new PropertyChangeTracker<long?>(ParseLong(this.m_EditComplexity)),
+            Complexity = new PropertyChangeTracker<long?>(this.m_EditComplexity),
             CookMinutes = new PropertyChangeTracker<int?>(ParseInt(this.m_EditCookMinutes)),
             ImageUrl = new PropertyChangeTracker<string>(this.m_EditImageUrl),
             Name = new PropertyChangeTracker<string>(this.m_EditName),
@@ -375,7 +382,7 @@ public partial class RecipeDetailPage : IDisposable
         if (this.m_IngAmount.Length == 0 && suggestion.Amount != null)
         {
             this.m_IngAmount = suggestion.Amount.Value.ToString("0.##", CultureInfo.InvariantCulture);
-            this.m_IngUnit = (suggestion.Unit ?? MeasurementUnits.All[0].Value).ToString();
+            this.m_IngUnit = suggestion.Unit ?? MeasurementUnits.All[0].Value;
         }
 
         this.m_ShowIngredientSuggestions = false;
@@ -386,7 +393,7 @@ public partial class RecipeDetailPage : IDisposable
         this.m_EditingIngredientID = null;
         this.m_IngName = string.Empty;
         this.m_IngAmount = string.Empty;
-        this.m_IngUnit = MeasurementUnits.All[0].Value.ToString();
+        this.m_IngUnit = MeasurementUnits.All[0].Value;
         this.m_FocusIngredientName = true;
         this.m_ShowIngredient = true;
     }
@@ -396,7 +403,7 @@ public partial class RecipeDetailPage : IDisposable
         this.m_EditingIngredientID = ingredient.IngredientID;
         this.m_IngName = ingredient.Name;
         this.m_IngAmount = ingredient.Amount?.ToString("0.##") ?? string.Empty;
-        this.m_IngUnit = (ingredient.Unit ?? MeasurementUnits.All[0].Value).ToString();
+        this.m_IngUnit = ingredient.Unit ?? MeasurementUnits.All[0].Value;
         // Coalesced because the initialiser on the DTO is no defence against a null arriving over
         // the wire, and a null here took the whole page down rather than showing an empty box.
         this.m_IngNote = ingredient.Note ?? string.Empty;
@@ -418,7 +425,7 @@ public partial class RecipeDetailPage : IDisposable
             {
                 Amount = new PropertyChangeTracker<decimal?>(ParseDecimal(this.m_IngAmount)),
                 Name = new PropertyChangeTracker<string>(this.m_IngName),
-                Unit = new PropertyChangeTracker<long?>(ParseLong(this.m_IngUnit))
+                Unit = new PropertyChangeTracker<long?>(this.m_IngUnit)
             };
 
             _Result = await this.ApiAccess.SendRequestAsync<UpdateRecipeIngredientWebAppRequest, bool>(
@@ -436,7 +443,7 @@ public partial class RecipeDetailPage : IDisposable
                 Amount = ParseDecimal(this.m_IngAmount),
                 Name = this.m_IngName,
                 RecipeID = this.RecipeID,
-                Unit = ParseLong(this.m_IngUnit)
+                Unit = this.m_IngUnit
             };
 
             var _Response = await this.ApiAccess.SendRequestAsync<AddRecipeIngredientWebAppRequest, AddRecipeIngredientWebAppResponse>(
@@ -461,7 +468,7 @@ public partial class RecipeDetailPage : IDisposable
         {
             this.m_IngName = string.Empty;
             this.m_IngAmount = string.Empty;
-            this.m_IngUnit = MeasurementUnits.All[0].Value.ToString();
+            this.m_IngUnit = MeasurementUnits.All[0].Value;
             this.m_FocusIngredientName = true;
         }
 
@@ -897,8 +904,6 @@ public partial class RecipeDetailPage : IDisposable
     private static int? ParseInt(string value)
         => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;
 
-    private static long? ParseLong(string value)
-        => long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;
 
     #endregion Methods
 

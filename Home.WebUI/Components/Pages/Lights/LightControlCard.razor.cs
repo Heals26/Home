@@ -1,4 +1,5 @@
-﻿using Home.WebUI.DataAccess.Lights.Models;
+﻿using Home.WebUI.Components.Shared.Inputs;
+using Home.WebUI.DataAccess.Lights.Models;
 using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Components;
 
@@ -48,15 +49,18 @@ public partial class LightControlCard
     }
 
     // Marks the swatch the bulb is currently sitting on, so the card reflects reality.
+    private List<HomeSelect<long>.SelectOption> GroupOptions()
+        => [.. this.Groups.Select(g => new HomeSelect<long>.SelectOption(g.Name, g.LightGroupID))];
+
     private bool IsCurrent(ColourPreset preset)
         => preset.IsWhite
             ? this.Light.Saturation <= 0.01 && Math.Abs(this.Light.Kelvin - preset.Kelvin) < 250
             : this.Light.Saturation > 0.01 && Math.Abs(this.Light.Hue - preset.Hue) < 12;
 
-    private async Task OnGroupSelected(ChangeEventArgs e)
+    private async Task OnGroupSelectedAsync(long groupID)
     {
-        if (long.TryParse(e.Value?.ToString(), out var _GroupID) && _GroupID != this.GroupID)
-            await this.OnGroupChanged.InvokeAsync(_GroupID);
+        if (groupID != this.GroupID)
+            await this.OnGroupChanged.InvokeAsync(groupID);
     }
 
     private static int Percent(double value)

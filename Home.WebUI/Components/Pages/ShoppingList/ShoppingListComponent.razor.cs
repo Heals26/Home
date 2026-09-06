@@ -1,5 +1,6 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
 using Home.WebUI.Components.Shared.Inputs;
+using Home.WebUI.DataAccess.Recipes.Models;
 using Home.WebUI.DataAccess.ShoppingListItems.CreateShoppingListItem;
 using Home.WebUI.DataAccess.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.WebUI.DataAccess.ShoppingListItems.UpdateShoppingListItem;
@@ -53,7 +54,19 @@ public partial class ShoppingListComponent : IDisposable
     private string m_EditName = string.Empty;
     private string m_EditAmount = string.Empty;
     private string m_EditCost = string.Empty;
-    private string m_EditUnit = string.Empty;
+    private long? m_EditUnit;
+
+    /// <summary>
+    /// Pieces is left out: it is the one unit with nothing to show beside a number, which is what
+    /// "Just a number" already says.
+    /// </summary>
+    private static readonly List<HomeSelect<long?>.SelectOption> UnitOptions =
+    [
+        new("Just a number", null),
+        .. MeasurementUnits.All
+            .Where(u => u.Abbreviation.Length > 0)
+            .Select(u => new HomeSelect<long?>.SelectOption(u.Name, u.Value))
+    ];
     private string m_EditNote = string.Empty;
     private bool m_SavingItem;
     private bool m_Reordering;
@@ -356,7 +369,7 @@ public partial class ShoppingListComponent : IDisposable
         this.m_EditName = item.Name;
         this.m_EditAmount = item.Amount?.ToString("0.##") ?? string.Empty;
         this.m_EditCost = item.Cost?.ToString("0.00") ?? string.Empty;
-        this.m_EditUnit = item.Unit?.ToString() ?? string.Empty;
+        this.m_EditUnit = item.Unit;
         this.m_EditNote = item.Note ?? string.Empty;
         this.m_ShowEditItem = true;
     }
@@ -509,7 +522,7 @@ public partial class ShoppingListComponent : IDisposable
                 Name = new(_Name),
                 Note = new(this.m_EditNote),
                 ShoppingListItemID = this.m_EditingItemID.Value,
-                Unit = new(long.TryParse(this.m_EditUnit, out var _Unit) ? _Unit : null)
+                Unit = new(this.m_EditUnit)
             },
             ApiProvider.UpdateShoppingListItem(this.m_EditingItemID.Value),
             e => this.m_ErrorHandler?.AddError(e),

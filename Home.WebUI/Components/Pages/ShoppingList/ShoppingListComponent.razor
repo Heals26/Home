@@ -193,19 +193,10 @@
         <HomeTextInput Label="Name" AutoComplete="off" @bind-Value="this.m_EditName" Placeholder="e.g. Milk" />
         <div class="grid grid-cols-2 gap-3 mt-3">
             <HomeTextInput Label="How much" AutoComplete="off" InputMode="decimal" @bind-Value="this.m_EditAmount" Placeholder="e.g. 2" />
-            <div class="flex flex-col gap-1.5">
-                <label for="shopping-item-unit" class="text-sm font-medium text-ink-300">Measurement</label>
-                <select id="shopping-item-unit" @bind="this.m_EditUnit"
-                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent">
-                    <option value="">Just a number</option>
-                    @* Pieces is the one entry with nothing to show beside a number, which is what
-                       the option above already says. *@
-                    @foreach (var _Unit in MeasurementUnits.All.Where(u => u.Abbreviation.Length > 0))
-                    {
-                        <option value="@_Unit.Value">@_Unit.Name</option>
-                    }
-                </select>
-            </div>
+            <HomeSelect TValue="long?"
+                        Label="Measurement"
+                        Options="UnitOptions"
+                        @bind-Value="this.m_EditUnit" />
         </div>
         <HomeTextInput Class="mt-3"
                        Label="Price for the line ($)"
@@ -213,13 +204,12 @@
                        InputMode="decimal"
                        @bind-Value="this.m_EditCost"
                        Placeholder="e.g. 3.50" />
-        <div class="flex flex-col gap-1.5 mt-3">
-            <label for="shopping-item-note" class="text-sm font-medium text-ink-300">Note</label>
-            <textarea id="shopping-item-note" @bind="this.m_EditNote" rows="2"
-                      placeholder="e.g. Woolies brand, the big one"
-                      class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
-            <p class="text-xs text-ink-500">For whoever does the shop.</p>
-        </div>
+        <HomeTextArea Class="mt-3"
+                      Label="Note"
+                      Rows="2"
+                      Placeholder="e.g. Woolies brand, the big one"
+                      Hint="For whoever does the shop."
+                      @bind-Value="this.m_EditNote" />
         <div class="mt-4 flex justify-between gap-3">
             <HomeButton Variant="danger" Loading="this.m_SavingItem" OnClick="this.DeleteItemAsync">
                 <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>

@@ -241,6 +241,11 @@ public partial class BoardSettingsModal
         this.m_MoveCardsToStateID = _Target.ActivityStateID;
     }
 
+    private List<HomeSelect<long>.SelectOption> MoveCardsToOptions(ActivityStateDto state)
+        => [.. this.m_States
+            .Where(s => s.ActivityStateID != state.ActivityStateID)
+            .Select(s => new HomeSelect<long>.SelectOption(s.Name, s.ActivityStateID))];
+
     private void CancelDeletingColumn()
         => this.m_DeletingStateID = null;
 

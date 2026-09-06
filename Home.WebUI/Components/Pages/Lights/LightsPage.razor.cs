@@ -86,15 +86,15 @@ public partial class LightsPage : IDisposable
         new("Sunset", LightScheduleTrigger.Sunset),
     ];
 
-    private static readonly (string Label, int Minutes)[] OffsetOptions =
+    private static readonly List<HomeSelect<int>.SelectOption> OffsetOptions =
     [
-        ("1 hour before", -60),
-        ("30 min before", -30),
-        ("15 min before", -15),
-        ("Right on it", 0),
-        ("15 min after", 15),
-        ("30 min after", 30),
-        ("1 hour after", 60),
+        new("1 hour before", -60),
+        new("30 min before", -30),
+        new("15 min before", -15),
+        new("Right on it", 0),
+        new("15 min after", 15),
+        new("30 min after", 30),
+        new("1 hour after", 60),
     ];
 
     // Effects
@@ -319,6 +319,13 @@ public partial class LightsPage : IDisposable
         await this.LoadLightsAsync();
     }
 
+    private List<HomeSelect<long>.SelectOption> CaptureGroupOptions()
+        =>
+        [
+            new("All lights", 0),
+            .. (this.m_Groups ?? []).Select(g => new HomeSelect<long>.SelectOption(g.Name, g.LightGroupID))
+        ];
+
     private async Task CaptureSceneAsync()
     {
         if (this.m_Capturing)
@@ -434,6 +441,22 @@ public partial class LightsPage : IDisposable
     }
 
     // Nothing to schedule without a scene, so the dead end hands straight over to making one.
+    private List<HomeSelect<long>.SelectOption> ScheduleSceneOptions()
+        =>
+        [
+            new("Choose a scene", 0),
+            .. (this.m_Scenes ?? [])
+                .Where(s => !s.IsPreviousLook)
+                .Select(s => new HomeSelect<long>.SelectOption(s.Name, s.LightSceneID))
+        ];
+
+    /// <summary>
+    /// The offset is read against whichever end of the day the schedule follows, so the label says
+    /// which one rather than leaving the reader to remember what they picked a field ago.
+    /// </summary>
+    private string OffsetLabel()
+        => $"How close to {(this.m_ScheduleTrigger == LightScheduleTrigger.Sunrise ? "sunrise" : "sunset")}";
+
     private async Task CaptureSceneFromScheduleAsync()
     {
         this.m_ShowScheduleModal = false;

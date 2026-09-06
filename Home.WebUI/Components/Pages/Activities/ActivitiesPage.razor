@@ -25,38 +25,23 @@
            three things the board could not be narrowed by. Filtering happens on the device: the
            week is already loaded, and the answer does not change between taps. *@
         <div class="flex flex-wrap items-center gap-2 px-6 pb-3 shrink-0">
-            <select aria-label="Filter by who"
-                    class="bg-ink-900 border border-ink-800 rounded-lg px-3 min-h-[44px] text-sm text-ink-200 focus:outline-none focus:ring-2 focus:ring-ink-300"
-                    value="@(this.m_FilterUserID?.ToString() ?? string.Empty)"
-                    @onchange="this.SetUserFilter">
-                <option value="">Anyone</option>
-                @foreach (var _User in this.m_Users)
-                {
-                    <option value="@_User.UserID">@_User.FullName</option>
-                }
-            </select>
+            <HomeSelect TValue="long?"
+                        FullWidth="false"
+                        aria-label="Filter by who"
+                        Options="this.UserOptions()"
+                        @bind-Value="this.m_FilterUserID" />
 
-            <select aria-label="Filter by label"
-                    class="bg-ink-900 border border-ink-800 rounded-lg px-3 min-h-[44px] text-sm text-ink-200 focus:outline-none focus:ring-2 focus:ring-ink-300"
-                    value="@(this.m_FilterTagID?.ToString() ?? string.Empty)"
-                    @onchange="this.SetTagFilter">
-                <option value="">Any label</option>
-                @foreach (var _Tag in this.m_Tags)
-                {
-                    <option value="@_Tag.TagID">@_Tag.Name</option>
-                }
-            </select>
+            <HomeSelect TValue="long?"
+                        FullWidth="false"
+                        aria-label="Filter by label"
+                        Options="this.TagFilterOptions()"
+                        @bind-Value="this.m_FilterTagID" />
 
-            <select aria-label="Filter by when"
-                    class="bg-ink-900 border border-ink-800 rounded-lg px-3 min-h-[44px] text-sm text-ink-200 focus:outline-none focus:ring-2 focus:ring-ink-300"
-                    value="@this.m_FilterDue"
-                    @onchange="this.SetDueFilter">
-                <option value="">Any time</option>
-                <option value="overdue">Overdue</option>
-                <option value="today">Due today</option>
-                <option value="week">Due this week</option>
-                <option value="none">No date</option>
-            </select>
+            <HomeSelect TValue="string"
+                        FullWidth="false"
+                        aria-label="Filter by when"
+                        Options="DueFilterOptions"
+                        @bind-Value="this.m_FilterDue" />
 
             @if (this.IsFiltered())
             {
@@ -137,16 +122,11 @@
         <ChildContent>
             <HomeTextInput Label="Title" AutoComplete="off" @bind-Value="this.m_NewTitle" Placeholder="e.g. Mow the lawn" />
 
-            <div class="flex flex-col gap-1.5 mt-3">
-                <label for="activity-new-state" class="text-sm font-medium text-ink-300">Column</label>
-                <select id="activity-new-state" @bind="this.m_NewStateID"
-                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
-                    @foreach (var _State in this.m_States)
-                    {
-                        <option value="@_State.ActivityStateID">@_State.Name</option>
-                    }
-                </select>
-            </div>
+            <HomeSelect TValue="long?"
+                        Class="mt-3"
+                        Label="Column"
+                        Options="this.StateOptions()"
+                        @bind-Value="this.m_NewStateID" />
 
             <div class="mt-3">
                 <ActivityDueFields IdPrefix="activity-new"
@@ -155,17 +135,11 @@
                                    @bind-Time="this.m_NewDueTime" />
             </div>
 
-            <div class="flex flex-col gap-1.5 mt-3">
-                <label for="activity-new-assignee" class="text-sm font-medium text-ink-300">Assign to</label>
-                <select id="activity-new-assignee" @bind="this.m_NewUserID"
-                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]">
-                    <option value="">Anyone</option>
-                    @foreach (var _User in this.m_Users)
-                    {
-                        <option value="@_User.UserID">@_User.FullName</option>
-                    }
-                </select>
-            </div>
+            <HomeSelect TValue="long?"
+                        Class="mt-3"
+                        Label="Assign to"
+                        Options="this.UserOptions()"
+                        @bind-Value="this.m_NewUserID" />
 
             <div class="mt-3">
                 <ActivityTagPicker Tags="this.m_Tags" SelectedTagIDs="this.m_NewTagIDs" OnToggle="this.ToggleNewTag" />

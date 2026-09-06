@@ -255,18 +255,10 @@
             }
 
             <HomeTextInput Label="Name" AutoComplete="off" Placeholder="e.g. Movie night" @bind-Value="this.m_CaptureName" />
-            <div class="flex flex-col gap-1.5">
-                <label for="scene-capture-group" class="text-sm font-medium text-ink-300">Which lights</label>
-                <select id="scene-capture-group"
-                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
-                        @bind="this.m_CaptureGroupID">
-                    <option value="0">All lights</option>
-                    @foreach (var _Group in this.m_Groups ?? [])
-                    {
-                        <option value="@_Group.LightGroupID">@_Group.Name</option>
-                    }
-                </select>
-            </div>
+            <HomeSelect TValue="long"
+                        Label="Which lights"
+                        Options="this.CaptureGroupOptions()"
+                        @bind-Value="this.m_CaptureGroupID" />
         </div>
     </ChildContent>
     <FooterContent>
@@ -303,18 +295,10 @@
         <div class="flex flex-col gap-4">
             <HomeTextInput Label="Name" AutoComplete="off" Placeholder="e.g. Wind down" @bind-Value="this.m_ScheduleName" />
 
-            <div class="flex flex-col gap-1.5">
-                <label for="schedule-scene" class="text-sm font-medium text-ink-300">Scene</label>
-                <select id="schedule-scene"
-                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
-                        @bind="this.m_ScheduleSceneID">
-                    <option value="0">Choose a scene</option>
-                    @foreach (var _Scene in (this.m_Scenes ?? []).Where(s => !s.IsPreviousLook))
-                    {
-                        <option value="@_Scene.LightSceneID">@_Scene.Name</option>
-                    }
-                </select>
-            </div>
+            <HomeSelect TValue="long"
+                        Label="Scene"
+                        Options="this.ScheduleSceneOptions()"
+                        @bind-Value="this.m_ScheduleSceneID" />
 
             <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-medium text-ink-300">When</label>
@@ -335,19 +319,11 @@
             }
             else
             {
-                <div class="flex flex-col gap-1.5">
-                    <label for="schedule-offset" class="text-sm font-medium text-ink-300">
-                        How close to @(this.m_ScheduleTrigger == LightScheduleTrigger.Sunrise ? "sunrise" : "sunset")
-                    </label>
-                    <select id="schedule-offset" @bind="this.m_ScheduleOffsetMinutes"
-                            class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]">
-                        @foreach (var _Offset in OffsetOptions)
-                        {
-                            <option value="@_Offset.Minutes">@_Offset.Label</option>
-                        }
-                    </select>
-                    <p class="text-xs text-ink-500">Follows the sun for this home's location, set on the Settings page.</p>
-                </div>
+                <HomeSelect TValue="int"
+                            Label="@this.OffsetLabel()"
+                            Options="OffsetOptions"
+                            Hint="Follows the sun for this home's location, set on the Settings page."
+                            @bind-Value="this.m_ScheduleOffsetMinutes" />
             }
 
             <div class="flex flex-col gap-1.5">

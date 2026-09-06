@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.MealPlanEntries.CreateMealPlanEntry;
 using Home.WebUI.DataAccess.MealPlanEntries.GetMealPlanEntries;
 using Home.WebUI.DataAccess.MealPlanEntries.Models;
@@ -55,7 +56,7 @@ public partial class MealPlanPage : IDisposable
     // Add-to-list modal
     private bool m_ShowAddToList;
     private bool m_AddingToList;
-    private string m_ListMealSlotFilter = string.Empty;
+    private long? m_ListMealSlotFilter;
     private string m_NewListName = string.Empty;
     private int? m_AddedRecipeCount;
 
@@ -383,6 +384,17 @@ public partial class MealPlanPage : IDisposable
             this.m_ShoppingLists = _Result.ShoppingLists;
     }
 
+    /// <summary>
+    /// "Dinner only" rather than "Dinner", because the list is being narrowed and the plain meal
+    /// name reads as though it is being added.
+    /// </summary>
+    private List<HomeSelect<long?>.SelectOption> MealSlotFilterOptions()
+        =>
+    [
+        new("Every meal", null),
+        .. this.m_MealSlots.Select(m => new HomeSelect<long?>.SelectOption($"{m.Name} only", m.MealSlotID))
+    ];
+
     private async Task AddWeekToListAsync(long shoppingListID)
     {
         if (this.m_AddingToList)
@@ -394,7 +406,7 @@ public partial class MealPlanPage : IDisposable
             new AddMealPlanToShoppingListWebAppRequest()
             {
                 FromDate = this.m_WeekStart,
-                MealSlotID = ParseLong(this.m_ListMealSlotFilter),
+                MealSlotID = this.m_ListMealSlotFilter,
                 ToDate = this.m_WeekStart.AddDays(6)
             },
             ApiProvider.AddMealPlanToShoppingList(shoppingListID),
@@ -546,9 +558,6 @@ public partial class MealPlanPage : IDisposable
             ? $"Plan for {this.m_PickerDate:dddd d MMMM}"
             : $"{_MealSlot.Name} on {this.m_PickerDate:dddd d MMMM}";
     }
-
-    private static long? ParseLong(string value)
-        => long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;
 
     private static TimeSpan? ParseTimeOfDay(string value)
         => TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;

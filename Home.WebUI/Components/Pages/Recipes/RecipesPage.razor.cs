@@ -39,8 +39,23 @@ public partial class RecipesPage : IDisposable
     private const string SortStorageKey = "home.recipes.sort";
 
     private string m_Search = string.Empty;
+
     private string m_Sort = "name";
+    private static readonly List<HomeSelect<string>.SelectOption> SortOptions =
+    [
+        new("Name", "name"),
+        new("Quickest", "quickest"),
+        new("Simplest", "simplest")
+    ];
+
     private int? m_MaxMinutes;
+    private static readonly List<HomeSelect<int?>.SelectOption> MaxMinutesOptions =
+    [
+        new("Any time", null),
+        new("15 min", 15),
+        new("30 min", 30),
+        new("1 hour", 60)
+    ];
 
     private string m_View = "cards";
     private readonly List<HomeSegmentedControl<string>.SegmentOption> m_ViewOptions =
@@ -333,16 +348,13 @@ public partial class RecipesPage : IDisposable
     private void SetSearch(string search)
         => this.m_Search = search;
 
-    private async Task SetSortAsync(ChangeEventArgs args)
+    private async Task SetSortAsync(string sort)
     {
-        this.m_Sort = args.Value?.ToString() ?? "name";
+        this.m_Sort = sort;
 
         // A dead circuit cannot remember anything, and that is never worth an error on screen.
         try { await this.LocalStorage.SetAsync(SortStorageKey, this.m_Sort); } catch { }
     }
-
-    private void SetMaxMinutes(ChangeEventArgs args)
-        => this.m_MaxMinutes = int.TryParse(args.Value?.ToString(), out var _Minutes) ? _Minutes : null;
 
     private string DescribeMealSlots(IEnumerable<RecipeMealSlotDto> mealSlots)
         => string.Join(" · ", mealSlots.OrderBy(m => m.Sequence).Select(m => m.Name));

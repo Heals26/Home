@@ -134,15 +134,10 @@
 
     <HomeModal @bind-Visible="this.m_ShowField" Title="@(this.m_EditingContentID.HasValue ? "Edit" : "Add to the card")" OnSubmit="this.SaveFieldAsync">
         <ChildContent>
-            <div class="flex flex-col gap-1.5">
-                <label for="activity-field-content" class="text-sm font-medium text-ink-300">@this.FieldSectionName()</label>
-                <textarea id="activity-field-content"
-                          rows="5"
-                          @bind="this.m_FieldContent"
-                          spellcheck="true"
-                          placeholder="Write it the way you'd say it"
-                          class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300"></textarea>
-            </div>
+            <HomeTextArea Label="@this.FieldSectionName()"
+                          Rows="5"
+                          Placeholder="Write it the way you'd say it"
+                          @bind-Value="this.m_FieldContent" />
             <div class="mt-4 flex justify-end gap-3">
                 <HomeButton Variant="ghost" OnClick="() => this.m_ShowField = false">Cancel</HomeButton>
                 <HomeButton Loading="this.m_Saving" OnClick="this.SaveFieldAsync">Save</HomeButton>

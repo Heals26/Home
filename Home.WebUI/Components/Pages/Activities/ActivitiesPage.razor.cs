@@ -51,6 +51,14 @@ public partial class ActivitiesPage : IDisposable
     private long? m_FilterUserID;
     private long? m_FilterTagID;
     private string m_FilterDue = string.Empty;
+    private static readonly List<HomeSelect<string>.SelectOption> DueFilterOptions =
+    [
+        new("Any time", ""),
+        new("Overdue", "overdue"),
+        new("Due today", "today"),
+        new("Due this week", "week"),
+        new("No date", "none")
+    ];
 
     private string m_View = BoardView;
     private DateTime m_Anchor;
@@ -232,14 +240,23 @@ public partial class ActivitiesPage : IDisposable
         return [.. _Activities];
     }
 
-    private void SetUserFilter(ChangeEventArgs args)
-        => this.m_FilterUserID = long.TryParse(args.Value?.ToString(), out var _UserID) ? _UserID : null;
 
-    private void SetTagFilter(ChangeEventArgs args)
-        => this.m_FilterTagID = long.TryParse(args.Value?.ToString(), out var _TagID) ? _TagID : null;
+    private List<HomeSelect<long?>.SelectOption> UserOptions()
+        =>
+        [
+            new("Anyone", null),
+            .. this.m_Users.Select(u => new HomeSelect<long?>.SelectOption(u.FullName, u.UserID))
+        ];
 
-    private void SetDueFilter(ChangeEventArgs args)
-        => this.m_FilterDue = args.Value?.ToString() ?? string.Empty;
+    private List<HomeSelect<long?>.SelectOption> TagFilterOptions()
+        =>
+        [
+            new("Any label", null),
+            .. this.m_Tags.Select(t => new HomeSelect<long?>.SelectOption(t.Name, t.TagID))
+        ];
+
+    private List<HomeSelect<long?>.SelectOption> StateOptions()
+        => [.. this.m_States.Select(s => new HomeSelect<long?>.SelectOption(s.Name, s.ActivityStateID))];
 
     private void ClearFilters()
     {

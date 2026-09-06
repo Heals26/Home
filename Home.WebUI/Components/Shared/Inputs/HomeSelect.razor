@@ -1,0 +1,37 @@
+@* Dropdown for choosing one of a known set of values. Use @bind-Value for two-way binding.
+   For two or three options that are worth showing at once, use HomeSegmentedControl instead. *@
+@typeparam TValue
+
+<div class="@this.GetWrapperClasses()">
+    @if (!string.IsNullOrEmpty(this.Label))
+    {
+        <label for="@this.m_SelectID" class="text-sm font-medium text-ink-300">@this.Label</label>
+    }
+    @* The chevron is drawn rather than left to the browser: every engine draws its own differently
+       and several draw it in a colour that assumes a white control. *@
+    <div class="relative @(this.FullWidth ? "w-full" : "w-auto")">
+        <select @attributes="this.AdditionalAttributes"
+                id="@this.m_SelectID"
+                value="@AsString(this.Value)"
+                disabled="@this.Disabled"
+                aria-invalid="@(string.IsNullOrEmpty(this.Error) ? null : "true")"
+                aria-describedby="@this.GetDescribedBy()"
+                @onchange="this.OnSelectionChangedAsync"
+                class="@this.GetSelectClasses()">
+            @foreach (var _Option in this.Options)
+            {
+                <option value="@AsString(_Option.Value)">@_Option.Label</option>
+            }
+        </select>
+        <span aria-hidden="true"
+              class="home-icon home-icon-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400"></span>
+    </div>
+    @if (!string.IsNullOrEmpty(this.Hint))
+    {
+        <p id="@this.HintID" class="text-xs text-ink-500">@this.Hint</p>
+    }
+    @if (!string.IsNullOrEmpty(this.Error))
+    {
+        <span id="@this.ErrorID" class="text-xs text-red-400">@this.Error</span>
+    }
+</div>

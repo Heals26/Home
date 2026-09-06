@@ -278,17 +278,11 @@
             <HomeTextInput Label="Serves" AutoComplete="off" InputMode="numeric" @bind-Value="this.m_EditServings" Placeholder="e.g. 4" />
         </div>
 
-        <div class="mt-3 flex flex-col gap-1.5">
-            <label for="recipe-complexity" class="text-sm font-medium text-ink-300">How involved</label>
-            <select id="recipe-complexity" @bind="this.m_EditComplexity"
-                    class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent">
-                <option value="">Not said</option>
-                @foreach (var _Complexity in RecipeComplexities.All)
-                {
-                    <option value="@_Complexity.Value">@_Complexity.Name</option>
-                }
-            </select>
-        </div>
+        <HomeSelect TValue="long?"
+                    Class="mt-3"
+                    Label="How involved"
+                    Options="ComplexityOptions"
+                    @bind-Value="this.m_EditComplexity" />
 
         @if (this.m_MealSlots.Count > 0)
         {
@@ -363,16 +357,10 @@
                            InputMode="decimal"
                            @bind-Value="this.m_IngAmount"
                            Placeholder="e.g. 2" />
-            <div class="flex flex-col gap-1.5">
-                <label for="ingredient-unit" class="text-sm font-medium text-ink-300">Measurement</label>
-                <select id="ingredient-unit" @bind="this.m_IngUnit"
-                        class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent">
-                    @foreach (var _Unit in MeasurementUnits.All)
-                    {
-                        <option value="@_Unit.Value">@_Unit.Name</option>
-                    }
-                </select>
-            </div>
+            <HomeSelect TValue="long?"
+                        Label="Measurement"
+                        Options="UnitOptions"
+                        @bind-Value="this.m_IngUnit" />
         </div>
         @* Only offered once the ingredient exists, for two reasons: there is nothing to attach a
            note to until then, and adding is a chain of eleven ingredients where a third field would
@@ -384,12 +372,11 @@
            keep. *@
         @if (this.m_EditingIngredientID.HasValue)
         {
-            <div class="flex flex-col gap-1.5 mt-3">
-                <label for="ingredient-note" class="text-sm font-medium text-ink-300">Note</label>
-                <textarea id="ingredient-note" @bind="this.m_IngNote" rows="2"
-                          placeholder="e.g. the one in the green tin"
-                          class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
-            </div>
+            <HomeTextArea Class="mt-3"
+                          Label="Note"
+                          Rows="2"
+                          Placeholder="e.g. the one in the green tin"
+                          @bind-Value="this.m_IngNote" />
         }
 
         @* Remove lives here now rather than on the row, so the row can be the thing you tap to
@@ -419,14 +406,12 @@
 <HomeModal @bind-Visible="this.m_ShowStep" Title="@(this.m_EditingStepID.HasValue ? "Edit step" : "Add step")" OnSubmit="this.SaveStepAsync">
     <ChildContent>
         <HomeTextInput Label="Title (optional)" AutoComplete="off" @bind-Value="this.m_StepTitle" Placeholder="e.g. Prepare the sauce" />
-        <div class="mt-3 flex flex-col gap-1.5">
-            <label for="recipe-step-content" class="text-sm font-medium text-ink-300">Instructions</label>
-            <textarea id="recipe-step-content" @bind="this.m_StepContent" @bind:event="oninput" rows="5"
-                      placeholder="Describe this step..."
-                      spellcheck="true"
-                      class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
-            <p class="text-xs text-ink-500">Markdown works here: **bold**, *italic*, - bullet lists.</p>
-        </div>
+        <HomeTextArea Class="mt-3"
+                      Label="Instructions"
+                      Rows="5"
+                      Placeholder="Describe this step..."
+                      Hint="Markdown works here: **bold**, *italic*, - bullet lists."
+                      @bind-Value="this.m_StepContent" />
         <div class="mt-4 flex justify-end gap-3">
             <HomeButton Variant="ghost" OnClick="() => this.m_ShowStep = false">
                 @(this.m_EditingStepID.HasValue ? "Cancel" : "Done")
@@ -444,13 +429,11 @@
 @* Note modal *@
 <HomeModal @bind-Visible="this.m_ShowNote" Title="@(this.m_EditingNoteID.HasValue ? "Edit note" : "Add note")" OnSubmit="this.SaveNoteAsync">
     <ChildContent>
-        <div class="flex flex-col gap-1.5">
-            <label for="recipe-note-content" class="text-sm font-medium text-ink-300">Note</label>
-            <textarea id="recipe-note-content" @bind="this.m_NoteContent" rows="4"
-                      placeholder="Write a note..."
-                      class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"></textarea>
-            <p class="text-xs text-ink-500">Markdown works here: **bold**, *italic*, - bullet lists.</p>
-        </div>
+        <HomeTextArea Label="Note"
+                      Rows="4"
+                      Placeholder="Write a note..."
+                      Hint="Markdown works here: **bold**, *italic*, - bullet lists."
+                      @bind-Value="this.m_NoteContent" />
         <div class="mt-4 flex items-center gap-3">
             @if (this.m_EditingNoteID.HasValue)
             {
