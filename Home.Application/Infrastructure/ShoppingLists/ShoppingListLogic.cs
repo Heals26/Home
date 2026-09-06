@@ -78,13 +78,13 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
         if (inputPort.Unit.HasBeenSet)
             _ShoppingListItem.Unit = inputPort.Unit.Value;
 
+        // Set, not insert. This used to shuffle every item at or after the target down by one and
+        // never assign the moved item its own sequence, so a reorder pushed the rest of the list
+        // apart and left the item exactly where it started. The caller reorders by swapping a pair,
+        // the same way the recipe ingredient list does, and a swap needs each half written where
+        // the other one was.
         if (inputPort.Sequence.HasBeenSet)
-        {
-            _ShoppingListItem.ShoppingList.Items
-                .Where(i => i.ShoppingListItemID != _ShoppingListItem.ShoppingListItemID && i.Sequence >= inputPort.Sequence.Value)
-                .ToList()
-                .ForEach(i => i.Sequence++);
-        }
+            _ShoppingListItem.Sequence = inputPort.Sequence.Value;
     }
 
     #endregion Methods

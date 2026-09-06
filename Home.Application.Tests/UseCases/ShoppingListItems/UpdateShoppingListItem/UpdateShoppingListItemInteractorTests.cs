@@ -110,16 +110,33 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
     }
 
     [Fact]
-    public async Task HandleAsync_MovingAnItemShovesTheOnesAtOrBelowItDown()
+    public async Task HandleAsync_PuttingAnItemAtAPositionActuallyPutsItThere()
     {
         _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3)));
 
         await this.HandleAsync(132, sequence: new(2));
 
-        _ = this.Stored<ShoppingListItem>().Single(i => i.ShoppingListItemID == 131).Sequence.Should().Be(
-            3,
-            "the item that was in that position makes room rather than sharing it");
-        _ = this.Stored<ShoppingListItem>().Single(i => i.ShoppingListItemID == 130).Sequence.Should().Be(1);
+        _ = this.Stored<ShoppingListItem>().Single(i => i.ShoppingListItemID == 132).Sequence.Should().Be(
+            2,
+            "this used to move every other item and never the one being moved, so reordering did nothing");
+        _ = this.Stored<ShoppingListItem>().Single(i => i.ShoppingListItemID == 130).Sequence.Should().Be(
+            1,
+            "setting one item's position is not an insert and must not disturb the rest");
+        _ = this.Stored<ShoppingListItem>().Single(i => i.ShoppingListItemID == 131).Sequence.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task HandleAsync_TwoCallsSwapAPairTheWayTheReorderButtonsDo()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3)));
+
+        // Exactly what the up and down buttons send: each half of the pair written where the other
+        // one was. Nothing else on the list may shift.
+        await this.HandleAsync(132, sequence: new(2));
+        await this.HandleAsync(131, sequence: new(3));
+
+        _ = this.Stored<ShoppingListItem>().OrderBy(i => i.Sequence).Select(i => i.Name).Should().Equal(
+            ["Milk", "Eggs", "Bread"]);
     }
 
     [Fact]
