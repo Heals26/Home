@@ -5,6 +5,41 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-06 · A picker takes an options list, not option markup
+
+`HomeSelect<TValue>` could have taken `<option>` tags as child content, which would have been a
+smaller diff at every call site. It takes a `List<HomeSelect<TValue>.SelectOption>` instead, the
+same shape `HomeSegmentedControl` already used, for a reason that only showed up once the call
+sites were converted.
+
+A raw `<select>` speaks strings, so a page holding an ID in one had to hold it as a string and
+parse it back. Four fields were like that (`m_EditComplexity`, `m_IngUnit`, `m_EditUnit`,
+`m_ListMealSlotFilter`), and each one carried a `ParseLong` on the way out and a `.ToString()` on
+the way in. A typed `Options` list makes the page hold `long?` and the conversion happen once,
+inside the component, through `BindConverter`. Eight `.ToString()` calls and two helpers went.
+
+The cost is that a caller cannot write conditional or grouped option markup. Nothing in the app
+wanted to: all 18 call sites were a flat list, most of them a `@foreach` over a collection with an
+optional "nothing chosen" entry in front.
+
+An option with an empty value is the one that means nothing is chosen. The conversion fails for it
+on a type that cannot hold nothing, which is why a failed conversion lands on `default` rather than
+being treated as an error.
+
+## 2026-09-06 · IconOnly on HomeButton, not a HomeIconButton
+
+Fifteen square icon buttons across six files were written by hand in five treatments. The obvious
+fix was a new `HomeIconButton`; what shipped is a boolean on `HomeButton` that swaps its horizontal
+padding for a square of the same height.
+
+A separate component would have had to re-implement the focus ring, the loading spinner and the
+`DisabledReason` behaviour, or go without them, and going without them is how those fifteen buttons
+came to have no focus ring in the first place. Shape is not a different control.
+
+The same pass gated `HomeButton`'s hover and press states on `enabled:`. A hard-disabled button
+used to still light up under a cursor. One held open by a `DisabledReason` is deliberately not
+`disabled` in the DOM, so it keeps reacting, which is the point of it.
+
 ## 2026-09-06 · A planned meal owns its household, and does not have to be a recipe
 
 A meal can be an occasion rather than something cooked. "Father's Day", "leftovers", "out for

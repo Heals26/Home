@@ -29,29 +29,26 @@
                                    value="@_State.Name"
                                    @onchange="e => this.RenameColumnAsync(_State, e.Value?.ToString())"
                                    class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
-                            <button type="button"
-                                    class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-300 enabled:hover:bg-ink-800 enabled:active:scale-95 transition disabled:opacity-25"
-                                    disabled="@(_IsFirst || this.m_Saving)"
-                                    title="Move left"
-                                    aria-label="Move @_State.Name left"
-                                    @onclick="() => this.MoveColumnAsync(_State, -1)">
+                            <HomeButton IconOnly Variant="ghost"
+                                        Disabled="@(_IsFirst || this.m_Saving)"
+                                        title="Move left"
+                                        aria-label="@($"Move {_State.Name} left")"
+                                        OnClick="() => this.MoveColumnAsync(_State, -1)">
                                 <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block rotate-90"></span>
-                            </button>
-                            <button type="button"
-                                    class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-300 enabled:hover:bg-ink-800 enabled:active:scale-95 transition disabled:opacity-25"
-                                    disabled="@(_IsLast || this.m_Saving)"
-                                    title="Move right"
-                                    aria-label="Move @_State.Name right"
-                                    @onclick="() => this.MoveColumnAsync(_State, 1)">
+                            </HomeButton>
+                            <HomeButton IconOnly Variant="ghost"
+                                        Disabled="@(_IsLast || this.m_Saving)"
+                                        title="Move right"
+                                        aria-label="@($"Move {_State.Name} right")"
+                                        OnClick="() => this.MoveColumnAsync(_State, 1)">
                                 <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block rotate-90"></span>
-                            </button>
-                            <button type="button"
-                                    class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-400 hover:text-red-400 hover:bg-ink-800 active:scale-95 transition"
-                                    title="Delete column"
-                                    aria-label="Delete @_State.Name"
-                                    @onclick="() => this.StartDeletingColumn(_State)">
+                            </HomeButton>
+                            <HomeButton IconOnly Variant="ghost" Class="hover:text-red-400"
+                                        title="Delete column"
+                                        aria-label="@($"Delete {_State.Name}")"
+                                        OnClick="() => this.StartDeletingColumn(_State)">
                                 <span class="home-icon home-icon-trash h-5 w-5 inline-block"></span>
-                            </button>
+                            </HomeButton>
                         </div>
 
                         <div class="flex items-center gap-3 mt-2">
@@ -114,14 +111,13 @@
 
                         @* A section still written on cards cannot be deleted, because the writing would go
                            with it and there is no undo. The count says why the button is off. *@
-                        <button type="button"
-                                class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-400 hover:text-red-400 hover:bg-ink-800 disabled:opacity-25 disabled:hover:text-ink-400 transition"
-                                title="@(_Section.CardCount > 0 ? $"Used on {_Section.CardCount} card(s)" : "Delete section")"
-                                aria-label="@($"Delete {_Section.Name}")"
-                                disabled="@(this.m_Saving || _Section.CardCount > 0)"
-                                @onclick="() => this.DeleteSectionAsync(_Section)">
+                        <HomeButton IconOnly Variant="ghost" Class="hover:text-red-400"
+                                    title="@(_Section.CardCount > 0 ? $"Used on {_Section.CardCount} card(s)" : "Delete section")"
+                                    aria-label="@($"Delete {_Section.Name}")"
+                                    Disabled="@(this.m_Saving || _Section.CardCount > 0)"
+                                    OnClick="() => this.DeleteSectionAsync(_Section)">
                             <span class="home-icon home-icon-trash h-5 w-5 inline-block"></span>
-                        </button>
+                        </HomeButton>
                     </div>
                 }
             </div>
@@ -168,13 +164,12 @@
                                        value="@_Tag.Name"
                                        @onchange="e => this.RenameTagAsync(_Tag, e.Value?.ToString())"
                                        class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
-                                <button type="button"
-                                        class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-400 hover:text-red-400 hover:bg-ink-800 active:scale-95 transition"
-                                        title="Delete label"
-                                        aria-label="Delete @_Tag.Name"
-                                        @onclick="() => this.DeleteTagAsync(_Tag)">
+                                <HomeButton IconOnly Variant="ghost" Class="hover:text-red-400"
+                                            title="Delete label"
+                                            aria-label="@($"Delete {_Tag.Name}")"
+                                            OnClick="() => this.DeleteTagAsync(_Tag)">
                                     <span class="home-icon home-icon-trash h-5 w-5 inline-block"></span>
-                                </button>
+                                </HomeButton>
                             </div>
 
                             @if (this.m_ColouringTagID == _Tag.TagID)

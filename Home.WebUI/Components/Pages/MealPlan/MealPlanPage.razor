@@ -28,16 +28,12 @@
 
         <div class="px-6 pb-3 flex items-center justify-between">
             <div class="flex items-center gap-1">
-                <button type="button" aria-label="Previous week"
-                        class="h-11 w-11 rounded-lg text-ink-400 hover:text-ink-50 hover:bg-ink-900 transition-colors"
-                        @onclick="() => this.MoveWeekAsync(-7)">
+                <HomeButton IconOnly Size="sm" Variant="ghost" aria-label="Previous week" OnClick="() => this.MoveWeekAsync(-7)">
                     <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
-                </button>
-                <button type="button" aria-label="Next week"
-                        class="h-11 w-11 rounded-lg text-ink-400 hover:text-ink-50 hover:bg-ink-900 transition-colors"
-                        @onclick="() => this.MoveWeekAsync(7)">
+                </HomeButton>
+                <HomeButton IconOnly Size="sm" Variant="ghost" aria-label="Next week" OnClick="() => this.MoveWeekAsync(7)">
                     <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block"></span>
-                </button>
+                </HomeButton>
             </div>
             <p class="text-sm font-medium text-ink-300">@this.WeekLabel()</p>
             @if (this.IsCurrentWeek())

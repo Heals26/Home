@@ -26,6 +26,7 @@ name them still make sense.*
 | **Phase 2** *(4 Sep 2026)* | All 114 use case slices tested, writes included, at 557 tests. |
 | **Phase 3** *(5 Sep 2026)* | Ingredient notes reachable, a signed-in devices card with bulk sign-out, and the superseded amount columns dropped. |
 | **Phase 4** *(5 Sep 2026)* | The page title stopped losing to its own buttons on a phone, the shopping list collapses to one pane, and the shell is sized in `dvh`. |
+| **Phase 5** *(6 Sep 2026)* | `HomeSelect` and `HomeTextArea` written and every raw `<select>` and `<textarea>` retired onto them, `HomeButton` given `IconOnly` for the 15 square icon buttons, and the rule written into the conventions. |
 
 ---
 
@@ -151,7 +152,7 @@ Measured and deliberately left alone:
 - **21 of 30 pages still have no breakpoints, and that is correct.** A single-column page of cards
   does not need one. Adding breakpoints to pages that measure clean is churn.
 
-## Phase 5 · One way to draw each control, M *(new, 5 Sep 2026)*
+## Phase 5 · One way to draw each control, M *(new, 5 Sep 2026)* **DONE 6 Sep 2026**
 
 Home already has a component library, 19 `Home*` components, and the pages mostly use it: 107
 `<HomeButton>` against 72 raw `<button>`, 43 `<HomeTextInput>` against 13 raw `<input>`. This is not
@@ -191,6 +192,31 @@ The work:
 Deliberately not in scope: extracting a component that wraps a single element. That reads worse and,
 for anything reading the code afterwards, costs more to follow than the markup it replaced. The rule
 that pays is extracting what is repeated **across files**.
+
+### What was done, 6 Sep 2026
+
+**No raw `<select>` or `<textarea>` is left in the app.** `HomeSelect<TValue>` took all 18 call
+sites and `HomeTextArea` took 5, one more than this phase counted, because the shopping list note
+added during the bug list was written the copied-classes way this rule exists to stop. Both carry
+the same fill, border, height and focus ring as `HomeTextInput`, so the three read as siblings in
+the forms where they sit together.
+
+`HomeSelect` is generic and takes an `Options` list rather than `<option>` markup, which had a
+consequence worth the extra work: four page fields that were strings only because a raw `<select>`
+speaks strings are now `long?` or `int?`, and eight `.ToString()` calls and two `ParseLong` helpers
+went with them.
+
+**15 of the 72 raw buttons were the same square icon button** written in five treatments across six
+files, so `HomeButton` gained `IconOnly` and took them. Its hover and press states are now gated on
+`enabled:`, because a button that is genuinely off should not light up under a cursor. Two of the 15
+were the lights page reordering its groups with literal arrow glyphs when `HomeReorder` already
+existed. That leaves 57, and they are the legitimate ones: tappable rows, segmented cells and
+link-styled text.
+
+Left standing and measured, not fixed here: **13 raw `<input>`s** against 43 `HomeTextInput`, and
+five link-styled buttons written four ways. The inputs are the same disease as the selects and are
+worth their own sitting. The link buttons are contextual enough that one component would need a
+variant, a size and a colour override at every call site.
 
 ## Phase 6 · A shared calendar, and the time axis under it, XL *(new, 6 Sep 2026)*
 

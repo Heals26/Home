@@ -97,20 +97,14 @@
                                         {
                                             <div class="flex items-start gap-2 px-5 py-3">
                                                 <p class="flex-1 min-w-0 text-sm text-ink-100 whitespace-pre-wrap break-words">@_Field.Content</p>
-                                                <button type="button"
-                                                        class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-400 hover:text-ink-50 hover:bg-ink-800 active:scale-95 transition"
-                                                        title="Edit"
-                                                        aria-label="Edit this note"
-                                                        @onclick="() => this.OpenEditFieldModal(_Section.CardSectionID, _Field)">
+                                                <HomeButton IconOnly Variant="ghost" title="Edit" aria-label="Edit this note"
+                                                            OnClick="() => this.OpenEditFieldModal(_Section.CardSectionID, _Field)">
                                                     <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
-                                                </button>
-                                                <button type="button"
-                                                        class="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg text-ink-400 hover:text-red-400 hover:bg-ink-800 active:scale-95 transition"
-                                                        title="Delete"
-                                                        aria-label="Delete this note"
-                                                        @onclick="() => this.DeleteFieldAsync(_Field.ActivityContentID)">
+                                                </HomeButton>
+                                                <HomeButton IconOnly Variant="ghost" Class="hover:text-red-400" title="Delete" aria-label="Delete this note"
+                                                            OnClick="() => this.DeleteFieldAsync(_Field.ActivityContentID)">
                                                     <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
-                                                </button>
+                                                </HomeButton>
                                             </div>
                                         }
                                     </div>

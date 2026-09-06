@@ -53,20 +53,12 @@
         @if (this.m_View != BoardView)
         {
             <div class="flex items-center gap-2 px-6 pb-4 shrink-0">
-                <button type="button"
-                        class="h-12 w-12 flex items-center justify-center rounded-lg bg-ink-900 border border-ink-800 text-ink-300 hover:bg-ink-800 active:scale-95 transition"
-                        title="Earlier"
-                        aria-label="Earlier"
-                        @onclick="() => this.ShiftAnchor(-1)">
+                <HomeButton IconOnly Variant="secondary" title="Earlier" aria-label="Earlier" OnClick="() => this.ShiftAnchor(-1)">
                     <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
-                </button>
-                <button type="button"
-                        class="h-12 w-12 flex items-center justify-center rounded-lg bg-ink-900 border border-ink-800 text-ink-300 hover:bg-ink-800 active:scale-95 transition"
-                        title="Later"
-                        aria-label="Later"
-                        @onclick="() => this.ShiftAnchor(1)">
+                </HomeButton>
+                <HomeButton IconOnly Variant="secondary" title="Later" aria-label="Later" OnClick="() => this.ShiftAnchor(1)">
                     <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block"></span>
-                </button>
+                </HomeButton>
                 <HomeButton Size="sm" Variant="secondary" OnClick="this.GoToToday">Today</HomeButton>
                 <p class="text-sm text-ink-400 ml-2 truncate">@this.GetPeriodLabel()</p>
             </div>

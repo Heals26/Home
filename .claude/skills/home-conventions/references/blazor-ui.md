@@ -1,12 +1,12 @@
-# Home.WebUI — Blazor conventions
+# Home.WebUI Blazor conventions
 
 Blazor Server, .NET 8, Tailwind CSS. MudBlazor was deliberately stripped out
-(`Strip MudBlazor, add Tailwind, build custom component library`) — do not reintroduce a component
+(`Strip MudBlazor, add Tailwind, build custom component library`). Do not reintroduce a component
 library. Everything is either a `Home*` component or raw Tailwind utilities.
 
 ## Component layout
 
-Logic lives in a **`.razor.cs` code-behind partial class** beside the markup (decided 13 Aug 2026 —
+Logic lives in a **`.razor.cs` code-behind partial class** beside the markup (decided 13 Aug 2026,
 inline `@code` gets no C# language-server support in most editors). The `.razor` file keeps markup
 and directives (`@page`, `@inject`, `@typeparam`, `@using`); everything else goes in the partial:
 
@@ -60,7 +60,7 @@ public partial class RecipesPage
 }
 ```
 
-Fields group by purpose rather than strict alphabetical order — infrastructure handlers first, then
+Fields group by purpose rather than strict alphabetical order: infrastructure handlers first, then
 loaded data, then UI flags. Methods within `#region Methods` are ordered by call sequence, not
 alphabetically. This is the one place the alphabetisation rule relaxes.
 
@@ -72,16 +72,50 @@ Markup uses `this.` on every member: `@this.m_Recipes`, `@onclick="this.OpenCrea
 | Folder | Contents |
 |---|---|
 | `Components/Pages/{Area}/` | Routable pages (`@page`) and area-specific child components |
-| `Components/Shared/{Kind}/` | The `Home*` library — `Buttons`, `Cards`, `Feedback`, `Inputs`, `Modals`, `Navigation` |
+| `Components/Shared/{Kind}/` | The `Home*` library: `Buttons`, `Cards`, `Feedback`, `Inputs`, `Modals`, `Navigation` |
 | `Components/Layout/` | `MainLayout`, `NavigationBarLayout` |
 | `Components/Pages/Shared/ErrorHandlers/` | `ErrorHandler` |
 
 New shared components are named `Home{Thing}` and go in the matching `Kind` folder. The existing
-set: `HomeButton`, `HomeCard`, `HomeEmptyState`, `HomeLoader`, `HomeModal`, `HomeNavTile`,
-`HomePasswordInput`, `HomeSegmentedControl`, `HomeSlider`, `HomeTextInput`, `HomeToggle`,
-`HomeTopBar`.
+twenty-one, counted 6 Sep 2026: `HomeButton`, `HomeCard`, `HomeColourPicker`, `HomeColourWheel`,
+`HomeEmptyState`, `HomeFocusOnNavigate`, `HomeLoader`, `HomeMarkdown`, `HomeModal`, `HomeNavRail`,
+`HomePageTitle`, `HomePasswordInput`, `HomeReorder`, `HomeSegmentedControl`, `HomeSelect`,
+`HomeSlider`, `HomeTextArea`, `HomeTextInput`, `HomeThemeToggle`, `HomeToggle`, `HomeTopBar`.
 
-Add the namespace to `Components/_Imports.razor` — that file carries every `@using` for the app, plus
+### A form control gets a component before it gets a second call site
+
+**Copying a class list off a neighbouring field is the smell that says a component is missing.**
+That is how `<select>` came to be written six different ways across nine files, with three focus
+treatments, two colour schemes and two tap-target heights, and how twelve form controls ended up
+with no visible focus ring at all. A keyboard user cannot see where they are, which is the reason
+this matters and not tidiness.
+
+So: reach for the `Home*` component. If there isn't one for the control you need, write it, then
+use it. The rule that pays is extracting what is repeated **across files**, and a form control is
+repeated by definition.
+
+What that means in practice:
+
+| Instead of | Use |
+|---|---|
+| `<input>` | `HomeTextInput`, or `HomePasswordInput` |
+| `<textarea>` | `HomeTextArea` |
+| `<select>` | `HomeSelect`, or `HomeSegmentedControl` for two or three options worth showing at once |
+| a checkbox or a switch | `HomeToggle` |
+| a `<button>` wearing button styling by hand | `HomeButton` |
+| a square button holding one icon | `HomeButton` with `IconOnly` |
+| hand-rolled up and down arrows | `HomeReorder` |
+
+The exception is a whole row that happens to be tappable, which is a `<button>` with a row's
+styling rather than a button's. Forcing that into `HomeButton` reads worse than the markup it
+replaced. So does extracting a component that wraps a single element used once.
+
+`HomeSelect<TValue>` and `HomeSegmentedControl<TValue>` both take an `Options` list of a nested
+record, so the call site builds `List<HomeSelect<long?>.SelectOption>` rather than writing
+`<option>` tags. The value converts back through `BindConverter`, which means the page can hold a
+`long?` or an `int` instead of the string a raw `<select>` forces on it.
+
+Add the namespace to `Components/_Imports.razor`, which carries every `@using` for the app, plus
 the global `@attribute [Authorize]` and the two `@inject` lines.
 
 ## Dependency injection
@@ -113,12 +147,12 @@ private async Task LoadRecipesAsync()
 }
 ```
 
-- `SendRequestAsync<TRequest, TResponse>` — for a GET or DELETE with no body, `TRequest` is `object`
+- `SendRequestAsync<TRequest, TResponse>`, for a GET or DELETE with no body, `TRequest` is `object`
   and the first argument is `null!`.
 - Second argument is always an `ApiProvider.*()` call, never a hand-built URL.
 - Third is the error callback, always `e => this.m_ErrorHandler?.AddError(e)`.
 - Fourth is `this.m_CancellationTokenHandler.Token`.
-- A `null` result means the call failed and the error is already displayed — bail out, don't throw.
+- A `null` result means the call failed and the error is already displayed, so bail out, don't throw.
 
 Guard re-entrancy on submit handlers with a `m_{Verb}ing` flag:
 
@@ -146,7 +180,7 @@ bottom-right from `ValidationProblemDetails` returned by the API.
 
 ## Design system
 
-Dark by default — the app lives on an always-on kitchen tablet. A light theme was added
+Dark by default, because the app lives on an always-on kitchen tablet. A light theme was added
 15 Aug 2026 as an opt-in per-device preference (Settings → Appearance: Dark / Light / Match
 device); an unconfigured device still gets dark. Redesigned 13 Aug 2026: warm stone neutrals
 (the `ink` scale), an editorial display face, and one hue per pillar so colour encodes *place*
@@ -154,7 +188,7 @@ in the app.
 
 **Colours are tokens, never hexes.** The `ink` scale and pillar hues live in `input.css` as CSS
 custom properties on `:root` (dark) and `:root[data-theme="light"]`, and `tailwind.config.js`
-consumes them as `rgb(var(--token) / <alpha-value>)` — the alpha form matters, because opacity
+consumes them as `rgb(var(--token) / <alpha-value>)`. The alpha form matters, because opacity
 modifiers like `bg-week/10` are used everywhere and a plain `var()` breaks them. A new colour
 goes in as a token *pair*, never as a hex in the config, in markup, or in a `.razor.css`. The
 values below are the dark theme; each has a light counterpart darkened enough to clear 4.5:1 on
@@ -169,10 +203,10 @@ paper (sky at `#7dd3fc` is about 1.4:1 on white, so the hues could not simply be
 | Primary button | light-on-dark: `bg-ink-50 text-ink-950` |
 | Pillar hues | `recipes` apricot `#fb923c` · `shopping` sage `#a3b18a` · `week` sky `#7dd3fc` · `lights` amber `#fbbf24` · `household` neutral |
 | Danger | `red-600` (hover `red-500`) |
-| Display font | Fraunces (`font-display`) — page titles, greetings, modal titles |
+| Display font | Fraunces (`font-display`): page titles, greetings, modal titles |
 | Body font | Inter (`font-sans`) |
 
-Pillar hues are for identity only — nav active states, eyebrows, icons, count pills — never for
+Pillar hues are for identity only (nav active states, eyebrows, icons, count pills), never for
 large surfaces. Page headers use `HomeTopBar` with `Eyebrow`/`EyebrowClass` naming the pillar.
 Persistent navigation is `HomeNavRail` (left rail on `md:`, bottom bar below), so pages don't
 need back-to-home buttons; `ShowBack` is only for drill-in pages like a recipe's detail.
@@ -231,7 +265,7 @@ an icon means adding a `.home-icon-{name}` rule to `input.css` with both `mask-i
 cd Home.WebUI && npm run build:css
 ```
 
-This runs automatically as an MSBuild pre-build step, so a plain `dotnet build` regenerates it —
+This runs automatically as an MSBuild pre-build step, so a plain `dotnet build` regenerates it,
 which is why `app.css` shows up as a diff constantly. See `known-gaps.md`.
 
 ## Component parameters
@@ -244,7 +278,7 @@ which is why `app.css` shows up as a diff constantly. See `known-gaps.md`.
 [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
 ```
 
-- Attribute and property on **one line** — this differs from ordinary C# properties.
+- Attribute and property on **one line**, which differs from ordinary C# properties.
 - Variants and sizes are **strings**, not enums, resolved by a `switch` expression in a
   `private string GetClasses()` method with `_Base`, `_Size`, `_Variant` locals.
 - Purposeful render fragments get purposeful names (`ActionsContent`, `ActionContent`);
