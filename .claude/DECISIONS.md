@@ -5,6 +5,36 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-09-06 · The calendar is a phase of its own, and its planning is front-loaded
+
+`VISION.md` has four pillars and a shared calendar is not one of them. It becomes one now, as
+phase 6, ahead of per-user identity.
+
+Two reasons it earns a phase rather than a backlog line:
+
+- **The category this product sits in is led by the calendar.** Every always-on family screen a
+  household could buy instead of this leads with it, because a shared calendar is what a family
+  goes looking for. Without one, this is the second thing they check rather than the one
+  application they rely on, which is the opening sentence of `VISION.md`.
+- **A lot of what comes after it is time-shaped**, so the model underneath it gets used by more
+  than the calendar screen.
+
+The planning is deliberately the bulk of the phase, and nothing gets built before six questions
+have their own dated entries here. That is not process for its own sake: **the app already holds
+time four ways and they disagree.** `MealPlanEntry.Date` is a local calendar day, `Activity`'s
+dates are UTC instants, `LightSchedule` is a `DaysOfWeek` bitmask with a wall-clock `TimeOfDay`,
+and `Announcement` is an instant. A calendar added without reconciling those becomes a fourth
+model, and every later feature asking "what is on this day" then has to know which answer to
+trust. The six questions are listed in `ROADMAP.md`; the two that reach furthest are whether the
+calendar stores events or aggregates what already exists, and whether an event belongs to the
+household or to a person. **If events turn out to be per-person, the identity phase moves in front
+of the build**, because retrofitting an owner onto a populated table is the expensive version.
+
+Nothing is committed about recurrence or external sync yet, on purpose. Both are named in the
+roadmap as decisions the planning stage owes an answer to, including the option of answering
+"not this".
+
+
 ## 2026-09-05 · A session that has ended navigates to login, it does not report itself
 
 Refines the 19 Aug session entry, which said "a refused refresh surfaces as an error". That is
