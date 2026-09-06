@@ -1,6 +1,8 @@
 @using Home.WebUI.DataAccess.Recipes.Models
 
-<HomeCard>
+@* AllowOverflow because the suggestion list floats under the add box. Clipped to the card, it was
+   cut off at the bottom edge, and on a short list there is almost no card for it to open into. *@
+<HomeCard AllowOverflow="true">
     <TitleContent>
         @if (this.m_ShoppingList != null)
         {
@@ -54,14 +56,14 @@
                     <HomeTextInput @ref="this.m_QuickAddInput"
                                    Class="flex-1"
                                    AutoComplete="off"
-                                   Placeholder="Add an item — try 2 kg potatoes"
+                                   Placeholder="Add an item, try 2 kg potatoes"
                                    role="combobox"
                                    aria-autocomplete="list"
                                    aria-expanded="@(_Suggestions.Count > 0 ? "true" : "false")"
                                    @bind-Value="this.m_QuickAddText"
                                    OnKeyDown="this.OnQuickAddKeyDownAsync"
-                                   OnFocus="() => this.m_ShowSuggestions = true"
-                                   OnBlur="() => this.m_ShowSuggestions = false" />
+                                   OnFocus="this.OnQuickAddFocus"
+                                   OnBlur="this.OnQuickAddBlurAsync" />
                     <HomeButton Loading="this.m_AddingItem"
                                 Disabled="this.m_QuickAddText.Trim().Length == 0"
                                 OnClick="this.QuickAddAsync"
@@ -73,8 +75,13 @@
                 @if (_Suggestions.Count > 0)
                 {
                     @* preventDefault on mousedown keeps focus in the box, so picking one thing off
-                       the list leaves the cursor ready for the next. *@
-                    <div class="absolute z-20 left-0 right-0 top-full mt-1 bg-ink-900 border border-ink-700 rounded-lg shadow-2xl overflow-hidden">
+                       the list leaves the cursor ready for the next. It is belt and braces beside
+                       the deferred close in OnQuickAddBlurAsync, which is what a touch screen
+                       relies on.
+
+                       Capped and scrollable because the card no longer clips it: unbounded, a long
+                       history of shopping ran off the bottom of the screen and under the nav. *@
+                    <div class="absolute z-20 left-0 right-0 top-full mt-1 max-h-64 app-scrollable bg-ink-900 border border-ink-700 rounded-lg shadow-2xl">
                         <p class="px-4 pt-3 pb-1 text-xs font-medium uppercase tracking-wide text-ink-500">
                             @(this.m_QuickAddText.Trim().Length == 0 ? "You usually buy" : "Bought before")
                         </p>

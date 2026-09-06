@@ -34,6 +34,14 @@ public partial class ShoppingListComponent : IDisposable
     private string m_QuickAddText = string.Empty;
     private bool m_AddingItem;
     private bool m_ShowSuggestions;
+
+    /// <summary>
+    /// Long enough for the tap that chose a suggestion to reach it, short enough that the list is
+    /// gone before anyone notices it lingering.
+    /// </summary>
+    private static readonly TimeSpan s_SuggestionCloseDelay = TimeSpan.FromMilliseconds(150);
+
+    private int m_SuggestionCloseToken;
     private List<GetShoppingListItemSuggestionDto> m_Suggestions = [];
 
     private bool m_ShowTrolley;
@@ -160,11 +168,55 @@ public partial class ShoppingListComponent : IDisposable
     }
 
     /// <summary>
+    /// Opening the list again cancels any close that was waiting to happen.
+    /// </summary>
+    private void OnQuickAddFocus()
+    {
+        this.m_SuggestionCloseToken++;
+        this.m_ShowSuggestions = true;
+    }
+
+    /// <summary>
+    /// Closes the suggestion list, but not straight away. A tap on a suggestion blurs the text box
+    /// before it reaches the button, so a list that closes on blur removes the thing being tapped
+    /// and the tap lands on nothing. The desktop answer to this is the preventDefault on the
+    /// button's mousedown, which keeps focus in the box, and which a touch browser is entitled to
+    /// ignore because there was no mouse. Waiting instead does not depend on that.
+    /// <para>
+    /// The token is what makes it safe: anything that reopens the list, or closes it deliberately,
+    /// moves the token on and this close does nothing when it wakes up.
+    /// </para>
+    /// </summary>
+    private async Task OnQuickAddBlurAsync()
+    {
+        var _Token = ++this.m_SuggestionCloseToken;
+
+        try
+        {
+            await Task.Delay(s_SuggestionCloseDelay, this.CancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (_Token != this.m_SuggestionCloseToken)
+            return;
+
+        this.m_ShowSuggestions = false;
+
+        this.StateHasChanged();
+    }
+
+    /// <summary>
     /// An amount already typed beats the one it was last bought with — someone who wrote "2 kg pot"
     /// and then picked Potatoes wants two kilos, not whatever last week's shop had.
     /// </summary>
     private async Task AddSuggestionAsync(GetShoppingListItemSuggestionDto suggestion)
     {
+        // Chosen, so the pending close from the blur that came with the tap must not fire.
+        this.m_SuggestionCloseToken++;
+
         var _Typed = ShoppingListItemLogic.Parse(this.m_QuickAddText);
 
         await this.AddItemAsync(
