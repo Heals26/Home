@@ -85,10 +85,11 @@
                                     <div class="relative">
                                         @* The previous look is the undo. It reads as one, and applying it swaps
                                            back and forth because each apply re-captures what it replaced. *@
-                                        <button type="button"
-                                                class="flex items-center gap-2 min-h-[48px] rounded-xl border active:scale-95 transition-all px-4 py-2 disabled:opacity-60 @(_Scene.IsPreviousLook ? "border-dashed border-ink-600 bg-ink-900/60 hover:border-ink-400" : "border-ink-700 bg-ink-900 hover:border-lights/60")"
-                                                disabled="@(this.m_ApplyingSceneID != null)"
-                                                @onclick="() => this.ApplySceneAsync(_Scene)">
+                                        <HomeButton Variant="bare"
+                                                    Size="none"
+                                                    Class="@($"flex items-center gap-2 min-h-[48px] rounded-xl border enabled:active:scale-95 px-4 py-2 {(_Scene.IsPreviousLook ? "border-dashed border-ink-600 bg-ink-900/60 enabled:hover:border-ink-400" : "border-ink-700 bg-ink-900 enabled:hover:border-lights/60")}")"
+                                                    Disabled="this.m_ApplyingSceneID != null"
+                                                    OnClick="() => this.ApplySceneAsync(_Scene)">
                                             @if (this.m_ApplyingSceneID == _Scene.LightSceneID)
                                             {
                                                 <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin text-lights"></span>
@@ -99,17 +100,18 @@
                                             }
                                             <span class="text-sm font-medium @(_Scene.IsPreviousLook ? "text-ink-300" : "text-ink-100")">@_Scene.Name</span>
                                             <span class="text-xs text-ink-500">@_Scene.LightCount</span>
-                                        </button>
+                                        </HomeButton>
 
                                         @if (this.m_EditMode && !_Scene.IsPreviousLook)
                                         {
-                                            <button type="button"
-                                                    title="Delete scene"
-                                                    aria-label="@($"Delete {_Scene.Name}")"
-                                                    class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-ink-800 border border-ink-700 text-ink-400 hover:text-red-400 flex items-center justify-center"
-                                                    @onclick="() => this.DeleteSceneAsync(_Scene)">
+                                            <HomeButton Variant="bare"
+                                                        Size="none"
+                                                        Class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-ink-800 border border-ink-700 text-ink-400 enabled:hover:text-red-400 flex items-center justify-center"
+                                                        title="Delete scene"
+                                                        aria-label="@($"Delete {_Scene.Name}")"
+                                                        OnClick="() => this.DeleteSceneAsync(_Scene)">
                                                 <HomeIcon Name="x" Size="xs" />
-                                            </button>
+                                            </HomeButton>
 
                                             @* Ordering only appears in edit mode, where deleting already
                                                lives, and the everyday page stays a row of things to tap.
@@ -331,11 +333,12 @@
                 <div class="flex gap-1.5">
                     @foreach (var _Day in ScheduleDays)
                     {
-                        <button type="button"
-                                class="flex-1 min-h-[44px] rounded-lg border text-sm font-medium transition-colors @(this.IsDaySelected(_Day.Bit) ? "border-lights/60 bg-lights/10 text-lights" : "border-ink-700 text-ink-400 hover:text-ink-200")"
-                                @onclick="() => this.ToggleDay(_Day.Bit)">
+                        <HomeButton Variant="bare"
+                                    Size="none"
+                                    Class="@($"flex-1 min-h-[44px] rounded-lg border text-sm font-medium {(this.IsDaySelected(_Day.Bit) ? "border-lights/60 bg-lights/10 text-lights" : "border-ink-700 text-ink-400 enabled:hover:text-ink-200")}")"
+                                    OnClick="() => this.ToggleDay(_Day.Bit)">
                             @_Day.Label
-                        </button>
+                        </HomeButton>
                     }
                 </div>
             </div>
@@ -347,13 +350,12 @@
                 <div class="flex flex-col gap-1.5">
                     @foreach (var _Option in ConditionOptions)
                     {
-                        <button type="button"
-                                aria-pressed="@(this.m_ScheduleCondition == _Option.Value)"
-                                class="rounded-lg border px-4 py-3 min-h-[48px] text-left transition-colors @(this.m_ScheduleCondition == _Option.Value ? "border-lights/60 bg-lights/10" : "border-ink-700 hover:border-ink-600")"
-                                @onclick="() => this.m_ScheduleCondition = _Option.Value">
+                        <HomeListRow Class="@($"rounded-lg border enabled:hover:bg-transparent {(this.m_ScheduleCondition == _Option.Value ? "border-lights/60 bg-lights/10" : "border-ink-700 enabled:hover:border-ink-600")}")"
+                                     aria-pressed="@(this.m_ScheduleCondition == _Option.Value)"
+                                     OnClick="() => this.m_ScheduleCondition = _Option.Value">
                             <span class="block text-sm @(this.m_ScheduleCondition == _Option.Value ? "text-lights" : "text-ink-100")">@_Option.Label</span>
                             <span class="block text-xs text-ink-500 mt-0.5">@_Option.Detail</span>
-                        </button>
+                        </HomeListRow>
                     }
                 </div>
             </div>
@@ -394,12 +396,11 @@
                 <div class="flex flex-wrap gap-2">
                     @foreach (var _Preset in ColourPreset.All.Where(p => !p.IsWhite))
                     {
-                        <button type="button"
-                                title="@_Preset.Name"
-                                aria-label="@_Preset.Name"
-                                class="h-11 w-11 rounded-lg border transition-all active:scale-95 @(this.m_EffectPreset == _Preset ? "border-lights ring-2 ring-lights/40" : "border-ink-700 hover:border-ink-500")"
-                                style="background: @_Preset.Css"
-                                @onclick="() => this.m_EffectPreset = _Preset"></button>
+                        <HomeSwatch Selected="this.m_EffectPreset == _Preset"
+                                    Style="@($"background: {_Preset.Css}")"
+                                    title="@_Preset.Name"
+                                    aria-label="@_Preset.Name"
+                                    OnClick="() => this.m_EffectPreset = _Preset" />
                     }
                 </div>
             </div>

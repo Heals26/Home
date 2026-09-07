@@ -15,22 +15,24 @@
      @ondrop="() => this.OnDrop.InvokeAsync()">
     @foreach (var _Entry in this.Entries)
     {
-        <button type="button"
-                class="flex max-w-full min-w-0 items-center rounded-full border border-ink-700 bg-ink-800 px-3 py-1.5 min-h-[32px] text-left transition-colors hover:border-ink-600 hover:bg-ink-700 disabled:opacity-50"
-                draggable="true"
-                disabled="@this.Moving"
-                title="@_Entry.Name"
-                aria-label="@($"{_Entry.Name}, open meal options")"
-                @ondragstart="() => this.OnDragStart.InvokeAsync(_Entry)"
-                @onclick="() => this.OnSelect.InvokeAsync(_Entry)">
+        <HomeButton Variant="bare"
+                    Size="none"
+                    Class="flex max-w-full min-w-0 items-center rounded-full border border-ink-700 bg-ink-800 px-3 py-1.5 min-h-[32px] text-left enabled:hover:border-ink-600 enabled:hover:bg-ink-700"
+                    draggable="true"
+                    Disabled="this.Moving"
+                    title="@_Entry.Name"
+                    aria-label="@($"{_Entry.Name}, open meal options")"
+                    OnDragStart="() => this.OnDragStart.InvokeAsync(_Entry)"
+                    OnClick="() => this.OnSelect.InvokeAsync(_Entry)">
             <span class="truncate text-xs text-ink-100">@_Entry.Name</span>
-        </button>
+        </HomeButton>
     }
-    <button type="button"
-            aria-label="@this.AddLabel"
-            title="@this.AddLabel"
-            class="h-9 w-9 shrink-0 rounded-lg border border-ink-800 text-ink-500 transition-all hover:border-ink-600 hover:text-ink-50 active:scale-95"
-            @onclick="this.OnPlan">
+    <HomeButton Variant="bare"
+                Size="none"
+                Class="h-9 w-9 shrink-0 rounded-lg border border-ink-800 text-ink-500 flex items-center justify-center enabled:hover:border-ink-600 enabled:hover:text-ink-50 enabled:active:scale-95"
+                aria-label="@this.AddLabel"
+                title="@this.AddLabel"
+                OnClick="this.OnPlan">
         <HomeIcon Name="plus" Size="sm" />
-    </button>
+    </HomeButton>
 </div>

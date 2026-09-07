@@ -37,13 +37,12 @@
                 <div class="flex flex-wrap gap-2 mb-4">
                     @foreach (var _Timer in this.m_Timers)
                     {
-                        <button type="button"
-                                aria-label="@($"Dismiss {_Timer.Label} timer")"
-                                class="flex items-center gap-2 rounded-full border px-4 py-2 min-h-[44px] text-sm font-semibold transition-colors @(_Timer.IsFinished ? "border-recipes bg-recipes/20 text-recipes animate-pulse" : "border-ink-700 bg-ink-800 text-ink-100")"
-                                @onclick="() => this.DismissTimer(_Timer)">
+                        <HomeChip Class="@(_Timer.IsFinished ? "border-recipes bg-recipes/20 text-recipes animate-pulse font-semibold" : "font-semibold")"
+                                  aria-label="@($"Dismiss {_Timer.Label} timer")"
+                                  OnClick="() => this.DismissTimer(_Timer)">
                             <HomeIcon Name="clock" />
                             @(_Timer.IsFinished ? $"{_Timer.Label} — done!" : $"{_Timer.Label} · {this.Remaining(_Timer)}")
-                        </button>
+                        </HomeChip>
                     }
                 </div>
             }
@@ -158,11 +157,12 @@
             <div class="grid grid-cols-3 gap-2">
                 @foreach (var _Minutes in s_TimerPresets)
                 {
-                    <button type="button"
-                            class="min-h-[56px] rounded-xl border border-ink-700 bg-ink-800 text-base font-semibold text-ink-50 hover:border-recipes/60 active:scale-95 transition-all"
-                            @onclick="() => this.StartPresetTimer(_Minutes)">
+                    <HomeButton Variant="bare"
+                                Size="none"
+                                Class="min-h-[56px] rounded-xl border border-ink-700 bg-ink-800 text-base font-semibold text-ink-50 enabled:hover:border-recipes/60 enabled:active:scale-95"
+                                OnClick="() => this.StartPresetTimer(_Minutes)">
                         @FormatMinutes(_Minutes)
-                    </button>
+                    </HomeButton>
                 }
             </div>
 

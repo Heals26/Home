@@ -58,14 +58,12 @@
         {
             <div class="px-6 pb-4 shrink-0">
                 <div class="flex gap-2 overflow-x-auto app-scrollable pb-1">
-                    <button type="button"
-                            class="shrink-0 rounded-full border px-4 min-h-[40px] text-sm font-medium transition-colors active:scale-95 @(this.m_MealSlotFilter == null ? "border-ink-50 bg-ink-50 text-ink-950" : "border-ink-800 bg-ink-900 text-ink-400 hover:text-ink-100 hover:border-ink-700")"
-                            @onclick="() => this.FilterByMealAsync(null)">All</button>
+                    <HomeChip Selected="this.m_MealSlotFilter == null"
+                              OnClick="() => this.FilterByMealAsync(null)">All</HomeChip>
                     @foreach (var _MealSlot in this.m_MealSlots)
                     {
-                        <button type="button"
-                                class="shrink-0 rounded-full border px-4 min-h-[40px] text-sm font-medium transition-colors active:scale-95 @(this.m_MealSlotFilter == _MealSlot.MealSlotID ? "border-ink-50 bg-ink-50 text-ink-950" : "border-ink-800 bg-ink-900 text-ink-400 hover:text-ink-100 hover:border-ink-700")"
-                                @onclick="() => this.FilterByMealAsync(_MealSlot.MealSlotID)">@_MealSlot.Name</button>
+                        <HomeChip Selected="this.m_MealSlotFilter == _MealSlot.MealSlotID"
+                                  OnClick="() => this.FilterByMealAsync(_MealSlot.MealSlotID)">@_MealSlot.Name</HomeChip>
                     }
                 </div>
             </div>
@@ -116,14 +114,13 @@
                                     <p class="text-xs text-ink-600 truncate mt-1">@this.DescribeMealSlots(_Recipe.MealSlots)</p>
                                 }
                             </div>
-                            <button class="shrink-0 text-ink-600 hover:text-red-400 transition-colors p-2 min-h-[44px] min-w-[44px]"
-                                    type="button"
-                                    title="Delete recipe"
-                                    aria-label="@($"Delete {_Recipe.Name}")"
-                                    @onclick="() => this.DeleteRecipeAsync(_Recipe.RecipeID)"
-                                    @onclick:stopPropagation="true">
+                            <HomeButton IconOnly Size="sm" Variant="ghost" StopPropagation
+                                        Class="text-ink-600 enabled:hover:text-red-400"
+                                        title="Delete recipe"
+                                        aria-label="@($"Delete {_Recipe.Name}")"
+                                        OnClick="() => this.DeleteRecipeAsync(_Recipe.RecipeID)">
                                 <HomeIcon Name="trash" />
-                            </button>
+                            </HomeButton>
                         </div>
                     }
                 </div>
@@ -152,14 +149,13 @@
                                     <p class="text-xs text-ink-600 truncate">@this.DescribeMealSlots(_Recipe.MealSlots)</p>
                                 }
                             </div>
-                            <button class="absolute top-2 right-2 rounded-lg bg-ink-950/70 p-2 min-h-[44px] min-w-[44px] text-ink-300 hover:text-red-400 transition-colors"
-                                    type="button"
-                                    title="Delete recipe"
-                                    aria-label="@($"Delete {_Recipe.Name}")"
-                                    @onclick="() => this.DeleteRecipeAsync(_Recipe.RecipeID)"
-                                    @onclick:stopPropagation="true">
+                            <HomeButton IconOnly Size="sm" Variant="bare" StopPropagation
+                                        Class="absolute top-2 right-2 rounded-lg bg-ink-950/70 text-ink-300 flex items-center justify-center enabled:hover:text-red-400"
+                                        title="Delete recipe"
+                                        aria-label="@($"Delete {_Recipe.Name}")"
+                                        OnClick="() => this.DeleteRecipeAsync(_Recipe.RecipeID)">
                                 <HomeIcon Name="trash" />
-                            </button>
+                            </HomeButton>
                         </div>
                     }
                 </div>

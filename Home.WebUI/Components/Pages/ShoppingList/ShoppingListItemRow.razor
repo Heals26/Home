@@ -26,22 +26,22 @@
         <span aria-hidden="true"
               class="pointer-events-none absolute left-0 right-0 h-0.5 bg-shopping @(this.DropLine == ShoppingListDropLine.Above ? "-top-px" : "-bottom-px")"></span>
     }
-    <button type="button"
-            class="shrink-0 flex items-center justify-center pl-5 pr-3 py-3 min-h-[56px]"
-            aria-pressed="@this.Item.InBasket"
-            aria-label="@(this.Item.InBasket ? $"Untick {this.Item.Name}" : $"Tick {this.Item.Name}")"
-            @onclick="() => this.OnToggle.InvokeAsync(this.Item)">
+    <HomeButton Variant="bare"
+                Size="none"
+                Class="shrink-0 flex items-center justify-center pl-5 pr-3 py-3 min-h-[56px]"
+                aria-pressed="@this.Item.InBasket"
+                aria-label="@(this.Item.InBasket ? $"Untick {this.Item.Name}" : $"Tick {this.Item.Name}")"
+                OnClick="() => this.OnToggle.InvokeAsync(this.Item)">
         <span class="h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors @(this.Item.InBasket ? "border-shopping bg-shopping/20" : "border-ink-600")">
             @if (this.Item.InBasket)
             {
                 <HomeIcon Name="check" Size="sm" Class="text-shopping" />
             }
         </span>
-    </button>
-    <button type="button"
-            class="flex-1 min-w-0 pr-5 py-3 min-h-[56px] text-left"
-            aria-label="Edit @this.Item.Name"
-            @onclick="() => this.OnEdit.InvokeAsync(this.Item)">
+    </HomeButton>
+    <HomeListRow Class="flex-1 min-w-0 pr-5 pl-0 min-h-[56px] enabled:hover:bg-transparent"
+                 aria-label="@($"Edit {this.Item.Name}")"
+                 OnClick="() => this.OnEdit.InvokeAsync(this.Item)">
         <span class="block text-sm font-medium truncate @(this.Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@this.Item.Name</span>
         @if (this.Detail().Length > 0)
         {
@@ -57,7 +57,7 @@
                 <span class="min-w-0 line-clamp-2">@this.Item.Note</span>
             </span>
         }
-    </button>
+    </HomeListRow>
     @* Only what is still to get can be reordered, because the order of the trolley is history, and the
        list you walk the shop with is the one worth arranging. *@
     @if (this.ShowReorder)

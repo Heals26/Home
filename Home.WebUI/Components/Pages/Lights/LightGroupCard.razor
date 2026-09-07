@@ -33,11 +33,12 @@
             <div class="flex gap-2">
                 @if (this.Group.Lights.Any(l => l.IsConnected))
                 {
-                    <button type="button" title="Effects" aria-label="Effects"
-                            class="h-9 px-3 rounded-lg text-ink-400 hover:text-lights hover:bg-ink-800 transition-colors"
-                            @onclick="() => this.OnEffects.InvokeAsync()">
+                    <HomeButton Variant="ghost" Size="sm"
+                                Class="h-9 px-3 enabled:hover:text-lights"
+                                title="Effects" aria-label="Effects"
+                                OnClick="() => this.OnEffects.InvokeAsync()">
                         <HomeIcon Name="sparkles" />
-                    </button>
+                    </HomeButton>
                 }
                 <HomeButton Size="sm" Variant="ghost" OnClick="() => this.OnGroupPower.InvokeAsync(false)">All Off</HomeButton>
                 <HomeButton Size="sm" Variant="ghost" OnClick="() => this.OnGroupPower.InvokeAsync(true)">All On</HomeButton>

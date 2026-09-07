@@ -27,48 +27,39 @@
                                   OnOpen="() => this.OnOpen.InvokeAsync(_Activity)"
                                   OnToggleComplete="isComplete => this.OnToggleComplete.InvokeAsync(new ActivityCompletion(_Activity, isComplete))">
                         <FooterContent>
-                            <button type="button"
-                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 enabled:hover:bg-ink-700 enabled:active:scale-95 transition disabled:opacity-25"
-                                    disabled="@(_Previous == null || this.Saving)"
-                                    title="@_PreviousLabel"
-                                    aria-label="@_PreviousLabel"
-                                    @onclick="() => this.MoveToColumnAsync(_Activity, _Previous)">
+                            <HomeCardAction Divided="false"
+                                            Disabled="_Previous == null || this.Saving"
+                                            title="@_PreviousLabel"
+                                            aria-label="@_PreviousLabel"
+                                            OnClick="() => this.MoveToColumnAsync(_Activity, _Previous)">
                                 <HomeIcon Name="chevron-left" Size="lg" />
-                            </button>
+                            </HomeCardAction>
                             @* Sideways moves the card between columns, up and down moves it within
                                one. Two axes, two pairs of chevrons, and the same gesture on a
                                tablet as on a desktop. *@
-                            <button type="button"
-                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 enabled:hover:bg-ink-700 enabled:active:scale-95 transition disabled:opacity-25"
-                                    disabled="@(this.Saving || _Cards.IndexOf(_Activity) == 0)"
-                                    title="Move up"
-                                    aria-label="@($"Move {_Activity.Title} up")"
-                                    @onclick="() => this.MoveWithinColumnAsync(_Activity, _Column.StateID, -1)">
+                            <HomeCardAction Disabled="this.Saving || _Cards.IndexOf(_Activity) == 0"
+                                            title="Move up"
+                                            aria-label="@($"Move {_Activity.Title} up")"
+                                            OnClick="() => this.MoveWithinColumnAsync(_Activity, _Column.StateID, -1)">
                                 <HomeIcon Name="chevron-left" Size="lg" Class="rotate-90" />
-                            </button>
-                            <button type="button"
-                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 enabled:hover:bg-ink-700 enabled:active:scale-95 transition disabled:opacity-25"
-                                    disabled="@(this.Saving || _Cards.IndexOf(_Activity) == _Cards.Count - 1)"
-                                    title="Move down"
-                                    aria-label="@($"Move {_Activity.Title} down")"
-                                    @onclick="() => this.MoveWithinColumnAsync(_Activity, _Column.StateID, 1)">
+                            </HomeCardAction>
+                            <HomeCardAction Disabled="this.Saving || _Cards.IndexOf(_Activity) == _Cards.Count - 1"
+                                            title="Move down"
+                                            aria-label="@($"Move {_Activity.Title} down")"
+                                            OnClick="() => this.MoveWithinColumnAsync(_Activity, _Column.StateID, 1)">
                                 <HomeIcon Name="chevron-right" Size="lg" Class="rotate-90" />
-                            </button>
-                            <button type="button"
-                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 hover:bg-ink-700 active:scale-95 transition"
-                                    title="Edit @_Activity.Title"
-                                    aria-label="Edit @_Activity.Title"
-                                    @onclick="() => this.OnEdit.InvokeAsync(_Activity)">
+                            </HomeCardAction>
+                            <HomeCardAction title="@($"Edit {_Activity.Title}")"
+                                            aria-label="@($"Edit {_Activity.Title}")"
+                                            OnClick="() => this.OnEdit.InvokeAsync(_Activity)">
                                 <HomeIcon Name="pencil" />
-                            </button>
-                            <button type="button"
-                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 enabled:hover:bg-ink-700 enabled:active:scale-95 transition disabled:opacity-25"
-                                    disabled="@(_Next == null || this.Saving)"
-                                    title="@_NextLabel"
-                                    aria-label="@_NextLabel"
-                                    @onclick="() => this.MoveToColumnAsync(_Activity, _Next)">
+                            </HomeCardAction>
+                            <HomeCardAction Disabled="_Next == null || this.Saving"
+                                            title="@_NextLabel"
+                                            aria-label="@_NextLabel"
+                                            OnClick="() => this.MoveToColumnAsync(_Activity, _Next)">
                                 <HomeIcon Name="chevron-right" Size="lg" />
-                            </button>
+                            </HomeCardAction>
                         </FooterContent>
                     </ActivityCard>
                 }
@@ -81,18 +72,16 @@
                     {
                         <div class="text-center py-6">
                             <p class="text-xs text-ink-600">Nothing here matches</p>
-                            <button type="button"
-                                    class="mt-2 text-xs text-week underline underline-offset-4 min-h-[44px] px-2"
-                                    @onclick="() => this.OnClearFilters.InvokeAsync()">Clear the filters</button>
+                            <HomeButton Variant="link" Size="sm" Class="mt-2 text-xs text-week px-2"
+                                        OnClick="() => this.OnClearFilters.InvokeAsync()">Clear the filters</HomeButton>
                         </div>
                     }
                     else if (_Index == 0)
                     {
                         <div class="text-center py-6">
                             <p class="text-xs text-ink-600">Nothing here yet</p>
-                            <button type="button"
-                                    class="mt-2 text-xs text-week underline underline-offset-4 min-h-[44px] px-2"
-                                    @onclick="() => this.OnAdd.InvokeAsync()">Add the first one</button>
+                            <HomeButton Variant="link" Size="sm" Class="mt-2 text-xs text-week px-2"
+                                        OnClick="() => this.OnAdd.InvokeAsync()">Add the first one</HomeButton>
                         </div>
                     }
                     else

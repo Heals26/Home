@@ -14,17 +14,18 @@
             {
                 var _IsSelected = this.SelectedTagIDs.Contains(_Tag.TagID);
 
-                <button type="button"
-                        class="@GetChipClasses(_IsSelected)"
-                        style="background-color:@ActivityBoardLogic.SafeColour(_Tag.Colour)"
-                        aria-pressed="@(_IsSelected ? "true" : "false")"
-                        @onclick="() => this.OnToggle.InvokeAsync(_Tag.TagID)">
+                <HomeButton Variant="bare"
+                                Size="none"
+                                Class="@GetChipClasses(_IsSelected)"
+                                style="@($"background-color:{ActivityBoardLogic.SafeColour(_Tag.Colour)}")"
+                                aria-pressed="@(_IsSelected ? "true" : "false")"
+                                OnClick="() => this.OnToggle.InvokeAsync(_Tag.TagID)">
                     @if (_IsSelected)
                     {
                         <HomeIcon Name="check" Size="sm" />
                     }
                     @_Tag.Name
-                </button>
+                </HomeButton>
             }
         </div>
     }

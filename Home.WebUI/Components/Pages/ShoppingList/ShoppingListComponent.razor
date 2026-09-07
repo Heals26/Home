@@ -87,10 +87,9 @@
                         </p>
                         @foreach (var _Suggestion in _Suggestions)
                         {
-                            <button type="button"
-                                    class="w-full flex items-center gap-3 px-4 py-3 min-h-[48px] text-left hover:bg-ink-800 transition-colors"
-                                    @onmousedown:preventDefault="true"
-                                    @onclick="() => this.AddSuggestionAsync(_Suggestion)">
+                            <HomeListRow KeepFocusOnMouseDown
+                                         Class="flex items-center gap-3"
+                                         OnClick="() => this.AddSuggestionAsync(_Suggestion)">
                                 <HomeIcon Name="plus" Class="shrink-0 text-shopping" />
                                 <span class="flex-1 min-w-0 truncate text-sm text-ink-50">@_Suggestion.Name</span>
                                 <span class="shrink-0 text-xs text-ink-500">@ShoppingListItemLogic.DescribeAmount(_Suggestion.Amount, _Suggestion.Unit, _Suggestion.UnitAbbreviation)</span>
@@ -98,7 +97,7 @@
                                 {
                                     <span class="shrink-0 text-xs text-ink-400">$@_Suggestion.Cost.Value.ToString("F2")</span>
                                 }
-                            </button>
+                            </HomeListRow>
                         }
                     </div>
                 }
@@ -150,17 +149,17 @@
                 @if (_InTrolley.Count > 0)
                 {
                     <div class="-mx-5 mt-4 border-t border-ink-800">
-                        <button type="button"
-                                class="w-full flex items-center gap-3 px-5 py-3 min-h-[48px] text-left hover:bg-ink-800/50 transition-colors"
-                                aria-expanded="@this.m_ShowTrolley"
-                                @onclick="() => this.m_ShowTrolley = !this.m_ShowTrolley">
+                        <HomeListRow Inset
+                                     Class="flex items-center gap-3 enabled:hover:bg-ink-800/50"
+                                     aria-expanded="@this.m_ShowTrolley"
+                                     OnClick="() => this.m_ShowTrolley = !this.m_ShowTrolley">
                             <HomeIcon Name="chevron-down" Class="@($"shrink-0 text-ink-500 transition-transform {(this.m_ShowTrolley ? "" : "-rotate-90")}")" />
                             <span class="flex-1 text-sm font-medium text-ink-300">In the trolley (@_InTrolley.Count)</span>
                             @if (this.TrolleyTotal() > 0)
                             {
                                 <span class="text-sm font-medium text-shopping">$@this.TrolleyTotal().ToString("F2")</span>
                             }
-                        </button>
+                        </HomeListRow>
                         @if (this.m_ShowTrolley)
                         {
                             <div class="divide-y divide-ink-800 border-t border-ink-800">

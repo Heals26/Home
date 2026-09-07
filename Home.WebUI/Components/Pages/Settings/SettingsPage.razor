@@ -45,10 +45,10 @@
                                 <div class="divide-y divide-ink-800 -mx-5">
                                     @foreach (var _User in this.m_Users)
                                     {
-                                        <button type="button"
-                                                class="w-full flex items-center gap-3 px-5 py-2.5 min-h-[56px] text-left hover:bg-ink-800/50 active:bg-ink-800 transition-colors"
-                                                aria-label="@($"Edit {_User.FullName}")"
-                                                @onclick="() => this.OpenEditMemberModal(_User)">
+                                        <HomeListRow Inset
+                                                     Class="flex items-center gap-3 py-2.5 min-h-[56px] enabled:hover:bg-ink-800/50"
+                                                     aria-label="@($"Edit {_User.FullName}")"
+                                                     OnClick="() => this.OpenEditMemberModal(_User)">
                                             <span class="h-9 w-9 shrink-0 rounded-full bg-ink-800 text-ink-300 text-xs font-semibold flex items-center justify-center">@Initials(_User.FullName)</span>
                                             <div class="min-w-0 flex-1">
                                                 <p class="text-sm font-medium text-ink-50 truncate">@_User.FullName</p>
@@ -58,7 +58,7 @@
                                             {
                                                 <span class="shrink-0 rounded-full border border-ink-700 px-2.5 py-0.5 text-xs text-ink-400">You</span>
                                             }
-                                        </button>
+                                        </HomeListRow>
                                     }
                                 </div>
                                 <div class="flex justify-end">
@@ -200,11 +200,11 @@
 
                                 @if (!this.m_ShowAllDevices && this.HiddenDeviceCount() > 0)
                                 {
-                                    <button type="button"
-                                            class="text-sm text-ink-400 hover:text-ink-50 underline underline-offset-4 self-start min-h-[44px]"
-                                            @onclick="() => this.m_ShowAllDevices = true">
+                                    <HomeButton Variant="link" Size="sm"
+                                                Class="text-sm text-ink-400 self-start min-h-[44px]"
+                                                OnClick="() => this.m_ShowAllDevices = true">
                                         Show @this.HiddenDeviceCount() more
-                                    </button>
+                                    </HomeButton>
                                 }
 
                                 @* The explanation only earns its place next to a control that needs

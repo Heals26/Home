@@ -151,12 +151,12 @@
                     {
                         <div class="py-3">
                             <div class="flex items-center gap-2">
-                                <button type="button"
-                                        class="h-12 w-12 shrink-0 rounded-lg active:scale-95 transition"
-                                        style="background-color:@ActivityBoardLogic.SafeColour(_Tag.Colour)"
-                                        title="Change colour"
-                                        aria-label="Change the colour of @_Tag.Name"
-                                        @onclick="() => this.ToggleTagColour(_Tag)"></button>
+                                <HomeSwatch Size="lg"
+                                            Class="border-0"
+                                            Style="@($"background-color:{ActivityBoardLogic.SafeColour(_Tag.Colour)}")"
+                                            title="Change colour"
+                                            aria-label="@($"Change the colour of {_Tag.Name}")"
+                                            OnClick="() => this.ToggleTagColour(_Tag)" />
                                 <input type="text"
                                        autocomplete="off"
                                        spellcheck="true"

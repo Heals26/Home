@@ -187,15 +187,16 @@
                             </div>
                             @* The whole tile is a link, so this has to swallow the click or ticking
                                a chore off would navigate away from the board instead. *@
-                            <button type="button"
-                                    class="h-9 w-9 shrink-0 rounded-full border-2 border-ink-600 hover:border-shopping flex items-center justify-center transition-colors"
-                                    title="@($"Mark {_Activity.Title} as done")"
-                                    aria-label="@($"Mark {_Activity.Title} as done")"
-                                    @onclick="() => this.CompleteActivityAsync(_Activity)"
-                                    @onclick:stopPropagation="true"
-                                    @onclick:preventDefault="true">
+                            <HomeButton Variant="bare"
+                                        Size="none"
+                                        StopPropagation
+                                        PreventDefault
+                                        Class="h-9 w-9 shrink-0 rounded-full border-2 border-ink-600 enabled:hover:border-shopping flex items-center justify-center"
+                                        title="@($"Mark {_Activity.Title} as done")"
+                                        aria-label="@($"Mark {_Activity.Title} as done")"
+                                        OnClick="() => this.CompleteActivityAsync(_Activity)">
                                 <HomeIcon Name="check" Class="text-ink-500" />
-                            </button>
+                            </HomeButton>
                         </div>
                     }
                 </div>
@@ -328,11 +329,12 @@
                     {
                         <span class="flex items-center gap-1 max-w-full rounded-full border border-ink-700 bg-ink-800 pl-3 pr-1 py-1">
                             <span class="text-sm text-ink-100 truncate">@_Note.Content</span>
-                            <button type="button" aria-label="Remove note"
-                                    class="h-8 w-8 rounded-full text-ink-500 hover:text-red-400"
-                                    @onclick="() => this.DeleteAnnouncementAsync(_Note)">
+                            <HomeButton IconOnly Size="xs" Variant="bare"
+                                        Class="rounded-full text-ink-500 enabled:hover:text-red-400 flex items-center justify-center"
+                                        aria-label="Remove note"
+                                        OnClick="() => this.DeleteAnnouncementAsync(_Note)">
                                 <HomeIcon Name="x" Size="sm" />
-                            </button>
+                            </HomeButton>
                         </span>
                     }
                     @if (this.m_Announcements.Count == 0)

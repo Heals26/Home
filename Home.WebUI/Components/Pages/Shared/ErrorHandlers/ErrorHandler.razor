@@ -18,11 +18,12 @@
                         <p class="text-red-300 text-xs mt-0.5">@_FieldError</p>
                     }
                 </div>
-                <button @onclick="() => this.RemoveError(_Error)"
-                        class="text-ink-500 hover:text-ink-200 shrink-0 mt-0.5"
-                        type="button">
+                <HomeButton Variant="bare"
+                            Size="none"
+                            Class="text-ink-500 enabled:hover:text-ink-200 shrink-0 mt-0.5"
+                            OnClick="() => this.RemoveError(_Error)">
                     <HomeIcon Name="x" />
-                </button>
+                </HomeButton>
             </div>
         }
     </div>

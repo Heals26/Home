@@ -1,0 +1,12 @@
+@* A whole row of a list that is tappable. Not a HomeButton shape: it fills its container, aligns
+   left, and answers with a fill rather than a raised surface. *@
+
+<HomeButton @attributes="this.AdditionalAttributes"
+            Variant="bare"
+            Size="none"
+            Class="@this.GetClasses()"
+            Disabled="this.Disabled"
+            KeepFocusOnMouseDown="this.KeepFocusOnMouseDown"
+            OnClick="this.OnClick">
+    @this.ChildContent
+</HomeButton>

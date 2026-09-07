@@ -1,0 +1,10 @@
+@* A square of colour you can pick. The colour is inline because it comes from the household's own
+   data, not from the palette. *@
+
+<HomeButton @attributes="this.AdditionalAttributes"
+            Variant="bare"
+            Size="none"
+            Class="@this.GetClasses()"
+            style="@this.Style"
+            Disabled="this.Disabled"
+            OnClick="this.OnClick" />

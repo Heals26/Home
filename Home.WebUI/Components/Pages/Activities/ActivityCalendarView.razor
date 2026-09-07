@@ -23,13 +23,12 @@
                                   OnOpen="() => this.OnOpen.InvokeAsync(_Activity)"
                                   OnToggleComplete="isComplete => this.OnToggleComplete.InvokeAsync(new ActivityCompletion(_Activity, isComplete))">
                         <FooterContent>
-                            <button type="button"
-                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 hover:bg-ink-700 active:scale-95 transition"
-                                    title="Edit @_Activity.Title"
-                                    aria-label="Edit @_Activity.Title"
-                                    @onclick="() => this.OnEdit.InvokeAsync(_Activity)">
+                            <HomeCardAction Divided="false"
+                                            title="@($"Edit {_Activity.Title}")"
+                                            aria-label="@($"Edit {_Activity.Title}")"
+                                            OnClick="() => this.OnEdit.InvokeAsync(_Activity)">
                                 <HomeIcon Name="pencil" />
-                            </button>
+                            </HomeCardAction>
                         </FooterContent>
                     </ActivityCard>
                 }
@@ -63,13 +62,12 @@
                                   OnOpen="() => this.OnOpen.InvokeAsync(_Activity)"
                                   OnToggleComplete="isComplete => this.OnToggleComplete.InvokeAsync(new ActivityCompletion(_Activity, isComplete))">
                         <FooterContent>
-                            <button type="button"
-                                    class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 hover:bg-ink-700 active:scale-95 transition"
-                                    title="Edit @_Activity.Title"
-                                    aria-label="Edit @_Activity.Title"
-                                    @onclick="() => this.OnEdit.InvokeAsync(_Activity)">
+                            <HomeCardAction Divided="false"
+                                            title="@($"Edit {_Activity.Title}")"
+                                            aria-label="@($"Edit {_Activity.Title}")"
+                                            OnClick="() => this.OnEdit.InvokeAsync(_Activity)">
                                 <HomeIcon Name="pencil" />
-                            </button>
+                            </HomeCardAction>
                         </FooterContent>
                     </ActivityCard>
                 }

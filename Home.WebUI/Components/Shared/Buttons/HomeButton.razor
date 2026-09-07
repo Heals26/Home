@@ -1,5 +1,6 @@
-﻿@* Reusable button. Variants: primary (default), secondary, ghost, danger. Sizes: sm, md, lg (default md).
-   IconOnly makes it a square of that size, for a button whose content is one icon. *@
+﻿@* The only <button> in the app. Variants: primary (default), secondary, ghost, link, danger, bare.
+   Sizes: sm, md, lg, none. IconOnly makes it a square of that size. Anything shaped differently
+   from a button (a row, a chip, a swatch) composes this with Variant="bare". *@
 
 @* Disabled WITH a DisabledReason, the button stays tappable and answers with the reason rather
    than being a silent dead tap. The message hangs off the button itself, so no layout changes. *@
@@ -8,6 +9,10 @@
         class="@this.GetClasses()"
         disabled="@(this.IsHardDisabled() || this.Loading)"
         @onclick="this.HandleClickAsync"
+        @onclick:stopPropagation="this.StopPropagation"
+        @onclick:preventDefault="this.PreventDefault"
+        @ondragstart="this.OnDragStart"
+        @onmousedown:preventDefault="this.KeepFocusOnMouseDown"
         @attributes="this.AdditionalAttributes">
     @if (this.Loading)
     {

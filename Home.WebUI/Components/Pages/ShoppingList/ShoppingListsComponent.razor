@@ -36,32 +36,31 @@
                          data-drop-target=""
                          @ondragenter="() => this.Drag?.HoverList(_List.ShoppingListID)"
                          @ondrop="() => this.DropOnListAsync(_List)">
-                        <button class="flex-1 min-w-0 text-left px-5 py-4"
-                                @onclick="() => this.SelectList(_List)">
+                        <HomeListRow Inset Class="flex-1 min-w-0 py-4" OnClick="() => this.SelectList(_List)">
                             <p class="text-sm font-medium truncate @(this.ShoppingListID == _List.ShoppingListID ? "text-shopping" : "text-ink-50")">@_List.Name</p>
                             <p class="text-xs text-ink-500 mt-0.5">
                                 @_List.ItemCount items@(_List.IsArchived ? " · archived" : string.Empty)
                             </p>
-                        </button>
+                        </HomeListRow>
                         @* Always visible rather than revealed on hover, because a finger has no hover, so
                            a hover-revealed control needs two touches before it does anything. *@
-                        <button class="px-3 py-4 min-h-[48px] text-ink-600 hover:text-ink-100 transition-colors"
-                                type="button"
-                                title="@($"Manage {_List.Name}")"
-                                aria-label="@($"Manage {_List.Name}")"
-                                @onclick="() => this.OpenManageModal(_List)">
+                        <HomeButton IconOnly Size="sm" Variant="ghost"
+                                    Class="text-ink-600 enabled:hover:text-ink-100"
+                                    title="@($"Manage {_List.Name}")"
+                                    aria-label="@($"Manage {_List.Name}")"
+                                    OnClick="() => this.OpenManageModal(_List)">
                             <HomeIcon Name="cog" />
-                        </button>
+                        </HomeButton>
                     </div>
                 }
 
                 @if (this.ArchivedCount() > 0)
                 {
-                    <button class="w-full px-5 py-3 min-h-[48px] text-left text-xs text-ink-500 hover:text-ink-200 transition-colors"
-                            type="button"
-                            @onclick="() => this.m_ShowArchived = !this.m_ShowArchived">
+                    <HomeListRow Inset
+                                 Class="text-xs text-ink-500 enabled:hover:text-ink-200 enabled:hover:bg-transparent"
+                                 OnClick="() => this.m_ShowArchived = !this.m_ShowArchived">
                         @(this.m_ShowArchived ? "Hide" : "Show") @this.ArchivedCount() archived
-                    </button>
+                    </HomeListRow>
                 }
             </div>
         }
