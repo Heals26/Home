@@ -22,13 +22,11 @@
 
                     <div class="py-3">
                         <div class="flex items-center gap-2">
-                            <input type="text"
-                                   autocomplete="off"
-                                   spellcheck="true"
-                                   aria-label="Column name"
-                                   value="@_State.Name"
-                                   @onchange="e => this.RenameColumnAsync(_State, e.Value?.ToString())"
-                                   class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
+                            <HomeTextInput Class="flex-1 min-w-0"
+                                            AutoComplete="off"
+                                            aria-label="Column name"
+                                            Value="@_State.Name"
+                                            OnChange="name => this.RenameColumnAsync(_State, name)" />
                             <HomeButton IconOnly Variant="ghost"
                                         Disabled="@(_IsFirst || this.m_Saving)"
                                         title="Move left"
@@ -95,13 +93,11 @@
                     var _SectionIndex = _Index;
 
                     <div class="py-3 flex items-center gap-2">
-                        <input type="text"
-                               autocomplete="off"
-                               spellcheck="true"
-                               aria-label="Section heading"
-                               value="@_Section.Name"
-                               @onchange="e => this.RenameSectionAsync(_Section, e.Value?.ToString())"
-                               class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
+                        <HomeTextInput Class="flex-1 min-w-0"
+                                        AutoComplete="off"
+                                        aria-label="Section heading"
+                                        Value="@_Section.Name"
+                                        OnChange="name => this.RenameSectionAsync(_Section, name)" />
 
                         <HomeReorder Label="@_Section.Name"
                                      CanMoveUp="@(!this.m_Saving && _SectionIndex > 0)"
@@ -157,13 +153,11 @@
                                             title="Change colour"
                                             aria-label="@($"Change the colour of {_Tag.Name}")"
                                             OnClick="() => this.ToggleTagColour(_Tag)" />
-                                <input type="text"
-                                       autocomplete="off"
-                                       spellcheck="true"
-                                       aria-label="Label name"
-                                       value="@_Tag.Name"
-                                       @onchange="e => this.RenameTagAsync(_Tag, e.Value?.ToString())"
-                                       class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
+                                <HomeTextInput Class="flex-1 min-w-0"
+                                                AutoComplete="off"
+                                                aria-label="Label name"
+                                                Value="@_Tag.Name"
+                                                OnChange="name => this.RenameTagAsync(_Tag, name)" />
                                 <HomeButton IconOnly Variant="ghost" Class="hover:text-red-400"
                                             title="Delete label"
                                             aria-label="@($"Delete {_Tag.Name}")"

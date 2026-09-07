@@ -154,13 +154,12 @@
                     @if (this.m_EditMode)
                     {
                         <div class="flex gap-2">
-                            <input class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 min-h-[48px]"
-                                   maxlength="250"
-                                   placeholder="New group name"
-                                   autocomplete="off"
-                                   aria-label="New group name"
-                                   @bind="this.m_NewGroupName"
-                                   @bind:event="oninput" />
+                            <HomeTextInput Class="flex-1 min-w-0"
+                                            maxlength="250"
+                                            Placeholder="New group name"
+                                            AutoComplete="off"
+                                            aria-label="New group name"
+                                            @bind-Value="this.m_NewGroupName" />
 
                             <HomeButton OnClick="this.CreateGroupAsync"
                                         Disabled="@string.IsNullOrWhiteSpace(this.m_NewGroupName)"
@@ -312,11 +311,10 @@
             @if (this.m_ScheduleTrigger == LightScheduleTrigger.Time)
             {
                 <div class="flex flex-col gap-1.5">
-                    <label for="schedule-time" class="text-sm font-medium text-ink-300">Time</label>
-                    <input id="schedule-time" type="time"
-                           class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
-                           value="@this.m_ScheduleTime"
-                           @onchange="e => this.m_ScheduleTime = e.Value?.ToString() ?? string.Empty" />
+                    <HomeTextInput Label="Time"
+                                   Type="time"
+                                   Value="@this.m_ScheduleTime"
+                                   OnChange="time => this.m_ScheduleTime = time" />
                 </div>
             }
             else

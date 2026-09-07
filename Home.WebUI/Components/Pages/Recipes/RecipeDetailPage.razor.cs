@@ -828,9 +828,9 @@ public partial class RecipeDetailPage : IDisposable
             this.m_CancellationTokenHandler.Token);
     }
 
-    private void ToggleIngredient(long ingredientID, ChangeEventArgs args)
+    private void ToggleIngredient(long ingredientID, bool ticked)
     {
-        if (args.Value is true)
+        if (ticked)
             _ = this.m_SelectedIngredientIDs.Add(ingredientID);
         else
             _ = this.m_SelectedIngredientIDs.Remove(ingredientID);

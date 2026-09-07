@@ -4,12 +4,12 @@
     <div class="flex items-center justify-between mb-3 px-1 gap-2">
         @if (this.EditMode)
         {
-            <input class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
-                   value="@this.Group.Name"
-                   maxlength="250"
-                   autocomplete="off"
-                   aria-label="Group name"
-                   @onchange="this.OnNameChanged" />
+            <HomeTextInput Class="flex-1 min-w-0"
+                            Value="@this.Group.Name"
+                            maxlength="250"
+                            AutoComplete="off"
+                            aria-label="Group name"
+                            OnChange="this.OnNameChanged" />
 
             <HomeReorder Label="@this.Group.Name"
                          CanMoveUp="!this.IsFirst"

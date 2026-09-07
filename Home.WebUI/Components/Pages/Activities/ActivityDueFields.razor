@@ -3,15 +3,11 @@
    midnight. *@
 
 <div class="grid grid-cols-2 gap-3">
-    <div class="flex flex-col gap-1.5">
-        <label for="@this.DateID" class="text-sm font-medium text-ink-300">Due date</label>
-        <input id="@this.DateID"
-               type="date"
-               autocomplete="off"
-               value="@this.DateValue"
-               @onchange="this.OnDateChangedAsync"
-               class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
-    </div>
+    <HomeTextInput Label="Due date"
+                   Type="date"
+                   AutoComplete="off"
+                   Value="@this.DateValue"
+                   OnChange="this.OnDateChangedAsync" />
     <div class="flex flex-col gap-1.5">
         @if (this.Date.HasValue)
         {
@@ -21,13 +17,11 @@
             </div>
             @if (this.HasTime)
             {
-                <input id="@this.TimeID"
-                       type="time"
-                       autocomplete="off"
-                       aria-label="Due time"
-                       value="@this.Time"
-                       @onchange="this.OnTimeChangedAsync"
-                       class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 min-h-[48px]" />
+                <HomeTextInput Type="time"
+                               AutoComplete="off"
+                               aria-label="Due time"
+                               Value="@this.Time"
+                               OnChange="this.OnTimeChangedAsync" />
             }
         }
     </div>

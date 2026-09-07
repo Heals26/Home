@@ -1,0 +1,11 @@
+@* A tick box and its label, both tappable. For an on/off setting use HomeToggle. *@
+
+<label class="@this.GetLabelClasses()">
+    <input @attributes="this.AdditionalAttributes"
+           type="checkbox"
+           class="h-5 w-5 shrink-0 rounded border-ink-600 bg-ink-800 accent-ink-50 focus:outline-none focus:ring-2 focus:ring-ink-300 disabled:opacity-50"
+           checked="@this.Value"
+           disabled="@this.Disabled"
+           @onchange="this.OnCheckedChangedAsync" />
+    @this.ChildContent
+</label>

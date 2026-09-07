@@ -30,9 +30,9 @@ public partial class LightGroupCard
 
     #region Methods
 
-    private async Task OnNameChanged(ChangeEventArgs e)
+    private async Task OnNameChanged(string value)
     {
-        var _Name = e.Value?.ToString()?.Trim();
+        var _Name = value.Trim();
 
         if (!string.IsNullOrWhiteSpace(_Name) && _Name != this.Group.Name)
             await this.OnRenamed.InvokeAsync(_Name);

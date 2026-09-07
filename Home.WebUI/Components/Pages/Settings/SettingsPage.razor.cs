@@ -13,6 +13,7 @@ using Home.WebUI.Infrastructure.Security;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Globalization;
 
 namespace Home.WebUI.Components.Pages.Settings;
 
@@ -32,8 +33,8 @@ public partial class SettingsPage : IDisposable
     private bool m_HouseholdSaved;
 
     // Location
-    private double? m_Latitude;
-    private double? m_Longitude;
+    private string m_Latitude = string.Empty;
+    private string m_Longitude = string.Empty;
     private bool m_SavingLocation;
     private bool m_LocationSaved;
 
@@ -127,8 +128,8 @@ public partial class SettingsPage : IDisposable
 
         this.m_Settings = _Result;
         this.m_Name = _Result.Name;
-        this.m_Latitude = _Result.Latitude;
-        this.m_Longitude = _Result.Longitude;
+        this.m_Latitude = _Result.Latitude?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        this.m_Longitude = _Result.Longitude?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
     }
 
     private async Task SaveHouseholdAsync()
@@ -163,8 +164,8 @@ public partial class SettingsPage : IDisposable
         var _Result = await this.ApiAccess.SendRequestAsync<UpdateHouseholdSettingsWebAppRequest, bool>(
             new()
             {
-                Latitude = new(this.m_Latitude),
-                Longitude = new(this.m_Longitude)
+                Latitude = new(ParseCoordinate(this.m_Latitude)),
+                Longitude = new(ParseCoordinate(this.m_Longitude))
             },
             ApiProvider.UpdateHouseholdSettings(),
             e => this.m_ErrorHandler?.AddError(e),
@@ -518,6 +519,15 @@ public partial class SettingsPage : IDisposable
 
     private void SignOut()
         => this.NavigationManager.NavigateTo("/logout", true);
+
+    /// <summary>
+    /// Invariant, because a device set to a locale that writes -33,86 would otherwise send a
+    /// latitude the API reads as a different place.
+    /// </summary>
+    private static double? ParseCoordinate(string value)
+        => double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var _Parsed)
+            ? _Parsed
+            : null;
 
     #endregion Methods
 

@@ -364,12 +364,11 @@
             <div class="grid grid-cols-2 gap-3">
                 <HomeTextInput Label="New meal" AutoComplete="off" @bind-Value="this.m_NewMealName" Placeholder="e.g. Supper" />
                 <div class="flex flex-col gap-1.5">
-                    <label for="new-meal-time" class="text-sm font-medium text-ink-300">Usual time (optional)</label>
-                    <input id="new-meal-time" type="time"
-                           autocomplete="off"
-                           class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-ink-300 focus:border-transparent"
-                           value="@this.m_NewMealStartsAt"
-                           @onchange="e => this.m_NewMealStartsAt = e.Value?.ToString() ?? string.Empty" />
+                    <HomeTextInput Label="Usual time (optional)"
+                                   Type="time"
+                                   AutoComplete="off"
+                                   Value="@this.m_NewMealStartsAt"
+                                   OnChange="time => this.m_NewMealStartsAt = time" />
                 </div>
             </div>
             <div class="mt-3 flex justify-end">

@@ -12,25 +12,18 @@ public partial class ActivityDueFields
     [Parameter] public EventCallback<DateTime?> DateChanged { get; set; }
     [Parameter] public bool HasTime { get; set; }
     [Parameter] public EventCallback<bool> HasTimeChanged { get; set; }
-    /// <summary>
-    /// Prefixes the field IDs so two of these can sit on the same page without colliding.
-    /// </summary>
-    [Parameter] public string IdPrefix { get; set; } = "activity";
     [Parameter] public string Time { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> TimeChanged { get; set; }
 
-    private string DateID => $"{this.IdPrefix}-due-date";
     private string DateValue => this.Date?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? string.Empty;
-    private string TimeID => $"{this.IdPrefix}-due-time";
 
     #endregion Properties
 
     #region Methods
 
-    private async Task OnDateChangedAsync(ChangeEventArgs e)
+    private async Task OnDateChangedAsync(string value)
     {
-        var _Value = e.Value?.ToString();
-        var _Date = DateTime.TryParse(_Value, CultureInfo.InvariantCulture, out var _Parsed)
+        var _Date = DateTime.TryParse(value, CultureInfo.InvariantCulture, out var _Parsed)
             ? _Parsed
             : (DateTime?)null;
 
@@ -44,8 +37,8 @@ public partial class ActivityDueFields
     private async Task HasTimeChangedAsync(bool hasTime)
         => await this.HasTimeChanged.InvokeAsync(hasTime);
 
-    private async Task OnTimeChangedAsync(ChangeEventArgs e)
-        => await this.TimeChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+    private async Task OnTimeChangedAsync(string value)
+        => await this.TimeChanged.InvokeAsync(value);
 
     #endregion Methods
 

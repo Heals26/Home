@@ -20,6 +20,7 @@
            aria-invalid="@(string.IsNullOrEmpty(this.Error) ? null : "true")"
            aria-describedby="@(string.IsNullOrEmpty(this.Error) ? null : this.ErrorID)"
            @oninput="this.OnInputChanged"
+           @onchange="this.OnChanged"
            @onkeydown="this.OnKeyDown"
            @onfocus="this.OnFocus"
            @onblur="this.OnBlur"

@@ -73,20 +73,20 @@
                     <ChildContent>
                         <div class="flex flex-col gap-4">
                             <div class="grid grid-cols-2 gap-3">
-                                <div class="flex flex-col gap-1.5">
-                                    <label for="settings-latitude" class="text-sm font-medium text-ink-300">Latitude</label>
-                                    <input id="settings-latitude" type="number" step="any" min="-90" max="90"
-                                           name="latitude" autocomplete="off" inputmode="decimal"
-                                           class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
-                                           @bind="this.m_Latitude" />
-                                </div>
-                                <div class="flex flex-col gap-1.5">
-                                    <label for="settings-longitude" class="text-sm font-medium text-ink-300">Longitude</label>
-                                    <input id="settings-longitude" type="number" step="any" min="-180" max="180"
-                                           name="longitude" autocomplete="off" inputmode="decimal"
-                                           class="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 min-h-[48px]"
-                                           @bind="this.m_Longitude" />
-                                </div>
+                                <HomeTextInput Label="Latitude"
+                                               Type="number"
+                                               step="any" min="-90" max="90"
+                                               Name="latitude"
+                                               AutoComplete="off"
+                                               InputMode="decimal"
+                                               @bind-Value="this.m_Latitude" />
+                                <HomeTextInput Label="Longitude"
+                                               Type="number"
+                                               step="any" min="-180" max="180"
+                                               Name="longitude"
+                                               AutoComplete="off"
+                                               InputMode="decimal"
+                                               @bind-Value="this.m_Longitude" />
                             </div>
                             <p class="text-xs text-ink-500">
                                 Decimal degrees, with south and west negative. Brisbane is roughly -27.47, 153.03.

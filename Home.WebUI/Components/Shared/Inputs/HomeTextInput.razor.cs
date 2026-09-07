@@ -38,6 +38,11 @@ public partial class HomeTextInput
     /// </summary>
     [Parameter] public string? Name { get; set; }
     [Parameter] public EventCallback OnBlur { get; set; }
+    /// <summary>
+    /// Fires when the field is left, not on every keystroke, for a value whose change costs a
+    /// round trip. ValueChanged still fires as you type.
+    /// </summary>
+    [Parameter] public EventCallback<string> OnChange { get; set; }
     [Parameter] public EventCallback OnFocus { get; set; }
     [Parameter] public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
     [Parameter] public string? Placeholder { get; set; }
@@ -58,6 +63,9 @@ public partial class HomeTextInput
 
     private async Task OnInputChanged(ChangeEventArgs e)
         => await this.ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+
+    private async Task OnChanged(ChangeEventArgs e)
+        => await this.OnChange.InvokeAsync(e.Value?.ToString() ?? string.Empty);
 
     private string GetInputClasses()
     {

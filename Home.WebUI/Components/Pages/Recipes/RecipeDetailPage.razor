@@ -474,11 +474,8 @@
                 <div class="max-h-56 app-scrollable divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
                     @foreach (var _Ingredient in this.m_Recipe.Ingredients)
                     {
-                        <label class="flex items-center gap-3 px-4 py-3 min-h-[48px] cursor-pointer hover:bg-ink-800/60 transition-colors">
-                            <input type="checkbox"
-                                   class="h-5 w-5 shrink-0 rounded border-ink-600 bg-ink-800 accent-ink-50"
-                                   checked="@this.m_SelectedIngredientIDs.Contains(_Ingredient.IngredientID)"
-                                   @onchange="e => this.ToggleIngredient(_Ingredient.IngredientID, e)" />
+                        <HomeCheckbox Value="this.m_SelectedIngredientIDs.Contains(_Ingredient.IngredientID)"
+                                      ValueChanged="ticked => this.ToggleIngredient(_Ingredient.IngredientID, ticked)">
                             <span class="min-w-0 flex-1 flex items-baseline gap-3">
                                 @if (this.ShowsIngredientAmounts())
                                 {
@@ -486,7 +483,7 @@
                                 }
                                 <span class="flex-1 min-w-0 text-sm text-ink-50 truncate">@_Ingredient.Name</span>
                             </span>
-                        </label>
+                        </HomeCheckbox>
                     }
                 </div>
             </div>

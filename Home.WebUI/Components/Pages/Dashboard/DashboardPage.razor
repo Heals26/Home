@@ -343,14 +343,13 @@
                     }
                 </div>
                 <div class="flex gap-2">
-                    <input class="flex-1 min-w-0 bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-sm text-ink-50 placeholder-ink-500 min-h-[48px]"
-                           maxlength="500"
-                           placeholder="e.g. Bin night tonight"
-                           autocomplete="off"
-                           aria-label="New family note"
-                           @bind="this.m_NewAnnouncement"
-                           @bind:event="oninput"
-                           @onkeydown="this.OnAnnouncementKeyDown" />
+                    <HomeTextInput Class="flex-1 min-w-0"
+                                   maxlength="500"
+                                   Placeholder="e.g. Bin night tonight"
+                                   AutoComplete="off"
+                                   aria-label="New family note"
+                                   @bind-Value="this.m_NewAnnouncement"
+                                   OnKeyDown="this.OnAnnouncementKeyDown" />
                     <HomeButton OnClick="this.PostAnnouncementAsync"
                                 Loading="this.m_PostingAnnouncement"
                                 Disabled="@string.IsNullOrWhiteSpace(this.m_NewAnnouncement)">Pin it</HomeButton>
