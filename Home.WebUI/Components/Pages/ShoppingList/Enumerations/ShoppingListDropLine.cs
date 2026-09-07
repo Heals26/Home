@@ -1,4 +1,4 @@
-namespace Home.WebUI.Components.Pages.ShoppingList;
+namespace Home.WebUI.Components.Pages.ShoppingList.Enumerations;
 
 /// <summary>
 /// Where the line showing a pending drop is drawn on a row, which is where the dragged item will

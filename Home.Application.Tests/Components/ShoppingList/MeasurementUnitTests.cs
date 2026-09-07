@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using Home.Application.Infrastructure.Recipes;
 using Home.Domain.Enumerations;
-using Home.WebUI.Components.Pages.ShoppingList;
 using Home.WebUI.DataAccess.Recipes.Models;
+using Home.WebUI.Infrastructure.ShoppingLists;
 
 namespace Home.Application.Tests.Components.ShoppingList;
 

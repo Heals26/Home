@@ -1,6 +1,6 @@
 ﻿using Home.WebUI.DataAccess.Recipes.Models;
 
-namespace Home.WebUI.Components.Pages.Recipes;
+namespace Home.WebUI.Infrastructure.Recipes;
 
 /// <summary>
 /// The one place that decides how a recipe's numbers read, so the book, the detail page,

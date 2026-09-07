@@ -2,7 +2,7 @@
 using Home.WebUI.DataAccess.Activities.Models;
 using System.Globalization;
 
-namespace Home.WebUI.Components.Pages.Activities;
+namespace Home.WebUI.Infrastructure.Activities;
 
 /// <summary>
 /// The shaping the board, the week, the day and the card detail all need — kept in one place so

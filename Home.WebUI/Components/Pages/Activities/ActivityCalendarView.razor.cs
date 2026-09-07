@@ -1,4 +1,6 @@
 ﻿using Home.WebUI.DataAccess.Activities.Models;
+using Home.WebUI.Components.Pages.Activities.Models;
+using Home.WebUI.Infrastructure.Activities;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Activities;

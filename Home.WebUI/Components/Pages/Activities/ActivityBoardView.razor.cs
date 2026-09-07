@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.DataAccess.Activities.Models;
+using Home.WebUI.Components.Pages.Activities.Models;
 using Home.WebUI.DataAccess.ActivityStates.GetActivityStates;
 using Microsoft.AspNetCore.Components;
 

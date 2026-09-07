@@ -1,6 +1,6 @@
 ﻿using Home.WebUI.DataAccess.Activities.Models;
 
-namespace Home.WebUI.Components.Pages.Activities;
+namespace Home.WebUI.Components.Pages.Activities.Models;
 
 /// <summary>
 /// Two cards in the same column whose places are being swapped. Carrying the neighbour rather than

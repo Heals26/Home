@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Home.WebUI.DataAccess.Recipes.Models;
 using Home.WebUI.DataAccess.ShoppingLists.Models;
 
-namespace Home.WebUI.Components.Pages.ShoppingList;
+namespace Home.WebUI.Infrastructure.ShoppingLists;
 
 /// <summary>
 /// The one place that turns what someone typed into an item, and an item back into words. Adding
@@ -147,11 +147,3 @@ public static partial class ShoppingListItemLogic
     #endregion Methods
 
 }
-
-/// <summary>
-/// What someone typed, split into the parts an item is made of.
-/// </summary>
-/// <param name="Amount">How much to buy, or null when no amount was written.</param>
-/// <param name="Name">The thing to buy, always exactly what was typed minus the amount.</param>
-/// <param name="Unit">The measurement the amount is in, or null for a plain count.</param>
-public record ParsedShoppingListItem(decimal? Amount, string Name, long? Unit);

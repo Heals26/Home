@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
-using Home.WebUI.Components.Pages.ShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.Models;
+using Home.WebUI.Infrastructure.ShoppingLists;
 
 namespace Home.Application.Tests.Components.ShoppingList;
 

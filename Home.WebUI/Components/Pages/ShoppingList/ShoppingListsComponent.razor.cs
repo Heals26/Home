@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Pages.ShoppingList.Models;
 using Home.WebUI.DataAccess.ShoppingLists.CreateShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.DuplicateShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists;

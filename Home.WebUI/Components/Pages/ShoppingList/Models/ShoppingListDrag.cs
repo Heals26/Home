@@ -1,6 +1,6 @@
 using Home.WebUI.DataAccess.ShoppingLists.Models;
 
-namespace Home.WebUI.Components.Pages.ShoppingList;
+namespace Home.WebUI.Components.Pages.ShoppingList.Models;
 
 /// <summary>
 /// What is currently being dragged around the shopping page, cascaded from the page so the two

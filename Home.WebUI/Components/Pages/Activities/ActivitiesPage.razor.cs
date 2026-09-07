@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Pages.Activities.Models;
 using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.Activities.CreateActivity;
 using Home.WebUI.DataAccess.Activities.GetActivities;
@@ -11,6 +12,7 @@ using Home.WebUI.DataAccess.Tags.GetTags;
 using Home.WebUI.DataAccess.Tags.Models;
 using Home.WebUI.DataAccess.Users.GetUsers;
 using Home.WebUI.DataAccess.Users.Models;
+using Home.WebUI.Infrastructure.Activities;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;

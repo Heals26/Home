@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Pages.MealPlan.Models;
 using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.MealPlanEntries.CreateMealPlanEntry;
 using Home.WebUI.DataAccess.MealPlanEntries.GetMealPlanEntries;

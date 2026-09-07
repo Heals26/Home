@@ -1,4 +1,5 @@
 ﻿using Home.WebUI.Infrastructure.CancellationTokens;
+using Home.WebUI.Components.Pages.ShoppingList.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.ShoppingList;

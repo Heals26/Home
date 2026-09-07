@@ -1,4 +1,6 @@
 ﻿using Home.WebUI.Components.Pages.Shared.ErrorHandlers;
+using Home.WebUI.Components.Pages.ShoppingList.Enumerations;
+using Home.WebUI.Components.Pages.ShoppingList.Models;
 using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.Recipes.Models;
 using Home.WebUI.DataAccess.ShoppingListItems.CreateShoppingListItem;
@@ -10,6 +12,7 @@ using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.ApiProviders.Helpers;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.ShoppingLists;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 

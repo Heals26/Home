@@ -1,4 +1,6 @@
+using Home.WebUI.Components.Pages.ShoppingList.Enumerations;
 using Home.WebUI.DataAccess.ShoppingLists.Models;
+using Home.WebUI.Infrastructure.ShoppingLists;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.ShoppingList;
