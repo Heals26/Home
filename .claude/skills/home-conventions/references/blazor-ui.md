@@ -77,43 +77,72 @@ Markup uses `this.` on every member: `@this.m_Recipes`, `@onclick="this.OpenCrea
 | `Components/Pages/Shared/ErrorHandlers/` | `ErrorHandler` |
 
 New shared components are named `Home{Thing}` and go in the matching `Kind` folder. The existing
-twenty-one, counted 6 Sep 2026: `HomeButton`, `HomeCard`, `HomeColourPicker`, `HomeColourWheel`,
-`HomeEmptyState`, `HomeFocusOnNavigate`, `HomeLoader`, `HomeMarkdown`, `HomeModal`, `HomeNavRail`,
+twenty-seven, counted 7 Sep 2026: `HomeButton`, `HomeCard`, `HomeCardAction`, `HomeCheckbox`,
+`HomeChip`, `HomeColourPicker`, `HomeColourWheel`, `HomeEmptyState`, `HomeFocusOnNavigate`,
+`HomeIcon`, `HomeListRow`, `HomeLoader`, `HomeMarkdown`, `HomeModal`, `HomeNavRail`,
 `HomePageTitle`, `HomePasswordInput`, `HomeReorder`, `HomeSegmentedControl`, `HomeSelect`,
-`HomeSlider`, `HomeTextArea`, `HomeTextInput`, `HomeThemeToggle`, `HomeToggle`, `HomeTopBar`.
+`HomeSlider`, `HomeSwatch`, `HomeTextArea`, `HomeTextInput`, `HomeThemeToggle`, `HomeToggle`,
+`HomeTopBar`.
 
-### A form control gets a component before it gets a second call site
+### A raw HTML tag belongs in one file
 
-**Copying a class list off a neighbouring field is the smell that says a component is missing.**
-That is how `<select>` came to be written six different ways across nine files, with three focus
-treatments, two colour schemes and two tap-target heights, and how twelve form controls ended up
-with no visible focus ring at all. A keyboard user cannot see where they are, which is the reason
-this matters and not tidiness.
+**Every tag the app draws more than once has a component, and that component is the only place the
+tag is written.** There are exactly two `<button>` elements in `Home.WebUI`: the one inside
+`HomeButton`, and the reconnect overlay in `App.razor`, which Blazor shows when the circuit is gone
+and there is nothing left to render a component with. Everything else composes `HomeButton`.
 
-So: reach for the `Home*` component. If there isn't one for the control you need, write it, then
-use it. The rule that pays is extracting what is repeated **across files**, and a form control is
-repeated by definition.
+That is what keeps the app consistent. A change to how a button presses, focuses or disables lands
+everywhere at once, and no screen can quietly invent a fourth way to draw the same control.
 
-What that means in practice:
+Copying a class list off a neighbouring element is the smell that says a component is missing. That
+is how `<select>` came to be written six different ways across nine files, and how twelve form
+controls ended up with no visible focus ring at all. A keyboard user cannot see where they are,
+which is the reason this matters and not tidiness.
 
 | Instead of | Use |
 |---|---|
+| `<button>` | `HomeButton` |
+| a square button holding one icon | `HomeButton` with `IconOnly` |
+| a button that reads as a link | `HomeButton` with `Variant="link"` |
+| `<span class="home-icon ...">` | `HomeIcon` |
 | `<input>` | `HomeTextInput`, or `HomePasswordInput` |
+| a checkbox | `HomeCheckbox` |
+| an on/off setting | `HomeToggle` |
 | `<textarea>` | `HomeTextArea` |
 | `<select>` | `HomeSelect`, or `HomeSegmentedControl` for two or three options worth showing at once |
-| a checkbox or a switch | `HomeToggle` |
-| a `<button>` wearing button styling by hand | `HomeButton` |
-| a square button holding one icon | `HomeButton` with `IconOnly` |
+| a whole row of a list that is tappable | `HomeListRow` |
+| a pill that narrows a list | `HomeChip` |
+| one cell of the action strip on a card | `HomeCardAction` |
+| a square of colour you can pick | `HomeSwatch` |
 | hand-rolled up and down arrows | `HomeReorder` |
 
-The exception is a whole row that happens to be tappable, which is a `<button>` with a row's
-styling rather than a button's. Forcing that into `HomeButton` reads worse than the markup it
-replaced. So does extracting a component that wraps a single element used once.
+Nothing on that list is a new `<button>`. `HomeListRow`, `HomeChip`, `HomeCardAction` and
+`HomeSwatch` all render a `HomeButton` with `Variant="bare"` and `Size="none"`, which hands them the
+focus ring and the disabled handling and lets them draw the rest.
+
+Three things to know before adding to it:
+
+- **A Blazor directive cannot ride through `@attributes`.** A plain attribute (`title`, `aria-*`,
+  `draggable`, `style`) forwards to a component fine. `@onclick:stopPropagation`,
+  `@onmousedown:preventDefault` and `@ondragstart` do not, which is why `HomeButton` carries
+  `StopPropagation`, `PreventDefault`, `KeepFocusOnMouseDown` and `OnDragStart` as parameters.
+- **A component attribute cannot mix literal text with C#.** `aria-label="Edit @x.Name"` is legal
+  on an element and a compile error on a component. Write `aria-label="@($"Edit {x.Name}")"`.
+- **Two utilities for the same property collide on CSS order, not attribute order.** `HomeButton`
+  drops its own `relative` when the caller's `Class` names a position, because Tailwind emits
+  `relative` after `absolute` and would otherwise strand a button meant to float.
+
+The exception to all of it is extracting a component that wraps a single element used once. That
+reads worse than the markup it replaced.
 
 `HomeSelect<TValue>` and `HomeSegmentedControl<TValue>` both take an `Options` list of a nested
 record, so the call site builds `List<HomeSelect<long?>.SelectOption>` rather than writing
 `<option>` tags. The value converts back through `BindConverter`, which means the page can hold a
 `long?` or an `int` instead of the string a raw `<select>` forces on it.
+
+`HomeIcon` builds `home-icon-{Name}` at render time, so `home-icon-` is safelisted in
+`tailwind.config.js`. Without that the scanner cannot see the class and every icon renders as a
+bare grey square.
 
 Add the namespace to `Components/_Imports.razor`, which carries every `@using` for the app, plus
 the global `@attribute [Authorize]` and the two `@inject` lines.

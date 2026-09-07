@@ -1,11 +1,11 @@
 ﻿@* The household's labels as tappable chips. The colour is chosen by the family at runtime, so it
-   can only ever be an inline style — never a class name. *@
+   can only ever be an inline style, never a class name. *@
 
 <div class="flex flex-col gap-1.5">
     <p class="text-sm font-medium text-ink-300">Labels</p>
     @if (this.Tags.Count == 0)
     {
-        <p class="text-sm text-ink-600">No labels yet — add some under "Set up board".</p>
+        <p class="text-sm text-ink-600">No labels yet. Add some under "Set up board".</p>
     }
     else
     {

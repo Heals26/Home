@@ -1,12 +1,12 @@
 @inject IJSRuntime JS
 
-@* Modal dialog — slides up on mobile/tablet, centred on desktop. Use @bind-Visible for two-way binding.
+@* Modal dialog: slides up on mobile/tablet, centred on desktop. Use @bind-Visible for two-way binding.
 
    Set OnSubmit and the body becomes a real form: Enter in a text field runs the primary action,
    Enter in a textarea still inserts a newline, and the first field is focused on open. All of that
    is the browser's own form behaviour rather than key handling of ours, which is why it is right
    everywhere without each screen wiring it up. A modal with OnSubmit must not contain its own
-   form or EditForm — nesting forms is invalid HTML. *@
+   form or EditForm, because nesting forms is invalid HTML. *@
 
 @if (this.Visible)
 {

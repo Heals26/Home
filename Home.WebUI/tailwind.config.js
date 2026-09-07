@@ -1,13 +1,13 @@
 ﻿/** @type {import('tailwindcss').Config} */
 module.exports = {
-  // v3 renamed `purge` to `content`, and scanning is always on — there is no longer a
+  // v3 renamed `purge` to `content`, and scanning is always on. There is no longer a
   // NODE_ENV gate, so the output is only ever the classes this project actually uses.
   content: [
     './**/*.razor',
     './**/*.html',
     './**/*.cshtml',
-    // Code-behind counts. A class named only in a .razor.cs — the nav rail builds its whole icon
-    // list there — is invisible to a scanner that only reads markup, so the rule is purged and the
+    // Code-behind counts. A class named only in a .razor.cs (the nav rail builds its whole icon
+    // list there) is invisible to a scanner that only reads markup, so the rule is purged and the
     // icon renders as a bare grey square. That is what happened to the Home icon.
     './**/*.cs',
     '!./node_modules/**/*',
@@ -18,7 +18,7 @@ module.exports = {
   // only ever half-written in the source. Without this every icon renders as a bare grey square.
   safelist: [{ pattern: /^home-icon-/ }],
   // Themes are swapped by `data-theme` on <html>, not by a class, so `dark:` variants are
-  // never used — every colour below resolves through a custom property that the theme
+  // never used, because every colour below resolves through a custom property that the theme
   // redefines. Nothing sets `.dark`, so this stays inert.
   darkMode: 'class',
   theme: {
@@ -27,7 +27,7 @@ module.exports = {
       // set of utilities serves both themes and opacity modifiers (bg-week/10,
       // border-lights/40) keep working. The values live in wwwroot/css/input.css.
       colors: {
-        // The page is "ink" — but read the scale by *role*, not by lightness. 950 is always
+        // The page is "ink", but read the scale by *role*, not by lightness. 950 is always
         // the page, 900 the surface, 800 raised/borders, 50 the primary text. The light
         // theme inverts the ramp, so those roles hold in both.
         ink: {
@@ -43,7 +43,7 @@ module.exports = {
           900: 'rgb(var(--ink-900) / <alpha-value>)',
           950: 'rgb(var(--ink-950) / <alpha-value>)',
         },
-        // One hue per pillar, used for identity (nav, eyebrows, icons) — not for surfaces.
+        // One hue per pillar, used for identity (nav, eyebrows, icons), not for surfaces.
         // Colour encodes *place* in the app, so a family member can navigate by it.
         recipes:  { DEFAULT: 'rgb(var(--recipes) / <alpha-value>)',   dim: 'rgb(var(--recipes-dim) / <alpha-value>)' },   // apricot
         shopping: { DEFAULT: 'rgb(var(--shopping) / <alpha-value>)',  dim: 'rgb(var(--shopping-dim) / <alpha-value>)' },  // sage
@@ -66,7 +66,7 @@ module.exports = {
       },
       // A Surface turned upright is still ~912 CSS pixels wide, so `md:` keeps matching and the
       // landscape layout survives a rotation it was never designed for. `rail:` asks the real
-      // question — is this device wide AND lying down? — so upright tablets get the thumb-reachable
+      // question (is this device wide AND lying down?) so upright tablets get the thumb-reachable
       // bottom bar and a single column instead of a left rail and squeezed halves.
       screens: {
         rail: { raw: '(min-width: 768px) and (orientation: landscape)' },
@@ -78,6 +78,6 @@ module.exports = {
     },
   },
   // v2 needed `variants.extend` to opt into active: styles. v3 enables every variant by
-  // default, so the old block is gone — active:scale-95 and active:bg-* just work.
+  // default, so the old block is gone, and active:scale-95 and active:bg-* just work.
   plugins: [],
 }

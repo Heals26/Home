@@ -26,7 +26,7 @@ name them still make sense.*
 | **Phase 2** *(4 Sep 2026)* | All 114 use case slices tested, writes included, at 557 tests. |
 | **Phase 3** *(5 Sep 2026)* | Ingredient notes reachable, a signed-in devices card with bulk sign-out, and the superseded amount columns dropped. |
 | **Phase 4** *(5 Sep 2026)* | The page title stopped losing to its own buttons on a phone, the shopping list collapses to one pane, and the shell is sized in `dvh`. |
-| **Phase 5, part** *(6 Sep 2026)* | `HomeSelect` and `HomeTextArea` written and every raw `<select>` and `<textarea>` retired onto them, `HomeButton` given `IconOnly` for the 15 square icon buttons, and the rule written into the conventions. 57 raw buttons and 13 raw inputs still to go. |
+| **Phase 5** *(7 Sep 2026)* | Six new components and the whole app moved onto them: 72 raw buttons down to 2, 118 icon spans, 18 selects, 13 inputs and 5 textareas all down to 0. |
 
 ---
 
@@ -152,7 +152,7 @@ Measured and deliberately left alone:
 - **21 of 30 pages still have no breakpoints, and that is correct.** A single-column page of cards
   does not need one. Adding breakpoints to pages that measure clean is churn.
 
-## Phase 5 · One way to draw each control, M *(new, 5 Sep 2026)* **PART DONE 6 Sep 2026**
+## Phase 5 · One way to draw each control, M *(new, 5 Sep 2026)* **DONE 7 Sep 2026**
 
 Home already has a component library, 19 `Home*` components, and the pages mostly use it: 107
 `<HomeButton>` against 72 raw `<button>`, 43 `<HomeTextInput>` against 13 raw `<input>`. This is not
@@ -213,25 +213,40 @@ were the lights page reordering its groups with literal arrow glyphs when `HomeR
 existed. That leaves 57, and they are the legitimate ones: tappable rows, segmented cells and
 link-styled text.
 
-Left standing and measured, not fixed here: **13 raw `<input>`s** against 43 `HomeTextInput`, and
-five link-styled buttons written four ways. The inputs are the same disease as the selects and are
-worth their own sitting. The link buttons are contextual enough that one component would need a
-variant, a size and a colour override at every call site.
-
-### The wider goal, which is not finished
+### The wider goal, and where it landed
 
 Mitch, 6 Sep 2026: the point of this phase is **minimising raw HTML tags**. A tag should be written
 in one file and everything else should inherit from it. That is what keeps the app consistent, and
-it applies to `<span>`, `<p>` and `<img>` as much as to `<button>`. Markup inside a `@foreach`
-usually wants to be its own component rather than being written inline.
+it applies to `<span>`, `<p>` and `<img>` as much as to `<button>`.
 
-Measured against that bar this phase is a start, not a finish. **57 raw `<button>`s and 13 raw
-`<input>`s remain.** The tappable rows, segmented cells and link-styled text left alone above were
-spared on the reasoning that they are not really buttons; under this rule each of them wants a
-component instead. Also unaddressed: the component folders themselves were only sorted out
-afterwards, and non-component types now live in `Infrastructure/{Area}/` or in `Models/` and
-`Enumerations/` under their feature.
+Measured against that bar, on 7 Sep 2026:
 
+| Tag | Before | After | Where the survivors are |
+|---|---|---|---|
+| `<button>` | 72 | **2** | `HomeButton`, and Blazor's reconnect overlay in `App.razor` |
+| `<span class="home-icon">` | 118 | **0** | all through `HomeIcon` |
+| `<input>` | 13 | **0** | in the pages; 5 remain inside the input components themselves |
+| `<select>` | 18 | **0** | `HomeSelect` |
+| `<textarea>` | 5 | **0** | `HomeTextArea` |
+
+Six components came out of it. `HomeIcon` took all 118 icon spans, which needed `home-icon-`
+safelisting in the Tailwind config because the name is now only half-written in the source.
+`HomeButton` gained `bare` and `link` variants, a `none` size, and four event flags
+(`StopPropagation`, `PreventDefault`, `KeepFocusOnMouseDown`, `OnDragStart`) for the Blazor
+directives a component cannot forward. `HomeListRow`, `HomeChip`, `HomeCardAction` and `HomeSwatch`
+are the four shapes that repeated across files, and each renders a bare `HomeButton` rather than a
+second `<button>`. `HomeCheckbox` took the one raw checkbox.
+
+Two defects fell out of the sweep. `HomeButton` was forcing `relative` on every caller, which
+Tailwind emits after `absolute` and which had dropped the delete button meant to float over a
+recipe photo into the flow. And four `aria-pressed`/`aria-checked`/`aria-expanded` attributes were
+bound straight to a bool, which Blazor renders by dropping the attribute when false, so a switch
+read to a screen reader as an ordinary button.
+
+**Still standing:** `<span>` at 116 and `<p>` at 166 across the app. Those are text and layout
+rather than controls, so there is no obvious component behind most of them, and turning every
+paragraph into `HomeText` would cost more than it pays. A `@foreach` body that is a whole card is
+the better next target, and phase 15 will want that anyway.
 ## Phase 6 · A shared calendar, and the time axis under it, XL *(new, 6 Sep 2026)*
 
 `VISION.md` says the dashboard answers "what's happening this week" without navigation. Today it

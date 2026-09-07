@@ -7,7 +7,7 @@
     <base href="/" />
     @* Runs before the stylesheet and before the body, so the page never paints in the wrong
        theme. Blazor renders with prerender:false, so there is no server-side render to put
-       this on — inline and synchronous is the only way to beat the first paint. Anything
+       this on, because inline and synchronous is the only way to beat the first paint. Anything
        unexpected falls through to dark, which is the default. *@
     <script>
         (function () {
@@ -36,7 +36,7 @@
 <body class="bg-ink-950 text-ink-50">
     <Routes @rendermode="this.PageRenderMode" />
 
-    @* Replaces Blazor's own reconnect overlay, which is white, unbranded and — once it gives up —
+    @* Replaces Blazor's own reconnect overlay, which is white, unbranded and, once it gives up,
        leaves a page that looks fine and does nothing. The id is Blazor's convention: an element
        with this id receives the components-reconnect-* classes instead of the built-in overlay
        appearing. reconnect.js watches those classes. *@

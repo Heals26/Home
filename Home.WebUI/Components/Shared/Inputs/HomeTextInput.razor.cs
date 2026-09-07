@@ -34,7 +34,7 @@ public partial class HomeTextInput
     [Parameter] public string? InputMode { get; set; }
     [Parameter] public string? Label { get; set; }
     /// <summary>
-    /// The HTML name attribute — browsers use it alongside autocomplete to match saved values.
+    /// The HTML name attribute. Browsers use it alongside autocomplete to match saved values.
     /// </summary>
     [Parameter] public string? Name { get; set; }
     [Parameter] public EventCallback OnBlur { get; set; }
@@ -76,15 +76,15 @@ public partial class HomeTextInput
 
     /// <summary>
     /// Sentence case on prose so a phone keyboard capitalises "onion" the way a person would,
-    /// and off everywhere else — an address or a token must arrive exactly as typed.
+    /// and off everywhere else, because an address or a token must arrive exactly as typed.
     /// </summary>
     private string GetAutoCapitalise()
         => this.IsProse() ? "sentences" : "off";
 
     /// <summary>
     /// A field with no explicit name gets its own unguessable one. Browsers decide whether to
-    /// offer contacts by pattern-matching the name, id and label — a field labelled "Name" gets
-    /// offered a contact card whatever <c>autocomplete="off"</c> says — and nothing matches a
+    /// offer contacts by pattern-matching the name, id and label, so a field labelled "Name" gets
+    /// offered a contact card whatever <c>autocomplete="off"</c> says, and nothing matches a
     /// GUID. Fields that genuinely want autofill (username, password) pass a real name.
     /// </summary>
     private string GetName()

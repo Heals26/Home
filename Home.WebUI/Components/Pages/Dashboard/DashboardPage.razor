@@ -3,7 +3,7 @@
 
 <HomePageTitle />
 
-@* The family board — the tablet's idle face. Everything here is a glance, not a task:
+@* The family board, the tablet's idle face. Everything here is a glance, not a task:
    each tile shows live content and navigates to its pillar. Failures degrade to a
    single quiet banner, never a stack of toasts. *@
 
@@ -56,7 +56,7 @@
             }
             else if (!this.m_Weather.HasLocation)
             {
-                @* Nothing has gone wrong — this home just hasn't said where it is. *@
+                @* Nothing has gone wrong. This home just hasn't said where it is. *@
                 <p class="text-sm text-ink-500 py-2">
                     Tell Home where you live and the forecast shows up here.
                     <a href="/settings" class="text-ink-200 underline underline-offset-4 hover:text-ink-50">Set your location</a>.
@@ -339,7 +339,7 @@
                     }
                     @if (this.m_Announcements.Count == 0)
                     {
-                        <span class="text-sm text-ink-600 py-1.5">Nothing pinned — leave the family a note.</span>
+                        <span class="text-sm text-ink-600 py-1.5">Nothing pinned. Leave the family a note.</span>
                     }
                 </div>
                 <div class="flex gap-2">

@@ -6,8 +6,8 @@
 
 <HomePageTitle Title="@(this.m_Recipe == null ? "Cooking" : $"Cooking {this.m_Recipe.Name}")" />
 
-@* Cooking mode: one step at a time in big type, giant wet-finger targets, timers on tap —
-   both the ones read out of the step text and any the cook starts — and the screen held
+@* Cooking mode: one step at a time in big type, giant wet-finger targets, and timers on tap,
+   both the ones read out of the step text and any the cook starts. The screen is held
    awake while the page is open. *@
 
 <div class="flex flex-col h-full max-w-3xl mx-auto w-full">
@@ -41,7 +41,7 @@
                                   aria-label="@($"Dismiss {_Timer.Label} timer")"
                                   OnClick="() => this.DismissTimer(_Timer)">
                             <HomeIcon Name="clock" />
-                            @(_Timer.IsFinished ? $"{_Timer.Label} — done!" : $"{_Timer.Label} · {this.Remaining(_Timer)}")
+                            @(_Timer.IsFinished ? $"{_Timer.Label} is done!" : $"{_Timer.Label} · {this.Remaining(_Timer)}")
                         </HomeChip>
                     }
                 </div>
@@ -61,7 +61,7 @@
                     <ul class="flex flex-col gap-3">
                         @foreach (var _Ingredient in this.m_Recipe.Ingredients)
                         {
-                            @* Amount first, matching the recipe page — mid-cook you are looking for
+                            @* Amount first, matching the recipe page, because mid-cook you are looking for
                                how much, and the name is what you already know you need. *@
                             <li class="flex items-baseline gap-3 text-xl text-ink-100">
                                 <span class="h-2 w-2 rounded-full bg-recipes shrink-0 translate-y-[-2px]"></span>
@@ -103,7 +103,7 @@
                 }
             </div>
 
-            @* A recipe with ingredients but no steps is a single page — a pair of buttons where one
+            @* A recipe with ingredients but no steps is a single page: a pair of buttons where one
                is permanently dead reads as broken, so it becomes one honest action. *@
             @if (this.TotalPages() <= 1)
             {

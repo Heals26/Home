@@ -4,6 +4,43 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-07 · One file per HTML tag, and HomeButton is the only button
+
+Every tag the app draws more than once now has a component, and that component is the only place
+the tag is written. `Home.WebUI` holds exactly **two** `<button>` elements: the one inside
+`HomeButton`, and the reconnect overlay in `App.razor`, which Blazor shows when the circuit is gone
+and there is nothing left to render a component with. 72 raw buttons, 118 icon spans, 18 selects,
+13 inputs and 5 textareas went to 2, 0, 0, 0 and 0.
+
+The reason is consistency, not tidiness. A change to how a button presses, focuses or disables now
+lands everywhere at once, and no screen can invent a fourth way to draw the same control. The sweep
+found two live defects that had survived precisely because each control was written by hand: a
+delete button meant to float over a recipe photo was sitting in the flow, and four ARIA state
+attributes were bound straight to a bool, which Blazor renders by dropping the attribute when
+false, so a switch read to a screen reader as an ordinary button.
+
+**Anything shaped differently from a button composes `HomeButton` with `Variant="bare"` rather than
+writing a second `<button>`.** `HomeListRow`, `HomeChip`, `HomeCardAction` and `HomeSwatch` all do
+this; bare gives them the focus ring and the disabled handling and nothing else.
+
+Three things that shape how this has to be written, all learned the hard way:
+
+- **A Blazor directive cannot ride through `@attributes`.** Plain attributes forward to a component
+  fine. `@onclick:stopPropagation`, `@onclick:preventDefault`, `@onmousedown:preventDefault` and
+  `@ondragstart` do not, so `HomeButton` carries each as a parameter. That is the ceiling on how far
+  this can go: a control needing a directive nobody anticipated needs a new parameter, not a new
+  `<button>`.
+- **Two utilities for the same CSS property collide on stylesheet order, not attribute order.**
+  `HomeButton` carried `relative` to anchor its `DisabledReason` bubble, and Tailwind emits
+  `relative` after `absolute`, so a caller asking to float was silently overruled. It now drops its
+  own `relative` when the caller's `Class` names a position.
+- **A class assembled at render time is invisible to the Tailwind scanner.** `HomeIcon` builds
+  `home-icon-{Name}`, so `home-icon-` is safelisted in `tailwind.config.js`. Without it every icon
+  renders as a bare grey square, which is the same trap the nav rail hit in August.
+
+Left alone: `<span>` at 116 and `<p>` at 166. Those are text and layout rather than controls, and a
+`HomeText` wrapping every paragraph would cost more than it pays. The better next target is a
+`@foreach` body that is a whole card.
 
 ## 2026-09-06 · A picker takes an options list, not option markup
 
