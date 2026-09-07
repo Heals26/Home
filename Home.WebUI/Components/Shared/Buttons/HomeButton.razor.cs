@@ -58,9 +58,13 @@ public partial class HomeButton
         // enabled: on the hover and press states, because a button that is genuinely off should not
         // light up under a cursor. One held open by a DisabledReason is still enabled in the DOM,
         // so it keeps reacting, which is the point of it.
+        // relative is here only to anchor the DisabledReason bubble, and Tailwind emits it after
+        // absolute, so it would win on order and strand a button the caller meant to float.
+        var _Position = this.PositionsItself() ? string.Empty : "relative ";
+
         var _Base = _IsBare
-            ? "relative transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ink-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            : "relative inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-ink-950 disabled:opacity-50 disabled:cursor-not-allowed enabled:active:scale-95";
+            ? $"{_Position}transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ink-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            : $"{_Position}inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-ink-950 disabled:opacity-50 disabled:cursor-not-allowed enabled:active:scale-95";
 
         var _Size = (this.IconOnly, this.Size) switch
         {
@@ -106,6 +110,10 @@ public partial class HomeButton
 
     private bool IsHardDisabled()
         => this.Disabled && !this.HasDisabledReason();
+
+    private bool PositionsItself()
+        => this.Class != null
+            && this.Class.Split(' ').Any(c => c is "absolute" or "fixed" or "sticky" or "static");
 
     #endregion Methods
 
