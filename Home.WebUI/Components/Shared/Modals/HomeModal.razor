@@ -27,12 +27,13 @@
             @* Header *@
             <div class="flex items-center justify-between px-6 py-4 border-b border-ink-800 shrink-0">
                 <h3 class="font-display text-xl text-ink-50">@this.Title</h3>
-                <button class="text-ink-400 hover:text-ink-50 transition-colors p-2 -mr-2 rounded-lg min-h-[44px] min-w-[44px]"
-                        type="button"
-                        aria-label="Close"
-                        @onclick="this.CloseAsync">
+                <HomeButton Variant="bare"
+                            Size="none"
+                            Class="text-ink-400 enabled:hover:text-ink-50 p-2 -mr-2 rounded-lg min-h-[44px] min-w-[44px]"
+                            aria-label="Close"
+                            OnClick="this.CloseAsync">
                     <HomeIcon Name="x" Size="lg" />
-                </button>
+                </HomeButton>
             </div>
             @* Body *@
             <div class="px-6 py-5 overflow-y-auto app-scrollable">
@@ -42,7 +43,7 @@
                         @this.ChildContent
                         @* Implicit submission needs a submit button to exist; it is never shown or
                            tabbed to, it only gives the form its Enter key. *@
-                        <button type="submit" class="hidden" tabindex="-1" aria-hidden="true"></button>
+                        <HomeButton Type="submit" Variant="bare" Size="none" Class="hidden" tabindex="-1" aria-hidden="true" />
                     </form>
                 }
                 else

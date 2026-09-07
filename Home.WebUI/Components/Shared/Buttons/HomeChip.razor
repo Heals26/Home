@@ -1,7 +1,7 @@
 @* A pill that narrows a list. Selected fills, unselected outlines. *@
 
 <HomeButton @attributes="this.AdditionalAttributes"
-            aria-pressed="@this.Selected"
+            aria-pressed="@(this.Selected ? "true" : "false")"
             Variant="bare"
             Size="none"
             Class="@this.GetClasses()"

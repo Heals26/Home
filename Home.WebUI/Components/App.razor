@@ -47,6 +47,8 @@
             <p class="home-reconnect-title" data-state="failed">Getting you back on&hellip;</p>
             <p class="home-reconnect-title" data-state="rejected">Picking up where you were&hellip;</p>
             <p class="home-reconnect-detail">You&rsquo;re still signed in.</p>
+            @* The one button in the app that is not a HomeButton. This overlay is Blazor's own,
+               shown when the circuit is gone, so there is nothing left to render a component. *@
             <button id="home-reconnect-retry" type="button" class="home-reconnect-retry">Reload now</button>
         </div>
     </div>

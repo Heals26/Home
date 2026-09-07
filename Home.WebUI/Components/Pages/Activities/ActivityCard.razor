@@ -17,7 +17,7 @@
                                 Class="@($"h-6 w-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors {(this.IsComplete ? "border-shopping bg-shopping/20" : "border-ink-600 enabled:hover:border-shopping")}")"
                                 title="@(this.IsComplete ? "Mark as not done" : "Mark as done")"
                                 aria-label="@(this.IsComplete ? $"Mark {this.Activity.Title} as not done" : $"Mark {this.Activity.Title} as done")"
-                                aria-pressed="@this.IsComplete"
+                                aria-pressed="@(this.IsComplete ? "true" : "false")"
                                 OnClick="this.ToggleCompleteAsync">
                     @if (this.IsComplete)
                     {

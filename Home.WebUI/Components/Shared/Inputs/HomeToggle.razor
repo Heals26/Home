@@ -1,10 +1,13 @@
 ﻿@* iOS-style toggle switch. Use @bind-Value for two-way binding. *@
 
-<button type="button"
-        role="switch"
-        aria-checked="@this.Value"
-        class="@this.GetClasses()"
-        disabled="@this.Disabled"
-        @onclick="this.ToggleAsync">
+<HomeButton Variant="bare"
+            Size="none"
+            role="switch"
+            @* Spelled out rather than bound to the bool: Blazor renders false by dropping the
+               attribute, and a switch with no aria-checked reads as an ordinary button. *@
+            aria-checked="@(this.Value ? "true" : "false")"
+            Class="@this.GetClasses()"
+            Disabled="this.Disabled"
+            OnClick="this.ToggleAsync">
     <span class="@this.GetThumbClasses()"></span>
-</button>
+</HomeButton>

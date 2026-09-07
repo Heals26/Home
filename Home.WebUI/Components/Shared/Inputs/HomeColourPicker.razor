@@ -9,18 +9,19 @@
     <div class="flex flex-wrap items-center gap-2">
         @foreach (var _Swatch in Swatches)
         {
-            <button type="button"
-                    class="@this.GetSwatchClasses(_Swatch)"
-                    style="background-color:@_Swatch"
-                    title="@_Swatch"
-                    aria-label="@_Swatch"
-                    aria-pressed="@(this.IsSelected(_Swatch) ? "true" : "false")"
-                    @onclick="() => this.SelectAsync(_Swatch)">
+            <HomeButton Variant="bare"
+                        Size="none"
+                        Class="@this.GetSwatchClasses(_Swatch)"
+                        style="@($"background-color:{_Swatch}")"
+                        title="@_Swatch"
+                        aria-label="@_Swatch"
+                        aria-pressed="@(this.IsSelected(_Swatch) ? "true" : "false")"
+                        OnClick="() => this.SelectAsync(_Swatch)">
                 @if (this.IsSelected(_Swatch))
                 {
                     <HomeIcon Name="check" Size="lg" Class="text-ink-950" />
                 }
-            </button>
+            </HomeButton>
         }
         <input id="@this.m_InputID"
                type="color"

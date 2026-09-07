@@ -26,14 +26,15 @@
     @if (this.HasColour)
     {
         <div>
-            <button type="button"
-                    class="flex items-center gap-2 min-h-[44px] text-sm font-medium text-ink-300 hover:text-ink-50"
-                    aria-expanded="@(this.m_ShowWheel ? "true" : "false")"
-                    @onclick="this.ToggleWheel">
+            <HomeButton Variant="bare"
+                        Size="none"
+                        Class="flex items-center gap-2 min-h-[44px] text-sm font-medium text-ink-300 enabled:hover:text-ink-50"
+                        aria-expanded="@(this.m_ShowWheel ? "true" : "false")"
+                        OnClick="this.ToggleWheel">
                 <HomeIcon Name="palette" />
                 <span>Colour wheel</span>
                 <HomeIcon Name="@(this.m_ShowWheel ? "chevron-down" : "chevron-right")" />
-            </button>
+            </HomeButton>
 
             @if (this.m_ShowWheel)
             {

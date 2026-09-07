@@ -4,10 +4,11 @@
 <div class="inline-flex bg-ink-800 rounded-lg p-1 gap-1 @this.Class">
     @foreach (var _Option in this.Options)
     {
-        <button type="button"
-                class="@this.GetOptionClasses(_Option.Value)"
-                @onclick="() => this.SelectAsync(_Option.Value)">
+        <HomeButton Variant="bare"
+                    Size="none"
+                    Class="@this.GetOptionClasses(_Option.Value)"
+                    OnClick="() => this.SelectAsync(_Option.Value)">
             @_Option.Label
-        </button>
+        </HomeButton>
     }
 </div>

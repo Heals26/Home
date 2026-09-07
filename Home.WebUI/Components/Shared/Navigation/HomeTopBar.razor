@@ -14,13 +14,14 @@
     <div class="flex items-center gap-2 min-w-0">
         @if (this.ShowBack)
         {
-            <button type="button"
-                    title="Back"
-                    aria-label="Back"
-                    class="p-2 -ml-2 mb-0.5 text-ink-400 hover:text-ink-50 rounded-lg transition-colors shrink-0 min-h-[44px] min-w-[44px] @this.BackClass"
-                    @onclick="this.GoBack">
+            <HomeButton Variant="bare"
+                        Size="none"
+                        Class="@($"p-2 -ml-2 mb-0.5 text-ink-400 enabled:hover:text-ink-50 rounded-lg shrink-0 min-h-[44px] min-w-[44px] {this.BackClass}")"
+                        title="Back"
+                        aria-label="Back"
+                        OnClick="this.GoBack">
                 <HomeIcon Name="chevron-left" Size="lg" />
-            </button>
+            </HomeButton>
         }
         <div class="min-w-0">
             @if (!string.IsNullOrEmpty(this.Eyebrow))
