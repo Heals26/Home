@@ -18,7 +18,7 @@
                 BackHref="@($"/recipes/{this.RecipeID}")">
         <ActionsContent>
             <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenTimerPicker">
-                <span class="home-icon home-icon-clock h-4 w-4 mr-1 inline-block"></span>
+                <HomeIcon Name="clock" Class="mr-1" />
                 Timer
             </HomeButton>
         </ActionsContent>
@@ -41,7 +41,7 @@
                                 aria-label="@($"Dismiss {_Timer.Label} timer")"
                                 class="flex items-center gap-2 rounded-full border px-4 py-2 min-h-[44px] text-sm font-semibold transition-colors @(_Timer.IsFinished ? "border-recipes bg-recipes/20 text-recipes animate-pulse" : "border-ink-700 bg-ink-800 text-ink-100")"
                                 @onclick="() => this.DismissTimer(_Timer)">
-                            <span class="home-icon home-icon-clock h-4 w-4 inline-block"></span>
+                            <HomeIcon Name="clock" />
                             @(_Timer.IsFinished ? $"{_Timer.Label} — done!" : $"{_Timer.Label} · {this.Remaining(_Timer)}")
                         </button>
                     }
@@ -89,7 +89,7 @@
                             @foreach (var _Minutes in this.CurrentStepDurations())
                             {
                                 <HomeButton Size="sm" Variant="secondary" OnClick="() => this.StartTimer(_Minutes)">
-                                    <span class="home-icon home-icon-clock h-4 w-4 mr-1 inline-block"></span>
+                                    <HomeIcon Name="clock" Class="mr-1" />
                                     Start @FormatMinutes(_Minutes) timer
                                 </HomeButton>
                             }
@@ -120,14 +120,14 @@
                     @if (this.m_StepIndex == 0)
                     {
                         <HomeButton Variant="secondary" Size="lg" OnClick="this.LeaveCooking">
-                            <span class="home-icon home-icon-chevron-left h-5 w-5 mr-1 inline-block"></span>
+                            <HomeIcon Name="chevron-left" Size="lg" Class="mr-1" />
                             Leave cooking
                         </HomeButton>
                     }
                     else
                     {
                         <HomeButton Variant="secondary" Size="lg" OnClick="() => this.m_StepIndex--">
-                            <span class="home-icon home-icon-chevron-left h-5 w-5 mr-1 inline-block"></span>
+                            <HomeIcon Name="chevron-left" Size="lg" Class="mr-1" />
                             Back
                         </HomeButton>
                     }
@@ -142,7 +142,7 @@
                     {
                         <HomeButton Size="lg" OnClick="() => this.m_StepIndex++">
                             Next
-                            <span class="home-icon home-icon-chevron-right h-5 w-5 ml-1 inline-block"></span>
+                            <HomeIcon Name="chevron-right" Size="lg" Class="ml-1" />
                         </HomeButton>
                     }
                 </div>

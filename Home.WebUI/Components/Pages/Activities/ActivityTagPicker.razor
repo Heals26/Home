@@ -21,7 +21,7 @@
                         @onclick="() => this.OnToggle.InvokeAsync(_Tag.TagID)">
                     @if (_IsSelected)
                     {
-                        <span class="home-icon home-icon-check h-3.5 w-3.5 inline-block"></span>
+                        <HomeIcon Name="check" Size="sm" />
                     }
                     @_Tag.Name
                 </button>

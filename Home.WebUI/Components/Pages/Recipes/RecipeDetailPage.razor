@@ -15,16 +15,16 @@
                     @if (this.m_Recipe.Steps.Count > 0 || this.m_Recipe.Ingredients.Count > 0)
                     {
                         <HomeButton Size="sm" OnClick="@(() => this.NavigationManager.NavigateTo($"/recipes/{this.RecipeID}/cook"))">
-                            <span class="home-icon home-icon-utensils h-4 w-4 mr-1 inline-block"></span>
+                            <HomeIcon Name="utensils" Class="mr-1" />
                             Cook
                         </HomeButton>
                     }
                     <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenAddToListModal">
-                        <span class="home-icon home-icon-shopping-list h-4 w-4 mr-1 inline-block"></span>
+                        <HomeIcon Name="shopping-list" Class="mr-1" />
                         Add to list
                     </HomeButton>
                     <HomeButton Size="sm" Variant="ghost" OnClick="this.OpenEditRecipeModal">
-                        <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
+                        <HomeIcon Name="pencil" />
                     </HomeButton>
                 }
             </ActionsContent>
@@ -67,7 +67,7 @@
                             {
                                 <a href="@this.m_Recipe.Url" target="_blank" rel="noopener noreferrer"
                                    class="inline-flex items-center gap-2 text-sm text-recipes hover:text-recipes/80">
-                                    <span class="home-icon home-icon-link h-4 w-4 inline-block"></span>
+                                    <HomeIcon Name="link" />
                                     View source
                                 </a>
                             }
@@ -78,7 +78,7 @@
                     <HomeCard Title="Ingredients">
                         <ActionsContent>
                             <HomeButton Size="sm" OnClick="this.OpenAddIngredientModal">
-                                <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
+                                <HomeIcon Name="plus" Class="mr-1" />
                                 Add
                             </HomeButton>
                         </ActionsContent>
@@ -139,7 +139,7 @@
                     <HomeCard Title="Method">
                         <ActionsContent>
                             <HomeButton Size="sm" OnClick="this.OpenAddStepModal">
-                                <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
+                                <HomeIcon Name="plus" Class="mr-1" />
                                 Add
                             </HomeButton>
                         </ActionsContent>
@@ -176,13 +176,13 @@
                                                     type="button" title="Edit"
                                                     aria-label="@($"Edit step {_Step.Sequence}")"
                                                     @onclick="() => this.OpenEditStepModal(_Step)">
-                                                <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
+                                                <HomeIcon Name="pencil" />
                                             </button>
                                             <button class="text-ink-600 hover:text-red-400 transition-colors shrink-0 p-2 min-h-[44px] min-w-[44px]"
                                                     type="button" title="Remove"
                                                     aria-label="@($"Remove step {_Step.Sequence}")"
                                                     @onclick="() => this.RemoveStepAsync(_Step.RecipeStepID)">
-                                                <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
+                                                <HomeIcon Name="trash" />
                                             </button>
                                         </li>
                                     }
@@ -195,7 +195,7 @@
                     <HomeCard Title="Notes">
                         <ActionsContent>
                             <HomeButton Size="sm" OnClick="this.OpenAddNoteModal">
-                                <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
+                                <HomeIcon Name="plus" Class="mr-1" />
                                 Add
                             </HomeButton>
                         </ActionsContent>
@@ -249,7 +249,7 @@
             <span class="text-sm font-medium text-ink-300">Your own photo</span>
             <div class="flex items-center gap-3">
                 <label class="inline-flex items-center justify-center gap-2 min-h-[48px] rounded-lg border border-ink-700 bg-ink-800 px-4 py-3 text-sm font-medium text-ink-50 cursor-pointer hover:bg-ink-700 transition-colors">
-                    <span class="home-icon home-icon-sparkles h-4 w-4 inline-block"></span>
+                    <HomeIcon Name="sparkles" />
                     @(this.HasPhoto() ? "Replace photo" : "Upload photo")
                     <InputFile OnChange="this.OnPhotoPickedAsync" accept="image/*" class="hidden" />
                 </label>
@@ -343,7 +343,7 @@
                                 class="w-full flex items-center gap-3 px-4 py-3 min-h-[48px] text-left hover:bg-ink-800 transition-colors"
                                 @onmousedown:preventDefault="true"
                                 @onclick="() => this.UseIngredientSuggestion(_Suggestion)">
-                            <span class="home-icon home-icon-plus h-4 w-4 shrink-0 text-recipes"></span>
+                            <HomeIcon Name="plus" Class="shrink-0 text-recipes" />
                             <span class="flex-1 min-w-0 truncate text-sm text-ink-50">@_Suggestion.Name</span>
                             <span class="shrink-0 text-xs text-ink-500">@ShoppingListItemLogic.DescribeAmount(_Suggestion.Amount, _Suggestion.Unit, _Suggestion.UnitAbbreviation)</span>
                         </button>
@@ -387,7 +387,7 @@
                 <HomeButton Variant="ghost"
                             Class="text-red-400 hover:text-red-300 hover:bg-red-950/40"
                             OnClick="this.RemoveEditingIngredientAsync">
-                    <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>
+                    <HomeIcon Name="trash" Class="mr-1" />
                     Remove
                 </HomeButton>
             }
@@ -440,7 +440,7 @@
                 <HomeButton Variant="ghost"
                             Class="text-red-400 hover:text-red-300 hover:bg-red-950/40"
                             OnClick="this.RemoveEditingNoteAsync">
-                    <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>
+                    <HomeIcon Name="trash" Class="mr-1" />
                     Remove
                 </HomeButton>
             }

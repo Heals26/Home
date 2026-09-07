@@ -1,7 +1,7 @@
 ﻿<HomeCard Title="Lists">
     <ActionsContent>
         <HomeButton Size="sm" OnClick="this.OpenCreateModal">
-            <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
+            <HomeIcon Name="plus" Class="mr-1" />
             New list
         </HomeButton>
     </ActionsContent>
@@ -50,7 +50,7 @@
                                 title="@($"Manage {_List.Name}")"
                                 aria-label="@($"Manage {_List.Name}")"
                                 @onclick="() => this.OpenManageModal(_List)">
-                            <span class="home-icon home-icon-cog h-4 w-4 inline-block"></span>
+                            <HomeIcon Name="cog" />
                         </button>
                     </div>
                 }

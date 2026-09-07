@@ -24,7 +24,7 @@
                 }
 
                 <HomeButton Size="sm" Variant="ghost" OnClick="this.SyncLightsAsync" Loading="this.m_Syncing">
-                    <span class="home-icon home-icon-refresh h-4 w-4 mr-1 inline-block"></span>
+                    <HomeIcon Name="refresh" Class="mr-1" />
                     Sync
                 </HomeButton>
             </ActionsContent>
@@ -53,7 +53,7 @@
                         <div class="flex items-center justify-between mb-3 px-1">
                             <h2 class="text-xs font-semibold text-ink-500 uppercase tracking-widest">Scenes</h2>
                             <HomeButton Size="sm" Variant="secondary" OnClick="this.OpenCaptureModalAsync">
-                                <span class="home-icon home-icon-sparkles h-4 w-4 mr-1 inline-block"></span>
+                                <HomeIcon Name="sparkles" Class="mr-1" />
                                 Save current look
                             </HomeButton>
                         </div>
@@ -72,7 +72,7 @@
                                     Get the room looking right, then save it as a scene to bring back any time.
                                 </p>
                                 <HomeButton Size="sm" OnClick="this.OpenCaptureModalAsync">
-                                    <span class="home-icon home-icon-sparkles h-4 w-4 mr-1 inline-block"></span>
+                                    <HomeIcon Name="sparkles" Class="mr-1" />
                                     Save how the lights look now
                                 </HomeButton>
                             </div>
@@ -95,7 +95,7 @@
                                             }
                                             else
                                             {
-                                                <span class="home-icon @(_Scene.IsPreviousLook ? "home-icon-refresh text-ink-400" : "home-icon-sparkles text-lights") h-4 w-4"></span>
+                                                <HomeIcon Name="@(_Scene.IsPreviousLook ? "refresh" : "sparkles")" Class="@(_Scene.IsPreviousLook ? "text-ink-400" : "text-lights")" />
                                             }
                                             <span class="text-sm font-medium @(_Scene.IsPreviousLook ? "text-ink-300" : "text-ink-100")">@_Scene.Name</span>
                                             <span class="text-xs text-ink-500">@_Scene.LightCount</span>
@@ -108,7 +108,7 @@
                                                     aria-label="@($"Delete {_Scene.Name}")"
                                                     class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-ink-800 border border-ink-700 text-ink-400 hover:text-red-400 flex items-center justify-center"
                                                     @onclick="() => this.DeleteSceneAsync(_Scene)">
-                                                <span class="home-icon home-icon-x h-3 w-3"></span>
+                                                <HomeIcon Name="x" Size="xs" />
                                             </button>
 
                                             @* Ordering only appears in edit mode, where deleting already
@@ -172,7 +172,7 @@
                             <h2 class="text-xs font-semibold text-ink-500 uppercase tracking-widest">Schedules</h2>
                             @* Always opens: with no scenes yet the modal explains and offers the next step. *@
                             <HomeButton Size="sm" Variant="ghost" OnClick="this.OpenScheduleModal">
-                                <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
+                                <HomeIcon Name="plus" Class="mr-1" />
                                 Add schedule
                             </HomeButton>
                         </div>
@@ -219,7 +219,7 @@
                                         <HomeButton IconOnly Size="sm" Variant="ghost" Class="hover:text-red-400"
                                                     title="Delete schedule" aria-label="@($"Delete {_Schedule.Name}")"
                                                     OnClick="() => this.m_ScheduleToDelete = _Schedule">
-                                            <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
+                                            <HomeIcon Name="trash" />
                                         </HomeButton>
                                     </div>
                                 }
@@ -285,7 +285,7 @@
                     you want them, save that as a scene, then come back and give it a time.
                 </p>
                 <HomeButton OnClick="this.CaptureSceneFromScheduleAsync">
-                    <span class="home-icon home-icon-sparkles h-4 w-4 mr-1 inline-block"></span>
+                    <HomeIcon Name="sparkles" Class="mr-1" />
                     Save a scene first
                 </HomeButton>
             </div>
@@ -408,7 +408,7 @@
     <FooterContent>
         <div class="flex justify-between gap-2">
             <HomeButton Variant="ghost" OnClick="this.StopEffectAsync" Loading="this.m_StoppingEffect">
-                <span class="home-icon home-icon-stop h-4 w-4 mr-1 inline-block"></span>
+                <HomeIcon Name="stop" Class="mr-1" />
                 Stop
             </HomeButton>
             <HomeButton OnClick="this.StartEffectAsync"

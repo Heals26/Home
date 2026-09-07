@@ -39,7 +39,7 @@
         @* ── Outside ───────────────────────────────────────────────── *@
         <div class="rail:col-span-2 bg-ink-900 border border-ink-800 rounded-2xl p-5 board:p-4">
             <div class="flex items-center gap-2 text-ink-400 mb-3">
-                <span class="home-icon home-icon-weather-cloud-sun h-5 w-5"></span>
+                <HomeIcon Name="weather-cloud-sun" Size="lg" />
                 <span class="text-xs font-semibold uppercase tracking-widest">Outside</span>
             </div>
 
@@ -66,7 +66,7 @@
             {
                 <div class="flex flex-wrap items-center gap-x-8 gap-y-3 board:gap-y-2">
                     <div class="flex items-center gap-4">
-                        <span class="home-icon home-icon-@_Current.IconName h-12 w-12 text-ink-200 shrink-0"></span>
+                        <HomeIcon Name="@_Current.IconName" Size="3xl" Class="text-ink-200 shrink-0" />
                         <div>
                             <p class="font-display text-4xl md:text-5xl text-ink-50 leading-none">@Temperature(_Current.TemperatureCelsius)</p>
                             <p class="text-sm text-ink-400 mt-1.5">@_Current.Condition · feels @Temperature(_Current.ApparentTemperatureCelsius)</p>
@@ -96,7 +96,7 @@
                         @foreach (var _Day in this.ForecastStrip())
                         {
                             <div class="flex items-center gap-3 min-w-0">
-                                <span class="home-icon home-icon-@_Day.IconName h-7 w-7 text-ink-400 shrink-0"></span>
+                                <HomeIcon Name="@_Day.IconName" Size="2xl" Class="text-ink-400 shrink-0" />
                                 <div class="min-w-0">
                                     <p class="text-xs font-semibold uppercase tracking-wider text-ink-500">@_Day.Date.ToString("ddd")</p>
                                     <p class="text-sm text-ink-200 truncate">
@@ -114,10 +114,10 @@
         <a href="/meal-plan" class="group rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-2">
                 <span class="flex items-center gap-2 text-recipes">
-                    <span class="home-icon home-icon-utensils h-5 w-5"></span>
+                    <HomeIcon Name="utensils" Size="lg" />
                     <span class="text-xs font-semibold uppercase tracking-widest">Today's meals</span>
                 </span>
-                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+                <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
             </div>
 
             @if (this.m_MealPlanEntries == null)
@@ -151,10 +151,10 @@
         <a href="/activities" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-week">
-                    <span class="home-icon home-icon-board h-5 w-5"></span>
+                    <HomeIcon Name="board" Size="lg" />
                     <span class="text-xs font-semibold uppercase tracking-widest">This week</span>
                 </span>
-                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+                <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
             </div>
 
             @if (this.m_Activities == null)
@@ -194,7 +194,7 @@
                                     @onclick="() => this.CompleteActivityAsync(_Activity)"
                                     @onclick:stopPropagation="true"
                                     @onclick:preventDefault="true">
-                                <span class="home-icon home-icon-check h-4 w-4 text-ink-500"></span>
+                                <HomeIcon Name="check" Class="text-ink-500" />
                             </button>
                         </div>
                     }
@@ -206,10 +206,10 @@
         <a href="/shopping-lists" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-shopping">
-                    <span class="home-icon home-icon-shopping-list h-5 w-5"></span>
+                    <HomeIcon Name="shopping-list" Size="lg" />
                     <span class="text-xs font-semibold uppercase tracking-widest">Shopping</span>
                 </span>
-                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+                <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
             </div>
 
             @if (this.m_ShoppingLists == null)
@@ -243,10 +243,10 @@
         <a href="/lights" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-lights">
-                    <span class="home-icon home-icon-lightbulb h-5 w-5"></span>
+                    <HomeIcon Name="lightbulb" Size="lg" />
                     <span class="text-xs font-semibold uppercase tracking-widest">Lights</span>
                 </span>
-                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+                <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
             </div>
 
             @if (this.m_LightGroups == null)
@@ -279,10 +279,10 @@
         <a href="/recipes" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-recipes">
-                    <span class="home-icon home-icon-book h-5 w-5"></span>
+                    <HomeIcon Name="book" Size="lg" />
                     <span class="text-xs font-semibold uppercase tracking-widest">Recipes</span>
                 </span>
-                <span class="home-icon home-icon-chevron-right h-4 w-4 text-ink-600 group-hover:text-ink-400"></span>
+                <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
             </div>
 
             @if (this.m_Recipes == null)
@@ -312,7 +312,7 @@
         <div class="rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 rounded-2xl p-5 board:p-4">
             <div class="flex items-center justify-between mb-3">
                 <span class="flex items-center gap-2 text-household">
-                    <span class="home-icon home-icon-note h-5 w-5"></span>
+                    <HomeIcon Name="note" Size="lg" />
                     <span class="text-xs font-semibold uppercase tracking-widest">Family notes</span>
                 </span>
             </div>
@@ -331,7 +331,7 @@
                             <button type="button" aria-label="Remove note"
                                     class="h-8 w-8 rounded-full text-ink-500 hover:text-red-400"
                                     @onclick="() => this.DeleteAnnouncementAsync(_Note)">
-                                <span class="home-icon home-icon-x h-3.5 w-3.5 inline-block"></span>
+                                <HomeIcon Name="x" Size="sm" />
                             </button>
                         </span>
                     }

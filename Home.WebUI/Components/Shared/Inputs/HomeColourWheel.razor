@@ -30,9 +30,9 @@
                     class="flex items-center gap-2 min-h-[44px] text-sm font-medium text-ink-300 hover:text-ink-50"
                     aria-expanded="@(this.m_ShowWheel ? "true" : "false")"
                     @onclick="this.ToggleWheel">
-                <span class="home-icon home-icon-palette h-4 w-4"></span>
+                <HomeIcon Name="palette" />
                 <span>Colour wheel</span>
-                <span class="home-icon h-4 w-4 @(this.m_ShowWheel ? "home-icon-chevron-down" : "home-icon-chevron-right")"></span>
+                <HomeIcon Name="@(this.m_ShowWheel ? "chevron-down" : "chevron-right")" />
             </button>
 
             @if (this.m_ShowWheel)

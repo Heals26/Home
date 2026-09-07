@@ -34,20 +34,20 @@
                                         title="Move left"
                                         aria-label="@($"Move {_State.Name} left")"
                                         OnClick="() => this.MoveColumnAsync(_State, -1)">
-                                <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block rotate-90"></span>
+                                <HomeIcon Name="chevron-left" Size="lg" Class="rotate-90" />
                             </HomeButton>
                             <HomeButton IconOnly Variant="ghost"
                                         Disabled="@(_IsLast || this.m_Saving)"
                                         title="Move right"
                                         aria-label="@($"Move {_State.Name} right")"
                                         OnClick="() => this.MoveColumnAsync(_State, 1)">
-                                <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block rotate-90"></span>
+                                <HomeIcon Name="chevron-right" Size="lg" Class="rotate-90" />
                             </HomeButton>
                             <HomeButton IconOnly Variant="ghost" Class="hover:text-red-400"
                                         title="Delete column"
                                         aria-label="@($"Delete {_State.Name}")"
                                         OnClick="() => this.StartDeletingColumn(_State)">
-                                <span class="home-icon home-icon-trash h-5 w-5 inline-block"></span>
+                                <HomeIcon Name="trash" Size="lg" />
                             </HomeButton>
                         </div>
 
@@ -116,7 +116,7 @@
                                     aria-label="@($"Delete {_Section.Name}")"
                                     Disabled="@(this.m_Saving || _Section.CardCount > 0)"
                                     OnClick="() => this.DeleteSectionAsync(_Section)">
-                            <span class="home-icon home-icon-trash h-5 w-5 inline-block"></span>
+                            <HomeIcon Name="trash" Size="lg" />
                         </HomeButton>
                     </div>
                 }
@@ -168,7 +168,7 @@
                                             title="Delete label"
                                             aria-label="@($"Delete {_Tag.Name}")"
                                             OnClick="() => this.DeleteTagAsync(_Tag)">
-                                    <span class="home-icon home-icon-trash h-5 w-5 inline-block"></span>
+                                    <HomeIcon Name="trash" Size="lg" />
                                 </HomeButton>
                             </div>
 

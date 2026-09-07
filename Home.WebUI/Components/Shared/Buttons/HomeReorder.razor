@@ -14,7 +14,7 @@
             aria-label="@($"Move {this.Label} up")"
             disabled="@(!this.CanMoveUp)"
             @onclick="this.OnMoveUp">
-        <span class="home-icon home-icon-chevron-left h-4 w-4 inline-block rotate-90"></span>
+        <HomeIcon Name="chevron-left" Class="rotate-90" />
     </button>
     <button type="button"
             class="p-2 min-h-[44px] min-w-[44px] text-ink-600 hover:text-ink-200 disabled:opacity-25 disabled:hover:text-ink-600 transition-colors"
@@ -22,6 +22,6 @@
             aria-label="@($"Move {this.Label} down")"
             disabled="@(!this.CanMoveDown)"
             @onclick="this.OnMoveDown">
-        <span class="home-icon home-icon-chevron-right h-4 w-4 inline-block rotate-90"></span>
+        <HomeIcon Name="chevron-right" Class="rotate-90" />
     </button>
 </div>

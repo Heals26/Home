@@ -68,7 +68,7 @@
                                 Disabled="this.m_QuickAddText.Trim().Length == 0"
                                 OnClick="this.QuickAddAsync"
                                 aria-label="Add item">
-                        <span class="home-icon home-icon-plus h-5 w-5 inline-block"></span>
+                        <HomeIcon Name="plus" Size="lg" />
                     </HomeButton>
                 </div>
 
@@ -91,7 +91,7 @@
                                     class="w-full flex items-center gap-3 px-4 py-3 min-h-[48px] text-left hover:bg-ink-800 transition-colors"
                                     @onmousedown:preventDefault="true"
                                     @onclick="() => this.AddSuggestionAsync(_Suggestion)">
-                                <span class="home-icon home-icon-plus h-4 w-4 shrink-0 text-shopping"></span>
+                                <HomeIcon Name="plus" Class="shrink-0 text-shopping" />
                                 <span class="flex-1 min-w-0 truncate text-sm text-ink-50">@_Suggestion.Name</span>
                                 <span class="shrink-0 text-xs text-ink-500">@ShoppingListItemLogic.DescribeAmount(_Suggestion.Amount, _Suggestion.Unit, _Suggestion.UnitAbbreviation)</span>
                                 @if (_Suggestion.Cost is > 0)
@@ -141,7 +141,7 @@
                 else
                 {
                     <div class="py-10 text-center">
-                        <span class="home-icon home-icon-check h-8 w-8 inline-block text-shopping"></span>
+                        <HomeIcon Name="check" Class="h-8 w-8 text-shopping" />
                         <p class="text-sm font-medium text-ink-50 mt-2">That's everything</p>
                         <p class="text-xs text-ink-500 mt-1">Clear the ticked items when you're home</p>
                     </div>
@@ -154,7 +154,7 @@
                                 class="w-full flex items-center gap-3 px-5 py-3 min-h-[48px] text-left hover:bg-ink-800/50 transition-colors"
                                 aria-expanded="@this.m_ShowTrolley"
                                 @onclick="() => this.m_ShowTrolley = !this.m_ShowTrolley">
-                            <span class="home-icon home-icon-chevron-down h-4 w-4 shrink-0 text-ink-500 transition-transform @(this.m_ShowTrolley ? "" : "-rotate-90")"></span>
+                            <HomeIcon Name="chevron-down" Class="@($"shrink-0 text-ink-500 transition-transform {(this.m_ShowTrolley ? "" : "-rotate-90")}")" />
                             <span class="flex-1 text-sm font-medium text-ink-300">In the trolley (@_InTrolley.Count)</span>
                             @if (this.TrolleyTotal() > 0)
                             {
@@ -212,7 +212,7 @@
                       @bind-Value="this.m_EditNote" />
         <div class="mt-4 flex justify-between gap-3">
             <HomeButton Variant="danger" Loading="this.m_SavingItem" OnClick="this.DeleteItemAsync">
-                <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>
+                <HomeIcon Name="trash" Class="mr-1" />
                 Remove
             </HomeButton>
             <div class="flex gap-3">

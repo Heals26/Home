@@ -33,7 +33,7 @@
                                     title="@_PreviousLabel"
                                     aria-label="@_PreviousLabel"
                                     @onclick="() => this.MoveToColumnAsync(_Activity, _Previous)">
-                                <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
+                                <HomeIcon Name="chevron-left" Size="lg" />
                             </button>
                             @* Sideways moves the card between columns, up and down moves it within
                                one. Two axes, two pairs of chevrons, and the same gesture on a
@@ -44,7 +44,7 @@
                                     title="Move up"
                                     aria-label="@($"Move {_Activity.Title} up")"
                                     @onclick="() => this.MoveWithinColumnAsync(_Activity, _Column.StateID, -1)">
-                                <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block rotate-90"></span>
+                                <HomeIcon Name="chevron-left" Size="lg" Class="rotate-90" />
                             </button>
                             <button type="button"
                                     class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 enabled:hover:bg-ink-700 enabled:active:scale-95 transition disabled:opacity-25"
@@ -52,14 +52,14 @@
                                     title="Move down"
                                     aria-label="@($"Move {_Activity.Title} down")"
                                     @onclick="() => this.MoveWithinColumnAsync(_Activity, _Column.StateID, 1)">
-                                <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block rotate-90"></span>
+                                <HomeIcon Name="chevron-right" Size="lg" Class="rotate-90" />
                             </button>
                             <button type="button"
                                     class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 hover:bg-ink-700 active:scale-95 transition"
                                     title="Edit @_Activity.Title"
                                     aria-label="Edit @_Activity.Title"
                                     @onclick="() => this.OnEdit.InvokeAsync(_Activity)">
-                                <span class="home-icon home-icon-pencil h-4 w-4 inline-block"></span>
+                                <HomeIcon Name="pencil" />
                             </button>
                             <button type="button"
                                     class="flex-1 min-h-[48px] flex items-center justify-center text-ink-300 border-l border-ink-700 enabled:hover:bg-ink-700 enabled:active:scale-95 transition disabled:opacity-25"
@@ -67,7 +67,7 @@
                                     title="@_NextLabel"
                                     aria-label="@_NextLabel"
                                     @onclick="() => this.MoveToColumnAsync(_Activity, _Next)">
-                                <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block"></span>
+                                <HomeIcon Name="chevron-right" Size="lg" />
                             </button>
                         </FooterContent>
                     </ActivityCard>

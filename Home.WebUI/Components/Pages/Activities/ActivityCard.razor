@@ -20,7 +20,7 @@
                         @onclick:stopPropagation="true">
                     @if (this.IsComplete)
                     {
-                        <span class="home-icon home-icon-check h-3.5 w-3.5 text-shopping"></span>
+                        <HomeIcon Name="check" Size="sm" Class="text-shopping" />
                     }
                 </button>
             }
@@ -42,14 +42,14 @@
             @if (this.ShowDate && this.Activity.DueDateUTC.HasValue)
             {
                 <span class="inline-flex items-center gap-1 text-xs text-ink-400">
-                    <span class="home-icon home-icon-calendar h-3.5 w-3.5 inline-block"></span>
+                    <HomeIcon Name="calendar" Size="sm" />
                     @ActivityBoardLogic.DescribeDate(this.Activity.DueDateUTC.Value)
                 </span>
             }
             @if (this.Activity.DueTime.HasValue)
             {
                 <span class="inline-flex items-center gap-1 text-xs text-week">
-                    <span class="home-icon home-icon-clock h-3.5 w-3.5 inline-block"></span>
+                    <HomeIcon Name="clock" Size="sm" />
                     @ActivityBoardLogic.DescribeTime(this.Activity.DueTime.Value)
                 </span>
             }

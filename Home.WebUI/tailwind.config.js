@@ -14,6 +14,9 @@ module.exports = {
     '!./obj/**/*',
     '!./bin/**/*'
   ],
+  // HomeIcon builds `home-icon-{Name}` at runtime, and the scanner cannot see a class that is
+  // only ever half-written in the source. Without this every icon renders as a bare grey square.
+  safelist: [{ pattern: /^home-icon-/ }],
   // Themes are swapped by `data-theme` on <html>, not by a class, so `dark:` variants are
   // never used — every colour below resolves through a custom property that the theme
   // redefines. Nothing sets `.dark`, so this stays inert.

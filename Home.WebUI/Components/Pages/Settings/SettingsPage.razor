@@ -106,7 +106,7 @@
                     <ChildContent>
                         <div class="flex flex-col gap-4">
                             <div class="flex items-center gap-3">
-                                <span class="home-icon home-icon-lightbulb h-5 w-5 text-lights"></span>
+                                <HomeIcon Name="lightbulb" Size="lg" Class="text-lights" />
                                 <div class="flex-1">
                                     <p class="text-sm font-medium text-ink-50">LIFX</p>
                                     <p class="text-xs @(this.m_Settings.HasLifxApiToken ? "text-shopping" : "text-ink-500")">
@@ -178,7 +178,7 @@
                                             @* Both class names are written out, never assembled: a
                                                name Tailwind cannot find in the source gets purged
                                                and the icon renders as a grey square. *@
-                                            <span class="home-icon home-icon-device h-5 w-5 shrink-0 @(_Device.IsCurrentDevice ? "text-ink-50" : "text-ink-500")"></span>
+                                            <HomeIcon Name="device" Size="lg" Class="@($"shrink-0 {(_Device.IsCurrentDevice ? "text-ink-50" : "text-ink-500")}")" />
                                             <div class="min-w-0 flex-1">
                                                 <p class="text-sm font-medium text-ink-50 truncate">@_Device.Name</p>
                                                 <p class="text-xs text-ink-500 truncate">@this.DescribeWhen(_Device.LastUsedOnUTC)</p>
@@ -274,7 +274,7 @@
                                 Class="text-red-400 hover:text-red-300 hover:bg-red-950/40"
                                 Loading="this.m_RemovingMember"
                                 OnClick="this.RemoveMemberAsync">
-                        <span class="home-icon home-icon-trash h-4 w-4 mr-1 inline-block"></span>
+                        <HomeIcon Name="trash" Class="mr-1" />
                         Remove
                     </HomeButton>
                 }

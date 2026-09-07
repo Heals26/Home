@@ -15,12 +15,12 @@ public partial class HomeNavRail
 
     private static readonly NavItem[] m_Items =
     [
-        new("/", "Home", "home-icon-home", "text-ink-50", NavLinkMatch.All),
-        new("/recipes", "Recipes", "home-icon-book", "text-recipes", NavLinkMatch.Prefix),
-        new("/meal-plan", "Meals", "home-icon-utensils", "text-recipes", NavLinkMatch.Prefix),
-        new("/shopping-lists", "Shopping", "home-icon-shopping-list", "text-shopping", NavLinkMatch.Prefix),
-        new("/activities", "Week", "home-icon-board", "text-week", NavLinkMatch.Prefix),
-        new("/lights", "Lights", "home-icon-lightbulb", "text-lights", NavLinkMatch.Prefix),
+        new("/", "Home", "home", "text-ink-50", NavLinkMatch.All),
+        new("/recipes", "Recipes", "book", "text-recipes", NavLinkMatch.Prefix),
+        new("/meal-plan", "Meals", "utensils", "text-recipes", NavLinkMatch.Prefix),
+        new("/shopping-lists", "Shopping", "shopping-list", "text-shopping", NavLinkMatch.Prefix),
+        new("/activities", "Week", "board", "text-week", NavLinkMatch.Prefix),
+        new("/lights", "Lights", "lightbulb", "text-lights", NavLinkMatch.Prefix),
     ];
 
     #endregion Fields

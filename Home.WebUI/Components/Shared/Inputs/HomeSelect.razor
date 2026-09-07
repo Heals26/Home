@@ -23,8 +23,7 @@
                 <option value="@AsString(_Option.Value)">@_Option.Label</option>
             }
         </select>
-        <span aria-hidden="true"
-              class="home-icon home-icon-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400"></span>
+        <HomeIcon Name="chevron-down" Class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400" />
     </div>
     @if (!string.IsNullOrEmpty(this.Hint))
     {

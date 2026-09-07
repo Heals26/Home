@@ -23,7 +23,7 @@
                         Disabled="@(this.Group.Lights.Count > 0)"
                         DisabledReason="Move its lights to another group first."
                         OnClick="() => this.OnDeleted.InvokeAsync()">
-                <span class="home-icon home-icon-trash h-4 w-4 inline-block"></span>
+                <HomeIcon Name="trash" />
             </HomeButton>
         }
         else
@@ -36,7 +36,7 @@
                     <button type="button" title="Effects" aria-label="Effects"
                             class="h-9 px-3 rounded-lg text-ink-400 hover:text-lights hover:bg-ink-800 transition-colors"
                             @onclick="() => this.OnEffects.InvokeAsync()">
-                        <span class="home-icon home-icon-sparkles h-4 w-4 inline-block"></span>
+                        <HomeIcon Name="sparkles" />
                     </button>
                 }
                 <HomeButton Size="sm" Variant="ghost" OnClick="() => this.OnGroupPower.InvokeAsync(false)">All Off</HomeButton>

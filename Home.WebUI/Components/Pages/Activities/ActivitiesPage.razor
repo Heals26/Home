@@ -11,11 +11,11 @@
                                       Value="this.m_View"
                                       ValueChanged="this.SelectView" />
                 <HomeButton Size="sm" Variant="ghost" OnClick="() => this.m_ShowBoardSettings = true">
-                    <span class="home-icon home-icon-cog h-4 w-4 mr-1 inline-block"></span>
+                    <HomeIcon Name="cog" Class="mr-1" />
                     Set up board
                 </HomeButton>
                 <HomeButton Size="sm" OnClick="this.OpenCreateModal">
-                    <span class="home-icon home-icon-plus h-4 w-4 mr-1 inline-block"></span>
+                    <HomeIcon Name="plus" Class="mr-1" />
                     Add activity
                 </HomeButton>
             </ActionsContent>
@@ -54,10 +54,10 @@
         {
             <div class="flex items-center gap-2 px-6 pb-4 shrink-0">
                 <HomeButton IconOnly Variant="secondary" title="Earlier" aria-label="Earlier" OnClick="() => this.ShiftAnchor(-1)">
-                    <span class="home-icon home-icon-chevron-left h-5 w-5 inline-block"></span>
+                    <HomeIcon Name="chevron-left" Size="lg" />
                 </HomeButton>
                 <HomeButton IconOnly Variant="secondary" title="Later" aria-label="Later" OnClick="() => this.ShiftAnchor(1)">
-                    <span class="home-icon home-icon-chevron-right h-5 w-5 inline-block"></span>
+                    <HomeIcon Name="chevron-right" Size="lg" />
                 </HomeButton>
                 <HomeButton Size="sm" Variant="secondary" OnClick="this.GoToToday">Today</HomeButton>
                 <p class="text-sm text-ink-400 ml-2 truncate">@this.GetPeriodLabel()</p>
