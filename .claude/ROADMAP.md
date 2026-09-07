@@ -26,7 +26,7 @@ name them still make sense.*
 | **Phase 2** *(4 Sep 2026)* | All 114 use case slices tested, writes included, at 557 tests. |
 | **Phase 3** *(5 Sep 2026)* | Ingredient notes reachable, a signed-in devices card with bulk sign-out, and the superseded amount columns dropped. |
 | **Phase 4** *(5 Sep 2026)* | The page title stopped losing to its own buttons on a phone, the shopping list collapses to one pane, and the shell is sized in `dvh`. |
-| **Phase 5** *(6 Sep 2026)* | `HomeSelect` and `HomeTextArea` written and every raw `<select>` and `<textarea>` retired onto them, `HomeButton` given `IconOnly` for the 15 square icon buttons, and the rule written into the conventions. |
+| **Phase 5, part** *(6 Sep 2026)* | `HomeSelect` and `HomeTextArea` written and every raw `<select>` and `<textarea>` retired onto them, `HomeButton` given `IconOnly` for the 15 square icon buttons, and the rule written into the conventions. 57 raw buttons and 13 raw inputs still to go. |
 
 ---
 
@@ -152,7 +152,7 @@ Measured and deliberately left alone:
 - **21 of 30 pages still have no breakpoints, and that is correct.** A single-column page of cards
   does not need one. Adding breakpoints to pages that measure clean is churn.
 
-## Phase 5 · One way to draw each control, M *(new, 5 Sep 2026)* **DONE 6 Sep 2026**
+## Phase 5 · One way to draw each control, M *(new, 5 Sep 2026)* **PART DONE 6 Sep 2026**
 
 Home already has a component library, 19 `Home*` components, and the pages mostly use it: 107
 `<HomeButton>` against 72 raw `<button>`, 43 `<HomeTextInput>` against 13 raw `<input>`. This is not
@@ -217,6 +217,20 @@ Left standing and measured, not fixed here: **13 raw `<input>`s** against 43 `Ho
 five link-styled buttons written four ways. The inputs are the same disease as the selects and are
 worth their own sitting. The link buttons are contextual enough that one component would need a
 variant, a size and a colour override at every call site.
+
+### The wider goal, which is not finished
+
+Mitch, 6 Sep 2026: the point of this phase is **minimising raw HTML tags**. A tag should be written
+in one file and everything else should inherit from it. That is what keeps the app consistent, and
+it applies to `<span>`, `<p>` and `<img>` as much as to `<button>`. Markup inside a `@foreach`
+usually wants to be its own component rather than being written inline.
+
+Measured against that bar this phase is a start, not a finish. **57 raw `<button>`s and 13 raw
+`<input>`s remain.** The tappable rows, segmented cells and link-styled text left alone above were
+spared on the reasoning that they are not really buttons; under this rule each of them wants a
+component instead. Also unaddressed: the component folders themselves were only sorted out
+afterwards, and non-component types now live in `Infrastructure/{Area}/` or in `Models/` and
+`Enumerations/` under their feature.
 
 ## Phase 6 · A shared calendar, and the time axis under it, XL *(new, 6 Sep 2026)*
 

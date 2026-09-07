@@ -18,11 +18,6 @@ public partial class HomeTextArea
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public string? Error { get; set; }
     private string ErrorID => $"{this.m_TextAreaID}-error";
-    /// <summary>
-    /// The line under the field, for anything the label cannot say in two words. It is read out
-    /// with the field rather than sitting loose beside it, which is the reason it is a parameter
-    /// and not a paragraph at the call site.
-    /// </summary>
     [Parameter] public string? Hint { get; set; }
     private string HintID => $"{this.m_TextAreaID}-hint";
     [Parameter] public string? Label { get; set; }
@@ -52,9 +47,8 @@ public partial class HomeTextArea
     }
 
     /// <summary>
-    /// The same fill, border and focus ring as <see cref="HomeTextInput"/>. Height comes from
-    /// <see cref="Rows"/> rather than a minimum, and only the vertical handle is offered, because
-    /// dragging a field wider than its column is never what was wanted.
+    /// Must stay in step with <see cref="HomeTextInput"/>, minus the minimum height, which
+    /// <see cref="Rows"/> decides here.
     /// </summary>
     private string GetTextAreaClasses()
     {
