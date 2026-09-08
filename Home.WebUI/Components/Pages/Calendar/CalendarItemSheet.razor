@@ -1,0 +1,98 @@
+﻿@* Everything a thing on the calendar can have done to it, in a sheet rather than on the chip, so
+   the chip can be the name and the time and nothing else. What is offered depends on what the thing
+   is: an event edits and deletes here, a meal and a task open where they live, and a subscribed
+   event says where to change it, because changing it here would only last until the next refresh. *@
+
+<HomeModal Visible="this.Item != null"
+           VisibleChanged="visible => { if (!visible) this.OnClose.InvokeAsync(); }"
+           Title="@(this.Item?.Title ?? string.Empty)">
+    <ChildContent>
+        @if (this.Item is { } _Item)
+        {
+            <p class="text-sm text-ink-300">@CalendarFormat.LongDate(_Item.Date) · @CalendarFormat.Span(_Item)</p>
+
+            @if (!string.IsNullOrEmpty(_Item.Location))
+            {
+                <p class="mt-1 flex items-center gap-2 text-sm text-ink-400"><HomeIcon Name="map-pin" Size="sm" />@_Item.Location</p>
+            }
+            @if (_Item.People.Count > 0)
+            {
+                <p class="mt-1 flex items-center gap-2 text-sm text-ink-400"><HomeIcon Name="users" Size="sm" />@string.Join(", ", _Item.People)</p>
+            }
+            @if (!string.IsNullOrEmpty(_Item.Subtitle))
+            {
+                <p class="mt-1 text-sm text-ink-400">@this.SubtitleLabel(_Item)</p>
+            }
+            @if (_Item.IsRecurring)
+            {
+                <p class="mt-1 flex items-center gap-2 text-xs text-ink-500"><HomeIcon Name="refresh" Size="xs" />Repeats</p>
+            }
+
+            <div class="mt-5 flex flex-col gap-2">
+                @switch (_Item.Kind)
+                {
+                    case CalendarItemKind.Event:
+                        @if (_Item.IsRecurring)
+                        {
+                            <p class="text-xs font-semibold uppercase tracking-widest text-ink-500">Change</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <HomeButton Variant="secondary" Disabled="this.Busy" OnClick="() => this.OnEdit.InvokeAsync(false)">This time only</HomeButton>
+                                <HomeButton Variant="secondary" Disabled="this.Busy" OnClick="() => this.OnEdit.InvokeAsync(true)">The whole series</HomeButton>
+                            </div>
+                            <p class="mt-2 text-xs font-semibold uppercase tracking-widest text-ink-500">Remove</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <HomeButton Variant="ghost" Class="text-ink-300" Disabled="this.Busy" Loading="this.Busy" OnClick="() => this.OnDelete.InvokeAsync(false)">Skip this time</HomeButton>
+                                <HomeButton Variant="ghost" Class="text-red-400 enabled:hover:text-red-300" Disabled="this.Busy" OnClick="() => this.OnDelete.InvokeAsync(true)">Delete the series</HomeButton>
+                            </div>
+                        }
+                        else
+                        {
+                            <HomeButton Variant="secondary" Disabled="this.Busy" OnClick="() => this.OnEdit.InvokeAsync(true)">
+                                <HomeIcon Name="pencil" Class="mr-2" />
+                                Edit
+                            </HomeButton>
+                            <HomeButton Variant="ghost" Class="text-red-400 enabled:hover:text-red-300" Disabled="this.Busy" Loading="this.Busy" OnClick="() => this.OnDelete.InvokeAsync(true)">
+                                <HomeIcon Name="trash" Class="mr-2" />
+                                Delete
+                            </HomeButton>
+                        }
+                        break;
+
+                    case CalendarItemKind.Subscribed:
+                        <p class="rounded-xl border border-ink-800 bg-ink-800/40 px-4 py-3 text-sm text-ink-400">
+                            This comes from <span class="text-ink-200">@_Item.Subtitle</span>. Change it there and Home will pick it up on the next refresh.
+                        </p>
+                        break;
+
+                    case CalendarItemKind.Meal:
+                        @if (_Item.RecipeID is { } _RecipeID)
+                        {
+                            <a href="/recipes/@_RecipeID" class="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-800/40 px-4 py-3 min-h-[48px] text-sm text-ink-50 transition-colors hover:border-ink-600">
+                                <HomeIcon Name="book" Class="shrink-0 text-recipes" />
+                                Open the recipe
+                            </a>
+                        }
+                        <a href="/meal-plan" class="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-800/40 px-4 py-3 min-h-[48px] text-sm text-ink-50 transition-colors hover:border-ink-600">
+                            <HomeIcon Name="utensils" Class="shrink-0 text-recipes" />
+                            Open the meal planner
+                        </a>
+                        break;
+
+                    case CalendarItemKind.Task:
+                        @if (!_Item.IsDone)
+                        {
+                            <HomeButton Variant="secondary" Disabled="this.Busy" Loading="this.Busy" OnClick="this.OnCompleteTask">
+                                <HomeIcon Name="check" Class="mr-2 text-shopping" />
+                                Mark as done
+                            </HomeButton>
+                        }
+                        <a href="/activities" class="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-800/40 px-4 py-3 min-h-[48px] text-sm text-ink-50 transition-colors hover:border-ink-600">
+                            <HomeIcon Name="board" Class="shrink-0 text-week" />
+                            Open the week board
+                        </a>
+                        break;
+                }
+            </div>
+        }
+    </ChildContent>
+</HomeModal>

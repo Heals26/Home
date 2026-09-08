@@ -25,7 +25,15 @@ internal class DeleteUserInteractor : IInteractor<DeleteUserInputPort, IDeleteUs
             .SingleOrDefault(u => u.UserID == input.UserID && u.Household.HouseholdID == _Household.HouseholdID);
 
         if (_User != null)
+        {
+            // Calendar membership cannot cascade from the user (the household already cascades to
+            // it through the event), so a departing member is taken off their events here.
+            _PersistenceContext.RemoveRange(_PersistenceContext.GetEntities<CalendarEventMember>()
+                .Where(m => m.UserID == _User.UserID)
+                .ToList());
+
             _PersistenceContext.Remove(_User);
+        }
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

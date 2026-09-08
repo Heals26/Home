@@ -1,4 +1,4 @@
-namespace Home.WebUI.Infrastructure.Services.ChangeNotifications;
+﻿namespace Home.WebUI.Infrastructure.Services.ChangeNotifications;
 
 /// <summary>
 /// The slice of household data a change notification is about, so pages only reload
@@ -8,6 +8,7 @@ public enum ChangeArea
 {
     Activities,
     Announcements,
+    Calendar,
     Lights,
     MealPlan,
     Recipes,

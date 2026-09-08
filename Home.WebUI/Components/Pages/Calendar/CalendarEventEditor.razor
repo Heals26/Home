@@ -1,0 +1,130 @@
+﻿@* The one form for a new event and an edited one. Dates and times are the browser's own date and
+   time pickers, because a family typing "next Tuesday at four" into a text box is a support call.
+   The repeat controls only appear once a repeat is chosen, so a one-off stays four fields long. *@
+
+<HomeModal Visible="this.Visible" VisibleChanged="this.VisibleChanged" Title="@this.Title" OnSubmit="this.OnSave">
+    <ChildContent>
+        @if (this.Problem != null)
+        {
+            <p class="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">@this.Problem</p>
+        }
+
+        <div class="flex flex-col gap-4">
+            <HomeTextInput Label="What"
+                           Placeholder="e.g. Swimming lesson"
+                           AutoComplete="off"
+                           maxlength="250"
+                           @bind-Value="this.Form.Title" />
+
+            <div class="flex items-center gap-3 min-h-[24px]">
+                <HomeToggle @bind-Value="this.Form.IsAllDay" />
+                <span class="text-sm font-medium text-ink-300">All day</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <HomeTextInput Label="Starts"
+                               Type="date"
+                               AutoComplete="off"
+                               Value="@this.Form.StartDate"
+                               OnChange="this.StartDateChanged" />
+                <HomeTextInput Label="Ends"
+                               Type="date"
+                               AutoComplete="off"
+                               Value="@this.Form.EndDate"
+                               OnChange="value => this.Form.EndDate = value" />
+            </div>
+
+            @if (!this.Form.IsAllDay)
+            {
+                <div class="grid grid-cols-2 gap-3">
+                    <HomeTextInput Label="From"
+                                   Type="time"
+                                   AutoComplete="off"
+                                   Value="@this.Form.StartTime"
+                                   OnChange="value => this.Form.StartTime = value" />
+                    <HomeTextInput Label="To"
+                                   Type="time"
+                                   AutoComplete="off"
+                                   Value="@this.Form.EndTime"
+                                   OnChange="value => this.Form.EndTime = value" />
+                </div>
+            }
+
+            <HomeTextInput Label="Where (optional)"
+                           Placeholder="e.g. The pool"
+                           AutoComplete="off"
+                           maxlength="250"
+                           @bind-Value="this.Form.Location" />
+
+            <HomeSelect TValue="CalendarRecurrenceFrequency"
+                        Label="Repeats"
+                        Options="this.m_FrequencyOptions"
+                        Value="this.Form.Frequency"
+                        ValueChanged="this.FrequencyChanged" />
+
+            @if (this.Form.Frequency == CalendarRecurrenceFrequency.Weekly)
+            {
+                <div class="flex flex-wrap gap-2" role="group" aria-label="Days of the week">
+                    @foreach (var _Day in s_WeekOrder)
+                    {
+                        <HomeChip Selected="(this.Form.DaysOfWeek & (1 << (int)_Day)) != 0"
+                                  aria-label="@_Day.ToString()"
+                                  OnClick="() => this.ToggleDay(_Day)">
+                            @_Day.ToString()[..3]
+                        </HomeChip>
+                    }
+                </div>
+            }
+
+            @if (this.Form.Frequency == CalendarRecurrenceFrequency.Monthly)
+            {
+                <HomeSegmentedControl TValue="bool"
+                                      Options="this.MonthlyOptions()"
+                                      @bind-Value="this.Form.RepeatsOnWeekdayOfMonth" />
+            }
+
+            @if (this.Form.Frequency != CalendarRecurrenceFrequency.None)
+            {
+                <div class="grid grid-cols-2 gap-3">
+                    <HomeTextInput Label="@this.IntervalLabel()"
+                                   Type="number"
+                                   InputMode="numeric"
+                                   AutoComplete="off"
+                                   min="1"
+                                   max="99"
+                                   Value="@this.Form.Interval.ToString()"
+                                   OnChange="this.IntervalChanged" />
+                    <HomeTextInput Label="Until (optional)"
+                                   Type="date"
+                                   AutoComplete="off"
+                                   Value="@this.Form.RepeatUntil"
+                                   OnChange="value => this.Form.RepeatUntil = value" />
+                </div>
+            }
+
+            @if (this.Members.Count > 0)
+            {
+                <div>
+                    <p class="mb-2 text-sm font-medium text-ink-300">Who</p>
+                    <div class="flex flex-wrap gap-2" role="group" aria-label="Who is going">
+                        @foreach (var _Member in this.Members)
+                        {
+                            <HomeChip Selected="this.Form.MemberUserIDs.Contains(_Member.UserID)"
+                                      OnClick="() => this.ToggleMember(_Member.UserID)">
+                                @_Member.FirstName
+                            </HomeChip>
+                        }
+                    </div>
+                </div>
+            }
+
+            <HomeTextArea Label="Notes (optional)" Rows="2" @bind-Value="this.Form.Notes" />
+        </div>
+    </ChildContent>
+    <FooterContent>
+        <div class="flex items-center justify-end gap-3">
+            <HomeButton Variant="ghost" Disabled="this.Saving" OnClick="this.CancelAsync">Cancel</HomeButton>
+            <HomeButton Loading="this.Saving" OnClick="this.OnSave">@(this.IsNew ? "Add to calendar" : "Save")</HomeButton>
+        </div>
+    </FooterContent>
+</HomeModal>

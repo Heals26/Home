@@ -1,0 +1,37 @@
+﻿@* Seven columns, Monday first, each the day's things in order: all-day first, then by time. Only
+   ever shown on a wide screen; the page swaps in the list below that, so this never has to fold. *@
+
+<div class="grid grid-cols-7 gap-2">
+    @foreach (var _Day in this.Days)
+    {
+        var _IsToday = _Day.Date == this.Today;
+
+        <div class="flex flex-col gap-2 min-w-0">
+            <div class="flex items-center justify-between rounded-xl px-2 py-2 @(_IsToday ? "bg-calendar/10" : "bg-ink-900/60")">
+                <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-widest @(_IsToday ? "text-calendar" : "text-ink-500")">@_Day.Date.ToString("ddd")</p>
+                    <p class="font-display text-2xl leading-none @(_IsToday ? "text-ink-50" : "text-ink-300")">@_Day.Date.Day</p>
+                </div>
+                <HomeButton IconOnly Size="sm" Variant="ghost"
+                            Class="text-ink-500 enabled:hover:text-ink-50"
+                            aria-label="@($"Add something on {CalendarFormat.LongDate(_Day.Date)}")"
+                            title="@($"Add something on {CalendarFormat.LongDate(_Day.Date)}")"
+                            OnClick="() => this.OnSelectDay.InvokeAsync(_Day.Date)">
+                    <HomeIcon Name="plus" Size="sm" />
+                </HomeButton>
+            </div>
+
+            @if (_Day.Items.Count == 0)
+            {
+                <p class="px-2 py-3 text-xs text-ink-600">Nothing on</p>
+            }
+            else
+            {
+                @foreach (var _Item in _Day.Items)
+                {
+                    <CalendarItemChip Item="_Item" OnClick="this.OnSelectItem" />
+                }
+            }
+        </div>
+    }
+</div>

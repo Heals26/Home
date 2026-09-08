@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using CleanArchitecture.Mediator;
 using CleanArchitecture.Mediator.Setup;
+using Home.Application.Infrastructure.Calendar;
 using Home.Application.Infrastructure.Security;
 using Home.Application.Infrastructure.Activities;
 using Home.Application.Infrastructure.Households;
@@ -8,7 +9,9 @@ using Home.Application.Infrastructure.Recipes;
 using Home.Application.Infrastructure.ShoppingLists;
 using Home.Application.Infrastructure.Users;
 using Home.Application.Infrastructure.Lights;
+using Home.Application.Services.Calendar;
 using Home.Application.Services.EntityLogic.Activities;
+using Home.Application.Services.EntityLogic.Calendar;
 using Home.Application.Services.EntityLogic.Households;
 using Home.Application.Services.EntityLogic.Lights;
 using Home.Application.Services.EntityLogic.Recipes;
@@ -24,6 +27,7 @@ using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 using Home.Domain.Services.Users;
 using Home.Persistence.Database;
+using Home.WebApi.Infrastructure.Calendar;
 using Home.WebApi;
 using Home.WebApi.Infrastructure.AutoMapper.Resolvers;
 using Home.WebApi.Infrastructure.ChangeNotifications;
@@ -57,6 +61,7 @@ SetupInfrastructure(_Builder.Services);
 SetupLights(_Builder.Services, _Builder.Configuration);
 SetupRecipeImports(_Builder.Services);
 SetupWeather(_Builder.Services);
+SetupCalendar(_Builder.Services);
 SetupEntityFramework(_Builder.Services, _Builder.Configuration);
 
 SetupAuthentication(_Builder.Services);
@@ -258,6 +263,22 @@ static IServiceCollection SetupLights(IServiceCollection services, IConfiguratio
     return services;
 }
 
+// Subscribed calendars are plain iCalendar feeds. Ical.Net stays inside IcsCalendarFeedService; the
+// runner re-reads every feed on a timer so a change made in Google Calendar reaches the wall.
+static IServiceCollection SetupCalendar(IServiceCollection services)
+{
+    _ = services.AddHttpClient<ICalendarFeedService, IcsCalendarFeedService>(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(CalendarFeedValues.RequestTimeoutSeconds);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; HomeCalendar/1.0)");
+        client.DefaultRequestHeaders.Accept.ParseAdd("text/calendar");
+    });
+
+    _ = services.AddHostedService<CalendarSubscriptionRunner>();
+
+    return services;
+}
+
 // Recipe pages are fetched with an explicit user agent — several big cooking sites refuse
 // the default HttpClient one outright. The import only reads embedded JSON-LD, never HTML.
 static IServiceCollection SetupRecipeImports(IServiceCollection services)
@@ -319,6 +340,7 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
 
     _ = services
         .AddScoped<IActivityLogic, ActivityLogic>()
+        .AddScoped<ICalendarSubscriptionLogic, CalendarSubscriptionLogic>()
         .AddScoped<IHouseholdSetupLogic, HouseholdSetupLogic>()
         .AddScoped<ILightSceneLogic, LightSceneLogic>()
         .AddScoped<ILightSyncLogic, LightSyncLogic>()

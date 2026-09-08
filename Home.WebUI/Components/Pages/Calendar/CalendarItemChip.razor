@@ -1,0 +1,31 @@
+﻿@* One thing on a day, tappable. Colour says what kind of thing it is, the way the nav rail's hues
+   say where you are: lavender for the household's own events, apricot for a meal, sky for a task,
+   and a quiet outline for anything read from a subscribed calendar. Compact is the month grid's
+   one-line form; the full form adds the time and who is on it. *@
+
+<HomeButton Variant="bare"
+            Size="none"
+            Class="@this.Classes()"
+            title="@this.Item.Title"
+            aria-label="@($"{this.Item.Title}, open details")"
+            OnClick="() => this.OnClick.InvokeAsync(this.Item)">
+    @if (this.Compact)
+    {
+        <span class="h-1.5 w-1.5 shrink-0 rounded-full @this.DotClass()"></span>
+        @if (this.Item.StartsAt is { } _StartsAt)
+        {
+            <span class="shrink-0 text-[11px] text-ink-400 tabular-nums">@CalendarFormat.Time(_StartsAt)</span>
+        }
+        <span class="truncate text-xs @(this.Item.IsDone ? "line-through text-ink-500" : "text-ink-100")">@this.Item.Title</span>
+    }
+    else
+    {
+        <span class="w-1 self-stretch shrink-0 rounded-full @this.DotClass()"></span>
+        <span class="min-w-0 flex-1">
+            <span class="block truncate text-sm font-medium @(this.Item.IsDone ? "line-through text-ink-500" : "text-ink-50")">@this.Item.Title</span>
+            <span class="block truncate text-xs text-ink-400">
+                @CalendarFormat.Span(this.Item)@(string.IsNullOrEmpty(this.Item.Subtitle) ? "" : $" · {this.Item.Subtitle}")@(this.Item.People.Count == 0 ? "" : $" · {string.Join(", ", this.Item.People)}")
+            </span>
+        </span>
+    }
+</HomeButton>

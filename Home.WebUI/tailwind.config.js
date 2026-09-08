@@ -48,6 +48,7 @@ module.exports = {
         recipes:  { DEFAULT: 'rgb(var(--recipes) / <alpha-value>)',   dim: 'rgb(var(--recipes-dim) / <alpha-value>)' },   // apricot
         shopping: { DEFAULT: 'rgb(var(--shopping) / <alpha-value>)',  dim: 'rgb(var(--shopping-dim) / <alpha-value>)' },  // sage
         week:     { DEFAULT: 'rgb(var(--week) / <alpha-value>)',      dim: 'rgb(var(--week-dim) / <alpha-value>)' },      // sky
+        calendar: { DEFAULT: 'rgb(var(--calendar) / <alpha-value>)',  dim: 'rgb(var(--calendar-dim) / <alpha-value>)' },  // lavender
         lights:   { DEFAULT: 'rgb(var(--lights) / <alpha-value>)',    dim: 'rgb(var(--lights-dim) / <alpha-value>)' },    // lamplight amber
         household:{ DEFAULT: 'rgb(var(--household) / <alpha-value>)', dim: 'rgb(var(--household-dim) / <alpha-value>)' }, // settings stays neutral
         surface: {

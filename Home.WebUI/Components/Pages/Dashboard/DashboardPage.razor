@@ -1,5 +1,6 @@
 ﻿@page "/"
 @page "/home"
+@inject IViewerClock ViewerClock
 
 <HomePageTitle />
 
@@ -120,7 +121,7 @@
                 <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
             </div>
 
-            @if (this.m_MealPlanEntries == null)
+            @if (this.m_Calendar == null)
             {
                 <div class="h-9 rounded bg-ink-800 w-1/2 animate-pulse"></div>
             }
@@ -137,7 +138,7 @@
                 </div>
                 @if (this.TomorrowsMeals().Any())
                 {
-                    <p class="text-sm text-ink-500 mt-3 truncate">Tomorrow: @string.Join(" · ", this.TomorrowsMeals().Select(m => m.Name))</p>
+                    <p class="text-sm text-ink-500 mt-3 truncate">Tomorrow: @string.Join(" · ", this.TomorrowsMeals().Select(m => m.Title))</p>
                 }
             }
             else
@@ -147,61 +148,8 @@
             }
         </a>
 
-        @* ── This week ─────────────────────────────────────────────── *@
-        <a href="/activities" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
-            <div class="flex items-center justify-between mb-3">
-                <span class="flex items-center gap-2 text-week">
-                    <HomeIcon Name="board" Size="lg" />
-                    <span class="text-xs font-semibold uppercase tracking-widest">This week</span>
-                </span>
-                <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
-            </div>
-
-            @if (this.m_Activities == null)
-            {
-                <div class="space-y-3 py-1 animate-pulse">
-                    <div class="h-4 rounded bg-ink-800"></div>
-                    <div class="h-4 rounded bg-ink-800 w-3/4"></div>
-                    <div class="h-4 rounded bg-ink-800 w-1/2"></div>
-                </div>
-            }
-            else if (!this.UpcomingActivities().Any())
-            {
-                <p class="text-sm text-ink-500 py-2">Nothing planned. Tap to add something for the week.</p>
-            }
-            else
-            {
-                <div class="divide-y divide-ink-800/60">
-                    @foreach (var _Activity in this.UpcomingActivities())
-                    {
-                        <div class="flex items-center gap-3 py-2.5">
-                            <span class="w-14 shrink-0 text-center text-xs font-semibold rounded-md py-1 @this.DayChipClasses(_Activity)">
-                                @DayChip(_Activity, this.TimeProvider.GetLocalNow().Date)
-                            </span>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-sm text-ink-100 truncate">@_Activity.Title</p>
-                                @if (!string.IsNullOrEmpty(_Activity.AssignedTo))
-                                {
-                                    <p class="text-xs text-ink-500 truncate">@_Activity.AssignedTo</p>
-                                }
-                            </div>
-                            @* The whole tile is a link, so this has to swallow the click or ticking
-                               a chore off would navigate away from the board instead. *@
-                            <HomeButton Variant="bare"
-                                        Size="none"
-                                        StopPropagation
-                                        PreventDefault
-                                        Class="h-9 w-9 shrink-0 rounded-full border-2 border-ink-600 enabled:hover:border-shopping flex items-center justify-center"
-                                        title="@($"Mark {_Activity.Title} as done")"
-                                        aria-label="@($"Mark {_Activity.Title} as done")"
-                                        OnClick="() => this.CompleteActivityAsync(_Activity)">
-                                <HomeIcon Name="check" Class="text-ink-500" />
-                            </HomeButton>
-                        </div>
-                    }
-                </div>
-            }
-        </a>
+        @* ── Today and the next few days ────────────────────────────── *@
+        <DashboardAgenda Days="this.m_Calendar" Today="this.m_Today" OnCompleteTask="this.CompleteActivityAsync" />
 
         @* ── Shopping ──────────────────────────────────────────────── *@
         <a href="/shopping-lists" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">

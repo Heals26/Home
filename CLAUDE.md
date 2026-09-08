@@ -1,4 +1,4 @@
-# Home
+﻿# Home
 
 A .NET 8 clean-architecture household app: recipes, shopping lists, activities, and (in progress)
 LIFX light control. Blazor Server front end over a REST API, built on the
@@ -106,6 +106,10 @@ dotnet test
   explains which harness to use and why a mocked context cannot catch a missing projection.
 - `CleanArchitecture.Mediator` resolves from the committed `packages/` folder via `nuget.config`,
   not from nuget.org.
+- `Ical.Net` is used only inside `Home.WebApi/Infrastructure/Calendar/`. Subscribed calendars are
+  expanded there and stored as plain read-only `CalendarEvent` rows; nothing else parses iCalendar.
+- Calendar dates are shown in the *browser's* zone through `IViewerClock` (Blazor Server would
+  otherwise answer in the server's). The rest of the app still uses server-local time.
 - Australian English in identifiers, comments and strings, except where a framework type fixes the
   spelling (`[Authorize]`, `IAuthorizationHandler`).
 

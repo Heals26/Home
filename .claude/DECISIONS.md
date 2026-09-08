@@ -4,6 +4,133 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-08 · Calendar decision 6 of 6: the dashboard shows today in time order, then the next few days
+
+Mitch, 8 Sep 2026: one "Today" column listing timed events, meals and due tasks in time order,
+followed by the next two or three days compressed. The month and week views live on `/calendar`
+and are the screens that get edited; the board is the one that gets read.
+
+This replaces the "This week" tile, which was four undated-or-dated chores sorted by hand, and it
+feeds the "Today's meals" tile from the same read, so the dashboard's seven hand-assembled calls
+drop to six (weather, lights, recipes, shopping, notes, calendar). Ticking a chore off stays on the
+board: the agenda row carries the same complete button the old tile had, because taking an action
+away from the most-glanced screen in the house is a regression however tidy the tile gets.
+
+## 2026-09-08 · Calendar decision 5 of 6: read-only iCalendar subscriptions, now
+
+Mitch, 8 Sep 2026: Home reads the calendar the family already keeps. A household pastes the
+"secret address" (`.ics`) link Google, Apple or Outlook publish, Home fetches it on a timer
+(`CalendarSubscriptionRunner`, every 30 minutes) and shows those events beside its own. They
+cannot be edited or deleted from Home; the sheet says where to change them instead. Two-way
+CalDAV was declined as a separate project.
+
+How it is stored is the part worth recording. The feed is the source of truth, so Home does not
+try to translate the feed's recurrence rules into its own smaller model. Each refresh expands the
+feed's occurrences inside a rolling window (31 days back, 366 forward), **deletes the
+subscription's rows and writes the expanded occurrences back** as plain one-off `CalendarEvent`
+rows carrying `SubscriptionID` and `ExternalUID`. Nothing about a subscribed row can drift from
+the feed for longer than one refresh, and the read model needs no special case: a subscribed
+event is an event whose `Subscription` is not null. Timed occurrences from a feed are stored with
+`TimeZoneID = "UTC"`, which the decision-4 model handles like any other zone.
+
+`Ical.Net` 4.3.1 does the parsing and expansion inside `IcsCalendarFeedService` in the API. Its
+types never leave that adapter: the boundary is `ICalendarFeedService` in
+`Home.Application/Services/Calendar/`, which returns null when the feed cannot be reached, the
+same shape as lights and weather. A subscription that cannot be reached keeps its last good rows
+and records `LastError` for the Settings card, because a stale calendar beats a blank one.
+
+## 2026-09-08 · Calendar decision 4 of 6: wall-clock plus zone in the table, UTC on the wire, the browser's zone on screen
+
+Mitch, 8 Sep 2026: he does not mind whether the table holds UTC or an offset, but **every date
+and time is displayed in the viewer's browser time zone**. Follow-up, same day: an all-day event
+is a date, not a moment, and a repeating event keeps its wall-clock time and the zone it was
+created in, so "swimming 4pm every Tuesday" is still 4pm after daylight saving changes.
+
+The model that satisfies all three at once:
+
+- **Every event stores `StartDate`/`EndDate` as `DateOnly`** (inclusive), and a timed event adds
+  `StartTime`/`EndTime` as `TimeOnly` plus an IANA `TimeZoneID` taken from the browser that
+  created it. A one-off timed event and a repeating one are stored identically; there is one
+  representation, not one for each.
+- **The API converts to UTC instants when it reads.** `GetCalendar` takes the viewer's zone,
+  expands each occurrence into `StartUTC`/`EndUTC` through the event's own zone, then buckets
+  it into the viewer's local day. A 9pm Brisbane event viewed from Perth lands on the right day
+  at 7pm.
+- **The web app never calls `.ToLocalTime()` for calendar data.** Blazor Server runs on the
+  server, so `DateTime.ToLocalTime()` and `TimeProvider.GetLocalNow()` give the *server's* zone,
+  which happens to match on a home server and is wrong the day this is cloud hosted. A new
+  per-circuit `IViewerClock` reads the browser's zone once through JS interop
+  (`Intl.DateTimeFormat().resolvedOptions().timeZone`) and is the only place calendar dates are
+  converted. The rest of the app still uses server-local time; converting it is a separate job.
+
+The two existing sources fold in as they are: a `MealPlanEntry.Date` is already a local calendar
+day and becomes an all-day item, and an `Activity` contributes the date part of `DueDateUTC` with
+`DueTime` as its local time. `DueDateUTC` is stored as the date the user picked at midnight,
+mislabelled, so treating it as a calendar day matches what every screen already does with it.
+Nothing about `Activity` is changed in this phase.
+
+## 2026-09-08 · Calendar decision 3 of 6: simple repeats, with exceptions, and a list of what it will not do
+
+Mitch, 8 Sep 2026: daily, weekly on chosen days, monthly (same date, or the same weekday such
+as "first Monday"), yearly, each with an optional repeat interval and an optional end date, and
+the ability to skip or move one occurrence. Full RFC 5545 rules were declined as more than a
+household needs and more than anyone would fill in on a kitchen tablet.
+
+The model is five columns on `CalendarEvent`: `Frequency`, `Interval`, `DaysOfWeek` (a bitmask,
+bit 0 Sunday, the same shape `LightSchedule` uses), `RepeatsOnWeekdayOfMonth` and
+`RepeatUntil`. Expansion is a pure static `RecurrenceExpander` in the application layer with its
+own tests, because recurrence is exactly the kind of logic that looks right and is wrong on the
+fifth Monday of a month.
+
+**Exceptions are the hard part and they are kept deliberately dumb.** A skipped occurrence is a
+row in `CalendarEventException` (series, date). A *moved* occurrence is that same skip plus an
+ordinary standalone event; there is no link between the two. The alternative, a self-referencing
+foreign key from the moved event back to its series, was rejected because SQL Server refuses any
+cascade on a self-reference, and a link that cannot cascade is a link that can dangle. The cost
+is that deleting a whole series leaves its moved occurrences standing as their own events, which
+is defensible: someone moved it, it is theirs now.
+
+Written down as not supported, so nobody looks for it: "every Tuesday in term time", "the last
+Friday of the month", "every weekday", counts ("ten times"), and editing "this and following".
+Each is a decision of its own if it is ever wanted.
+
+## 2026-09-08 · Calendar decision 2 of 6: events belong to the household, with people optionally on them
+
+Mitch, 8 Sep 2026: an event belongs to the household. Zero or more existing members can be put
+on it (`CalendarEventMember`, a plain join), which is display and, later, filtering, not
+ownership. Per-person events were declined, so **phase 7 (per-user identity) stays where it is**
+and the calendar builds now; that was the whole reason this question was asked first.
+
+The join cascades from the event and is `NoAction` from the user, because the household already
+cascades to both and a second cascade path onto the join is rejected by SQL Server, the same trade
+`ActivityTag` made. `DeleteUser` therefore clears a member's calendar rows itself before removing
+the member.
+
+## 2026-09-08 · Calendar decision 1 of 6: the calendar stores its own events and reads everything else
+
+Mitch, 8 Sep 2026: both. A new `CalendarEvent` table holds appointments that belong to nothing
+else ("swimming, Tuesday 4pm"), and one read, `GetCalendar(from, to, zone)`, answers "what is on
+between these days" by folding in the planned meals and the tasks with a due date alongside it.
+Nothing is stored twice: a meal stays a `MealPlanEntry`, a chore stays an `Activity`, and the
+calendar shows them with a kind and a link back. Light schedules and family notes are deliberately
+left out of the read: a schedule is automation the house does to itself, not something the family
+attends, and a note is not on a day.
+
+This settles the phase-6 planning question that shaped the other five, and the schema sketch the
+roadmap asked for is the four tables below. Every row reaches the household directly, the same
+ownership path everything else uses since 14 Aug.
+
+| Table | Columns | Notes |
+|---|---|---|
+| `CalendarEvent` | `Title`, `Location?`, `Notes?`, `IsAllDay`, `StartDate`, `EndDate`, `StartTime?`, `EndTime?`, `TimeZoneID?`, `Frequency`, `Interval`, `DaysOfWeek`, `RepeatsOnWeekdayOfMonth`, `RepeatUntil?`, `ExternalUID?`, FK `Household` (cascade), FK `Subscription?` (no action) | The subscription FK cannot cascade: household already cascades here, and `DeleteCalendarSubscription` removes its rows itself |
+| `CalendarEventMember` | `CalendarEventID`, `UserID` | Composite key. Event cascades, user does not (see decision 2) |
+| `CalendarEventException` | `CalendarEventID`, `OccurrenceDate` | A skipped occurrence of a series. Unique per series and date |
+| `CalendarSubscription` | `Name`, `Url`, `LastFetchedUTC?`, `LastError?`, FK `Household` (cascade) | A read-only feed (see decision 5) |
+
+The read model is a projection across three sources and is the thing tested first, against a real
+database through its presenter, because a projection that forgets a navigation is the bug class
+this repo keeps meeting.
+
 ## 2026-09-07 · One file per HTML tag, and HomeButton is the only button
 
 Every tag the app draws more than once now has a component, and that component is the only place

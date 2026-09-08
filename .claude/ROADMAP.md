@@ -27,6 +27,7 @@ name them still make sense.*
 | **Phase 3** *(5 Sep 2026)* | Ingredient notes reachable, a signed-in devices card with bulk sign-out, and the superseded amount columns dropped. |
 | **Phase 4** *(5 Sep 2026)* | The page title stopped losing to its own buttons on a phone, the shopping list collapses to one pane, and the shell is sized in `dvh`. |
 | **Phase 5** *(7 Sep 2026)* | Six new components and the whole app moved onto them: 72 raw buttons down to 2, 118 icon spans, 18 selects, 13 inputs and 5 textareas all down to 0. |
+| **Phase 6** *(8 Sep 2026)* | The shared calendar: six decisions recorded, `CalendarEvent` with simple repeats and skips, read-only iCalendar subscriptions, month, week and list views, and the dashboard rebuilt on one calendar read. |
 
 ---
 
@@ -247,7 +248,7 @@ read to a screen reader as an ordinary button.
 rather than controls, so there is no obvious component behind most of them, and turning every
 paragraph into `HomeText` would cost more than it pays. A `@foreach` body that is a whole card is
 the better next target, and phase 15 will want that anyway.
-## Phase 6 · A shared calendar, and the time axis under it, XL *(new, 6 Sep 2026)*
+## Phase 6 · A shared calendar, and the time axis under it, XL *(new, 6 Sep 2026)* **DONE 8 Sep 2026**
 
 `VISION.md` says the dashboard answers "what's happening this week" without navigation. Today it
 answers that by making **seven separate API calls and assembling the answer by hand**, and there is
@@ -340,6 +341,36 @@ Shaped by stage 1, so this is the expected shape rather than a commitment:
   works, it has no UI complaints against it, and folding a working feature into a new abstraction
   on day one is how the abstraction gets shaped by the wrong requirement. Revisit once the calendar
   has been in use.
+
+### What shipped, 8 Sep 2026
+
+Stage 1 first: the six questions have dated entries in `DECISIONS.md` (all 8 Sep 2026) and the
+schema sketch sits in the first of them. Then stage 2, as the expected shape said, with one
+difference: the read model went in before any screen and was tested against a real database
+through its presenter, which caught nothing this time, and that is the point.
+
+- `CalendarEvent`, `CalendarEventMember`, `CalendarEventException` and `CalendarSubscription`,
+  one migration (`AddCalendar`), every row reaching the household directly.
+- Slices: `GetCalendar` (the projection across events, meals and tasks, placed on the viewer's
+  local day), `GetCalendarEvent`, `CreateCalendarEvent`, `UpdateCalendarEvent`,
+  `DeleteCalendarEvent` (whole event, or one skipped occurrence), and five for subscriptions
+  including the runner's `RefreshAllCalendarSubscriptions`. 37 tests.
+- `/calendar` with Month, Week and List views (List is what every narrow screen gets), a sheet per
+  item that offers only what that kind of item can do, and an editor whose repeat controls appear
+  only once a repeat is chosen. Editing or removing "this time only" on a series is a skip plus a
+  standalone copy, as decided.
+- Settings gained an "Other calendars" card; the nav rail gained Calendar with its own lavender
+  hue; the dashboard's "This week" tile became "Today" and the board makes six calls, not seven.
+
+One live defect fell out of driving the new screens: `HomeToggle` carried a Razor comment inside
+its `<HomeButton` tag, which Blazor sends to the browser as an attribute name; setting it throws
+and the whole circuit dies the moment any toggle renders. Every page with a toggle had been broken
+since the phase 5 sweep. The comment moved above the tag.
+
+**Left for later, on purpose:** filtering the calendar by person (waits on phase 7 to mean
+anything), dragging an occurrence to move it (the sheet does it in two taps and touch fires no
+drag events), showing a subscribed calendar in its own colour, and converting the rest of the app
+from server-local time to `IViewerClock`, which is a separate job now the seam exists.
 
 ## Phase 7 · Who is using this, XL *(was B1)*
 

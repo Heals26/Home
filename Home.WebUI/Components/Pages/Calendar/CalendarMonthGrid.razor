@@ -1,0 +1,60 @@
+﻿@* Six weeks, Monday first. On a wide screen each cell lists its first few things and counts the
+   rest; on a narrow one it shows dots, because a chip in a 45px column is a smear. The date is the
+   control that adds something to that day, and the chips are the controls that open what is there;
+   the cell itself is not a button, because a button holding buttons is a tap that goes to the
+   wrong place half the time. *@
+
+<div class="grid grid-cols-7 gap-px rounded-2xl overflow-hidden border border-ink-800 bg-ink-800">
+    @foreach (var _Name in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" })
+    {
+        <div class="bg-ink-950 px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-widest text-ink-500">@_Name</div>
+    }
+
+    @foreach (var _Day in this.Days)
+    {
+        var _InMonth = _Day.Date.Month == this.Month.Month;
+        var _IsToday = _Day.Date == this.Today;
+
+        <div class="@(_InMonth ? "bg-ink-900" : "bg-ink-950/60") min-h-[56px] lg:min-h-[104px] p-1 lg:p-1.5 flex flex-col gap-0.5 min-w-0">
+            <div class="flex items-center justify-between">
+                <HomeButton Variant="bare"
+                            Size="none"
+                            Class="@(_IsToday ? "h-7 w-7 rounded-full bg-calendar text-ink-950 text-xs font-semibold flex items-center justify-center" : $"h-7 w-7 rounded-full text-xs flex items-center justify-center {(_InMonth ? "text-ink-200" : "text-ink-600")} enabled:hover:bg-ink-800")"
+                            aria-label="@($"Add something on {CalendarFormat.LongDate(_Day.Date)}")"
+                            title="@($"Add something on {CalendarFormat.LongDate(_Day.Date)}")"
+                            OnClick="() => this.OnSelectDay.InvokeAsync(_Day.Date)">
+                    @_Day.Date.Day
+                </HomeButton>
+            </div>
+
+            @* Wide: chips. *@
+            <div class="hidden lg:flex flex-col gap-0.5 min-w-0">
+                @foreach (var _Item in _Day.Items.Take(MaximumChips))
+                {
+                    <CalendarItemChip Item="_Item" Compact OnClick="this.OnSelectItem" />
+                }
+                @if (_Day.Items.Count > MaximumChips)
+                {
+                    <HomeButton Variant="link" Size="none" Class="self-start px-1.5 text-[11px] text-ink-400"
+                                OnClick="() => this.OnShowDay.InvokeAsync(_Day.Date)">
+                        +@(_Day.Items.Count - MaximumChips) more
+                    </HomeButton>
+                }
+            </div>
+
+            @* Narrow: dots, and the whole day opens as a list. *@
+            @if (_Day.Items.Count > 0)
+            {
+                <HomeButton Variant="bare" Size="none"
+                            Class="lg:hidden flex flex-wrap gap-1 px-1 py-1 min-h-[24px] rounded enabled:hover:bg-ink-800"
+                            aria-label="@($"{_Day.Items.Count} things on {CalendarFormat.LongDate(_Day.Date)}, show the day")"
+                            OnClick="() => this.OnShowDay.InvokeAsync(_Day.Date)">
+                    @foreach (var _Item in _Day.Items.Take(MaximumDots))
+                    {
+                        <span class="h-1.5 w-1.5 rounded-full @DotClass(_Item)"></span>
+                    }
+                </HomeButton>
+            }
+        </div>
+    }
+</div>

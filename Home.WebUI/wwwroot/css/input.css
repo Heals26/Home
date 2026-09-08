@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -40,6 +40,8 @@
     --shopping-dim: 88 129 87;
     --week: 125 211 252;
     --week-dim: 3 105 161;
+    --calendar: 196 181 253;
+    --calendar-dim: 124 58 237;
     --lights: 251 191 36;
     --lights-dim: 180 83 9;
     --household: 214 211 209;
@@ -74,6 +76,8 @@
     --shopping-dim: 61 77 45;
     --week: 3 105 161;
     --week-dim: 7 89 133;
+    --calendar: 109 40 217;
+    --calendar-dim: 76 29 149;
     --lights: 143 95 4;
     --lights-dim: 101 63 0;
     --household: 68 63 58;

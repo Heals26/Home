@@ -1,0 +1,5 @@
+﻿using CleanArchitecture.Mediator;
+
+namespace Home.Application.UseCases.CalendarSubscriptions.DeleteCalendarSubscription;
+
+public record DeleteCalendarSubscriptionInputPort(long CalendarSubscriptionID) : IInputPort<IDeleteCalendarSubscriptionOutputPort>;

@@ -1,0 +1,89 @@
+﻿@inject IViewerClock ViewerClock
+
+@* The calendars this home reads from elsewhere. Adding one reads it straight away, so the calendar
+   fills in while the family is still on this page; a feed that cannot be read is kept and says
+   why, because a stale calendar beats a blank one. The address is a secret and only its host ever
+   comes back. *@
+
+<HomeCard Title="Other calendars" Subtitle="Calendars this home reads from Google, Apple or Outlook. They show on the calendar and the board, and can only be changed where they live.">
+    <ChildContent>
+        @if (this.m_Subscriptions == null)
+        {
+            <HomeLoader Class="py-4" />
+        }
+        else
+        {
+            <div class="flex flex-col gap-4">
+                @if (this.m_Subscriptions.Count > 0)
+                {
+                    <div class="divide-y divide-ink-800 border border-ink-800 rounded-xl overflow-hidden">
+                        @foreach (var _Subscription in this.m_Subscriptions)
+                        {
+                            <div class="flex items-center gap-3 px-4 py-3">
+                                <HomeIcon Name="calendar" Size="lg" Class="text-calendar shrink-0" />
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium text-ink-50 truncate">@_Subscription.Name</p>
+                                    <p class="text-xs truncate @(_Subscription.LastError == null ? "text-ink-500" : "text-red-400")">@this.Describe(_Subscription)</p>
+                                </div>
+                                <HomeButton IconOnly Size="sm" Variant="ghost"
+                                            Class="text-ink-500 enabled:hover:text-ink-50"
+                                            aria-label="@($"Refresh {_Subscription.Name}")"
+                                            title="Refresh now"
+                                            Loading="this.m_RefreshingID == _Subscription.CalendarSubscriptionID"
+                                            Disabled="this.m_RefreshingID != null || this.m_RemovingID != null"
+                                            OnClick="() => this.RefreshAsync(_Subscription)">
+                                    <HomeIcon Name="refresh" />
+                                </HomeButton>
+                                <HomeButton IconOnly Size="sm" Variant="ghost"
+                                            Class="text-ink-600 enabled:hover:text-red-400"
+                                            aria-label="@($"Remove {_Subscription.Name}")"
+                                            title="Remove"
+                                            Loading="this.m_RemovingID == _Subscription.CalendarSubscriptionID"
+                                            Disabled="this.m_RefreshingID != null || this.m_RemovingID != null"
+                                            OnClick="() => this.RemoveAsync(_Subscription)">
+                                    <HomeIcon Name="trash" />
+                                </HomeButton>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-sm text-ink-500">No other calendars yet.</p>
+                }
+
+                @if (this.m_Notice != null)
+                {
+                    <p class="text-sm text-lights">@this.m_Notice</p>
+                }
+
+                <div class="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-3">
+                    <HomeTextInput Label="Name (optional)"
+                                   Placeholder="e.g. School"
+                                   AutoComplete="off"
+                                   maxlength="100"
+                                   @bind-Value="this.m_NewName" />
+                    <HomeTextInput Label="Calendar address"
+                                   Placeholder="https://calendar.google.com/calendar/ical/..."
+                                   AutoComplete="off"
+                                   InputMode="url"
+                                   @bind-Value="this.m_NewUrl" />
+                </div>
+                <p class="text-xs text-ink-500">
+                    In Google Calendar this is the "Secret address in iCal format" in the calendar's settings.
+                    In Apple Calendar, share the calendar publicly and copy its link. The address is kept private and never shown again.
+                </p>
+                <div class="flex items-center justify-end">
+                    <HomeButton OnClick="this.AddAsync"
+                                Loading="this.m_Adding"
+                                Disabled="@string.IsNullOrWhiteSpace(this.m_NewUrl)"
+                                DisabledReason="Paste the calendar's address first.">
+                        Add calendar
+                    </HomeButton>
+                </div>
+            </div>
+        }
+    </ChildContent>
+</HomeCard>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />

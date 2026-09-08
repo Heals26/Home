@@ -16,6 +16,7 @@ public partial class HomeNavRail
     private static readonly NavItem[] m_Items =
     [
         new("/", "Home", "home", "text-ink-50", NavLinkMatch.All),
+        new("/calendar", "Calendar", "calendar", "text-calendar", NavLinkMatch.Prefix),
         new("/recipes", "Recipes", "book", "text-recipes", NavLinkMatch.Prefix),
         new("/meal-plan", "Meals", "utensils", "text-recipes", NavLinkMatch.Prefix),
         new("/shopping-lists", "Shopping", "shopping-list", "text-shopping", NavLinkMatch.Prefix),

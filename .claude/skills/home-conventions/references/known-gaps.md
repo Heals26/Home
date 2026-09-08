@@ -138,6 +138,13 @@ a fresh database cannot be signed into without it, and **that is deliberate**: n
 globally any more (1 Sep). Do not add seeding to make setup easier. The decision to remove the
 requirement altogether is parked in `BACKLOG.md`.
 
+### Most of the app shows server-local time
+
+The calendar (8 Sep 2026) converts through the browser's zone via `IViewerClock`. Activities, the
+dashboard clock and greeting, meal planning and everything older still call `ToLocalTime()` or
+`TimeProvider.GetLocalNow()`, which is the server's zone. Identical on a home server; wrong once
+hosted elsewhere. Converting them is one job, not a drive-by.
+
 ### Sessions accumulate and are never cleaned up
 
 `UserAuthentication` had 24 rows for a single household on 1 Sept, one per sign-in, none ever

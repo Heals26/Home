@@ -1,14 +1,12 @@
-﻿using Home.WebUI.DataAccess.Activities.GetActivities;
-using Home.WebUI.DataAccess.Activities.Models;
-using Home.WebUI.DataAccess.Activities.SetActivityCompletion;
+﻿using Home.WebUI.DataAccess.Activities.SetActivityCompletion;
 using Home.WebUI.DataAccess.Announcements.CreateAnnouncement;
 using Home.WebUI.DataAccess.Announcements.GetAnnouncements;
 using Home.WebUI.DataAccess.Announcements.Models;
+using Home.WebUI.DataAccess.Calendar.GetCalendar;
+using Home.WebUI.DataAccess.Calendar.Models;
 using Microsoft.AspNetCore.Components.Web;
 using Home.WebUI.DataAccess.Lights.GetLights;
 using Home.WebUI.DataAccess.Lights.Models;
-using Home.WebUI.DataAccess.MealPlanEntries.GetMealPlanEntries;
-using Home.WebUI.DataAccess.MealPlanEntries.Models;
 using Home.WebUI.DataAccess.Recipes.GetRecipes;
 using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists;
 using Home.WebUI.DataAccess.Weather.GetWeather;
@@ -32,10 +30,11 @@ public partial class DashboardPage : IDisposable
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
     private IDisposable? m_ChangeSubscription;
-    private ICollection<ActivitySummaryDto>? m_Activities;
     private ICollection<AnnouncementDto>? m_Announcements;
     private ICollection<LightGroupDto>? m_LightGroups;
-    private ICollection<MealPlanEntryDto>? m_MealPlanEntries;
+    private List<CalendarDayDto>? m_Calendar;
+    private DateOnly m_Today;
+    private string m_TimeZoneID = "UTC";
     private ICollection<GetRecipeDto>? m_Recipes;
     private ICollection<GetShoppingListDto>? m_ShoppingLists;
     private GetWeatherWebAppResponse? m_Weather;
@@ -77,10 +76,9 @@ public partial class DashboardPage : IDisposable
 
     private async Task LoadEverythingAsync()
         => await Task.WhenAll(
-            this.LoadActivitiesAsync(),
+            this.LoadCalendarAsync(),
             this.LoadAnnouncementsAsync(),
             this.LoadLightsAsync(),
-            this.LoadMealPlanAsync(),
             this.LoadRecipesAsync(),
             this.LoadShoppingListsAsync(),
             this.LoadWeatherAsync());
@@ -137,11 +135,10 @@ public partial class DashboardPage : IDisposable
         {
             var _Load = area switch
             {
-                ChangeArea.Activities or ChangeArea.Users => this.LoadActivitiesAsync(),
+                ChangeArea.Activities or ChangeArea.Calendar or ChangeArea.MealPlan or ChangeArea.Users => this.LoadCalendarAsync(),
                 ChangeArea.Announcements => this.LoadAnnouncementsAsync(),
                 ChangeArea.Lights => this.LoadLightsAsync(),
-                ChangeArea.MealPlan => this.LoadMealPlanAsync(),
-                ChangeArea.Recipes => Task.WhenAll(this.LoadRecipesAsync(), this.LoadMealPlanAsync()),
+                ChangeArea.Recipes => Task.WhenAll(this.LoadRecipesAsync(), this.LoadCalendarAsync()),
                 ChangeArea.ShoppingLists => this.LoadShoppingListsAsync(),
                 _ => Task.CompletedTask
             };
@@ -165,14 +162,22 @@ public partial class DashboardPage : IDisposable
 
     // The board never toasts — a failed tile degrades to its empty state and the
     // shared banner explains once.
-    private async Task LoadActivitiesAsync()
+
+    /// <summary>
+    /// Today and the three days after it, placed on the viewer's own days. One read feeds both the
+    /// agenda tile and the meals tile (see the 8 Sep 2026 decision on the dashboard).
+    /// </summary>
+    private async Task LoadCalendarAsync()
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, GetActivitiesWebAppResponse>(
-            null!, ApiProvider.GetActivities(),
+        this.m_TimeZoneID = await this.ViewerClock.GetTimeZoneIDAsync(this.m_CancellationTokenHandler.Token);
+        this.m_Today = await this.ViewerClock.TodayAsync(this.m_CancellationTokenHandler.Token);
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetCalendarWebAppResponse>(
+            null!, ApiProvider.GetCalendar(this.m_Today, this.m_Today.AddDays(3), this.m_TimeZoneID),
             _ => this.m_LoadFailed = true,
             this.m_CancellationTokenHandler.Token);
 
-        this.m_Activities = _Result?.Activities ?? [];
+        this.m_Calendar = _Result?.Days ?? [];
     }
 
     private async Task LoadAnnouncementsAsync()
@@ -193,18 +198,6 @@ public partial class DashboardPage : IDisposable
             this.m_CancellationTokenHandler.Token);
 
         this.m_LightGroups = _Result?.Groups ?? [];
-    }
-
-    private async Task LoadMealPlanAsync()
-    {
-        var _Today = this.TimeProvider.GetLocalNow().Date;
-
-        var _Result = await this.ApiAccess.SendRequestAsync<object, GetMealPlanEntriesWebAppResponse>(
-            null!, ApiProvider.GetMealPlanEntries(_Today, _Today.AddDays(1)),
-            _ => { },
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_MealPlanEntries = _Result?.Entries ?? [];
     }
 
     private async Task LoadRecipesAsync()
@@ -285,19 +278,19 @@ public partial class DashboardPage : IDisposable
     }
 
     /// <summary>
-    /// The tile names the meal rather than assuming everything planned today is dinner. The API
-    /// hands entries back in the household's own slot order but carries no start time, so leading
-    /// with the meal nearest the clock isn't possible yet — every slot planned today is listed
-    /// instead, in the order the day runs.
+    /// The tile names the meal rather than assuming everything planned today is dinner. Meals come
+    /// off the calendar read already in the day's order and are grouped here by the meal they are.
     /// </summary>
     private List<MealSlotGroup> TodaysMealsBySlot()
-        => [.. (this.m_MealPlanEntries ?? [])
-            .Where(e => e.Date.Date == this.TimeProvider.GetLocalNow().Date)
-            .GroupBy(e => string.IsNullOrWhiteSpace(e.MealSlotName) ? "Planned" : e.MealSlotName)
-            .Select(g => new MealSlotGroup(g.Key, string.Join(" · ", g.Select(e => e.Name))))];
+        => [.. this.MealsOn(this.m_Today)
+            .GroupBy(m => string.IsNullOrWhiteSpace(m.Subtitle) ? "Planned" : m.Subtitle)
+            .Select(g => new MealSlotGroup(g.Key, string.Join(" · ", g.Select(m => m.Title))))];
 
-    private IEnumerable<MealPlanEntryDto> TomorrowsMeals()
-        => (this.m_MealPlanEntries ?? []).Where(e => e.Date.Date == this.TimeProvider.GetLocalNow().Date.AddDays(1));
+    private IEnumerable<CalendarItemDto> TomorrowsMeals()
+        => this.MealsOn(this.m_Today.AddDays(1));
+
+    private IEnumerable<CalendarItemDto> MealsOn(DateOnly date)
+        => (this.m_Calendar ?? []).Where(d => d.Date == date).SelectMany(d => d.Items).Where(i => i.Kind == CalendarItemKind.Meal);
 
     // Today's row leads the tile on its own, so the strip starts at tomorrow.
     private WeatherDayDto? Today()
@@ -309,54 +302,19 @@ public partial class DashboardPage : IDisposable
     private static string Temperature(double celsius)
         => $"{(int)Math.Round(celsius)}°";
 
-    private async Task CompleteActivityAsync(ActivitySummaryDto activity)
+    private async Task CompleteActivityAsync(CalendarItemDto item)
     {
         var _Result = await this.ApiAccess.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
             new SetActivityCompletionWebAppRequest() { IsComplete = true },
-            ApiProvider.SetActivityCompletion(activity.ActivityID),
+            ApiProvider.SetActivityCompletion(item.ID),
             _ => this.m_LoadFailed = true,
             this.m_CancellationTokenHandler.Token);
 
         if (_Result != true)
             return;
 
-        await this.LoadActivitiesAsync();
+        await this.LoadCalendarAsync();
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.Activities, this.m_CancellationTokenHandler.Token);
-    }
-
-    private IEnumerable<ActivitySummaryDto> UpcomingActivities()
-        => (this.m_Activities ?? [])
-            .Where(a => a.CompletedDateUTC == null)
-            .OrderBy(a => a.DueDateUTC ?? DateTime.MaxValue)
-            .ThenBy(a => a.DueTime ?? TimeSpan.Zero)
-            .Take(4);
-
-    private static string DayChip(ActivitySummaryDto activity, DateTime today)
-    {
-        if (activity.DueDateUTC == null)
-            return "—";
-
-        var _Due = activity.DueDateUTC.Value.ToLocalTime().Date;
-
-        if (_Due == today)
-            return "Today";
-
-        if (_Due == today.AddDays(1))
-            return "Tmrw";
-
-        return _Due < today ? "Late" : _Due.ToString("ddd");
-    }
-
-    private string DayChipClasses(ActivitySummaryDto activity)
-    {
-        var _Chip = DayChip(activity, this.TimeProvider.GetLocalNow().Date);
-
-        return _Chip switch
-        {
-            "Late" => "bg-red-500/10 text-red-300",
-            "Today" => "bg-week/10 text-week",
-            _ => "bg-ink-800 text-ink-300"
-        };
     }
 
     #endregion Methods

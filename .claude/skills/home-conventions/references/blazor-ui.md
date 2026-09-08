@@ -1,4 +1,4 @@
-# Home.WebUI Blazor conventions
+﻿# Home.WebUI Blazor conventions
 
 Blazor Server, .NET 8, Tailwind CSS. MudBlazor was deliberately stripped out
 (`Strip MudBlazor, add Tailwind, build custom component library`). Do not reintroduce a component
@@ -158,6 +158,15 @@ There is no `[Inject]` in this codebase. Services are injected globally in `_Imp
 
 Every component therefore has `this.ApiAccess` and `this.NavigationManager` available. A component
 needing something else adds its own `@inject` at the top of that file.
+
+## Time on screen
+
+Blazor Server runs on the server, so `DateTime.ToLocalTime()` and `TimeProvider.GetLocalNow()`
+answer in the *server's* zone. The calendar and the dashboard's agenda read the browser's zone once
+per circuit through `IViewerClock` (`@inject IViewerClock ViewerClock`; `GetTimeZoneIDAsync`,
+`TodayAsync`, `ToLocal`) and pass the zone to `GetCalendar`, which places every item on the
+viewer's day. New time-shaped screens use it; older pages still use server-local time (see
+`known-gaps.md`).
 
 ## Calling the API
 

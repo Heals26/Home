@@ -1,0 +1,85 @@
+﻿@* Today in time order, then the next few days compressed: the calendar's answer to "what's
+   happening" for a screen that is read from across the kitchen. The whole tile is a link to the
+   calendar, so ticking a chore off has to swallow its click or the board would navigate away. *@
+
+<a href="/calendar" class="group rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
+    <div class="flex items-center justify-between mb-3">
+        <span class="flex items-center gap-2 text-calendar">
+            <HomeIcon Name="calendar" Size="lg" />
+            <span class="text-xs font-semibold uppercase tracking-widest">Today</span>
+        </span>
+        <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
+    </div>
+
+    @if (this.Days == null)
+    {
+        <div class="space-y-3 py-1 animate-pulse">
+            <div class="h-4 rounded bg-ink-800"></div>
+            <div class="h-4 rounded bg-ink-800 w-3/4"></div>
+            <div class="h-4 rounded bg-ink-800 w-1/2"></div>
+        </div>
+    }
+    else
+    {
+        @if (this.TodayItems().Count == 0)
+        {
+            <p class="text-sm text-ink-500 py-2">Nothing on today. Tap to add something.</p>
+        }
+        else
+        {
+            <div class="divide-y divide-ink-800/60">
+                @foreach (var _Item in this.TodayItems())
+                {
+                    <div class="flex items-center gap-3 py-2.5">
+                        <span class="w-14 shrink-0 text-xs font-semibold tabular-nums @(_Item.StartsAt == null ? "text-ink-500" : "text-ink-300")">
+                            @(_Item.StartsAt is { } _StartsAt ? CalendarFormat.Time(_StartsAt) : "All day")
+                        </span>
+                        <span class="h-2 w-2 shrink-0 rounded-full @DotClass(_Item)"></span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm truncate @(_Item.IsDone ? "line-through text-ink-500" : "text-ink-100")">@_Item.Title</p>
+                            @if (!string.IsNullOrEmpty(_Item.Subtitle) || _Item.People.Count > 0)
+                            {
+                                <p class="text-xs text-ink-500 truncate">@string.Join(" · ", new[] { _Item.Subtitle }.Concat(_Item.People).Where(s => !string.IsNullOrEmpty(s)))</p>
+                            }
+                        </div>
+                        @if (_Item.Kind == CalendarItemKind.Task && !_Item.IsDone)
+                        {
+                            <HomeButton Variant="bare"
+                                        Size="none"
+                                        StopPropagation
+                                        PreventDefault
+                                        Class="h-9 w-9 shrink-0 rounded-full border-2 border-ink-600 enabled:hover:border-shopping flex items-center justify-center"
+                                        title="@($"Mark {_Item.Title} as done")"
+                                        aria-label="@($"Mark {_Item.Title} as done")"
+                                        OnClick="() => this.OnCompleteTask.InvokeAsync(_Item)">
+                                <HomeIcon Name="check" Class="text-ink-500" />
+                            </HomeButton>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        @if (this.NextDays().Any())
+        {
+            <div class="mt-3 pt-3 border-t border-ink-800 flex flex-col gap-1.5">
+                @foreach (var _Day in this.NextDays())
+                {
+                    <div class="flex items-baseline gap-3 min-w-0">
+                        <span class="w-14 shrink-0 text-xs font-semibold uppercase tracking-wider text-ink-500">@CalendarFormat.DayHeading(_Day.Date, this.Today).Replace("Tomorrow", "Tmrw")</span>
+                        <p class="text-sm text-ink-300 truncate">
+                            @if (_Day.Items.Count == 0)
+                            {
+                                <span class="text-ink-600">Nothing on</span>
+                            }
+                            else
+                            {
+                                @string.Join(" · ", _Day.Items.Take(3).Select(i => i.Title))@(_Day.Items.Count > 3 ? $" +{_Day.Items.Count - 3}" : "")
+                            }
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+    }
+</a>

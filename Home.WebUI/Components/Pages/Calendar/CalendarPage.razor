@@ -1,0 +1,105 @@
+﻿@page "/calendar"
+@inject IViewerClock ViewerClock
+
+<HomePageTitle Title="Calendar" />
+
+@* The household's shared calendar: its own events, the week's meals and the dated chores, on one
+   set of days. Month and Week are the wide layouts; List is the same week as one column and is
+   what every narrow screen gets, whatever view is picked. Everything is placed on the day the
+   person looking at it would say it is on, which is the browser's zone, not the server's. *@
+
+<CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
+    <div class="flex flex-col h-full w-full">
+        <HomeTopBar Title="Calendar" Eyebrow="The family's calendar" EyebrowClass="text-calendar">
+            <ActionsContent>
+                <HomeButton Size="sm" OnClick="() => this.OpenCreateAsync(null)">
+                    <HomeIcon Name="plus" Class="mr-1" />
+                    Add
+                </HomeButton>
+            </ActionsContent>
+        </HomeTopBar>
+
+        <div class="px-6 pb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <div class="flex items-center gap-1">
+                <HomeButton IconOnly Size="sm" Variant="ghost" aria-label="@this.PreviousLabel()" OnClick="() => this.MoveAsync(-1)">
+                    <HomeIcon Name="chevron-left" Size="lg" />
+                </HomeButton>
+                <HomeButton IconOnly Size="sm" Variant="ghost" aria-label="@this.NextLabel()" OnClick="() => this.MoveAsync(1)">
+                    <HomeIcon Name="chevron-right" Size="lg" />
+                </HomeButton>
+                <p class="ml-2 text-sm font-medium text-ink-200">@this.RangeLabel()</p>
+                @if (!this.IsShowingToday())
+                {
+                    <HomeButton Variant="link" Size="sm" Class="ml-2 text-xs" OnClick="this.GoToTodayAsync">Today</HomeButton>
+                }
+            </div>
+
+            <HomeSegmentedControl TValue="CalendarView"
+                                  Options="this.m_ViewOptions"
+                                  Value="this.m_View"
+                                  ValueChanged="this.ChangeViewAsync" />
+        </div>
+
+        <div class="flex-1 px-6 pb-6 app-scrollable">
+            @if (this.m_Days == null)
+            {
+                <HomeLoader Class="py-16" />
+            }
+            else
+            {
+                @switch (this.m_View)
+                {
+                    case CalendarView.Month:
+                        <CalendarMonthGrid Days="this.m_Days"
+                                           Month="this.FirstOfMonth()"
+                                           Today="this.m_Today"
+                                           OnSelectDay="date => this.OpenCreateAsync(date)"
+                                           OnSelectItem="this.SelectItem"
+                                           OnShowDay="this.ShowDayAsync" />
+                        break;
+
+                    case CalendarView.Week:
+                        <div class="hidden lg:block">
+                            <CalendarWeekView Days="this.m_Days"
+                                              Today="this.m_Today"
+                                              OnSelectDay="date => this.OpenCreateAsync(date)"
+                                              OnSelectItem="this.SelectItem" />
+                        </div>
+                        <div class="lg:hidden">
+                            <CalendarDayList Days="this.m_Days"
+                                             Today="this.m_Today"
+                                             OnSelectDay="date => this.OpenCreateAsync(date)"
+                                             OnSelectItem="this.SelectItem" />
+                        </div>
+                        break;
+
+                    default:
+                        <CalendarDayList Days="this.m_Days"
+                                         Today="this.m_Today"
+                                         OnSelectDay="date => this.OpenCreateAsync(date)"
+                                         OnSelectItem="this.SelectItem" />
+                        break;
+                }
+            }
+        </div>
+    </div>
+</CascadingValue>
+
+<CalendarItemSheet Item="this.m_SelectedItem"
+                   Busy="this.m_Busy"
+                   OnClose="() => this.m_SelectedItem = null"
+                   OnEdit="this.EditSelectedAsync"
+                   OnDelete="this.DeleteSelectedAsync"
+                   OnCompleteTask="this.CompleteSelectedTaskAsync" />
+
+<CalendarEventEditor Visible="this.m_ShowEditor"
+                     VisibleChanged="visible => this.m_ShowEditor = visible"
+                     Title="@this.m_EditorTitle"
+                     IsNew="this.m_EditingEventID == null"
+                     Form="this.m_Form"
+                     Members="this.m_Members"
+                     Problem="@this.m_EditorProblem"
+                     Saving="this.m_Saving"
+                     OnSave="this.SaveEditorAsync" />
+
+<ErrorHandler @ref="this.m_ErrorHandler" />

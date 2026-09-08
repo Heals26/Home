@@ -291,6 +291,154 @@ namespace Home.Persistence.Migrations
                     b.ToTable("Audit", "home");
                 });
 
+            modelBuilder.Entity("Home.Domain.Entities.CalendarEvent", b =>
+                {
+                    b.Property<long>("CalendarEventID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CalendarEventID"));
+
+                    b.Property<int>("DaysOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("ExternalUID")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Frequency")
+                        .HasColumnType("int");
+
+                    b.Property<long>("HouseholdID")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Interval")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAllDay")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateOnly?>("RepeatUntil")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("RepeatsOnWeekdayOfMonth")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<long?>("SubscriptionID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TimeZoneID")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("CalendarEventID");
+
+                    b.HasIndex("HouseholdID");
+
+                    b.HasIndex("StartDate");
+
+                    b.HasIndex("SubscriptionID");
+
+                    b.ToTable("CalendarEvent", "home");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CalendarEventException", b =>
+                {
+                    b.Property<long>("CalendarEventExceptionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CalendarEventExceptionID"));
+
+                    b.Property<long>("CalendarEventID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateOnly>("OccurrenceDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("CalendarEventExceptionID");
+
+                    b.HasIndex("CalendarEventID", "OccurrenceDate")
+                        .IsUnique();
+
+                    b.ToTable("CalendarEventException", "home");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CalendarEventMember", b =>
+                {
+                    b.Property<long>("CalendarEventID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("CalendarEventID", "UserID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("CalendarEventMember", "home");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CalendarSubscription", b =>
+                {
+                    b.Property<long>("CalendarSubscriptionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CalendarSubscriptionID"));
+
+                    b.Property<long>("HouseholdID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("LastFetchedUTC")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.HasKey("CalendarSubscriptionID");
+
+                    b.HasIndex("HouseholdID");
+
+                    b.ToTable("CalendarSubscription", "home");
+                });
+
             modelBuilder.Entity("Home.Domain.Entities.CardSection", b =>
                 {
                     b.Property<long>("CardSectionID")
@@ -1242,6 +1390,71 @@ namespace Home.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Home.Domain.Entities.CalendarEvent", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CalendarEvent_Household");
+
+                    b.HasOne("Home.Domain.Entities.CalendarSubscription", "Subscription")
+                        .WithMany("Events")
+                        .HasForeignKey("SubscriptionID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_CalendarEvent_CalendarSubscription");
+
+                    b.Navigation("Household");
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CalendarEventException", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.CalendarEvent", "CalendarEvent")
+                        .WithMany("Exceptions")
+                        .HasForeignKey("CalendarEventID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CalendarEventException_CalendarEvent");
+
+                    b.Navigation("CalendarEvent");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CalendarEventMember", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.CalendarEvent", "CalendarEvent")
+                        .WithMany("Members")
+                        .HasForeignKey("CalendarEventID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CalendarEventMember_CalendarEvent");
+
+                    b.HasOne("Home.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_CalendarEventMember_User");
+
+                    b.Navigation("CalendarEvent");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CalendarSubscription", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CalendarSubscription_Household");
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("Home.Domain.Entities.CardSection", b =>
                 {
                     b.HasOne("Home.Domain.Entities.Household", "Household")
@@ -1576,6 +1789,18 @@ namespace Home.Persistence.Migrations
             modelBuilder.Entity("Home.Domain.Entities.ActivityState", b =>
                 {
                     b.Navigation("Activities");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CalendarEvent", b =>
+                {
+                    b.Navigation("Exceptions");
+
+                    b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.CalendarSubscription", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.CardSection", b =>

@@ -1,0 +1,5 @@
+﻿using CleanArchitecture.Mediator;
+
+namespace Home.Application.UseCases.CalendarSubscriptions.RefreshCalendarSubscription;
+
+public record RefreshCalendarSubscriptionInputPort(long CalendarSubscriptionID) : IInputPort<IRefreshCalendarSubscriptionOutputPort>;
