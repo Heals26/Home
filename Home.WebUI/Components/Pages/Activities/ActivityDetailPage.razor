@@ -57,6 +57,13 @@
                                     <p class="text-xs uppercase tracking-widest text-ink-500">Who</p>
                                     <p class="text-sm text-ink-100 mt-0.5">@(string.IsNullOrWhiteSpace(this.m_Activity.AssignedTo) ? "Anyone" : this.m_Activity.AssignedTo)</p>
                                 </div>
+                                @if (this.m_Activity.CompletedDateUTC != null && !string.IsNullOrWhiteSpace(this.m_Activity.CompletedBy))
+                                {
+                                    <div>
+                                        <p class="text-xs uppercase tracking-widest text-ink-500">Done by</p>
+                                        <p class="text-sm text-ink-100 mt-0.5">@this.m_Activity.CompletedBy</p>
+                                    </div>
+                                }
                             </div>
 
                             @if (this.m_Activity.Tags.Any())

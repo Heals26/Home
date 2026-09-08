@@ -1,12 +1,6 @@
 ﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
-using Home.Application.UseCases.Users.CreateUser;
 using Home.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Home.Application.UseCases.Users.UpdateUser;
 
@@ -15,22 +9,25 @@ public class UpdateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<UpdateUser
 
     #region Methods
 
-    Task<ContinuationBehaviour> IBusinessRuleEvaluator<UpdateUserInputPort, IUpdateUserOutputPort>.EvaluateAsync(
+    async Task<ContinuationBehaviour> IBusinessRuleEvaluator<UpdateUserInputPort, IUpdateUserOutputPort>.EvaluateAsync(
         UpdateUserInputPort inputPort,
         IUpdateUserOutputPort outputPort,
         ServiceFactory serviceFactory,
         CancellationToken cancellationToken)
     {
-        var _Continuation = ContinuationBehaviour.Continue;
+        // Only a changed, non-blank email can clash, and only with somebody else: until 8 Sep 2026
+        // this compared against every member including the one being edited, so saving a member
+        // with their own email counted as a conflict.
+        if (!inputPort.Email.HasBeenSet || string.IsNullOrWhiteSpace(inputPort.Email.Value))
+            return ContinuationBehaviour.Continue;
 
         var _Persistence = serviceFactory.GetService<IPersistenceContext>();
+        var _Email = inputPort.Email.Value.Trim().ToLower();
 
-        if (_Persistence.GetEntities<User>()
-            .Where(u => u.Email.Equals(inputPort.Email, StringComparison.CurrentCultureIgnoreCase))
-            .Any())
-            _Continuation = ContinuationBehaviour.Return;
+        if (_Persistence.GetEntities<User>().Any(u => u.UserID != inputPort.UserID && u.Email != null && u.Email.ToLower() == _Email))
+            return await outputPort.PresentUserConflictAsync(inputPort.Email.Value, cancellationToken);
 
-        return Task.FromResult(_Continuation);
+        return ContinuationBehaviour.Continue;
     }
 
     #endregion Methods

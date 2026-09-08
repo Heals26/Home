@@ -4,6 +4,66 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-08 · Identity decision 3 of 3: being yourself changes attribution and the lens, not what you may do
+
+Mitch, 8 Sep 2026: identity is attribution and a personal view, nothing more. Roles and permissions
+("a child cannot delete recipes") were offered and declined for now; everyone signed in can do
+everything, as before.
+
+What shipped on that basis:
+
+- **Who ticked it off.** `Activity.CompletedByUser` is set from the session, never the request, by
+  `SetActivityCompletion`, by a column move in `UpdateActivity`, and by `CreateActivity` when a card
+  is born in a done column. Unticking clears it; a second tap on a done card keeps whoever did it
+  first. The board card and the detail page say "Done by Ava", and the calendar's task items carry
+  it as their subtitle once done. Like the assignee link it is `NoAction` in the database (two
+  SetNull paths from User onto one table are refused), so `DeleteUser` unhooks both itself.
+- **The lens.** The calendar read now carries `PersonUserIDs` on every item: who is on an event,
+  who a chore is assigned to, nobody for a meal. An item that names nobody is the household's and
+  always shows. The dashboard's Today tile gained an "Everyone / Just me" switch that is a
+  **per-device** choice kept in the browser (`IDevicePreferences`, `preferences.js`): the kitchen
+  tablet shows everyone, a phone shows its owner, and neither setting ever reaches the API. The
+  calendar page gained a row of member chips that filter the same way.
+
+Not built, on purpose: a "My day" page of its own (the switch on the board and the chips on the
+calendar are that view), a greeting by first name (the cookie carries the username, and fetching
+the member's name would put the dashboard back to seven calls), and any notion of what a member
+may not do.
+
+## 2026-09-08 · Identity decision 2 of 3: a member does not need a login
+
+Mitch, 8 Sep 2026: "They can exist, but a login is not required. Actioning something requires a
+valid login but assigning something to your 5 year old who you don't trust with a login is
+perfectly valid."
+
+So `User.Email` and `User.Password` are now optional and come as a pair: both or neither. A member
+with neither is a name, someone to assign chores to and put on events, who can never sign in. The
+first member of a household still needs both (`RegisterHousehold` is unchanged), because someone
+has to be able to open the door. A login can be added later from the member's edit sheet, and taken
+away by blanking the email, which also drops the password; a password without an email is refused
+with a 422, because nothing can sign in without an address.
+
+Two things fell out of touching the slices:
+
+- `UpdateUser`'s conflict check compared the new email against every member *including the one
+  being edited*, so saving a member with their own address counted as a clash. It now excludes the
+  member and ignores blank emails.
+- The password grant already refused a null password (`PasswordService.VerifyPasswordAsync`), so a
+  member without a login was never able to sign in by accident; the interactor needed no change.
+
+## 2026-09-08 · Identity decision 1 of 3: no switching on shared devices
+
+Mitch, 8 Sep 2026, choosing between tap-and-PIN, a "family tablet" mode, and no switching: **no
+switching on shared devices.** A device is signed in as one member with their email and password
+and stays that member. The kitchen tablet is whoever set it up; a phone is its owner. Nothing
+passwordless was added, which is the same line the 13 Aug registration entry and the 14 Aug
+avatar-switching deferral drew, now drawn for good.
+
+What this means for anyone building later: there is no "acting as" state, no PIN table and no
+device trust flag, and none should be added without reopening this entry. "Who did this" is
+always the session's member. The payoff phase 7 promised, a personal view and meaningful
+attribution, is delivered through the two entries above rather than through switching.
+
 ## 2026-09-08 · Calendar decision 6 of 6: the dashboard shows today in time order, then the next few days
 
 Mitch, 8 Sep 2026: one "Today" column listing timed events, meals and due tasks in time order,

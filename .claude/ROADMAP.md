@@ -28,6 +28,7 @@ name them still make sense.*
 | **Phase 4** *(5 Sep 2026)* | The page title stopped losing to its own buttons on a phone, the shopping list collapses to one pane, and the shell is sized in `dvh`. |
 | **Phase 5** *(7 Sep 2026)* | Six new components and the whole app moved onto them: 72 raw buttons down to 2, 118 icon spans, 18 selects, 13 inputs and 5 textareas all down to 0. |
 | **Phase 6** *(8 Sep 2026)* | The shared calendar: six decisions recorded, `CalendarEvent` with simple repeats and skips, read-only iCalendar subscriptions, month, week and list views, and the dashboard rebuilt on one calendar read. |
+| **Phase 7** *(8 Sep 2026)* | Identity decided as no switching on shared devices; members without a login; who ticked a chore off recorded and shown; a per-device "Just me" switch on the board and member chips on the calendar. |
 
 ---
 
@@ -372,7 +373,7 @@ anything), dragging an occurrence to move it (the sheet does it in two taps and 
 drag events), showing a subscribed calendar in its own colour, and converting the rest of the app
 from server-local time to `IViewerClock`, which is a separate job now the seam exists.
 
-## Phase 7 · Who is using this, XL *(was B1)*
+## Phase 7 · Who is using this, XL *(was B1)* **DONE 8 Sep 2026**
 
 The biggest gap against VISION's "family-proof… used by every member of the family". There is one
 household login. `GetAssignedActivities` is a complete slice with its own presenter and
@@ -384,6 +385,31 @@ switching was refused on 14 Aug as weakening auth on a possibly-internet-facing 
 a "My day" view, per-person chore lists, and who-did-what that means something.
 
 This phase is why it sits here rather than later: it changes what phases 8 and 11 are worth.
+
+### What shipped, 8 Sep 2026
+
+The deferred decision was taken first and it went the strict way: **no switching on shared
+devices**, so a device is one member and stays that member (three entries in `DECISIONS.md`, all
+8 Sep 2026). What that left to build:
+
+- **Members without a login.** `User.Email` and `User.Password` are optional as a pair. The
+  Settings members card adds a member with or without a sign-in, shows "No sign-in" on those
+  without, and can give one a login later or take it away. `RegisterHousehold` still requires
+  both, because someone has to be able to open the door. Migration
+  `MembersWithoutLoginAndCompletedBy`.
+- **Who did what.** `Activity.CompletedByUser`, set from the session whichever route ticked the
+  card off, shown on the card, the detail page and the calendar. `DeleteUser` unhooks both
+  activity links itself, since neither can cascade.
+- **The personal lens.** `PersonUserIDs` on every calendar item; an "Everyone / Just me" switch on
+  the dashboard's Today tile that is a per-device choice in the browser; member chips on the
+  calendar page.
+
+Fixed along the way: `UpdateUser`'s email conflict check counted the member being edited as a
+clash with themselves.
+
+**Left for later, on purpose:** roles and permissions (declined for now, not forever), a greeting
+by first name, and per-person chore lists beyond the "mine" filter the board already had. Phase 8's
+audit trail now has a real "who" to show.
 
 ## Phase 8 · The app remembers, M *(was B2, B6)*
 

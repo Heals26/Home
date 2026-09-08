@@ -35,6 +35,7 @@ internal class GetActivitiesInteractor : IInteractor<GetActivitiesInputPort, IGe
             .Select(a => new
             {
                 Activity = a,
+                a.CompletedByUser,
                 a.State,
                 Tags = a.Tags.Select(t => new { ActivityTag = t, t.Tag }),
                 a.User

@@ -16,6 +16,7 @@ public class GetUserApiResponse
     public string Email { get; set; }
     public string FirstName { get; set; }
     public string FullName { get; set; }
+    public bool HasLogin { get; set; }
     public string LastName { get; set; }
     public string MiddleNames { get; set; }
     public long UserID { get; set; }

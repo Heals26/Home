@@ -9,24 +9,25 @@ internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUs
 
     #region Methods
 
-    Task<ContinuationBehaviour> IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>.EvaluateAsync(
+    async Task<ContinuationBehaviour> IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>.EvaluateAsync(
         CreateUserInputPort inputPort,
         ICreateUserOutputPort outputPort,
         ServiceFactory serviceFactory,
         CancellationToken cancellationToken)
     {
-        var _Continuation = ContinuationBehaviour.Continue;
+        // A member without a login has no email to clash with.
+        if (string.IsNullOrWhiteSpace(inputPort.Email))
+            return ContinuationBehaviour.Continue;
 
         var _Persistence = serviceFactory.GetService<IPersistenceContext>();
+        var _Email = inputPort.Email.Trim().ToLower();
 
-        if (_Persistence.GetEntities<User>()
-            .Any(u => u.Email.ToLower() == inputPort.Email.ToLower()))
-            _Continuation = ContinuationBehaviour.Return;
+        if (_Persistence.GetEntities<User>().Any(u => u.Email != null && u.Email.ToLower() == _Email))
+            return await outputPort.PresentUserConflictAsync(inputPort.Email, cancellationToken);
 
-        return Task.FromResult(_Continuation);
+        return ContinuationBehaviour.Continue;
     }
 
     #endregion Methods
 
 }
-

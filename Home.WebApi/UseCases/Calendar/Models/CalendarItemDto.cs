@@ -23,6 +23,7 @@ public class CalendarItemDto
     public string Location { get; set; }
     public DateOnly? OccurrenceDate { get; set; }
     public List<string> People { get; set; } = [];
+    public List<long> PersonUserIDs { get; set; } = [];
     public long? RecipeID { get; set; }
     public DateOnly StartDate { get; set; }
     public TimeOnly? StartsAt { get; set; }

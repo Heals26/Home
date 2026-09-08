@@ -26,6 +26,13 @@ public class GetActivityWebAppResponse
     /// <summary>
     /// When the activity was completed (UTC).
     /// </summary>
+    /// <summary>
+    /// Who ticked it off, or null when nobody in particular did.
+    /// </summary>
+    public string? CompletedBy { get; set; }
+
+    public long? CompletedByUserID { get; set; }
+
     public DateTime? CompletedDateUTC { get; set; }
 
     /// <summary>

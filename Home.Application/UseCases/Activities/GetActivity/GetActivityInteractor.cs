@@ -26,6 +26,7 @@ internal class GetActivityInteractor : IInteractor<GetActivityInputPort, IGetAct
             .Select(a => new
             {
                 Activity = a,
+                a.CompletedByUser,
                 // CardSection is projected because the presenter reads its name off every region.
                 // Leaving it out loads the region with a null section and the card fails to open.
                 Regions = a.Regions.Select(r => new

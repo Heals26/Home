@@ -1,14 +1,22 @@
 ﻿@* Today in time order, then the next few days compressed: the calendar's answer to "what's
-   happening" for a screen that is read from across the kitchen. The whole tile is a link to the
-   calendar, so ticking a chore off has to swallow its click or the board would navigate away. *@
+   happening" for a screen that is read from across the kitchen. The heading is the link to the
+   calendar; the tile itself is not, because it also carries a scope switch and a tick button, and a
+   link wrapped around other controls sends half the taps to the wrong place. *@
 
-<a href="/calendar" class="group rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">
-    <div class="flex items-center justify-between mb-3">
-        <span class="flex items-center gap-2 text-calendar">
+<div class="rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 rounded-2xl p-5 board:p-4">
+    <div class="flex items-center justify-between gap-3 mb-3">
+        <a href="/calendar" class="group flex items-center gap-2 text-calendar min-h-[36px]">
             <HomeIcon Name="calendar" Size="lg" />
             <span class="text-xs font-semibold uppercase tracking-widest">Today</span>
-        </span>
-        <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
+            <HomeIcon Name="chevron-right" Size="sm" Class="text-ink-600 group-hover:text-ink-400" />
+        </a>
+        @if (this.SignedInUserID != null)
+        {
+            <HomeSegmentedControl TValue="bool"
+                                  Options="this.m_ScopeOptions"
+                                  Value="this.OnlyMine"
+                                  ValueChanged="this.OnlyMineChanged" />
+        }
     </div>
 
     @if (this.Days == null)
@@ -23,7 +31,7 @@
     {
         @if (this.TodayItems().Count == 0)
         {
-            <p class="text-sm text-ink-500 py-2">Nothing on today. Tap to add something.</p>
+            <p class="text-sm text-ink-500 py-2">@(this.OnlyMine ? "Nothing on for you today." : "Nothing on today.") <a href="/calendar" class="text-ink-300 underline underline-offset-4 hover:text-ink-50">Add something</a>.</p>
         }
         else
         {
@@ -46,8 +54,6 @@
                         {
                             <HomeButton Variant="bare"
                                         Size="none"
-                                        StopPropagation
-                                        PreventDefault
                                         Class="h-9 w-9 shrink-0 rounded-full border-2 border-ink-600 enabled:hover:border-shopping flex items-center justify-center"
                                         title="@($"Mark {_Item.Title} as done")"
                                         aria-label="@($"Mark {_Item.Title} as done")"
@@ -65,16 +71,18 @@
             <div class="mt-3 pt-3 border-t border-ink-800 flex flex-col gap-1.5">
                 @foreach (var _Day in this.NextDays())
                 {
+                    var _Items = this.Visible(_Day.Items);
+
                     <div class="flex items-baseline gap-3 min-w-0">
                         <span class="w-14 shrink-0 text-xs font-semibold uppercase tracking-wider text-ink-500">@CalendarFormat.DayHeading(_Day.Date, this.Today).Replace("Tomorrow", "Tmrw")</span>
                         <p class="text-sm text-ink-300 truncate">
-                            @if (_Day.Items.Count == 0)
+                            @if (_Items.Count == 0)
                             {
                                 <span class="text-ink-600">Nothing on</span>
                             }
                             else
                             {
-                                @string.Join(" · ", _Day.Items.Take(3).Select(i => i.Title))@(_Day.Items.Count > 3 ? $" +{_Day.Items.Count - 3}" : "")
+                                @string.Join(" · ", _Items.Take(3).Select(i => i.Title))@(_Items.Count > 3 ? $" +{_Items.Count - 3}" : "")
                             }
                         </p>
                     </div>
@@ -82,4 +90,4 @@
             </div>
         }
     }
-</a>
+</div>

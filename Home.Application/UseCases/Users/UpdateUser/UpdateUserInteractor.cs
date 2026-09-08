@@ -34,8 +34,28 @@ internal class UpdateUserInteractor : IInteractor<UpdateUserInputPort, IUpdateUs
         {
             _ = _Mapper.Map(inputPort, _User);
 
-            if (inputPort.Password.HasBeenSet)
+            // A blank email takes the login away with it: nothing can sign in without one.
+            if (string.IsNullOrWhiteSpace(_User.Email))
+            {
+                _User.Email = null;
+                _User.Password = null;
+                _User.PasswordLastChanged = null;
+            }
+            else
+            {
+                _User.Email = _User.Email.Trim();
+            }
+
+            if (inputPort.Password.HasBeenSet && !string.IsNullOrEmpty(inputPort.Password.Value))
+            {
+                if (_User.Email == null)
+                {
+                    await outputPort.PresentLoginNeedsEmailAsync(cancellationToken);
+                    return;
+                }
+
                 _PasswordServive.SetPassword(_User, inputPort.Password);
+            }
 
             _AuditLogic.UpdateAudit(_User);
         }

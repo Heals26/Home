@@ -54,7 +54,14 @@
                     @ActivityBoardLogic.DescribeTime(this.Activity.DueTime.Value)
                 </span>
             }
-            @if (!string.IsNullOrWhiteSpace(this.Activity.AssignedTo))
+            @if (this.IsComplete && !string.IsNullOrWhiteSpace(this.Activity.CompletedBy))
+            {
+                <span class="inline-flex items-center gap-1 text-xs text-ink-500">
+                    <HomeIcon Name="check" Size="sm" Class="text-shopping" />
+                    Done by @this.Activity.CompletedBy
+                </span>
+            }
+            else if (!string.IsNullOrWhiteSpace(this.Activity.AssignedTo))
             {
                 <span class="inline-flex items-center gap-1.5 min-w-0">
                     <span class="h-5 w-5 shrink-0 rounded-full bg-week/15 text-week text-[10px] font-semibold flex items-center justify-center">@ActivityBoardLogic.Initials(this.Activity.AssignedTo)</span>

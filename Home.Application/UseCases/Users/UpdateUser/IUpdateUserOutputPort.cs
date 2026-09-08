@@ -9,6 +9,11 @@ public interface IUpdateUserOutputPort : IAuthenticationFailureOutputPort,
 
     #region Methods
 
+    /// <summary>
+    /// A password was sent for a member who has no email to sign in with.
+    /// </summary>
+    Task PresentLoginNeedsEmailAsync(CancellationToken cancellationToken);
+
     Task<ContinuationBehaviour> PresentUserConflictAsync(string email, CancellationToken cancellationToken);
     Task PresentUserNoContentAsync(CancellationToken cancellationToken);
 

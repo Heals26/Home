@@ -49,6 +49,9 @@ internal class CreateActivityInteractor : IInteractor<CreateActivityInputPort, I
 
         _ActivityLogic.ApplyStateChange(_Activity, _State);
 
+        if (_Activity.CompletedDateUTC != null)
+            _Activity.CompletedByUser = _AuthorisationService.GetUser();
+
         _PersistenceContext.Add(_Activity);
         _AuditLogic.AddAudit(_Activity);
 

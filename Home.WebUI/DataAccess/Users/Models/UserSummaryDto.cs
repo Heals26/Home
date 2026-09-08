@@ -1,4 +1,4 @@
-namespace Home.WebUI.DataAccess.Users.Models;
+﻿namespace Home.WebUI.DataAccess.Users.Models;
 
 public class UserSummaryDto
 {
@@ -7,6 +7,9 @@ public class UserSummaryDto
 
     /// <summary>
     /// The member's email address — how they sign in.
+    /// </summary>
+    /// <summary>
+    /// Empty for a member without a login.
     /// </summary>
     public string Email { get; set; } = string.Empty;
 
@@ -19,6 +22,11 @@ public class UserSummaryDto
     /// First, middle and last names joined for display.
     /// </summary>
     public string FullName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Whether this member can sign in. A member without a login is someone to assign things to.
+    /// </summary>
+    public bool HasLogin { get; set; }
 
     /// <summary>
     /// The member's last name.

@@ -32,6 +32,21 @@ internal class DeleteUserInteractor : IInteractor<DeleteUserInputPort, IDeleteUs
                 .Where(m => m.UserID == _User.UserID)
                 .ToList());
 
+            // Both activity links to a member are NoAction, so the cards are unhooked here: the
+            // chore survives, it just stops naming someone who is gone.
+            foreach (var _Activity in _PersistenceContext.GetEntities<Activity>()
+                .Where(a => (a.User != null && a.User.UserID == _User.UserID) || (a.CompletedByUser != null && a.CompletedByUser.UserID == _User.UserID))
+                .Select(a => new { Activity = a, a.User, a.CompletedByUser })
+                .ToList()
+                .Select(a => a.Activity))
+            {
+                if (_Activity.User?.UserID == _User.UserID)
+                    _Activity.User = null;
+
+                if (_Activity.CompletedByUser?.UserID == _User.UserID)
+                    _Activity.CompletedByUser = null;
+            }
+
             _PersistenceContext.Remove(_User);
         }
 

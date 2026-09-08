@@ -12,6 +12,12 @@ public class Activity
 
     public long ActivityID { get; set; }
 
+    /// <summary>
+    /// Who ticked it off, or null when it is not done or was completed by a column move that no
+    /// one person made. Set from the signed-in member, never from the request.
+    /// </summary>
+    public User? CompletedByUser { get; set; }
+
     public DateTime? CompletedDateUTC { get; set; }
     public DateTime? DueDateUTC { get; set; }
 

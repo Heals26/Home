@@ -1,6 +1,7 @@
 ﻿@page "/"
 @page "/home"
 @inject IViewerClock ViewerClock
+@inject IDevicePreferences DevicePreferences
 
 <HomePageTitle />
 
@@ -149,7 +150,12 @@
         </a>
 
         @* ── Today and the next few days ────────────────────────────── *@
-        <DashboardAgenda Days="this.m_Calendar" Today="this.m_Today" OnCompleteTask="this.CompleteActivityAsync" />
+        <DashboardAgenda Days="this.m_Calendar"
+                         Today="this.m_Today"
+                         SignedInUserID="this.m_SignedInUserID"
+                         OnlyMine="this.m_OnlyMine"
+                         OnlyMineChanged="this.SetOnlyMineAsync"
+                         OnCompleteTask="this.CompleteActivityAsync" />
 
         @* ── Shopping ──────────────────────────────────────────────── *@
         <a href="/shopping-lists" class="group bg-ink-900 border border-ink-800 hover:border-ink-700 active:scale-[0.99] rounded-2xl p-5 board:p-4 transition-all">

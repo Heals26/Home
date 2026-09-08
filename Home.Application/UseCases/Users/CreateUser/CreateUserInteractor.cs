@@ -32,7 +32,18 @@ internal class CreateUserInteractor : IInteractor<CreateUserInputPort, ICreateUs
 
         _AuditLogic.AddAudit(_User);
 
-        _PasswordServive.SetPassword(_User, inputPort.Password);
+        // Email and password arrive together or not at all (the validator holds that line). A
+        // member with neither can be assigned things and named on events but never signs in.
+        if (string.IsNullOrWhiteSpace(inputPort.Email) || string.IsNullOrWhiteSpace(inputPort.Password))
+        {
+            _User.Email = null;
+            _User.Password = null;
+        }
+        else
+        {
+            _User.Email = inputPort.Email.Trim();
+            _PasswordServive.SetPassword(_User, inputPort.Password);
+        }
 
         _PersistenceContext.Add(_User);
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);

@@ -58,6 +58,13 @@ public class CalendarItem
     public IReadOnlyList<string> People { get; init; } = [];
 
     /// <summary>
+    /// The members this item involves, by ID: who is on an event, or who a task is assigned to.
+    /// Empty means the whole household, which is what lets a screen show "just me" and still keep
+    /// the things that are everyone's.
+    /// </summary>
+    public IReadOnlyList<long> PersonUserIDs { get; init; } = [];
+
+    /// <summary>
     /// Meals only: the recipe to open, or null for an occasion.
     /// </summary>
     public long? RecipeID { get; init; }

@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.EntityLogic.Activities;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
@@ -35,7 +35,7 @@ internal class SetActivityCompletionInteractor
 
         var _Activity = _PersistenceContext.GetEntities<Activity>()
             .Where(a => a.ActivityID == inputPort.ActivityID && a.Household.HouseholdID == _Household.HouseholdID)
-            .Select(a => new { Activity = a, a.State })
+            .Select(a => new { Activity = a, a.CompletedByUser, a.State })
             .SingleOrDefault()
             ?.Activity;
 
@@ -65,6 +65,12 @@ internal class SetActivityCompletionInteractor
                 ? _TimeProvider.GetUtcNow().UtcDateTime
                 : null;
         }
+
+        // Who ticked it off, from the session and never from the request. Unticking clears it, and
+        // a card that was already done keeps whoever did it first.
+        _Activity.CompletedByUser = _Activity.CompletedDateUTC == null
+            ? null
+            : _Activity.CompletedByUser ?? _AuthorisationService.GetUser();
 
         _AuditLogic.UpdateAudit(_Activity);
 

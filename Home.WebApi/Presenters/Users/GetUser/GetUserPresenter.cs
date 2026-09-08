@@ -17,6 +17,7 @@ public class GetUserPresenter(IMapper mapper) : OutputPortPresenter(mapper), IGe
             Email = user.Email,
             FirstName = user.FirstName,
             FullName = user.UserName,
+            HasLogin = user.HasLogin,
             LastName = user.LastName,
             MiddleNames = user.MiddleNames,
             UserID = user.UserID

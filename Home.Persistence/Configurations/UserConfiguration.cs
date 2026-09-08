@@ -18,9 +18,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         _ = entity.Property(e => e.UserID)
             .ValueGeneratedOnAdd();
 
+        // Optional since 8 Sep 2026: a member without a login has neither.
         _ = entity.Property(e => e.Email)
             .HasMaxLength(500)
-            .IsRequired();
+            .IsRequired(false);
 
         _ = entity.Property(e => e.FirstName)
             .HasMaxLength(50)
@@ -36,10 +37,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         _ = entity.Property(e => e.Password)
             .HasMaxLength(100)
-            .IsRequired();
+            .IsRequired(false);
 
         _ = entity.Property(e => e.PasswordLastChanged)
-            .IsRequired();
+            .IsRequired(false);
 
         _ = entity.HasOne(e => e.Household)
             .WithMany(e => e.Members)

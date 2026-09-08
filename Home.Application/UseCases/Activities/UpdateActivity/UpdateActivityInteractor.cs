@@ -34,6 +34,7 @@ internal class UpdateActivityInteractor : IInteractor<UpdateActivityInputPort, I
             .Select(a => new
             {
                 Activity = a,
+                a.CompletedByUser,
                 a.State,
                 a.User
             })
@@ -61,10 +62,17 @@ internal class UpdateActivityInteractor : IInteractor<UpdateActivityInputPort, I
         // Columns belong to a household, so a guessed ID has to miss rather than land on
         // another family's board.
         if (inputPort.StateID.HasBeenSet)
+        {
             _ActivityLogic.ApplyStateChange(_Activity, inputPort.StateID.Value.HasValue
                 ? _PersistenceContext.GetEntities<ActivityState>()
                     .SingleOrDefault(s => s.ActivityStateID == inputPort.StateID.Value.Value && s.Household.HouseholdID == _Household.HouseholdID)
                 : null);
+
+            // Dragging a card into the done column is ticking it off by another route.
+            _Activity.CompletedByUser = _Activity.CompletedDateUTC == null
+                ? null
+                : _Activity.CompletedByUser ?? _AuthorisationService.GetUser();
+        }
 
         if (inputPort.Sequence.HasBeenSet)
             _Activity.Sequence = inputPort.Sequence.Value;

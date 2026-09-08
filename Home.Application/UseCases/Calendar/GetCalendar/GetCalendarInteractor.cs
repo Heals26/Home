@@ -86,11 +86,13 @@ internal class GetCalendarInteractor : IInteractor<GetCalendarInputPort, IGetCal
 
         foreach (var _Event in _Events)
         {
-            var _People = _Event.Members.Select(m => m.User.UserName).OrderBy(n => n).ToList();
+            var _Members = _Event.Members.OrderBy(m => m.User.UserName).ToList();
+            var _People = _Members.Select(m => m.User.UserName).ToList();
+            var _PersonIDs = _Members.Select(m => m.UserID).ToList();
 
             foreach (var _Occurrence in CalendarOccurrences.Expand(_Event, _WindowStart, _WindowEnd))
             {
-                foreach (var _Item in OccurrenceItems(_Occurrence, _People, fromDate, toDate, zone))
+                foreach (var _Item in OccurrenceItems(_Occurrence, _People, _PersonIDs, fromDate, toDate, zone))
                     yield return _Item;
             }
         }
@@ -102,6 +104,7 @@ internal class GetCalendarInteractor : IInteractor<GetCalendarInputPort, IGetCal
     private static IEnumerable<CalendarItem> OccurrenceItems(
         CalendarOccurrence occurrence,
         IReadOnlyList<string> people,
+        IReadOnlyList<long> personIDs,
         DateOnly fromDate,
         DateOnly toDate,
         TimeZoneInfo zone)
@@ -141,6 +144,7 @@ internal class GetCalendarInteractor : IInteractor<GetCalendarInputPort, IGetCal
                 Location = _Event.Location,
                 OccurrenceDate = occurrence.StartDate,
                 People = people,
+                PersonUserIDs = personIDs,
                 StartDate = _FirstDay,
                 // A day the event runs into starts at midnight for sorting: before anything timed.
                 StartsAt = !_IsTimed ? null : _Date == _FirstDay ? TimeOnly.FromDateTime(_LocalStart) : TimeOnly.MinValue,
@@ -212,6 +216,7 @@ internal class GetCalendarInteractor : IInteractor<GetCalendarInputPort, IGetCal
             .Select(a => new
             {
                 Activity = a,
+                a.CompletedByUser,
                 a.User
             })
             .ToList()
@@ -230,8 +235,9 @@ internal class GetCalendarInteractor : IInteractor<GetCalendarInputPort, IGetCal
                 IsDone = _Activity.CompletedDateUTC != null,
                 Kind = CalendarItemKind.Task,
                 StartDate = _Date,
+                PersonUserIDs = _Activity.User == null ? [] : [_Activity.User.UserID],
                 StartsAt = _Activity.DueTime is { } _DueTime ? TimeOnly.FromTimeSpan(_DueTime) : null,
-                Subtitle = _Activity.User?.UserName,
+                Subtitle = _Activity.CompletedByUser != null ? $"Done by {_Activity.CompletedByUser.UserName}" : _Activity.User?.UserName,
                 Title = _Activity.Title
             };
         }

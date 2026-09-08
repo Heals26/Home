@@ -54,6 +54,16 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
             .IsRequired(false);
 
 
+        // NoAction like the assignee: two SetNull paths from User onto this table would be refused.
+        // DeleteUser clears both itself.
+        _ = entity.Property<long?>("CompletedByUserID");
+        _ = entity.HasOne(e => e.CompletedByUser)
+            .WithMany()
+            .HasForeignKey("CompletedByUserID")
+            .HasConstraintName("FK_Activity_CompletedByUser")
+            .OnDelete(DeleteBehavior.NoAction)
+            .IsRequired(false);
+
         _ = entity.Property<long?>("UserID");
         _ = entity.HasOne(e => e.User)
             .WithMany(e => e.AssignedActivities)

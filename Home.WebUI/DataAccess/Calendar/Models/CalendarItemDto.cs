@@ -57,6 +57,11 @@ public class CalendarItemDto
     public List<string> People { get; set; } = [];
 
     /// <summary>
+    /// The members this item involves, by ID. Empty means the whole household.
+    /// </summary>
+    public List<long> PersonUserIDs { get; set; } = [];
+
+    /// <summary>
     /// Meals only: the recipe to open, or null for an occasion.
     /// </summary>
     public long? RecipeID { get; set; }

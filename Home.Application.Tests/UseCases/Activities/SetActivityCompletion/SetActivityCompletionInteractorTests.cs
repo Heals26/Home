@@ -66,6 +66,9 @@ public class SetActivityCompletionInteractorTests : InteractorTest
     [Fact]
     public async Task HandleAsync_TickingOffMovesTheCardToTheFirstFinishedColumn()
     {
+        // Ticking a card off now records who did it, so the signed-in member has to exist.
+        _ = this.Database.Seed(this.Member);
+
         var _ToDo = BuildColumn(120, this.Ours, "To do", 0);
 
         _ = this.Database.Seed(
@@ -101,6 +104,9 @@ public class SetActivityCompletionInteractorTests : InteractorTest
     [Fact]
     public async Task HandleAsync_WhenTheBoardHasNoFinishedColumn_StillTicksTheCardOff()
     {
+        // Ticking a card off now records who did it, so the signed-in member has to exist.
+        _ = this.Database.Seed(this.Member);
+
         var _ToDo = BuildColumn(120, this.Ours, "To do", 0);
 
         _ = this.Database.Seed(this.BuildCard(100, this.Ours, _ToDo));
@@ -118,6 +124,9 @@ public class SetActivityCompletionInteractorTests : InteractorTest
     [Fact]
     public async Task HandleAsync_NeverMovesACardIntoAnotherHouseholdsColumn()
     {
+        // Ticking a card off now records who did it, so the signed-in member has to exist.
+        _ = this.Database.Seed(this.Member);
+
         var _ToDo = BuildColumn(120, this.Ours, "To do", 0);
 
         _ = this.Database.Seed(
@@ -145,6 +154,9 @@ public class SetActivityCompletionInteractorTests : InteractorTest
     [Fact]
     public async Task HandleAsync_RecordsThatTheCardChanged()
     {
+        // Ticking a card off now records who did it, so the signed-in member has to exist.
+        _ = this.Database.Seed(this.Member);
+
         var _ToDo = BuildColumn(120, this.Ours, "To do", 0);
 
         _ = this.Database.Seed(this.BuildCard(100, this.Ours, _ToDo));

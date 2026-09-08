@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Home.Application.UseCases.Users.GetUsers;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -21,6 +21,7 @@ public class GetUsersPresenter(IMapper mapper)
                 Email = u.Email,
                 FirstName = u.FirstName,
                 FullName = u.UserName,
+                HasLogin = u.HasLogin,
                 LastName = u.LastName,
                 UserID = u.UserID
             })]

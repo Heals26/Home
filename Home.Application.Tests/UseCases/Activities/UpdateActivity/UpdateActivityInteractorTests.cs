@@ -115,6 +115,9 @@ public class UpdateActivityInteractorTests : InteractorTest
     [Fact]
     public async Task HandleAsync_MovingToAFinishedColumnStampsTheCard()
     {
+        // Ticking a card off now records who did it, so the signed-in member has to exist.
+        _ = this.Database.Seed(this.Member);
+
         _ = this.Database.Seed(
             BuildColumn(121, this.Ours, "Done", isComplete: true),
             this.BuildCard(100, this.Ours));

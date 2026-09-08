@@ -83,6 +83,9 @@ public class CreateActivityInteractorTests : InteractorTest
     [Fact]
     public async Task HandleAsync_WhenTheColumnIsFinished_StampsTheNewCard()
     {
+        // Ticking a card off now records who did it, so the signed-in member has to exist.
+        _ = this.Database.Seed(this.Member);
+
         _ = this.Database.Seed(BuildColumn(120, this.Ours, "Done", isComplete: true));
 
         await this.HandleAsync("Already done", stateID: 120);

@@ -24,6 +24,8 @@ public class GetActivitiesPresenter(IMapper mapper)
                 Title = a.Title,
                 DueDateUTC = a.DueDateUTC,
                 DueTime = a.DueTime,
+                CompletedBy = a.CompletedByUser?.UserName,
+                CompletedByUserID = a.CompletedByUser?.UserID,
                 CompletedDateUTC = a.CompletedDateUTC,
                 StateID = a.State?.ActivityStateID,
                 State = a.State?.Name,

@@ -50,6 +50,8 @@ public partial class SettingsPage : IDisposable
     private string m_MemberLastName = string.Empty;
     private string m_MemberEmail = string.Empty;
     private string m_MemberPassword = string.Empty;
+    private bool m_MemberHasLogin = true;
+    private bool m_EditingHasLogin;
     private bool m_AddingMember;
 
     // Devices
@@ -344,6 +346,7 @@ public partial class SettingsPage : IDisposable
         this.m_MemberLastName = string.Empty;
         this.m_MemberEmail = string.Empty;
         this.m_MemberPassword = string.Empty;
+        this.m_MemberHasLogin = true;
         this.m_ShowAddMember = true;
     }
 
@@ -357,10 +360,10 @@ public partial class SettingsPage : IDisposable
         var _Result = await this.ApiAccess.SendRequestAsync<CreateUserWebAppRequest, CreateUserWebAppResponse>(
             new CreateUserWebAppRequest()
             {
-                Email = this.m_MemberEmail.Trim(),
+                Email = this.m_MemberHasLogin ? this.m_MemberEmail.Trim() : string.Empty,
                 FirstName = this.m_MemberFirstName.Trim(),
                 LastName = this.m_MemberLastName.Trim(),
-                Password = this.m_MemberPassword
+                Password = this.m_MemberHasLogin ? this.m_MemberPassword : string.Empty
             },
             ApiProvider.CreateUser(),
             e => this.m_ErrorHandler?.AddError(e),
@@ -380,8 +383,8 @@ public partial class SettingsPage : IDisposable
     private bool CanAddMember()
         => !string.IsNullOrWhiteSpace(this.m_MemberFirstName)
             && !string.IsNullOrWhiteSpace(this.m_MemberLastName)
-            && !string.IsNullOrWhiteSpace(this.m_MemberEmail)
-            && !string.IsNullOrWhiteSpace(this.m_MemberPassword);
+            && (!this.m_MemberHasLogin
+                || (!string.IsNullOrWhiteSpace(this.m_MemberEmail) && !string.IsNullOrWhiteSpace(this.m_MemberPassword)));
 
     private bool IsSignedInMember(UserSummaryDto user)
         => this.m_SignedInUserID != null && user.UserID == this.m_SignedInUserID;
@@ -393,17 +396,27 @@ public partial class SettingsPage : IDisposable
         this.m_MemberFirstName = user.FirstName;
         this.m_MemberLastName = user.LastName;
         this.m_MemberEmail = user.Email;
+        this.m_MemberPassword = string.Empty;
+        this.m_EditingHasLogin = user.HasLogin;
+        this.m_MemberHasLogin = user.HasLogin;
         this.m_ShowEditMember = true;
     }
 
+    /// <summary>
+    /// A member who already signs in keeps needing an email; one being given a sign-in needs both
+    /// halves of it; one staying without needs only a name.
+    /// </summary>
     private bool CanSaveMember()
         => !string.IsNullOrWhiteSpace(this.m_MemberFirstName)
             && !string.IsNullOrWhiteSpace(this.m_MemberLastName)
-            && !string.IsNullOrWhiteSpace(this.m_MemberEmail);
+            && (this.m_EditingHasLogin
+                ? !string.IsNullOrWhiteSpace(this.m_MemberEmail)
+                : !this.m_MemberHasLogin || (!string.IsNullOrWhiteSpace(this.m_MemberEmail) && !string.IsNullOrWhiteSpace(this.m_MemberPassword)));
 
     /// <summary>
-    /// The password tracker is deliberately left unset, because this form does not carry one and a
-    /// tracker that arrived "set" to empty would blank the member's password.
+    /// The password tracker is only set when a sign-in is being added, because a tracker that
+    /// arrived "set" to empty would blank an existing member's password. The email tracker is only
+    /// sent when there is one to send, so a member without a sign-in stays without one.
     /// </summary>
     private async Task SaveMemberAsync()
     {
@@ -415,9 +428,10 @@ public partial class SettingsPage : IDisposable
         var _Result = await this.ApiAccess.SendRequestAsync<UpdateUserWebAppRequest, bool>(
             new UpdateUserWebAppRequest()
             {
-                Email = new(this.m_MemberEmail.Trim()),
+                Email = this.m_EditingHasLogin || this.m_MemberHasLogin ? new(this.m_MemberEmail.Trim()) : default,
                 FirstName = new(this.m_MemberFirstName.Trim()),
-                LastName = new(this.m_MemberLastName.Trim())
+                LastName = new(this.m_MemberLastName.Trim()),
+                Password = !this.m_EditingHasLogin && this.m_MemberHasLogin ? new(this.m_MemberPassword) : default
             },
             ApiProvider.UpdateUser(this.m_EditingUserID.Value),
             e => this.m_ErrorHandler?.AddError(e),

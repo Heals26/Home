@@ -40,6 +40,18 @@
                                   ValueChanged="this.ChangeViewAsync" />
         </div>
 
+        @* Who the calendar is for. Things that name nobody are everyone's and always stay. *@
+        @if (this.m_Members.Count > 1)
+        {
+            <div class="px-6 pb-3 flex flex-wrap items-center gap-2" role="group" aria-label="Show whose things">
+                <HomeChip Selected="this.m_FilterUserID == null" OnClick="() => this.m_FilterUserID = null">Everyone</HomeChip>
+                @foreach (var _Member in this.m_Members)
+                {
+                    <HomeChip Selected="this.m_FilterUserID == _Member.UserID" OnClick="() => this.m_FilterUserID = _Member.UserID">@_Member.FirstName</HomeChip>
+                }
+            </div>
+        }
+
         <div class="flex-1 px-6 pb-6 app-scrollable">
             @if (this.m_Days == null)
             {
@@ -50,7 +62,7 @@
                 @switch (this.m_View)
                 {
                     case CalendarView.Month:
-                        <CalendarMonthGrid Days="this.m_Days"
+                        <CalendarMonthGrid Days="this.VisibleDays()"
                                            Month="this.FirstOfMonth()"
                                            Today="this.m_Today"
                                            OnSelectDay="date => this.OpenCreateAsync(date)"
@@ -60,13 +72,13 @@
 
                     case CalendarView.Week:
                         <div class="hidden lg:block">
-                            <CalendarWeekView Days="this.m_Days"
+                            <CalendarWeekView Days="this.VisibleDays()"
                                               Today="this.m_Today"
                                               OnSelectDay="date => this.OpenCreateAsync(date)"
                                               OnSelectItem="this.SelectItem" />
                         </div>
                         <div class="lg:hidden">
-                            <CalendarDayList Days="this.m_Days"
+                            <CalendarDayList Days="this.VisibleDays()"
                                              Today="this.m_Today"
                                              OnSelectDay="date => this.OpenCreateAsync(date)"
                                              OnSelectItem="this.SelectItem" />
@@ -74,7 +86,7 @@
                         break;
 
                     default:
-                        <CalendarDayList Days="this.m_Days"
+                        <CalendarDayList Days="this.VisibleDays()"
                                          Today="this.m_Today"
                                          OnSelectDay="date => this.OpenCreateAsync(date)"
                                          OnSelectItem="this.SelectItem" />

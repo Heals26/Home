@@ -1,5 +1,6 @@
 ﻿using Home.WebUI.Components;
 using Home.WebUI.Infrastructure.Configuration;
+using Home.WebUI.Infrastructure.Services.Preferences;
 using Home.WebUI.Infrastructure.Services.Time;
 using Microsoft.AspNetCore.DataProtection;
 using Home.WebUI.Endpoints;
@@ -94,6 +95,9 @@ _Builder.Services.AddSingleton(TimeProvider.System);
 // Scoped per circuit: the browser's zone is asked for once and every page on that device shares
 // it. Calendar dates are converted here and nowhere else (see the 8 Sep 2026 decision on time).
 _Builder.Services.AddScoped<IViewerClock, ViewerClock>();
+
+// Per-device choices kept in the browser (the board's "just me" switch), never shared.
+_Builder.Services.AddScoped<IDevicePreferences, DevicePreferences>();
 
 // Live cross-device updates: the broker is the process-wide fan-out between circuits, and
 // each circuit talks to it through a broadcaster that pins the caller's own household.

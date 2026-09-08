@@ -108,6 +108,8 @@ dotnet test
   not from nuget.org.
 - `Ical.Net` is used only inside `Home.WebApi/Infrastructure/Calendar/`. Subscribed calendars are
   expanded there and stored as plain read-only `CalendarEvent` rows; nothing else parses iCalendar.
+- A member need not have a login (`User.Email`/`Password` are optional as a pair). Anything that
+  acts still requires a signed-in member; a member without a login is someone to assign things to.
 - Calendar dates are shown in the *browser's* zone through `IViewerClock` (Blazor Server would
   otherwise answer in the server's). The rest of the app still uses server-local time.
 - Australian English in identifiers, comments and strings, except where a framework type fixes the

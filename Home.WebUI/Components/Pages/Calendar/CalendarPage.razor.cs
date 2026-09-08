@@ -35,6 +35,7 @@ public partial class CalendarPage : IDisposable
 
     private DateOnly m_Anchor;
     private List<CalendarDayDto>? m_Days;
+    private long? m_FilterUserID;
     private List<UserSummaryDto> m_Members = [];
     private string m_TimeZoneID = "UTC";
     private DateOnly m_Today;
@@ -63,7 +64,7 @@ public partial class CalendarPage : IDisposable
         this.m_Today = await this.ViewerClock.TodayAsync(this.m_CancellationTokenHandler.Token);
         this.m_Anchor = this.m_Today;
 
-        await this.LoadAsync();
+        await Task.WhenAll(this.LoadAsync(), this.LoadMembersAsync());
 
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
             this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
@@ -87,7 +88,7 @@ public partial class CalendarPage : IDisposable
 
         await this.InvokeAsync(async () =>
         {
-            await this.LoadAsync();
+            await Task.WhenAll(this.LoadAsync(), area == ChangeArea.Users ? this.LoadMembersAsync() : Task.CompletedTask);
             this.StateHasChanged();
         });
     }
@@ -162,6 +163,19 @@ public partial class CalendarPage : IDisposable
 
         await this.LoadAsync();
     }
+
+    /// <summary>
+    /// The days as filtered by person. An item that names nobody is the household's and stays;
+    /// one that names people stays only if the chosen member is among them.
+    /// </summary>
+    private List<CalendarDayDto> VisibleDays()
+        => this.m_FilterUserID is { } _UserID && this.m_Days != null
+            ? [.. this.m_Days.Select(d => new CalendarDayDto()
+            {
+                Date = d.Date,
+                Items = [.. d.Items.Where(i => i.PersonUserIDs.Count == 0 || i.PersonUserIDs.Contains(_UserID))]
+            })]
+            : this.m_Days ?? [];
 
     private bool IsShowingToday()
     {
@@ -239,9 +253,6 @@ public partial class CalendarPage : IDisposable
 
     private async Task LoadMembersAsync()
     {
-        if (this.m_Members.Count > 0)
-            return;
-
         var _Result = await this.ApiAccess.SendRequestAsync<object, GetUsersWebAppResponse>(
             null!, ApiProvider.GetUsers(),
             e => this.m_ErrorHandler?.AddError(e),

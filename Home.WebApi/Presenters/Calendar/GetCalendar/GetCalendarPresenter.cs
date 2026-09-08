@@ -39,6 +39,7 @@ public class GetCalendarPresenter(IMapper mapper)
             Location = item.Location,
             OccurrenceDate = item.OccurrenceDate,
             People = [.. item.People],
+            PersonUserIDs = [.. item.PersonUserIDs],
             RecipeID = item.RecipeID,
             StartDate = item.StartDate,
             StartsAt = item.StartsAt,

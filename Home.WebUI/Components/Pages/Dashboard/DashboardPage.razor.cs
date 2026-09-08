@@ -4,6 +4,8 @@ using Home.WebUI.DataAccess.Announcements.GetAnnouncements;
 using Home.WebUI.DataAccess.Announcements.Models;
 using Home.WebUI.DataAccess.Calendar.GetCalendar;
 using Home.WebUI.DataAccess.Calendar.Models;
+using Home.WebUI.Infrastructure.Security;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Home.WebUI.DataAccess.Lights.GetLights;
 using Home.WebUI.DataAccess.Lights.Models;
@@ -14,6 +16,7 @@ using Home.WebUI.DataAccess.Weather.Models;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Dashboard;
 
@@ -35,6 +38,11 @@ public partial class DashboardPage : IDisposable
     private List<CalendarDayDto>? m_Calendar;
     private DateOnly m_Today;
     private string m_TimeZoneID = "UTC";
+
+    // Whose board this is. The scope is a per-device choice, so the tablet shows everyone and a
+    // phone can show its owner (see the 8 Sep 2026 decision on identity).
+    private long? m_SignedInUserID;
+    private bool m_OnlyMine;
     private ICollection<GetRecipeDto>? m_Recipes;
     private ICollection<GetShoppingListDto>? m_ShoppingLists;
     private GetWeatherWebAppResponse? m_Weather;
@@ -49,12 +57,25 @@ public partial class DashboardPage : IDisposable
     // can never sit stale for long on an always-on screen.
     private static readonly TimeSpan s_RefreshInterval = TimeSpan.FromMinutes(5);
 
+    private const string BoardScopeKey = "board-scope";
+
     #endregion Fields
+
+    #region Properties
+
+    [CascadingParameter] public Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    #endregion Properties
 
     #region Lifecycle Methods
 
     protected override async Task OnInitializedAsync()
     {
+        if (this.AuthenticationState != null)
+            this.m_SignedInUserID = HouseholdClaims.GetUserID((await this.AuthenticationState).User);
+
+        this.m_OnlyMine = await this.DevicePreferences.GetAsync(BoardScopeKey, this.m_CancellationTokenHandler.Token) == "me";
+
         await this.LoadEverythingAsync();
 
         this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
@@ -146,6 +167,13 @@ public partial class DashboardPage : IDisposable
             await _Load;
             this.StateHasChanged();
         });
+
+    private async Task SetOnlyMineAsync(bool onlyMine)
+    {
+        this.m_OnlyMine = onlyMine;
+
+        await this.DevicePreferences.SetAsync(BoardScopeKey, onlyMine ? "me" : "everyone", this.m_CancellationTokenHandler.Token);
+    }
 
     private string GetGreeting()
     {
