@@ -2,6 +2,7 @@
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.MealPlanEntries.UpdateMealPlanEntry;
 
@@ -18,6 +19,7 @@ internal class UpdateMealPlanEntryInteractor : IInteractor<UpdateMealPlanEntryIn
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<MealPlanEntry>>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -33,7 +35,9 @@ internal class UpdateMealPlanEntryInteractor : IInteractor<UpdateMealPlanEntryIn
             .Select(e => new
             {
                 Entry = e,
-                e.MealSlot
+                e.MealSlot,
+                // The history names the meal, so the recipe has to be loaded too.
+                e.Recipe
             })
             .SingleOrDefault()
             ?.Entry;
@@ -54,6 +58,8 @@ internal class UpdateMealPlanEntryInteractor : IInteractor<UpdateMealPlanEntryIn
                     ? _PersistenceContext.GetEntities<MealSlot>()
                         .SingleOrDefault(s => s.MealSlotID == inputPort.MealSlotID.Value.Value && s.Household.HouseholdID == _Household.HouseholdID)
                     : null;
+
+            _AuditLogic.UpdateAudit(_Entry);
 
             _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

@@ -2,6 +2,7 @@
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.Recipes.DeleteRecipe;
 
@@ -18,6 +19,7 @@ internal class DeleteRecipeInteractor : IInteractor<DeleteRecipeInputPort, IDele
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<Recipe>>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -25,7 +27,10 @@ internal class DeleteRecipeInteractor : IInteractor<DeleteRecipeInputPort, IDele
             .SingleOrDefault(r => r.RecipeID == input.RecipeID && r.Household.HouseholdID == _Household.HouseholdID);
 
         if (_Recipe != null)
+        {
+            _AuditLogic.DeleteAudit(_Recipe);
             _PersistenceContext.Remove(_Recipe);
+        }
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

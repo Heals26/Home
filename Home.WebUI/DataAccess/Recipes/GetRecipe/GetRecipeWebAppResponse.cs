@@ -37,7 +37,17 @@ public class GetRecipeWebAppResponse
     /// <summary>
     /// The meals this recipe suits.
     /// </summary>
+    /// <summary>
+    /// The last day this was on the plan, up to today. Null when it has never been had.
+    /// </summary>
+    public DateOnly? LastHadDate { get; set; }
+
     public List<RecipeMealSlotDto> MealSlots { get; set; } = [];
+
+    /// <summary>
+    /// The next day this is planned for, or null.
+    /// </summary>
+    public DateOnly? NextPlannedDate { get; set; }
 
     /// <summary>
     /// The name of the recipe.
@@ -63,6 +73,11 @@ public class GetRecipeWebAppResponse
     /// How many the recipe feeds, null when unknown.
     /// </summary>
     public int? Servings { get; set; }
+
+    /// <summary>
+    /// How many days up to today it has been on the plan.
+    /// </summary>
+    public int TimesHad { get; set; }
 
     /// <summary>
     /// The ordered preparation steps for the recipe.

@@ -1,4 +1,4 @@
-using Home.Application.Services.Persistence;
+﻿using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Enumerations;
@@ -13,38 +13,29 @@ public class ShoppingListAuditLogic(
     : AuditBase<ShoppingList>(authorisationService, persistenceContext, timeProvider)
 {
 
+    #region Properties
+
+    protected override ResourceTypeSE ResourceType => ResourceTypeSE.ShoppingCart;
+
+    #endregion Properties
+
     #region Methods
 
-    protected override void AddEntity(ShoppingList shoppingList)
-        => persistenceContext.Add(new Audit()
-        {
-            ModifiedDateUTC = this.NowUTC,
-            User = this.GetUser(),
-            Entity = ResourceTypeSE.ShoppingCart,
-            EntityID = shoppingList.ShoppingListID,
-            Content = this.GetAuditChanges(shoppingList, EntityState.Added),
-            UserName = this.GetUser()?.UserName,
-        });
+    protected override string Describe(ShoppingList shoppingList, EntityState entityState)
+    {
+        var _Name = Quote(shoppingList.Name);
 
-    protected override void DeleteEntity(ShoppingList entity)
-        => persistenceContext.GetEntities<Audit>()
-            .Where(a => a.Entity == ResourceTypeSE.ShoppingCart && a.EntityID == entity.ShoppingListID)
-            .ToList()
-            .ForEach(a => persistenceContext.Remove(a));
+        if (entityState == EntityState.Added)
+            return $"started the list {_Name}";
 
-    protected override IQueryable<Audit> GetAudits()
-        => persistenceContext.GetEntities<Audit>().Where(a => a.Entity == ResourceTypeSE.Activity);
+        if (entityState == EntityState.Deleted)
+            return $"removed the list {_Name}";
 
-    protected override void UpdateEntity(ShoppingList shoppingList)
-        => persistenceContext.Add(new Audit()
-        {
-            ModifiedDateUTC = this.NowUTC,
-            User = this.GetUser(),
-            Entity = ResourceTypeSE.ShoppingCart,
-            EntityID = shoppingList.ShoppingListID,
-            Content = this.GetAuditChanges(shoppingList, EntityState.Modified),
-            UserName = this.GetUser()?.UserName,
-        });
+        if (this.HasChanged(shoppingList, nameof(ShoppingList.Name)))
+            return $"renamed {Quote(this.OriginalValue(shoppingList, nameof(ShoppingList.Name)) as string)} to {_Name}";
+
+        return $"changed the list {_Name}";
+    }
 
     #endregion Methods
 

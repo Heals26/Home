@@ -10,6 +10,9 @@ public class ResourceTypeSE : BaseEnumeration
     public static ResourceTypeSE Recipe = new("Recipe", 3);
     public static ResourceTypeSE Note = new("Note", 4);
     public static ResourceTypeSE ShoppingCart = new("ShoppingCart", 5);
+    public static ResourceTypeSE MealPlanEntry = new("MealPlanEntry", 6);
+    public static ResourceTypeSE CalendarEvent = new("CalendarEvent", 7);
+    public static ResourceTypeSE CalendarSubscription = new("CalendarSubscription", 8);
 
     #endregion Fields
 

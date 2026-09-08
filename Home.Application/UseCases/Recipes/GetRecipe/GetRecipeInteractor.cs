@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
+using Home.Application.UseCases.Recipes.Models;
 using Home.Domain.Entities;
 
 namespace Home.Application.UseCases.Recipes.GetRecipe;
@@ -55,9 +56,16 @@ internal class GetRecipeInteractor : IInteractor<GetRecipeInputPort, IGetRecipeO
             ?.Recipe;
 
         if (_Recipe == null)
+        {
             await outputPort.PresentRecipeNotFoundAsync(inputPort.RecipeID, cancellationToken);
+        }
         else
-            await outputPort.PresentRecipeAsync(_Recipe, cancellationToken);
+        {
+            var _Today = DateOnly.FromDateTime(serviceFactory.GetService<TimeProvider>().GetUtcNow().UtcDateTime);
+            var _History = RecipeMealHistoryReader.Read(_PersistenceContext, _Household.HouseholdID, _Today, _Recipe.RecipeID);
+
+            await outputPort.PresentRecipeAsync(_Recipe, _History.GetValueOrDefault(_Recipe.RecipeID, RecipeMealHistory.None), cancellationToken);
+        }
     }
 
     #endregion Methods

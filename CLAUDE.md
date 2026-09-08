@@ -108,6 +108,9 @@ dotnet test
   not from nuget.org.
 - `Ical.Net` is used only inside `Home.WebApi/Infrastructure/Calendar/`. Subscribed calendars are
   expanded there and stored as plain read-only `CalendarEvent` rows; nothing else parses iCalendar.
+- Every write goes through an `IAuditLogic<T>`, which puts what happened into words (`Audit.Summary`)
+  and stamps the household. New slices that change something should call it; the feed at `/history`
+  reads nothing else.
 - A member need not have a login (`User.Email`/`Password` are optional as a pair). Anything that
   acts still requires a signed-in member; a member without a login is someone to assign things to.
 - Calendar dates are shown in the *browser's* zone through `IViewerClock` (Blazor Server would

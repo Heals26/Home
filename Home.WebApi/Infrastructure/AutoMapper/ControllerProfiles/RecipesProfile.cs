@@ -25,6 +25,10 @@ public class RecipesProfile : Profile
         _ = this.CreateMap<MealSlot, RecipeMealSlotDto>();
 
         _ = this.CreateMap<Recipe, GetRecipeDto>()
+            // Read off the meal plan by the presenter, not the entity.
+            .ForMember(d => d.LastHadDate, o => o.Ignore())
+            .ForMember(d => d.NextPlannedDate, o => o.Ignore())
+            .ForMember(d => d.TimesHad, o => o.Ignore())
             .ForMember(d => d.ImageVersion, o => o.MapFrom(s => s.ImageUpdatedOnUTC == null ? null : (long?)s.ImageUpdatedOnUTC.Value.Ticks))
             .ForMember(d => d.MealSlots, o => o.MapFrom(s => s.MealSlots.Select(rms => rms.MealSlot).OrderBy(ms => ms.Sequence)));
     }

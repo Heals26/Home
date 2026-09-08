@@ -3,6 +3,7 @@ using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using Home.Domain.Enumerations;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.Calendar.DeleteCalendarEvent;
 
@@ -20,6 +21,7 @@ internal class DeleteCalendarEventInteractor
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<CalendarEvent>>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -48,10 +50,14 @@ internal class DeleteCalendarEventInteractor
             {
                 // Skipping the same day twice is the same skip.
                 if (!_Event.Exceptions.Any(x => x.OccurrenceDate == _OccurrenceDate))
+                {
                     _PersistenceContext.Add(new CalendarEventException() { CalendarEvent = _Event, OccurrenceDate = _OccurrenceDate });
+                    _AuditLogic.UpdateAudit(_Event, $"skipped '{_Event.Title}' on {_OccurrenceDate:ddd d MMM}");
+                }
             }
             else
             {
+                _AuditLogic.DeleteAudit(_Event);
                 _PersistenceContext.Remove(_Event);
             }
 

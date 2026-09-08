@@ -9,6 +9,7 @@
    each tile shows live content and navigates to its pillar. Failures degrade to a
    single quiet banner, never a stack of toasts. *@
 
+<CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
 <div class="min-h-full max-w-5xl board:max-w-none mx-auto px-6 pt-8 board:pt-4 pb-6 board:pb-2">
     @* Read once, so the date and the clock cannot land either side of a minute boundary and
        disagree with each other. *@
@@ -263,6 +264,9 @@
             }
         </a>
 
+        @* ── Recently ──────────────────────────────────────────────── *@
+        <DashboardRecently Version="this.m_ChangeVersion" />
+
         @* ── Family notes ──────────────────────────────────────────── *@
         <div class="rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 rounded-2xl p-5 board:p-4">
             <div class="flex items-center justify-between mb-3">
@@ -313,4 +317,4 @@
 
     </div>
 </div>
-
+</CascadingValue>

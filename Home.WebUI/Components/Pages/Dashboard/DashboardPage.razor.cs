@@ -43,6 +43,9 @@ public partial class DashboardPage : IDisposable
     // phone can show its owner (see the 8 Sep 2026 decision on identity).
     private long? m_SignedInUserID;
     private bool m_OnlyMine;
+
+    // Counts every household change so the Recently tile knows to look again.
+    private int m_ChangeVersion;
     private ICollection<GetRecipeDto>? m_Recipes;
     private ICollection<GetShoppingListDto>? m_ShoppingLists;
     private GetWeatherWebAppResponse? m_Weather;
@@ -165,6 +168,7 @@ public partial class DashboardPage : IDisposable
             };
 
             await _Load;
+            this.m_ChangeVersion++;
             this.StateHasChanged();
         });
 

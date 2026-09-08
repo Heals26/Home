@@ -2,6 +2,7 @@
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.Recipes.UpdateRecipe;
 
@@ -18,6 +19,7 @@ internal class UpdateRecipeInteractor : IInteractor<UpdateRecipeInputPort, IUpda
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<Recipe>>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -53,6 +55,8 @@ internal class UpdateRecipeInteractor : IInteractor<UpdateRecipeInputPort, IUpda
 
         if (inputPort.Url.HasBeenSet)
             _Recipe.Url = inputPort.Url.Value;
+
+        _AuditLogic.UpdateAudit(_Recipe);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

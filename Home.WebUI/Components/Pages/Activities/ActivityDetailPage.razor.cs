@@ -94,11 +94,20 @@ public partial class ActivityDetailPage : IDisposable
 
     // Loading
 
+    /// <summary>
+    /// Bumped whenever the card reloads, so its history card reads again too.
+    /// </summary>
+    private int m_HistoryVersion;
+
     private async Task LoadActivityAsync()
-        => this.m_Activity = await this.ApiAccess.SendRequestAsync<object, GetActivityWebAppResponse>(
+    {
+        this.m_HistoryVersion++;
+
+        this.m_Activity = await this.ApiAccess.SendRequestAsync<object, GetActivityWebAppResponse>(
             null!, ApiProvider.GetActivity(this.ActivityID),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
+    }
 
     private async Task LoadStatesAsync()
     {

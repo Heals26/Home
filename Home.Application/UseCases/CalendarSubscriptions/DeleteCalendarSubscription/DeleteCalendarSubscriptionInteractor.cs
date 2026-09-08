@@ -2,6 +2,7 @@
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.CalendarSubscriptions.DeleteCalendarSubscription;
 
@@ -19,6 +20,7 @@ internal class DeleteCalendarSubscriptionInteractor
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<CalendarSubscription>>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -39,6 +41,7 @@ internal class DeleteCalendarSubscriptionInteractor
                 .ToList();
 
             _PersistenceContext.RemoveRange(_Events);
+            _AuditLogic.DeleteAudit(_Subscription);
             _PersistenceContext.Remove(_Subscription);
             _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

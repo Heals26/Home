@@ -28,11 +28,29 @@ public class GetRecipeDto
     /// </summary>
     public long? ImageVersion { get; set; }
 
+
+    /// <summary>
+    /// The last day this was on the plan, up to today. Null when it has never been had.
+    /// </summary>
+    public DateOnly? LastHadDate { get; set; }
+
     public ICollection<RecipeMealSlotDto> MealSlots { get; set; }
     public string Name { get; set; }
+
+    /// <summary>
+    /// The next day this is planned for, or null.
+    /// </summary>
+    public DateOnly? NextPlannedDate { get; set; }
+
     public int? PrepMinutes { get; set; }
     public long RecipeID { get; set; }
     public int? Servings { get; set; }
+
+    /// <summary>
+    /// How many days up to today it has been on the plan.
+    /// </summary>
+    public int TimesHad { get; set; }
+
     public string Url { get; set; }
 
     #endregion Properties

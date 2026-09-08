@@ -4,6 +4,66 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-08 · Memory decision 3 of 3: the planner remembers, off the meal plan and nowhere else
+
+Mitch, 8 Sep 2026, took all four: "last had" on each recipe, a nudge when planning something had
+in the last few days, a one-tap "leftovers" offer for the day after, and "haven't had in a while"
+suggestions.
+
+None of it is stored. `RecipeMealHistoryReader` folds the household's meal plan per recipe at read
+time into `LastHadDate` (the latest planned day up to today), `NextPlannedDate` and `TimesHad`, and
+the recipe list and recipe page carry those three fields. The thresholds and their words live in
+one place on the web side (`MealMemory`): three days is "recent" and said in amber in the picker,
+180 days is "due a turn", and the "Due a turn" strip only appears once the family has had
+something, because a brand-new recipe book is all "never had" and that is not advice. Leftovers is
+an occasion entry titled "Leftovers: X" for the next day in the same meal slot, offered once,
+straight after a recipe is planned, and never for an occasion.
+
+"Today" for these reads is the server's UTC date, which is the one place the calendar's
+browser-zone rule was not followed: the recipe list has no viewer and being a few hours out on
+"last had 3 days ago" costs nothing.
+
+## 2026-09-08 · Memory decision 2 of 3: everything is recorded, and the feed's kinds are a per-device choice
+
+Mitch, 8 Sep 2026, asked for "a default and it be configured". So the API records every kind of
+change and does not filter; the History page shows the kinds this device has chosen, remembered
+in the browser (`IDevicePreferences`, key `history-categories`), and the board's Recently tile
+reads the same choice. The default is chores, meals, recipes, calendar and members, with shopping
+off, because a shopping list is touched more often than anything else in the house and would drown
+the rest. Individual item ticks are never recorded at all; adding an item, clearing the ticked ones
+and unticking a list are.
+
+Per-device rather than per-household for the same reason the board's "Just me" switch is: the
+kitchen tablet and a phone want different feeds, and neither choice is the household's business.
+
+## 2026-09-08 · Memory decision 1 of 3: the feed is a page and a tile, and history is never erased
+
+Mitch, 8 Sep 2026: a `/history` page with the full feed and a short "Recently" tile on the board.
+Chores and recipes also show their own history on their pages. All of it reads `home.Audit`, which
+until today was written by fourteen interactors and read by nothing.
+
+Three changes to the audit row made that possible:
+
+- **It says whose it is.** `Audit.Household` is a cascading link set at write time from the
+  session (or from the member, during first-run registration when nobody is signed in). The feed
+  scopes by it rather than by walking to the member, so a removed member's doings stay in the
+  family's history with their name still on the row. Existing rows were backfilled from their
+  member in the migration; rows whose member was already gone stay unowned and unseen.
+- **It says what happened in words.** `Audit.Summary` is plain English in the past tense with the
+  doer left off ("ticked off 'Bins'", "planned Tacos for Wednesday dinner"); the feed puts the name
+  in front. Each `AuditBase` subclass decides the words from what actually changed in the change
+  tracker, so "ticked off" against "renamed" is not guessed, and an interactor that knows better
+  passes its own ("imported the recipe 'X'", "skipped 'Swimming' on Thu 10 Sep"). Rows written
+  before today have no summary and get a bland one from the technical record.
+- **Deleting a thing writes a row instead of erasing its rows.** The old logics deleted an entity's
+  audits when the entity went, which contradicted the June entry that says history outlives what
+  it describes. `DeleteAudit` now writes "removed the chore 'Bins'" and keeps the rest.
+
+Four kinds gained history that had none: meal plan entries, recipes, calendar events and calendar
+subscriptions (add and remove only; a feed refresh is the house talking to itself). Test slices
+that do not care get a no-op audit logic from `TestServiceFactory`; the ones that do register the
+real logic, which is how the words themselves are pinned.
+
 ## 2026-09-08 · Identity decision 3 of 3: being yourself changes attribution and the lens, not what you may do
 
 Mitch, 8 Sep 2026: identity is attribution and a personal view, nothing more. Roles and permissions

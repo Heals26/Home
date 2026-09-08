@@ -1,0 +1,53 @@
+﻿@page "/history"
+@inject IViewerClock ViewerClock
+@inject IDevicePreferences DevicePreferences
+
+<HomePageTitle Title="History" />
+
+@* Everything the house has recorded, newest first: who ticked what off, what was planned, what
+   changed on the calendar. The chips choose which kinds show and the choice is this device's own,
+   because the kitchen tablet and a phone want different feeds. *@
+
+<CascadingValue Value="this.m_CancellationTokenHandler.Token" Name="CancellationToken">
+    <div class="flex flex-col h-full w-full">
+        <HomeTopBar Title="History" Eyebrow="What's been happening" EyebrowClass="text-household" />
+
+        <div class="px-6 pb-3 flex flex-wrap items-center gap-2" role="group" aria-label="Which kinds of things to show">
+            @foreach (var _Category in Enum.GetValues<HistoryCategory>())
+            {
+                <HomeChip Selected="this.m_Categories.Contains(_Category)"
+                          aria-pressed="@(this.m_Categories.Contains(_Category) ? "true" : "false")"
+                          OnClick="() => this.ToggleCategoryAsync(_Category)">@HistoryFormat.CategoryLabel(_Category)</HomeChip>
+            }
+        </div>
+
+        <div class="flex-1 px-6 pb-6 app-scrollable">
+            <div class="max-w-3xl mx-auto">
+                @if (this.m_Entries == null)
+                {
+                    <HomeLoader Class="py-16" />
+                }
+                else if (this.m_Categories.Count == 0)
+                {
+                    <HomeEmptyState Title="Nothing to show" Subtitle="Pick at least one kind of thing above." />
+                }
+                else
+                {
+                    <HistoryList Entries="this.m_Entries"
+                                 Today="this.m_Today"
+                                 Now="this.m_Now"
+                                 EmptyText="Nothing has happened yet. It will show up here as the family uses Home." />
+
+                    @if (this.m_HasMore)
+                    {
+                        <div class="mt-4 flex justify-center">
+                            <HomeButton Variant="secondary" Loading="this.m_LoadingMore" OnClick="this.LoadMoreAsync">Show earlier</HomeButton>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</CascadingValue>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />

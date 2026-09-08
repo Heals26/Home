@@ -1,4 +1,6 @@
 ﻿using CleanArchitecture.Mediator;
+using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 using Microsoft.Extensions.Time.Testing;
 
 namespace Home.Application.Tests.Infrastructure;
@@ -57,8 +59,22 @@ public class TestServiceFactory
         return this;
     }
 
+    /// <summary>
+    /// History is a cross-cutting concern most slice tests do not care about, so an
+    /// <see cref="IAuditLogic{TEntity}"/> nobody registered resolves to one that writes nothing.
+    /// A test that wants the history checked registers the real logic or a mock.
+    /// </summary>
     public ServiceFactory Build()
-        => type => this.m_Services.TryGetValue(type, out var _Service) ? _Service : null!;
+        => type =>
+        {
+            if (this.m_Services.TryGetValue(type, out var _Service))
+                return _Service;
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IAuditLogic<>))
+                return Activator.CreateInstance(typeof(NullAuditLogic<>).MakeGenericType(type.GetGenericArguments()))!;
+
+            return null!;
+        };
 
     #endregion Methods
 

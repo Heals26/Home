@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -40,12 +40,13 @@ internal class DeleteTickedShoppingListItemsInteractor : IInteractor<DeleteTicke
 
         if (_ShoppingList != null)
         {
-            _ShoppingList.Items
+            var _Ticked = _ShoppingList.Items
                 .Where(sli => sli.InBasket)
-                .ToList()
-                .ForEach(_PersistenceContext.Remove);
+                .ToList();
 
-            _AuditLogic.UpdateAudit(_ShoppingList);
+            _Ticked.ForEach(_PersistenceContext.Remove);
+
+            _AuditLogic.UpdateAudit(_ShoppingList, $"cleared {_Ticked.Count} ticked {(_Ticked.Count == 1 ? "item" : "items")} off '{_ShoppingList.Name}'");
 
             _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
         }

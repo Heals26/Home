@@ -52,8 +52,28 @@ public class AuditConfiguration : IEntityTypeConfiguration<Audit>
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
+        _ = entity.Ignore(e => e.Subject);
+
+        _ = entity.Property(e => e.Summary)
+            .IsRequired(false)
+            .HasMaxLength(250);
+
+        // The feed is a household's history, so every row says whose it is. Cascade: a household
+        // that goes takes its history with it, which is the one deletion history should not survive.
+        _ = entity.Property<long?>("HouseholdID");
+        _ = entity.HasOne(e => e.Household)
+            .WithMany()
+            .HasConstraintName("FK_Audit_Household")
+            .HasForeignKey("HouseholdID")
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired(false);
+
         _ = entity.HasIndex(e => new { e.Entity, e.EntityID })
             .HasDatabaseName("IX_Audit_Entity_EntityID");
+
+        // The feed reads newest first within a household.
+        _ = entity.HasIndex("HouseholdID", nameof(Audit.AuditID))
+            .HasDatabaseName("IX_Audit_HouseholdID_AuditID");
     }
 
     #endregion Methods

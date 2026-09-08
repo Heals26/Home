@@ -1,0 +1,38 @@
+﻿@inject IViewerClock ViewerClock
+
+@* The feed's rows, shared by the History page, the board's Recently tile and a thing's own history
+   card so the three never drift. Each row is "who did what, when", and links to the thing where it
+   has a page. Compact drops the day headings and the avatar for the board. *@
+
+@if (this.Entries.Count == 0)
+{
+    <p class="text-sm text-ink-500 py-2">@this.EmptyText</p>
+}
+else
+{
+    <div class="@(this.Compact ? "divide-y divide-ink-800/60" : "flex flex-col gap-1")">
+        @foreach (var _Entry in this.Entries)
+        {
+            var _When = this.ViewerClock.ToLocal(_Entry.WhenUTC);
+            var _Day = DateOnly.FromDateTime(_When);
+
+            @if (!this.Compact && this.StartsNewDay(_Entry))
+            {
+                <p class="pt-4 pb-1 text-[11px] font-semibold uppercase tracking-widest text-ink-500 first:pt-0">@HistoryFormat.DayHeading(_Day, this.Today)</p>
+            }
+
+            <a href="@HistoryFormat.Href(_Entry)"
+               class="@(this.Compact ? "flex items-center gap-3 py-2 min-w-0" : "flex items-center gap-3 rounded-xl px-3 py-2.5 min-h-[48px] hover:bg-ink-800/60 min-w-0")">
+                @if (!this.Compact)
+                {
+                    <span class="h-9 w-9 shrink-0 rounded-full bg-ink-800 text-ink-300 text-xs font-semibold flex items-center justify-center">@HistoryFormat.Initials(_Entry.Who)</span>
+                }
+                <span class="h-2 w-2 shrink-0 rounded-full @CategoryDot(_Entry.Category)"></span>
+                <p class="min-w-0 flex-1 text-sm text-ink-300 truncate">
+                    <span class="font-medium text-ink-50">@_Entry.Who</span> @_Entry.Summary
+                </p>
+                <span class="shrink-0 text-xs text-ink-500 tabular-nums">@HistoryFormat.When(_When, this.Now)</span>
+            </a>
+        }
+    </div>
+}

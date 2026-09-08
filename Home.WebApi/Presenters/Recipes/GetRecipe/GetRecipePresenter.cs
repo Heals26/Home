@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Home.Application.UseCases.Recipes.GetRecipe;
+using Home.Application.UseCases.Recipes.Models;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
 using Home.WebApi.UseCases.Recipes.GetRecipe;
@@ -13,10 +14,13 @@ public class GetRecipePresenter(IMapper mapper)
 
     #region Methods
 
-    Task IGetRecipeOutputPort.PresentRecipeAsync(Recipe recipe, CancellationToken cancellationToken)
+    Task IGetRecipeOutputPort.PresentRecipeAsync(Recipe recipe, RecipeMealHistory history, CancellationToken cancellationToken)
         => this.OkAsync(new GetRecipeApiResponse()
         {
             RecipeID = recipe.RecipeID,
+            LastHadDate = history.LastHadDate,
+            NextPlannedDate = history.NextPlannedDate,
+            TimesHad = history.TimesHad,
             Complexity = recipe.Complexity,
             CookMinutes = recipe.CookMinutes,
             ImageUrl = recipe.ImageUrl,

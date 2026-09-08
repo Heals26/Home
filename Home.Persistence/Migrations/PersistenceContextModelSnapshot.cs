@@ -276,8 +276,15 @@ namespace Home.Persistence.Migrations
                     b.Property<long>("EntityID")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("HouseholdID")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("ModifiedDateUTC")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<long?>("UserID")
                         .HasColumnType("bigint");
@@ -292,6 +299,9 @@ namespace Home.Persistence.Migrations
 
                     b.HasIndex("Entity", "EntityID")
                         .HasDatabaseName("IX_Audit_Entity_EntityID");
+
+                    b.HasIndex("HouseholdID", "AuditID")
+                        .HasDatabaseName("IX_Audit_HouseholdID_AuditID");
 
                     b.ToTable("Audit", "home");
                 });
@@ -1392,11 +1402,19 @@ namespace Home.Persistence.Migrations
 
             modelBuilder.Entity("Home.Domain.Entities.Audit", b =>
                 {
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_Audit_Household");
+
                     b.HasOne("Home.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Audit_User");
+
+                    b.Navigation("Household");
 
                     b.Navigation("User");
                 });

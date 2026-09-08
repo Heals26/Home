@@ -53,6 +53,14 @@
                                                 PrepMinutes="this.m_Recipe.PrepMinutes"
                                                 Servings="this.m_Recipe.Servings" />
 
+                            @* What the planner remembers. *@
+                            <p class="flex items-center gap-2 text-sm text-ink-400">
+                                <HomeIcon Name="clock" Size="sm" />
+                                <span>
+                                    @MealMemory.Describe(this.m_Recipe.LastHadDate, this.Today())@(this.m_Recipe.TimesHad > 0 ? $" · {this.m_Recipe.TimesHad} {(this.m_Recipe.TimesHad == 1 ? "time" : "times")}" : "")@(this.m_Recipe.NextPlannedDate is { } _Next ? $" · Next {_Next:ddd d MMM}" : "")
+                                </span>
+                            </p>
+
                             @if (this.m_Recipe.MealSlots.Any())
                             {
                                 <div class="flex flex-wrap gap-1.5">
@@ -227,6 +235,8 @@
                             }
                         </ChildContent>
                     </HomeCard>
+
+                    <EntityHistoryCard ResourceTypeValue="3" EntityID="this.RecipeID" Version="this.m_HistoryVersion" />
 
                 </div>
             }

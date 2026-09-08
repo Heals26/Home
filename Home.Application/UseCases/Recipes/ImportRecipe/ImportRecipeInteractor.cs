@@ -3,6 +3,7 @@ using Home.Application.Services.Persistence;
 using Home.Application.Services.RecipeImports;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.Recipes.ImportRecipe;
 
@@ -20,6 +21,7 @@ internal class ImportRecipeInteractor : IInteractor<ImportRecipeInputPort, IImpo
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _RecipeImportService = serviceFactory.GetService<IRecipeImportService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<Recipe>>();
 
         var _Imported = await _RecipeImportService.FetchRecipeAsync(inputPort.Url, cancellationToken);
 
@@ -62,6 +64,7 @@ internal class ImportRecipeInteractor : IInteractor<ImportRecipeInputPort, IImpo
             });
 
         _PersistenceContext.Add(_Recipe);
+        _AuditLogic.AddAudit(_Recipe, $"imported the recipe '{_Recipe.Name}'");
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
         await outputPort.PresentRecipeImportedAsync(_Recipe.RecipeID, cancellationToken);

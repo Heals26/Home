@@ -29,6 +29,7 @@ name them still make sense.*
 | **Phase 5** *(7 Sep 2026)* | Six new components and the whole app moved onto them: 72 raw buttons down to 2, 118 icon spans, 18 selects, 13 inputs and 5 textareas all down to 0. |
 | **Phase 6** *(8 Sep 2026)* | The shared calendar: six decisions recorded, `CalendarEvent` with simple repeats and skips, read-only iCalendar subscriptions, month, week and list views, and the dashboard rebuilt on one calendar read. |
 | **Phase 7** *(8 Sep 2026)* | Identity decided as no switching on shared devices; members without a login; who ticked a chore off recorded and shown; a per-device "Just me" switch on the board and member chips on the calendar. |
+| **Phase 8** *(8 Sep 2026)* | History in words: every change recorded with a household and a summary, a `/history` page and a Recently tile, per-thing history on chores and recipes, and a planner that remembers what was last had. |
 
 ---
 
@@ -411,7 +412,7 @@ clash with themselves.
 by first name, and per-person chore lists beyond the "mine" filter the board already had. Phase 8's
 audit trail now has a real "who" to show.
 
-## Phase 8 · The app remembers, M *(was B2, B6)*
+## Phase 8 · The app remembers, M *(was B2, B6)* **DONE 8 Sep 2026**
 
 Two features that surface data already being captured and stored.
 
@@ -422,6 +423,25 @@ Two features that surface data already being captured and stored.
 - **Leftovers and meal history.** The meal plan knows what was cooked and when. Nothing surfaces
   "you had this three days ago", "cook once eat twice", or "you haven't made this in six months".
   Turns the planner from a schedule into something that gives advice.
+
+### What shipped, 8 Sep 2026
+
+Three decisions in `DECISIONS.md` (all 8 Sep 2026) and then the build:
+
+- **The audit row grew up.** `Household` and `Summary` on `home.Audit`, backfilled; every
+  `AuditBase` subclass puts what happened into words from the change tracker; deleting a thing
+  writes "removed …" instead of erasing its rows; meal plan entries, recipes, calendar events and
+  subscriptions are recorded for the first time. Migration `AuditHouseholdAndSummary`.
+- **Reading it.** `GetHistory` (paged, newest first, narrowed by category) and `GetEntityHistory`;
+  a `/history` page with per-device category chips and "Show earlier"; a Recently tile on the
+  board that reloads on any household change; a History card on the chore page and the recipe page.
+- **The planner remembers.** `LastHadDate`, `NextPlannedDate` and `TimesHad` on every recipe, read
+  off the meal plan; the picker says "Had 3 days ago" in amber when recent, offers a "Due a turn"
+  strip, and makes a one-tap leftovers offer after a recipe is planned; the recipe page says when it
+  was last had and when it is next.
+
+**Left for later, on purpose:** a per-household (rather than per-device) default for the feed's
+kinds, undo from the feed, and recording individual shopping ticks, which would drown everything.
 
 ## Phase 9 · The shop gets smarter, M *(was B4, B5)*
 

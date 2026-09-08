@@ -110,7 +110,7 @@ public class CreateShoppingListItemInteractorTests : InteractorTest
 
         await this.HandleAsync(120, "Milk");
 
-        this.m_AuditLogic.Verify(a => a.UpdateAudit(It.IsAny<ShoppingList>()), Times.Once);
+        this.m_AuditLogic.Verify(a => a.UpdateAudit(It.IsAny<ShoppingList>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]

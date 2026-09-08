@@ -164,8 +164,18 @@ public partial class RecipeDetailPage : IDisposable
 
     // Loading
 
+    /// <summary>
+    /// Bumped whenever the recipe reloads, so its history card reads again too.
+    /// </summary>
+    private int m_HistoryVersion;
+
+    private DateOnly Today()
+        => DateOnly.FromDateTime(this.TimeProvider.GetLocalNow().Date);
+
     private async Task LoadRecipeAsync()
     {
+        this.m_HistoryVersion++;
+
         this.m_Recipe = await this.ApiAccess.SendRequestAsync<object, GetRecipeWebAppResponse>(
             null!, ApiProvider.GetRecipe(this.RecipeID),
             e => this.m_ErrorHandler?.AddError(e),

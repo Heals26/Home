@@ -45,7 +45,7 @@ internal class CreateShoppingListItemInteractor : IInteractor<CreateShoppingList
         var _ShoppingListItem = _ShoppingListLogic.AddItem(inputPort);
         _ShoppingList.Items.Add(_ShoppingListItem);
 
-        _AuditLogic.UpdateAudit(_ShoppingList);
+        _AuditLogic.UpdateAudit(_ShoppingList, $"added '{_ShoppingListItem.Name}' to '{_ShoppingList.Name}'");
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

@@ -2,6 +2,7 @@
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.Recipes.CreateRecipe;
 
@@ -18,6 +19,7 @@ internal class CreateRecipeInteractor : IInteractor<CreateRecipeInputPort, ICrea
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<Recipe>>();
 
         var _Recipe = new Recipe()
         {
@@ -36,6 +38,7 @@ internal class CreateRecipeInteractor : IInteractor<CreateRecipeInputPort, ICrea
         };
 
         _PersistenceContext.Add(_Recipe);
+        _AuditLogic.AddAudit(_Recipe);
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
         await outputPort.PresentRecipeCreatedAsync(_Recipe.RecipeID, cancellationToken);

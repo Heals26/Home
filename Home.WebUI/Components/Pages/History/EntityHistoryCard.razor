@@ -1,0 +1,22 @@
+﻿@inject IViewerClock ViewerClock
+
+@* One thing's own history, on its page: what changed, who did it and when. Reads the same rows as
+   the feed. *@
+
+<HomeCard Title="History">
+    <ChildContent>
+        @if (this.m_Entries == null)
+        {
+            <HomeLoader Class="py-4" />
+        }
+        else
+        {
+            <div class="-mx-3">
+                <HistoryList Entries="this.m_Entries"
+                             Today="this.m_Today"
+                             Now="this.m_Now"
+                             EmptyText="Nothing recorded yet." />
+            </div>
+        }
+    </ChildContent>
+</HomeCard>

@@ -1,0 +1,31 @@
+﻿@inject IViewerClock ViewerClock
+@inject IDevicePreferences DevicePreferences
+
+@* The last few things the family did, for a glance. Reads the same kinds the History page is set
+   to on this device, and the heading is the link to the rest. *@
+
+<div class="rail:col-span-2 board:col-span-1 bg-ink-900 border border-ink-800 rounded-2xl p-5 board:p-4">
+    <a href="/history" class="group flex items-center justify-between mb-2 min-h-[36px]">
+        <span class="flex items-center gap-2 text-household">
+            <HomeIcon Name="clock" Size="lg" />
+            <span class="text-xs font-semibold uppercase tracking-widest">Recently</span>
+        </span>
+        <HomeIcon Name="chevron-right" Class="text-ink-600 group-hover:text-ink-400" />
+    </a>
+
+    @if (this.m_Entries == null)
+    {
+        <div class="space-y-3 py-1 animate-pulse">
+            <div class="h-4 rounded bg-ink-800"></div>
+            <div class="h-4 rounded bg-ink-800 w-3/4"></div>
+        </div>
+    }
+    else
+    {
+        <HistoryList Entries="this.m_Entries"
+                     Compact
+                     Today="this.m_Today"
+                     Now="this.m_Now"
+                     EmptyText="Nothing yet. What the family does shows up here." />
+    }
+</div>

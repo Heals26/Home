@@ -3,6 +3,7 @@ using Home.Application.Infrastructure.Calendar;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.Calendar.UpdateCalendarEvent;
 
@@ -20,6 +21,7 @@ internal class UpdateCalendarEventInteractor
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<CalendarEvent>>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -53,6 +55,7 @@ internal class UpdateCalendarEventInteractor
             var _Removed = CalendarEventWriter.Apply(_Event, inputPort, _Members);
 
             _PersistenceContext.RemoveRange(_Removed);
+            _AuditLogic.UpdateAudit(_Event);
             _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
             await outputPort.PresentCalendarEventNoContentAsync(cancellationToken);

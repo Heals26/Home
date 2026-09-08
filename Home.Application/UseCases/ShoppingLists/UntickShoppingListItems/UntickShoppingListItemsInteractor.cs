@@ -1,4 +1,4 @@
-using CleanArchitecture.Mediator;
+﻿using CleanArchitecture.Mediator;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -44,7 +44,7 @@ internal class UntickShoppingListItemsInteractor : IInteractor<UntickShoppingLis
                 .ToList()
                 .ForEach(sli => sli.InBasket = false);
 
-            _AuditLogic.UpdateAudit(_ShoppingList);
+            _AuditLogic.UpdateAudit(_ShoppingList, $"unticked everything on '{_ShoppingList.Name}'");
 
             _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
         }

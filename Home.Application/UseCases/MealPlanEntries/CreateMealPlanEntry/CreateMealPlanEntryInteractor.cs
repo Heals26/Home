@@ -2,6 +2,7 @@
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.MealPlanEntries.CreateMealPlanEntry;
 
@@ -19,6 +20,7 @@ internal class CreateMealPlanEntryInteractor
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<MealPlanEntry>>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -75,6 +77,7 @@ internal class CreateMealPlanEntryInteractor
         };
 
         _PersistenceContext.Add(_Entry);
+        _AuditLogic.AddAudit(_Entry);
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
         await outputPort.PresentMealPlanEntryCreatedAsync(_Entry.MealPlanEntryID, cancellationToken);

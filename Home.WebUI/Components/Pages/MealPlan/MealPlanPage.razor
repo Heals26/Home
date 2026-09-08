@@ -47,6 +47,19 @@
             }
         </div>
 
+        @* Cook once, eat twice: offered once, right after a recipe is planned. *@
+        @if (this.m_LeftoverOffer is { } _Offer)
+        {
+            <div class="mx-6 mb-3 flex flex-wrap items-center gap-3 rounded-xl border border-recipes/40 bg-recipes/10 px-4 py-3">
+                <HomeIcon Name="utensils" Class="shrink-0 text-recipes" />
+                <p class="min-w-0 flex-1 text-sm text-ink-100">
+                    Leftovers of <span class="font-medium">@_Offer.RecipeName</span> for @_Offer.Date.ToString("dddd")@(string.IsNullOrEmpty(_Offer.MealSlotName) ? "" : $" {_Offer.MealSlotName.ToLowerInvariant()}")?
+                </p>
+                <HomeButton Size="sm" Loading="this.m_Planning" OnClick="this.PlanLeftoversAsync">Plan it</HomeButton>
+                <HomeButton Size="sm" Variant="ghost" OnClick="() => this.m_LeftoverOffer = null">No thanks</HomeButton>
+            </div>
+        }
+
         <div class="flex-1 px-6 pb-6 app-scrollable">
             @if (this.m_Entries == null)
             {
@@ -190,6 +203,22 @@
                            Placeholder="Search, or type something new"
                            @bind-Value="this.m_PickerSearch" />
 
+            @* Recipes the family has not had for months, before the whole book. *@
+            @if (this.m_PickerSearch.Trim().Length == 0 && this.DueATurn().Any())
+            {
+                <div class="mb-3">
+                    <p class="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-ink-500">Due a turn</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (var _Recipe in this.DueATurn())
+                        {
+                            <HomeChip Disabled="this.m_Planning" OnClick="() => this.PlanRecipeAsync(_Recipe.RecipeID)">
+                                @_Recipe.Name <span class="ml-1.5 text-ink-500">@MealMemory.Describe(_Recipe.LastHadDate, this.Today())</span>
+                            </HomeChip>
+                        }
+                    </div>
+                </div>
+            }
+
             @if (_Candidates.Count > 0)
             {
                 <div class="max-h-72 app-scrollable divide-y divide-ink-800 border border-ink-800 rounded-lg overflow-hidden">
@@ -204,10 +233,10 @@
                                     <span class="shrink-0 rounded-full bg-recipes/10 px-2 py-0.5 text-xs text-recipes">@this.PickedMealName()</span>
                                 }
                             </div>
-                            @if (_Recipe.MealSlots.Any())
-                            {
-                                <p class="text-xs text-ink-500">@(string.Join(" · ", _Recipe.MealSlots.OrderBy(m => m.Sequence).Select(m => m.Name)))</p>
-                            }
+                            @* A recent meal is said in amber, so planning it again is a choice rather than a slip. *@
+                            <p class="text-xs @(MealMemory.IsRecent(_Recipe.LastHadDate, this.Today()) ? "text-lights" : "text-ink-500")">
+                                @MealMemory.Describe(_Recipe.LastHadDate, this.Today())@(_Recipe.MealSlots.Any() ? " · " + string.Join(" · ", _Recipe.MealSlots.OrderBy(m => m.Sequence).Select(m => m.Name)) : "")
+                            </p>
                         </HomeListRow>
                     }
                 </div>

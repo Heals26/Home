@@ -18,6 +18,7 @@ using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
+using Home.WebUI.Infrastructure.Recipes;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using System.Globalization;
 
@@ -53,6 +54,9 @@ public partial class MealPlanPage : IDisposable
     private long? m_PickerMealSlotID;
     private string m_PickerSearch = string.Empty;
     private bool m_Planning;
+
+    // The offer made once a recipe is planned
+    private LeftoverOffer? m_LeftoverOffer;
 
     // Add-to-list modal
     private bool m_ShowAddToList;
@@ -283,6 +287,44 @@ public partial class MealPlanPage : IDisposable
             return;
 
         this.m_ShowPicker = false;
+
+        // Cook once, eat twice: a real recipe earns the offer, an occasion does not. A recipe made on
+        // the spot has just emptied the cached book, so its name is what was typed.
+        var _RecipeName = recipeID == null
+            ? null
+            : this.m_Recipes?.FirstOrDefault(r => r.RecipeID == recipeID)?.Name ?? this.m_PickerSearch.Trim();
+
+        this.m_LeftoverOffer = string.IsNullOrEmpty(_RecipeName)
+            ? null
+            : new LeftoverOffer(_RecipeName, this.m_PickerDate.AddDays(1), this.m_PickerMealSlotID, this.PickedMealName());
+
+        await this.LoadWeekAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.MealPlan, this.m_CancellationTokenHandler.Token);
+    }
+
+    private async Task PlanLeftoversAsync()
+    {
+        if (this.m_Planning || this.m_LeftoverOffer is not { } _Offer)
+            return;
+
+        this.m_Planning = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<CreateMealPlanEntryWebAppRequest, CreateMealPlanEntryWebAppResponse>(
+            new CreateMealPlanEntryWebAppRequest()
+            {
+                Date = _Offer.Date,
+                MealSlotID = _Offer.MealSlotID,
+                Title = $"Leftovers: {_Offer.RecipeName}"
+            },
+            ApiProvider.CreateMealPlanEntry(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_Planning = false;
+        this.m_LeftoverOffer = null;
+
+        if (_Result == null)
+            return;
 
         await this.LoadWeekAsync();
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.MealPlan, this.m_CancellationTokenHandler.Token);
@@ -547,6 +589,25 @@ public partial class MealPlanPage : IDisposable
 
     private bool IsToday(DateTime day)
         => day == this.TimeProvider.GetLocalNow().Date;
+
+    private DateOnly Today()
+        => DateOnly.FromDateTime(this.TimeProvider.GetLocalNow().Date);
+
+    /// <summary>
+    /// Recipes not had for months, oldest first, then ones never had, but only once the family has
+    /// had something: a brand-new book is all "never had" and that is not advice.
+    /// </summary>
+    private IEnumerable<GetRecipeDto> DueATurn()
+    {
+        var _Recipes = this.m_Recipes ?? [];
+        var _HasHistory = _Recipes.Any(r => r.TimesHad > 0);
+
+        return _Recipes
+            .Where(r => MealMemory.IsDueATurn(r.LastHadDate, this.Today()) || (_HasHistory && r.LastHadDate == null))
+            .OrderBy(r => r.LastHadDate == null ? 1 : 0)
+            .ThenBy(r => r.LastHadDate)
+            .Take(3);
+    }
 
     private string DescribeStartsAt(TimeSpan? startsAt)
         => startsAt == null ? string.Empty : DateTime.MinValue.Add(startsAt.Value).ToString("h:mm tt").ToLowerInvariant();

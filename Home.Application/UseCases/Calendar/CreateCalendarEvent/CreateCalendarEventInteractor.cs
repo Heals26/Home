@@ -3,6 +3,7 @@ using Home.Application.Infrastructure.Calendar;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
+using Home.Domain.Services.Audits;
 
 namespace Home.Application.UseCases.Calendar.CreateCalendarEvent;
 
@@ -20,6 +21,7 @@ internal class CreateCalendarEventInteractor
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<CalendarEvent>>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -37,6 +39,7 @@ internal class CreateCalendarEventInteractor
         _ = CalendarEventWriter.Apply(_Event, inputPort, _Members);
 
         _PersistenceContext.Add(_Event);
+        _AuditLogic.AddAudit(_Event);
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
         await outputPort.PresentCalendarEventCreatedAsync(_Event.CalendarEventID, cancellationToken);
