@@ -1,10 +1,12 @@
 ﻿@* iOS-style toggle switch. Use @bind-Value for two-way binding. *@
 
+@* aria-checked is spelled out rather than bound to the bool: Blazor renders false by dropping the
+   attribute, and a switch with no aria-checked reads as an ordinary button. The comment lives up
+   here because a Razor comment inside a component's tag is sent to the browser as an attribute
+   name, which throws and takes the whole circuit down with it. *@
 <HomeButton Variant="bare"
             Size="none"
             role="switch"
-            @* Spelled out rather than bound to the bool: Blazor renders false by dropping the
-               attribute, and a switch with no aria-checked reads as an ordinary button. *@
             aria-checked="@(this.Value ? "true" : "false")"
             Class="@this.GetClasses()"
             Disabled="this.Disabled"
