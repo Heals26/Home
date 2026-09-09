@@ -125,6 +125,23 @@ public partial class CalendarEventEditor
             this.Form.EndDate = value;
     }
 
+    private void StartTimeChanged(string value)
+    {
+        var _Start = CalendarFormat.ParseTime(value);
+        var _End = CalendarFormat.ParseTime(this.Form.EndTime);
+
+        this.Form.StartTime = value;
+
+        if (_Start == null || (_End != null && _End > _Start))
+            return;
+
+        // An hour later, unless that would land tomorrow, in which case the end of the day. Rolling
+        // over would put the end before the start again, which is the thing being fixed.
+        var _Hour = _Start.Value.AddHours(1, out var _WrappedDays);
+
+        this.Form.EndTime = CalendarFormat.IsoTime(_WrappedDays == 0 ? _Hour : new TimeOnly(23, 59));
+    }
+
     private void ToggleDay(DayOfWeek day)
         => this.Form.DaysOfWeek ^= 1 << (int)day;
 
