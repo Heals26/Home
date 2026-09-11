@@ -1,0 +1,33 @@
+﻿@* Removing takes a second tap, because it leaves everything that was filed under the aisle waiting
+   to be filed again. *@
+
+<div class="flex min-h-[48px] items-center gap-1">
+    @if (this.m_ConfirmingRemove)
+    {
+        <p class="min-w-0 flex-1 truncate pl-3 text-sm text-ink-200">@($"Remove {this.Aisle.Name}?")</p>
+        <HomeButton Size="sm" Variant="ghost" OnClick="() => this.m_ConfirmingRemove = false">Keep</HomeButton>
+        <HomeButton Size="sm" Variant="danger" Loading="this.Busy" OnClick="this.OnRemove">Remove</HomeButton>
+    }
+    else
+    {
+        <HomeReorder Label="@this.Aisle.Name"
+                     CanMoveUp="this.CanMoveUp"
+                     CanMoveDown="this.CanMoveDown"
+                     OnMoveUp="this.OnMoveUp"
+                     OnMoveDown="this.OnMoveDown" />
+        <HomeTextInput Class="min-w-0 flex-1"
+                       AutoComplete="off"
+                       aria-label="@($"Name of the {this.Aisle.Name} aisle")"
+                       Error="@this.Error"
+                       Value="@this.Aisle.Name"
+                       OnChange="this.OnRename" />
+        <HomeButton IconOnly
+                    Size="sm"
+                    Variant="ghost"
+                    Class="text-ink-600 enabled:hover:text-red-400"
+                    aria-label="@($"Remove {this.Aisle.Name}")"
+                    OnClick="() => this.m_ConfirmingRemove = true">
+            <HomeIcon Name="trash" />
+        </HomeButton>
+    }
+</div>

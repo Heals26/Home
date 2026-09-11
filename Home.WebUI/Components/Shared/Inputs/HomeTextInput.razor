@@ -18,13 +18,17 @@
            placeholder="@this.Placeholder"
            disabled="@this.Disabled"
            aria-invalid="@(string.IsNullOrEmpty(this.Error) ? null : "true")"
-           aria-describedby="@(string.IsNullOrEmpty(this.Error) ? null : this.ErrorID)"
+           aria-describedby="@this.GetDescribedBy()"
            @oninput="this.OnInputChanged"
            @onchange="this.OnChanged"
            @onkeydown="this.OnKeyDown"
            @onfocus="this.OnFocus"
            @onblur="this.OnBlur"
            class="@this.GetInputClasses()" />
+    @if (!string.IsNullOrEmpty(this.Hint))
+    {
+        <p id="@this.HintID" class="text-xs text-ink-500">@this.Hint</p>
+    }
     @if (!string.IsNullOrEmpty(this.Error))
     {
         <span id="@this.ErrorID" class="text-xs text-red-400">@this.Error</span>

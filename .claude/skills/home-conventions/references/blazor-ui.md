@@ -241,6 +241,7 @@ paper (sky at `#7dd3fc` is about 1.4:1 on white, so the hues could not simply be
 | Primary button | light-on-dark: `bg-ink-50 text-ink-950` |
 | Pillar hues | `recipes` apricot `#fb923c` · `shopping` sage `#a3b18a` · `week` sky `#7dd3fc` · `lights` amber `#fbbf24` · `household` neutral |
 | Danger | `red-600` (hover `red-500`) |
+| Caution | `caution` rose `#fb7185`, for a price dearer than usual. Not a pillar, so it never marks a place |
 | Display font | Fraunces (`font-display`): page titles, greetings, modal titles |
 | Body font | Inter (`font-sans`) |
 

@@ -28,6 +28,8 @@ public partial class HomeTextInput
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public string? Error { get; set; }
     private string ErrorID => $"{this.m_InputID}-error";
+    [Parameter] public string? Hint { get; set; }
+    private string HintID => $"{this.m_InputID}-hint";
     /// <summary>
     /// The virtual keyboard hint, e.g. "numeric" or "decimal".
     /// </summary>
@@ -66,6 +68,19 @@ public partial class HomeTextInput
 
     private async Task OnChanged(ChangeEventArgs e)
         => await this.OnChange.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+
+    private string? GetDescribedBy()
+    {
+        List<string> _IDs = [];
+
+        if (!string.IsNullOrEmpty(this.Hint))
+            _IDs.Add(this.HintID);
+
+        if (!string.IsNullOrEmpty(this.Error))
+            _IDs.Add(this.ErrorID);
+
+        return _IDs.Count == 0 ? null : string.Join(' ', _IDs);
+    }
 
     private string GetInputClasses()
     {

@@ -3,15 +3,20 @@ using Home.WebUI.Components.Pages.ShoppingList.Enumerations;
 using Home.WebUI.Components.Pages.ShoppingList.Models;
 using Home.WebUI.Components.Shared.Inputs;
 using Home.WebUI.DataAccess.Recipes.Models;
+using Home.WebUI.DataAccess.ShoppingCategories.GetShoppingCategories;
+using Home.WebUI.DataAccess.ShoppingCategories.Models;
 using Home.WebUI.DataAccess.ShoppingListItems.CreateShoppingListItem;
 using Home.WebUI.DataAccess.ShoppingListItems.GetShoppingListItemSuggestions;
+using Home.WebUI.DataAccess.ShoppingListItems.SetShoppingListItemCategory;
 using Home.WebUI.DataAccess.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebUI.DataAccess.ShoppingLists.GetShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.Models;
+using Home.WebUI.DataAccess.ShoppingLists.UpdateShoppingList;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.ApiProviders.Helpers;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.ShoppingLists;
 using Home.WebUI.Infrastructure.ShoppingLists;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -33,6 +38,8 @@ public partial class ShoppingListComponent : IDisposable
     private GetShoppingListWebAppResponse? m_ShoppingList;
     private long? m_LoadedShoppingListID;
     private bool m_LoadingList;
+    private List<ShoppingCategoryDto> m_Aisles = [];
+    private bool m_ShowAisles;
 
     private HomeTextInput? m_QuickAddInput;
     private string m_QuickAddText = string.Empty;
@@ -70,7 +77,18 @@ public partial class ShoppingListComponent : IDisposable
             .Where(u => u.Abbreviation.Length > 0)
             .Select(u => new HomeSelect<long?>.SelectOption(u.Name, u.Value))
     ];
+
+    private static readonly List<HomeSegmentedControl<bool>.SegmentOption> ViewOptions =
+    [
+        new("My order", false),
+        new("By aisle", true)
+    ];
+
     private string m_EditNote = string.Empty;
+    private long? m_EditAisleID;
+    private long? m_EditOriginalAisleID;
+    private string m_EditOriginalName = string.Empty;
+    private string? m_EditUsualHint;
     private bool m_SavingItem;
     private bool m_Reordering;
 
@@ -107,6 +125,7 @@ public partial class ShoppingListComponent : IDisposable
         if (this.Drag != null)
             this.Drag.Changed += this.OnDragChanged;
 
+        await this.LoadAislesAsync();
         await this.LoadSuggestionsAsync();
     }
 
@@ -154,6 +173,7 @@ public partial class ShoppingListComponent : IDisposable
 
         await this.InvokeAsync(async () =>
         {
+            await this.LoadAislesAsync();
             await this.LoadListAsync();
             this.StateHasChanged();
         });
@@ -193,6 +213,55 @@ public partial class ShoppingListComponent : IDisposable
 
         if (_Result != null)
             this.m_Suggestions = [.. _Result.Suggestions];
+    }
+
+    private async Task LoadAislesAsync()
+    {
+        var _Result = await this.ApiAccess.SendRequestAsync<object, GetShoppingCategoriesWebAppResponse>(
+            null!, ApiProvider.GetShoppingCategories(),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+        if (_Result != null)
+            this.m_Aisles = [.. _Result.ShoppingCategories];
+    }
+
+    /// <summary>
+    /// A renamed, moved or removed aisle changes how every list reads, so other phones are told too.
+    /// </summary>
+    private async Task OnAislesChangedAsync()
+    {
+        await this.LoadAislesAsync();
+
+        if (this.ShoppingListID.HasValue)
+            await this.LoadListAsync();
+
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
+    }
+
+    /// <summary>
+    /// Switched on screen straight away and saved behind it, like a tick.
+    /// </summary>
+    private async Task SetGroupByAisleAsync(bool groupByAisle)
+    {
+        if (this.m_ShoppingList == null || !this.ShoppingListID.HasValue || this.m_ShoppingList.GroupByAisle == groupByAisle)
+            return;
+
+        this.m_ShoppingList.GroupByAisle = groupByAisle;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<UpdateShoppingListWebAppRequest, bool>(
+            new UpdateShoppingListWebAppRequest() { GroupByAisle = new(groupByAisle) },
+            ApiProvider.UpdateShoppingList(this.ShoppingListID.Value),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+        if (_Result != true)
+        {
+            await this.LoadListAsync();
+            return;
+        }
+
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
     }
 
     #endregion Methods
@@ -374,7 +443,25 @@ public partial class ShoppingListComponent : IDisposable
         this.m_EditCost = item.Cost?.ToString("0.00") ?? string.Empty;
         this.m_EditUnit = item.Unit;
         this.m_EditNote = item.Note ?? string.Empty;
+        this.m_EditAisleID = item.ShoppingCategoryID;
+        this.m_EditOriginalAisleID = item.ShoppingCategoryID;
+        this.m_EditOriginalName = item.Name;
+        this.m_EditUsualHint = DescribeUsual(item);
         this.m_ShowEditItem = true;
+    }
+
+    /// <summary>
+    /// Said for the amount the line was saved with, because that is the amount usual was worked out
+    /// for.
+    /// </summary>
+    private static string? DescribeUsual(ShoppingListItemDto item)
+    {
+        if (item.UsualCost is not { } _Usual)
+            return null;
+
+        var _Amount = ShoppingListItemLogic.DescribeAmount(item);
+
+        return _Amount.Length == 0 ? $"Usually ${_Usual:F2}" : $"Usually ${_Usual:F2} for {_Amount}";
     }
 
     /// <summary>
@@ -531,6 +618,15 @@ public partial class ShoppingListComponent : IDisposable
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
+        if (_Result == true && this.AisleNeedsFiling(_Name))
+        {
+            _Result = await this.ApiAccess.SendRequestAsync<SetShoppingListItemCategoryWebAppRequest, bool>(
+                new SetShoppingListItemCategoryWebAppRequest() { ShoppingCategoryID = this.m_EditAisleID },
+                ApiProvider.SetShoppingListItemCategory(this.m_EditingItemID.Value),
+                e => this.m_ErrorHandler?.AddError(e),
+                this.CancellationToken);
+        }
+
         this.m_SavingItem = false;
 
         if (_Result != true)
@@ -541,6 +637,14 @@ public partial class ShoppingListComponent : IDisposable
         await this.LoadListAsync();
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
     }
+
+    /// <summary>
+    /// An aisle is filed against the item's name, so a renamed item is filed again under whatever
+    /// the sheet shows, even when the choice itself did not change.
+    /// </summary>
+    private bool AisleNeedsFiling(string name)
+        => this.m_EditAisleID != this.m_EditOriginalAisleID
+            || (this.m_EditAisleID != null && !string.Equals(name, this.m_EditOriginalName, StringComparison.OrdinalIgnoreCase));
 
     private async Task DeleteItemAsync()
     {
@@ -626,15 +730,27 @@ public partial class ShoppingListComponent : IDisposable
     private int ProgressPercent()
         => this.ItemCount() == 0 ? 0 : (int)Math.Round(this.TrolleyCount() * 100d / this.ItemCount());
 
-    /// <summary>
-    /// A cost is what the line costs, not a price per kilo, so multiplying it by an amount would
-    /// turn "$3.50 for 2 kg of potatoes" into seven dollars.
-    /// </summary>
-    private decimal ListTotal()
-        => (this.m_ShoppingList?.Items ?? []).Sum(i => i.Cost ?? 0);
+    private ShoppingListEstimate ListEstimate()
+        => this.AisleLogic.Estimate(this.m_ShoppingList?.Items ?? []);
+
+    private static string DescribeTotal(ShoppingListEstimate estimate)
+        => estimate.IncludesGuesses ? $"About ${estimate.Total:F2}" : $"${estimate.Total:F2}";
 
     private decimal TrolleyTotal()
         => (this.m_ShoppingList?.Items ?? []).Where(i => i.InBasket).Sum(i => i.Cost ?? 0);
+
+    private bool IsGroupedByAisle()
+        => this.m_ShoppingList?.GroupByAisle == true;
+
+    private List<HomeSelect<long?>.SelectOption> AisleOptions()
+        => [new("No aisle", null), .. this.m_Aisles.Select(a => new HomeSelect<long?>.SelectOption(a.Name, a.ShoppingCategoryID))];
+
+    /// <summary>
+    /// Headings and rows share a parent and an aisle's ID can equal an item's, so a heading is keyed
+    /// by a string that no row's number can match.
+    /// </summary>
+    private static string AisleKey(ShoppingAisleGroup group)
+        => $"aisle-{group.Aisle?.ShoppingCategoryID}";
 
     #endregion Reading Methods
 

@@ -51,6 +51,8 @@ module.exports = {
         calendar: { DEFAULT: 'rgb(var(--calendar) / <alpha-value>)',  dim: 'rgb(var(--calendar-dim) / <alpha-value>)' },  // lavender
         lights:   { DEFAULT: 'rgb(var(--lights) / <alpha-value>)',    dim: 'rgb(var(--lights-dim) / <alpha-value>)' },    // lamplight amber
         household:{ DEFAULT: 'rgb(var(--household) / <alpha-value>)', dim: 'rgb(var(--household-dim) / <alpha-value>)' }, // settings stays neutral
+        // Not a pillar, so it marks a warning and never a place: a price dearer than usual.
+        caution: 'rgb(var(--caution) / <alpha-value>)', // rose
         surface: {
           DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
           raised: 'rgb(var(--surface-raised) / <alpha-value>)',

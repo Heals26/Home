@@ -59,6 +59,8 @@ public partial class ShoppingListItemRow
 
         if (this.Item.Cost is > 0)
             _Parts.Add($"${this.Item.Cost.Value:F2}");
+        else if (this.Item.EstimatedCost is > 0)
+            _Parts.Add($"about ${this.Item.EstimatedCost.Value:F2}");
 
         return string.Join(" · ", _Parts);
     }

@@ -45,7 +45,13 @@
         <span class="block text-sm font-medium truncate @(this.Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@this.Item.Name</span>
         @if (this.Detail().Length > 0)
         {
-            <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">@this.Detail()</span>
+            <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">
+                @this.Detail()
+                @if (this.Item.IsDearerThanUsual && this.Item.UsualCost is { } _Usual)
+                {
+                    <span class="@(this.Item.InBasket ? "" : "text-caution")">· usually $@_Usual.ToString("F2")</span>
+                }
+            </span>
         }
         @* Its own line with an icon rather than another entry on the detail line, because this is
            the thing being read at the shelf and it is prose, not a measurement. Two lines at most

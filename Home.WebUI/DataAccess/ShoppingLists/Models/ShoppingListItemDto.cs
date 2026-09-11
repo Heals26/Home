@@ -16,9 +16,19 @@ public class ShoppingListItemDto
     public decimal? Cost { get; set; }
 
     /// <summary>
+    /// For a line with no price, roughly what it will cost, from what the household paid last time.
+    /// </summary>
+    public decimal? EstimatedCost { get; set; }
+
+    /// <summary>
     /// Whether the item has been placed in the basket.
     /// </summary>
     public bool InBasket { get; set; }
+
+    /// <summary>
+    /// The line's price is more than a tenth over what it usually costs.
+    /// </summary>
+    public bool IsDearerThanUsual { get; set; }
 
     /// <summary>
     /// The name of the item.
@@ -37,6 +47,11 @@ public class ShoppingListItemDto
     public long Sequence { get; set; }
 
     /// <summary>
+    /// The aisle the item is filed under, the same on every list. Null until someone picks one.
+    /// </summary>
+    public long? ShoppingCategoryID { get; set; }
+
+    /// <summary>
     /// The ID of the shopping list item.
     /// </summary>
     public long ShoppingListItemID { get; set; }
@@ -51,6 +66,10 @@ public class ShoppingListItemDto
     /// </summary>
     public string UnitAbbreviation { get; set; } = string.Empty;
 
+    /// <summary>
+    /// What the line usually costs at this amount, worked out per unit from past purchases.
+    /// </summary>
+    public decimal? UsualCost { get; set; }
 
     #endregion Properties
 

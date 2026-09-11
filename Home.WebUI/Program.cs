@@ -10,6 +10,8 @@ using Home.WebUI.Infrastructure.Security;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
+using Home.WebUI.Infrastructure.Services.ShoppingLists;
+using Home.WebUI.Infrastructure.ShoppingLists;
 using Home.WebUI.Infrastructure.UriProvider;
 using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -29,10 +31,10 @@ _Builder.Services.AddAuthentication(options =>
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         // This cookie *is* the session. It arrives with the request that starts the circuit, so a
-        // reload knows who you are before a single component renders — nothing is read out of the
+        // reload knows who you are before a single component renders. Nothing is read out of the
         // browser and nothing can fail in a way that looks like being signed out.
         //
-        // SameAsRequest rather than Always is deliberate — the tablet reaches this app over the
+        // SameAsRequest rather than Always is deliberate: the tablet reaches this app over the
         // LAN, and a cookie the browser silently drops on plain HTTP would be worse than useless.
         options.LoginPath = AuthorisationUriProvider.GetLoginUri();
         options.Cookie.Name = "Home.Session";
@@ -99,6 +101,9 @@ _Builder.Services.AddScoped<IViewerClock, ViewerClock>();
 // Per-device choices kept in the browser (the board's "just me" switch), never shared.
 _Builder.Services.AddScoped<IDevicePreferences, DevicePreferences>();
 
+// Sums over what a page already holds, with nothing kept between calls.
+_Builder.Services.AddSingleton<IShoppingAisleLogic, ShoppingAisleLogic>();
+
 // Live cross-device updates: the broker is the process-wide fan-out between circuits, and
 // each circuit talks to it through a broadcaster that pins the caller's own household.
 _Builder.Services.AddSingleton<IChangeBroker, ChangeBroker>();
@@ -109,7 +114,7 @@ _Builder.Services.AddSingleton<ILoginThrottle, LoginThrottle>();
 
 // A tunnel or reverse proxy terminates TLS at its edge and hands this app plain HTTP, so
 // without these headers UseHttpsRedirection would bounce a phone to the machine's own
-// localhost address. Both lists are cleared because the proxy is not on a known network —
+// localhost address. Both lists are cleared because the proxy is not on a known network,
 // which does mean these headers are trusted from any caller, so the app must only ever be
 // reachable through the proxy, never directly from the internet.
 _ = _Builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -129,7 +134,7 @@ if (!_App.Environment.IsDevelopment())
     _ = _App.UseHsts();
 }
 
-// Before anything that reads the scheme or the caller's address — chiefly the redirect below.
+// Before anything that reads the scheme or the caller's address, chiefly the redirect below.
 _App.UseForwardedHeaders();
 
 _App.UseStaticFiles();

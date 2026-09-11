@@ -1,0 +1,4 @@
+﻿<div class="flex items-center gap-2 px-5 pb-2 pt-4">
+    <span aria-hidden="true" class="h-3 w-0.5 shrink-0 rounded-full @(this.Aisle == null ? "bg-ink-700" : "bg-shopping")"></span>
+    <h3 class="min-w-0 truncate text-xs font-semibold uppercase tracking-widest @(this.Aisle == null ? "text-ink-500" : "text-ink-300")">@(this.Aisle?.Name ?? "No aisle yet")</h3>
+</div>

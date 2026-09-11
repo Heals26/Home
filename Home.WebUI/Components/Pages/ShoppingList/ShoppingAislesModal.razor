@@ -1,0 +1,46 @@
+﻿@inject IShoppingAisleLogic AisleLogic
+
+<HomeModal Visible="this.Visible" VisibleChanged="this.VisibleChanged" Title="Aisles" OnSubmit="this.CreateAisleAsync" AutoFocus="false">
+    <ChildContent>
+        <p class="text-sm text-ink-400 mb-3">Put these in the order you walk your shop. Lists set to By aisle follow it.</p>
+
+        @if (this.m_Aisles.Count > 0)
+        {
+            <div class="flex flex-col gap-2">
+                @foreach (var _Aisle in this.m_Aisles)
+                {
+                    <ShoppingAisleRow @key="_Aisle.ShoppingCategoryID"
+                                      Aisle="_Aisle"
+                                      Busy="this.m_Saving"
+                                      CanMoveUp="@(!this.m_Saving && this.m_Aisles.IndexOf(_Aisle) > 0)"
+                                      CanMoveDown="@(!this.m_Saving && this.m_Aisles.IndexOf(_Aisle) < this.m_Aisles.Count - 1)"
+                                      Error="@(this.m_RenameErrorAisleID == _Aisle.ShoppingCategoryID ? this.m_RenameError : null)"
+                                      OnMoveUp="() => this.MoveAisleAsync(_Aisle, -1)"
+                                      OnMoveDown="() => this.MoveAisleAsync(_Aisle, 1)"
+                                      OnRename="name => this.RenameAisleAsync(_Aisle, name)"
+                                      OnRemove="() => this.RemoveAisleAsync(_Aisle)" />
+                }
+            </div>
+        }
+        else if (!this.m_Loading)
+        {
+            <p class="text-sm text-ink-500">No aisles yet. Add the first one below.</p>
+        }
+
+        <div class="mt-4 pt-4 border-t border-ink-800">
+            <HomeTextInput Label="New aisle"
+                           AutoComplete="off"
+                           Error="@this.m_NewAisleError"
+                           @bind-Value="this.m_NewAisleName"
+                           Placeholder="e.g. Deli" />
+            <div class="mt-3 flex justify-end">
+                <HomeButton Loading="this.m_Saving"
+                            Disabled="@string.IsNullOrWhiteSpace(this.m_NewAisleName)"
+                            DisabledReason="Give the aisle a name first."
+                            OnClick="this.CreateAisleAsync">Add aisle</HomeButton>
+            </div>
+        </div>
+    </ChildContent>
+</HomeModal>
+
+<ErrorHandler @ref="this.m_ErrorHandler" />

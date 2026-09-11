@@ -1,5 +1,7 @@
 @using Home.WebUI.DataAccess.Recipes.Models
 
+@inject IShoppingAisleLogic AisleLogic
+
 @* AllowOverflow because the suggestion list floats under the add box. Clipped to the card, it was
    cut off at the bottom edge, and on a short list there is almost no card for it to open into. *@
 <HomeCard AllowOverflow="true">
@@ -48,6 +50,7 @@
             var _Suggestions = this.m_ShowSuggestions ? this.VisibleSuggestions().ToList() : [];
             var _ToGet = this.ItemsToGet().ToList();
             var _InTrolley = this.ItemsInTrolley().ToList();
+            var _Estimate = this.ListEstimate();
 
             @* Always on screen rather than behind a button, because adding is the thing this page is
                asked to do most, and a modal per item is a modal too many. *@
@@ -115,7 +118,46 @@
 
                 @if (_ToGet.Count > 0)
                 {
-                    <div class="divide-y divide-ink-800 -mx-5 mt-4">
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+                        <HomeSegmentedControl TValue="bool"
+                                              Options="ViewOptions"
+                                              Value="this.IsGroupedByAisle()"
+                                              ValueChanged="this.SetGroupByAisleAsync" />
+                        @if (this.IsGroupedByAisle())
+                        {
+                            <HomeButton Size="sm" Variant="ghost" OnClick="() => this.m_ShowAisles = true">
+                                <HomeIcon Name="cog" Class="mr-1" />
+                                Aisles
+                            </HomeButton>
+                        }
+                    </div>
+                }
+
+                @if (_ToGet.Count > 0 && this.IsGroupedByAisle())
+                {
+                    @* The walking order is set in Aisles, so nothing here reorders. A row can still be
+                       dragged onto another list. *@
+                    <div class="divide-y divide-ink-800 -mx-5 mt-2">
+                        @foreach (var _Group in this.AisleLogic.Group(_ToGet, this.m_Aisles))
+                        {
+                            <ShoppingAisleHeading @key="AisleKey(_Group)" Aisle="_Group.Aisle" />
+                            @foreach (var _Item in _Group.Items)
+                            {
+                                <ShoppingListItemRow @key="_Item.ShoppingListItemID"
+                                                     Item="_Item"
+                                                     Draggable="true"
+                                                     IsBeingDragged="@(this.m_DraggedItem?.ShoppingListItemID == _Item.ShoppingListItemID)"
+                                                     OnDragStart="this.StartDraggingItem"
+                                                     OnDragEnd="this.EndDraggingItem"
+                                                     OnToggle="this.ToggleItemAsync"
+                                                     OnEdit="this.OpenEditItem" />
+                            }
+                        }
+                    </div>
+                }
+                else if (_ToGet.Count > 0)
+                {
+                    <div class="divide-y divide-ink-800 -mx-5 mt-2">
                         @foreach (var _Item in _ToGet)
                         {
                             <ShoppingListItemRow @key="_Item.ShoppingListItemID"
@@ -175,11 +217,17 @@
                     </div>
                 }
 
-                @if (this.ListTotal() > 0)
+                @if (_Estimate.Total > 0)
                 {
-                    <div class="border-t border-ink-800 pt-4 mt-4 flex justify-between items-center -mx-5 px-5 -mb-5 pb-5">
-                        <span class="text-sm text-ink-400">Whole list</span>
-                        <span class="text-base font-semibold text-ink-50">$@this.ListTotal().ToString("F2")</span>
+                    <div class="border-t border-ink-800 pt-4 mt-4 -mx-5 px-5 -mb-5 pb-5">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-ink-400">Whole list</span>
+                            <span class="text-base font-semibold text-ink-50">@DescribeTotal(_Estimate)</span>
+                        </div>
+                        @if (_Estimate.Unpriced > 0)
+                        {
+                            <p class="text-xs text-ink-500 mt-1">@($"Not counting {_Estimate.Unpriced} {(_Estimate.Unpriced == 1 ? "item" : "items")} with no price")</p>
+                        }
                     </div>
                 }
             }
@@ -201,8 +249,15 @@
                        Label="Price for the line ($)"
                        AutoComplete="off"
                        InputMode="decimal"
+                       Hint="@this.m_EditUsualHint"
                        @bind-Value="this.m_EditCost"
                        Placeholder="e.g. 3.50" />
+        <HomeSelect TValue="long?"
+                    Class="mt-3"
+                    Label="Aisle"
+                    Options="this.AisleOptions()"
+                    Hint="Every list puts it here from now on."
+                    @bind-Value="this.m_EditAisleID" />
         <HomeTextArea Class="mt-3"
                       Label="Note"
                       Rows="2"
@@ -237,5 +292,7 @@
         </div>
     </ChildContent>
 </HomeModal>
+
+<ShoppingAislesModal @bind-Visible="this.m_ShowAisles" OnAislesChanged="this.OnAislesChangedAsync" />
 
 <ErrorHandler @ref="this.m_ErrorHandler" />

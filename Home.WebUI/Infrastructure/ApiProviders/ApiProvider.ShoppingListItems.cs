@@ -29,6 +29,9 @@ public static partial class ApiProvider
     public static ApiProviderHelper MoveShoppingListItem(long shoppingListItemID, long shoppingListID)
         => new(HttpMethod.Put, RouteType.Route, $"{GetShoppingListItemBaseUrl(shoppingListItemID)}/List/{shoppingListID}");
 
+    public static ApiProviderHelper SetShoppingListItemCategory(long shoppingListItemID)
+        => new(HttpMethod.Put, RouteType.Body, $"{GetShoppingListItemBaseUrl(shoppingListItemID)}/Category");
+
     public static ApiProviderHelper UpdateShoppingListItem(long shoppingListItemID)
         => new(HttpMethod.Patch, RouteType.Body, GetShoppingListItemBaseUrl(shoppingListItemID));
 

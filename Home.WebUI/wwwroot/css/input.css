@@ -5,7 +5,7 @@
 @layer base {
   /* ─── Theme tokens ───────────────────────────────────────────────────────────
      Space-separated RGB channels, because tailwind.config.js reads them as
-     `rgb(var(--token) / <alpha-value>)` — that form is what keeps opacity
+     `rgb(var(--token) / <alpha-value>)`, and that form is what keeps opacity
      modifiers like bg-week/10 and border-lights/40 working.
 
      Dark is the default and lives on bare :root, so a device with no stored
@@ -47,12 +47,14 @@
     --household: 214 211 209;
     --household-dim: 120 113 108;
 
+    --caution: 251 113 133;
+
     --surface: 28 25 23;
     --surface-raised: 41 37 36;
     --surface-overlay: 12 10 9;
   }
 
-  /* Warm paper, not cold grey — the same stone character read the other way up.
+  /* Warm paper, not cold grey: the same stone character read the other way up.
      The pillar hues are darkened variants, because the dark-theme values (sky
      #7dd3fc is ~1.4:1 on white) are unreadable on paper. */
   :root[data-theme="light"] {
@@ -82,6 +84,8 @@
     --lights-dim: 101 63 0;
     --household: 68 63 58;
     --household-dim: 116 108 100;
+
+    --caution: 190 18 60;
 
     --surface: 255 253 249;
     --surface-raised: 236 230 220;
@@ -118,7 +122,7 @@
     background-color: rgb(var(--ink-700));
     color: rgb(var(--ink-50));
   }
-  /* Nothing here is reachable by tab — a page heading and a modal panel only ever take focus
+  /* Nothing here is reachable by tab. A page heading and a modal panel only ever take focus
      because code put it there, to tell a screen reader what just changed. Drawing a ring around
      something the user did not choose reads as the app highlighting itself. */
   [tabindex="-1"]:focus {
@@ -328,7 +332,7 @@
    Deliberately outside @layer components: the API decides which of these to
    draw and the markup only ever writes `home-icon-@IconName`, so Tailwind's
    scanner never sees the literal class and would tree-shake every one of them
-   out of a layered block. The names match WeatherConditionMap.GetIconName — a
+   out of a layered block. The names match WeatherConditionMap.GetIconName, so a
    new condition there needs a rule here.
 ─────────────────────────────────────────────────────────────────────────────── */
 
