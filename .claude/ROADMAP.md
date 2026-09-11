@@ -443,7 +443,7 @@ Three decisions in `DECISIONS.md` (all 8 Sep 2026) and then the build:
 **Left for later, on purpose:** a per-household (rather than per-device) default for the feed's
 kinds, undo from the feed, and recording individual shopping ticks, which would drown everything.
 
-## Phase 9 · The shop gets smarter, M *(was B4, B5)*
+## Phase 9 · The shop gets smarter, M *(was B4, B5)* **DONE 11 Sep 2026**
 
 Both are shopping-list intelligence over the same data, so they share the groundwork.
 
@@ -455,6 +455,30 @@ Both are shopping-list intelligence over the same data, so they share the ground
 - **Aisle grouping.** `ShoppingListItem.Sequence` is read for display only. Let items carry a
   category (produce, dairy, freezer) learned from history, and group the list by it so a shop is one
   walk through the store instead of a scavenger hunt.
+
+### What shipped, 11 Sep 2026
+
+Four decisions in `DECISIONS.md` (all 11 Sep 2026) and then the build:
+
+- **A memory of the shop.** `ShoppingItemMemory` keeps, per household and per item name (matched
+  without regard to case), the aisle an item goes in and what it has cost, in `ShoppingItemPrice`.
+  It outlives the list lines, which "Clear ticked" deletes. A priced line ticked into the trolley is
+  a purchase; a new price or an untick within twelve hours corrects it; "Untick all" keeps it.
+  Migration `ShoppingAislesAndPriceMemory`, which also gives every existing household the eight
+  starter aisles.
+- **Prices compared per unit.** No per-kilo column after all: purchases that share a unit compare on
+  cost divided by amount (grams with kilograms, millilitres with litres, anything else only with
+  itself). Each line carries what it usually costs at its amount, a flag when its price is more than
+  a tenth over that, and a guess for an unpriced line from the last purchase. The list shows "About
+  $X" for the whole shop and says how many lines it could not price.
+- **Aisles.** The household's own aisles (`ShoppingCategory`), eight to start, renamed, reordered,
+  added and removed in an Aisles editor on the list. An item has no aisle until someone picks one in
+  its edit sheet, and from then on it lands there on every list. Each list has its own "My order /
+  By aisle" switch, and reordering stays with My order.
+
+**Left for later, on purpose:** suggestions still read the last price off list lines rather than
+the memory, nothing shows or edits an item's price history, and a renamed item starts a fresh memory
+rather than carrying its prices across.
 
 ## Phase 10 · Nullable on in the API, L *(was C3)*
 
