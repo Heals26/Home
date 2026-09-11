@@ -7,6 +7,8 @@ public class GetShoppingListApiResponse
 
     #region Properties
 
+    public bool GroupByAisle { get; set; }
+
     /// <summary>
     /// The name of the shopping list
     /// </summary>

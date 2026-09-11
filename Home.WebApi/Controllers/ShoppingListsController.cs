@@ -58,7 +58,7 @@ public class ShoppingListsController : BaseController
     }
 
     /// <summary>
-    /// The body is optional, and absent means the whole recipe — so it is read through a null
+    /// The body is optional, and absent means the whole recipe, so it is read through a null
     /// check rather than assumed to be there.
     /// </summary>
     [HttpPost("{shoppingListID}/Recipes/{recipeID}")]
@@ -179,7 +179,7 @@ public class ShoppingListsController : BaseController
         [FromBody] UpdateShoppingListApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new UpdateShoppingListInputPort(request.IsArchived, request.Name, shoppingListID), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new UpdateShoppingListInputPort(request.GroupByAisle, request.IsArchived, request.Name, shoppingListID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

@@ -67,7 +67,10 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
         return new UpdateShoppingListItemInteractor().HandleAsync(
             new UpdateShoppingListItemInputPort(amount, cost, inBasket, name, note, sequence, shoppingListItemID, unit),
             this.m_Presenter,
-            _Services.With<IShoppingListLogic>(new ShoppingListLogic(_Context)).Build(),
+            _Services
+                .With<IShoppingListLogic>(new ShoppingListLogic(_Context))
+                .With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Context, _Services.Time))
+                .Build(),
             CancellationToken.None);
     }
 

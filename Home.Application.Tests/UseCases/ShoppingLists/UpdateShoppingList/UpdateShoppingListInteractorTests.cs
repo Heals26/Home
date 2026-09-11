@@ -33,12 +33,29 @@ public class UpdateShoppingListInteractorTests : InteractorTest
             ShoppingListID = shoppingListID
         };
 
-    private Task HandleAsync(long shoppingListID, PropertyChangeTracker<bool> isArchived = default, PropertyChangeTracker<string> name = default)
+    private Task HandleAsync(
+        long shoppingListID,
+        PropertyChangeTracker<bool> groupByAisle = default,
+        PropertyChangeTracker<bool> isArchived = default,
+        PropertyChangeTracker<string> name = default)
         => new UpdateShoppingListInteractor().HandleAsync(
-            new UpdateShoppingListInputPort(isArchived, name, shoppingListID),
+            new UpdateShoppingListInputPort(groupByAisle, isArchived, name, shoppingListID),
             this.m_Presenter,
             this.Services().Build(),
             CancellationToken.None);
+
+    [Fact]
+    public async Task HandleAsync_RemembersWhetherTheListIsGroupedByAisle()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, "This week"));
+
+        await this.HandleAsync(120, groupByAisle: new(true));
+
+        var _Stored = this.Stored<ShoppingList>().Single();
+
+        _ = _Stored.GroupByAisle.Should().BeTrue();
+        _ = _Stored.Name.Should().Be("This week", "switching the grouping is not an edit to anything else");
+    }
 
     [Fact]
     public async Task HandleAsync_RenamesTheListAndSavesIt()

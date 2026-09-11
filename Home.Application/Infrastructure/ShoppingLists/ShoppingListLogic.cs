@@ -51,7 +51,7 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
             .OrderBy(sli => sli.Sequence)
             .ThenBy(sli => sli.ShoppingListItemID);
 
-    void IShoppingListLogic.UpdateItem(UpdateShoppingListItemInputPort inputPort)
+    ShoppingListItem IShoppingListLogic.UpdateItem(UpdateShoppingListItemInputPort inputPort)
     {
         var _ShoppingListItem = persistenceContext.GetEntities<ShoppingListItem>()
             .Where(sli => sli.ShoppingListItemID == inputPort.ShoppingListItemID)
@@ -108,6 +108,8 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
 
             _ShoppingListItem.Sequence = _To;
         }
+
+        return _ShoppingListItem;
     }
 
     #endregion Methods

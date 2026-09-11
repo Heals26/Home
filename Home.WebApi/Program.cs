@@ -103,8 +103,8 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
 }
 
 // Nothing is seeded globally any more. Board columns belong to a household and are seeded per
-// household by IHouseholdSetupLogic (15 Aug); ActivityStatus — the second, invisible board axis
-// that used to be seeded here — was deleted outright, because a card's column already says what
+// household by IHouseholdSetupLogic (15 Aug). ActivityStatus, the second and invisible board axis
+// that used to be seeded here, was deleted outright, because a card's column already says what
 // state it is in and two answers to that question is one too many.
 
 static IServiceCollection SetupAuthentication(IServiceCollection services)
@@ -185,7 +185,7 @@ static IServiceCollection SetupEntityFramework(IServiceCollection services, ICon
 
 static IServiceCollection SetupInfrastructure(IServiceCollection services)
 {
-    // The audit filter is what puts an action name against each entry — the middleware alone only
+    // The audit filter is what puts an action name against each entry; the middleware alone only
     // ever sees the URI.
     _ = services.AddControllers(o => o.Filters.Add<ApiAuditingActionFilterAttribute>());
     _ = services.AddSignalR();
@@ -242,7 +242,7 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
 
 static IServiceCollection SetupLights(IServiceCollection services, IConfiguration configuration)
 {
-    // No token anywhere is a valid state — the house just has no lights wired up yet. The
+    // No token anywhere is a valid state: the house just has no lights wired up yet. The
     // service reports the provider as unavailable rather than the API failing to start.
     // The token attaches per request via LifxAuthenticationHandler, so the household's stored
     // token (Settings page) wins over the lifxApiToken user secret without a restart.
@@ -254,10 +254,10 @@ static IServiceCollection SetupLights(IServiceCollection services, IConfiguratio
         client.Timeout = TimeSpan.FromSeconds(LightValues.RequestTimeoutSeconds);
     }).AddHttpMessageHandler<LifxAuthenticationHandler>();
 
-    // Schedules only fire while this process is alive — see LightScheduleRunner.
+    // Schedules only fire while this process is alive (see LightScheduleRunner).
     _ = services.AddHostedService<LightScheduleRunner>();
 
-    // Keeps bulb state fresh so the board notices a wall switch — see LightStateSyncRunner.
+    // Keeps bulb state fresh so the board notices a wall switch (see LightStateSyncRunner).
     _ = services.AddHostedService<LightStateSyncRunner>();
 
     return services;
@@ -279,7 +279,7 @@ static IServiceCollection SetupCalendar(IServiceCollection services)
     return services;
 }
 
-// Recipe pages are fetched with an explicit user agent — several big cooking sites refuse
+// Recipe pages are fetched with an explicit user agent, because several big cooking sites refuse
 // the default HttpClient one outright. The import only reads embedded JSON-LD, never HTML.
 static IServiceCollection SetupRecipeImports(IServiceCollection services)
 {
@@ -294,7 +294,7 @@ static IServiceCollection SetupRecipeImports(IServiceCollection services)
 }
 
 // AutoMapper 15+ is dual-licensed. This project sits well inside the free community tier, and a
-// missing licence key changes nothing at runtime other than a startup warning — so filter it out.
+// missing licence key changes nothing at runtime other than a startup warning, so filter it out.
 static ILoggingBuilder SetupLogging(ILoggingBuilder logging)
     => logging.AddFilter("LuckyPennySoftware.AutoMapper.License", LogLevel.None);
 
@@ -345,6 +345,7 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
         .AddScoped<ILightSceneLogic, LightSceneLogic>()
         .AddScoped<ILightSyncLogic, LightSyncLogic>()
         .AddScoped<IRecipeLogic, RecipeLogic>()
+        .AddScoped<IShoppingItemMemoryLogic, ShoppingItemMemoryLogic>()
         .AddScoped<IShoppingListLogic, ShoppingListLogic>();
 
     return services;

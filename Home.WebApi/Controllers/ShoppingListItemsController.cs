@@ -3,6 +3,7 @@ using Home.Application.UseCases.ShoppingListItems.DeleteShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.GetShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.Application.UseCases.ShoppingListItems.MoveShoppingListItem;
+using Home.Application.UseCases.ShoppingListItems.SetShoppingListItemCategory;
 using Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
@@ -11,10 +12,12 @@ using Home.WebApi.Presenters.ShoppingListItems.DeleteShoppingListItem;
 using Home.WebApi.Presenters.ShoppingListItems.GetShoppingListItem;
 using Home.WebApi.Presenters.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.WebApi.Presenters.ShoppingListItems.MoveShoppingListItem;
+using Home.WebApi.Presenters.ShoppingListItems.SetShoppingListItemCategory;
 using Home.WebApi.Presenters.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebApi.UseCases.ShoppingListItems.CreateShoppingListItem;
 using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItem;
 using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItemSuggestions;
+using Home.WebApi.UseCases.ShoppingListItems.SetShoppingListItemCategory;
 using Home.WebApi.UseCases.ShoppingListItems.UpdateShoppingListItem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -98,6 +101,19 @@ public class ShoppingListItemsController : BaseController
             presenter,
             this.ServiceFactory,
             cancellationToken);
+
+        return presenter.Result;
+    }
+
+    [HttpPut("{shoppingListItemID}/Category")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> SetShoppingListItemCategory(
+        [FromServices] SetShoppingListItemCategoryPresenter presenter,
+        [FromRoute] long shoppingListItemID,
+        [FromBody] SetShoppingListItemCategoryApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new SetShoppingListItemCategoryInputPort(request.ShoppingCategoryID, shoppingListItemID), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

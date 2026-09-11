@@ -20,6 +20,7 @@ internal class UpdateShoppingListItemInteractor : IInteractor<UpdateShoppingList
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _ShoppingListLogic = serviceFactory.GetService<IShoppingListLogic>();
+        var _MemoryLogic = serviceFactory.GetService<IShoppingItemMemoryLogic>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -33,7 +34,12 @@ internal class UpdateShoppingListItemInteractor : IInteractor<UpdateShoppingList
             return;
         }
 
-        _ShoppingListLogic.UpdateItem(inputPort);
+        var _ShoppingListItem = _ShoppingListLogic.UpdateItem(inputPort);
+
+        // Only a change to what is in the trolley, or to what something in it cost, can change what
+        // the household paid.
+        if (inputPort.InBasket.HasBeenSet || inputPort.Cost.HasBeenSet || inputPort.Amount.HasBeenSet || inputPort.Unit.HasBeenSet)
+            _MemoryLogic.RecordTick(_Household, _ShoppingListItem);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

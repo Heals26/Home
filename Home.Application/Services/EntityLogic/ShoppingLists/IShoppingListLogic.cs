@@ -14,7 +14,7 @@ public interface IShoppingListLogic
     bool DoesShoppingListItemExist(long shoppingListItemID);
     ShoppingListItem? GetItem(long shoppingListItemID);
     IQueryable<ShoppingListItem> GetItems(long shoppingListID);
-    void UpdateItem(UpdateShoppingListItemInputPort inputPort);
+    ShoppingListItem UpdateItem(UpdateShoppingListItemInputPort inputPort);
 
     #endregion Methods
 

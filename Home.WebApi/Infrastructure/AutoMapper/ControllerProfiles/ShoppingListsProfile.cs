@@ -17,7 +17,13 @@ public class ShoppingListsProfile : Profile
     {
         // Without this the list's Items have no element map, and fetching a shopping list
         // fails at the point of use rather than at startup.
-        _ = this.CreateMap<ShoppingListItem, ShoppingListItemDto>();
+        //
+        // The memory's answers are not on the entity; the presenter fills them in.
+        _ = this.CreateMap<ShoppingListItem, ShoppingListItemDto>()
+            .ForMember(d => d.EstimatedCost, o => o.Ignore())
+            .ForMember(d => d.IsDearerThanUsual, o => o.Ignore())
+            .ForMember(d => d.ShoppingCategoryID, o => o.Ignore())
+            .ForMember(d => d.UsualCost, o => o.Ignore());
 
         _ = this.CreateMap<ShoppingList, GetShoppingListApiResponse>();
         _ = this.CreateMap<IEnumerable<ShoppingList>, GetShoppingListsApiResponse>()

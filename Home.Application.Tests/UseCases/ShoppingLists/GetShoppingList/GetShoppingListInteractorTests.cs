@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Home.Application.Infrastructure.ShoppingLists;
+using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Tests.Infrastructure;
 using Home.Application.UseCases.ShoppingLists.GetShoppingList;
 using Home.Domain.Entities;
@@ -9,7 +11,7 @@ namespace Home.Application.Tests.UseCases.ShoppingLists.GetShoppingList;
 
 /// <summary>
 /// One shopping list with everything on it. The items are the whole payload, and they arrive only
-/// because the query names them — the 17 Aug outage here was a mapping gap, and this is the other
+/// because the query names them. The 17 Aug outage here was a mapping gap, and this is the other
 /// half of the same failure.
 /// </summary>
 public class GetShoppingListInteractorTests : InteractorTest
@@ -48,11 +50,15 @@ public class GetShoppingListInteractorTests : InteractorTest
     }
 
     private Task HandleAsync(long shoppingListID)
-        => new GetShoppingListInteractor().HandleAsync(
+    {
+        var _Services = this.Services(out var _Context);
+
+        return new GetShoppingListInteractor().HandleAsync(
             new GetShoppingListInputPort(shoppingListID),
             this.m_Presenter,
-            this.Services().Build(),
+            _Services.With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Context, _Services.Time)).Build(),
             CancellationToken.None);
+    }
 
     [Fact]
     public async Task HandleAsync_BringsBackEverythingOnTheList()

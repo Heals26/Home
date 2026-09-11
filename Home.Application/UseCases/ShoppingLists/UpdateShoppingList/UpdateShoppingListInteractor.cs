@@ -28,6 +28,9 @@ internal class UpdateShoppingListInteractor : IInteractor<UpdateShoppingListInpu
 
         if (_ShoppingList != null)
         {
+            if (inputPort.GroupByAisle.HasBeenSet)
+                _ShoppingList.GroupByAisle = inputPort.GroupByAisle.Value;
+
             if (inputPort.IsArchived.HasBeenSet)
                 _ShoppingList.IsArchived = inputPort.IsArchived.Value;
 

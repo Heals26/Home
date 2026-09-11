@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.Mediator;
+using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -18,6 +19,7 @@ internal class GetShoppingListInteractor : IInteractor<GetShoppingListInputPort,
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
+        var _MemoryLogic = serviceFactory.GetService<IShoppingItemMemoryLogic>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -35,7 +37,7 @@ internal class GetShoppingListInteractor : IInteractor<GetShoppingListInputPort,
         if (_ShoppingList == null)
             await outputPort.PresentShoppingListNotFoundAsync(inputPort.ShoppingListID, cancellationToken);
         else
-            await outputPort.PresentShoppingListAsync(_ShoppingList, cancellationToken);
+            await outputPort.PresentShoppingListAsync(_ShoppingList, _MemoryLogic.Assess(_Household, _ShoppingList.Items), cancellationToken);
     }
 
     #endregion Methods
