@@ -19,6 +19,7 @@ public static class HistoryCategories
         [ResourceTypeSE.CalendarEvent] = HistoryCategory.Calendar,
         [ResourceTypeSE.CalendarSubscription] = HistoryCategory.Calendar,
         [ResourceTypeSE.ShoppingCart] = HistoryCategory.Shopping,
+        [ResourceTypeSE.ShoppingCategory] = HistoryCategory.Shopping,
         [ResourceTypeSE.User] = HistoryCategory.Members,
     };
 

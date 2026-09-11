@@ -25,7 +25,7 @@ public class HouseholdSetupLogic(IPersistenceContext persistenceContext) : IHous
     /// <summary>
     /// Card sections in the language a family uses, not a software team's. These same names are
     /// backfilled by the migration that made sections household-owned, so the two must stay in
-    /// step — the household is free to rename, reorder or replace them afterwards.
+    /// step. The household is free to rename, reorder or replace them afterwards.
     /// </summary>
     private static readonly string[] s_DefaultCardSections =
     [
@@ -40,6 +40,22 @@ public class HouseholdSetupLogic(IPersistenceContext persistenceContext) : IHous
         ("Lunch", new TimeSpan(12, 0, 0)),
         ("Dinner", new TimeSpan(18, 0, 0)),
         ("Snack", new TimeSpan(15, 0, 0)),
+    ];
+
+    /// <summary>
+    /// A first walk through a supermarket, which the household reorders to match its own. These
+    /// same names are backfilled by the migration that added aisles, so the two must stay in step.
+    /// </summary>
+    private static readonly string[] s_DefaultShoppingCategories =
+    [
+        "Fruit and veg",
+        "Dairy",
+        "Meat",
+        "Bakery",
+        "Frozen",
+        "Pantry",
+        "Drinks",
+        "Household",
     ];
 
     #endregion Fields
@@ -93,6 +109,21 @@ public class HouseholdSetupLogic(IPersistenceContext persistenceContext) : IHous
 
             household.MealSlots.Add(_MealSlot);
             persistenceContext.Add(_MealSlot);
+        }
+
+        _Sequence = 0;
+
+        foreach (var _Name in s_DefaultShoppingCategories)
+        {
+            var _ShoppingCategory = new ShoppingCategory()
+            {
+                Household = household,
+                Name = _Name,
+                Sequence = _Sequence++
+            };
+
+            household.ShoppingCategories.Add(_ShoppingCategory);
+            persistenceContext.Add(_ShoppingCategory);
         }
     }
 

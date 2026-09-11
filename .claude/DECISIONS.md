@@ -4,6 +4,69 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-11 · Shopping decision 4 of 4: each list chooses between its own order and the aisles
+
+Mitch, 11 Sep 2026: a toggle per list, "My order" or "By aisle", remembered. It is stored on the
+list (`ShoppingList.GroupByAisle`) rather than on the device, because a list is shopped from more
+than one phone and the grouping should read the same on all of them. The two lists this household
+keeps as to-do lists simply stay on "My order".
+
+In "By aisle" the groups follow the household's aisle order, the items inside a group keep the
+list's own order, and anything not yet filed gathers at the end. Reordering is offered only in "My
+order", because that is where the order is made; in "By aisle" the chevrons would move an item
+somewhere that the grouping then puts it back from.
+
+## 2026-09-11 · Shopping decision 3 of 4: ask once, then remember, and never guess
+
+Mitch, 11 Sep 2026: no guessing from a word list. An item has no aisle until someone gives it one,
+and after that the same item lands there every time.
+
+"Every time" has to survive **Clear ticked**, which deletes the lines, so the memory cannot live on
+the line. `ShoppingItemMemory` holds it, one row per household per item name, and the list reads an
+item's aisle through it by name. The consequence is the wanted one: filing "Milk" under Dairy from
+any list files it on every list, now and later, with no fan-out of writes. `NameKey` is the name
+trimmed and lower-cased, so the match does not depend on the database's collation.
+
+Measured when this was decided: 38 shopping lines in this household, 38 different names, none
+bought twice. There was nothing to learn from, which is why this starts from the family's own
+answers rather than a model of them.
+
+## 2026-09-11 · Shopping decision 2 of 4: a starter set of aisles the household makes its own
+
+Mitch, 11 Sep 2026: Home starts every household with Fruit and veg, Dairy, Meat, Bakery, Frozen,
+Pantry, Drinks and Household, which the household can rename, add to, reorder and delete. The same
+shape as meal slots and card sections: `ShoppingCategory`, seeded by `HouseholdSetupLogic` for a new
+household and backfilled into existing ones by the migration that adds it, and the two lists of
+names must stay in step.
+
+Deleting an aisle takes nothing with it. The items filed under it go back to unsorted; the aisle is
+a filing, not a container.
+
+## 2026-09-11 · Shopping decision 1 of 4: prices compare per unit, worked out when read
+
+Mitch, 11 Sep 2026: "$7 for 2 kg" and "$4 for 1 kg" are the same price per kilo and must not read
+as a rise, so a comparison works out cost divided by amount whenever both purchases share a unit.
+Nothing is stored per unit: `Cost` is still the line price, as the 17 Aug decision said, and this
+reads it rather than reinterpreting it.
+
+- **Units are put on one scale first.** Grams and kilograms compare as kilograms, millilitres and
+  litres as litres. A count unit (tins, packets, each) compares only with itself. A line with no
+  amount compares its line price with other lines that had none.
+- **A purchase is remembered when the item goes into the trolley with a price on it**, as a
+  `ShoppingItemPrice` under the item's memory. Ticking the same line again within twelve hours
+  corrects that record rather than adding a second, and unticking a single line within twelve hours
+  takes it back, because that was a mis-tap. "Untick all" at the start of a new week keeps the
+  history, because that shop happened.
+- **Chosen, not asked:** "usual" is the median of the last five comparable purchases, never counting
+  the line being judged, and a line is flagged when it is more than 10% dearer than that. An item
+  with no price on the list is estimated from the most recent purchase, scaled per unit when the two
+  share a unit and taken as it was otherwise, so the list can say what the shop will roughly cost
+  before anyone leaves.
+
+Left alone on purpose: suggestions still read the last price off the list lines, not the memory, so
+clearing a list still costs its suggestions their prices. Moving them onto the memory is the natural
+next step and is its own change.
+
 ## 2026-09-08 · Memory decision 3 of 3: the planner remembers, off the meal plan and nowhere else
 
 Mitch, 8 Sep 2026, took all four: "last had" on each recipe, a nudge when planning something had
