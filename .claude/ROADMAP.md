@@ -1,6 +1,6 @@
 ﻿# Roadmap
 
-*Seventeen phases, in the order they should be done. Each one is shippable on its own and leaves the
+*Eighteen phases, in the order they should be done. Each one is shippable on its own and leaves the
 app better than it found it. Nothing here is half a feature that needs the next phase to be worth
 having.*
 
@@ -30,6 +30,7 @@ name them still make sense.*
 | **Phase 6** *(8 Sep 2026)* | The shared calendar: six decisions recorded, `CalendarEvent` with simple repeats and skips, read-only iCalendar subscriptions, month, week and list views, and the dashboard rebuilt on one calendar read. |
 | **Phase 7** *(8 Sep 2026)* | Identity decided as no switching on shared devices; members without a login; who ticked a chore off recorded and shown; a per-device "Just me" switch on the board and member chips on the calendar. |
 | **Phase 8** *(8 Sep 2026)* | History in words: every change recorded with a household and a summary, a `/history` page and a Recently tile, per-thing history on chores and recipes, and a planner that remembers what was last had. |
+| **Phase 9** *(11 Sep 2026)* | Aisles and price memory: the household's own aisles with a My order or By aisle switch on each list, and each line saying what it usually costs, whether this price is dearer and roughly what an unpriced one will come to. |
 
 ---
 
@@ -480,7 +481,72 @@ Four decisions in `DECISIONS.md` (all 11 Sep 2026) and then the build:
 the memory, nothing shows or edits an item's price history, and a renamed item starts a fresh memory
 rather than carrying its prices across.
 
-## Phase 10 · Nullable on in the API, L *(was C3)*
+## Phase 10 · Shopping mode, L *(new, 14 Sep 2026)*
+
+The shopping list is written at home and used in a supermarket, and it behaves the same in both
+places. Two problems come from that, one found in real use and one in the dry run of phase 9 on
+14 Sep.
+
+**The row is built for reading, not for a trolley.** The 31 Aug decision split each row into two
+targets, the circle ticks and the words open the item, because a whole-row tick crossed things off
+when someone only meant to read the amount. On a phone in a shop that trades one mis-tap for
+another: reaching to tick opens the sheet, and reaching to change something ticks it. The decision
+was right at home. It is wrong in the aisle.
+
+**A shop has no edges.** Phase 9 records a purchase when a priced line is ticked, and guesses where
+the shop ends with a twelve-hour window. The dry run found two ways that guess loses:
+
+- After Untick all, ticking a line by mistake and unticking it again within twelve hours of the real
+  shop deletes the price that was actually paid.
+- Saving a ticked line's sheet more than twelve hours after the tick records its price a second
+  time.
+
+The 17 Aug decision that unticking needs no confirmation "because nothing is lost" stopped being
+true when a tick started recording what something cost.
+
+Shopping mode gives a shop a start and an end. While it is on, the list is laid out for the aisle, a
+tick is a purchase and an untick takes that tick back. Ending it settles the shop, and nothing done
+to the list afterwards can reach those purchases.
+
+The data half does not strictly need the mode: remembering when each line was ticked would stop both
+losses with nothing changing on screen. It is the first step of this phase either way, because
+everything else here rests on knowing which tick recorded which price.
+
+### What the planning has to settle
+
+1. **Is it the phone's or the list's?** The layout belongs to the device: the phone in the shop wants
+   big targets and the kitchen tablet at home does not. The shop belongs to the list: two people who
+   split up at the door are doing one shop. The likely answer is both, a per-device layout like the
+   board's "Just me" switch over a per-list shop that any phone can start.
+
+2. **How does a shop start and end?** A Start and a Done button is honest and easy to forget. The
+   end matters more than the start. A phone goes back into a pocket without anyone pressing Done, so
+   a shop has to end by itself after a quiet spell, and that quiet spell is what replaces the
+   twelve-hour window. Untick all and Clear ticked should end one too.
+
+3. **What is a tick outside a shop?** Ticking things off while unpacking at home is not buying them.
+   Either a tick only records a purchase during a shop, which rules out accidental purchases and
+   relies on someone starting one, or a tick outside a shop starts one, which needs no button and
+   brings the guessing back.
+
+4. **What does the row do in the aisle?** The whole row ticks. Editing has to go somewhere a thumb
+   will not hit by accident and can still find: a control at the end of the row rather than a long
+   press, for the same reason the 31 Aug decision ruled out hover. The edit that matters most in a
+   shop is typing what something cost, so decide whether a tick offers that straight away instead of
+   opening the whole sheet.
+
+5. **What else is different in the aisle?** Candidates: the add box steps back, the reorder controls
+   go, By aisle is the default, the screen stays awake and the trolley total stays in view. Each is
+   small. Decide which belong to the mode and which are simply better for the list.
+
+### Deliberately not in scope
+
+- **Working without signal.** Blazor Server needs a live connection, and a supermarket's back aisle
+  is where it drops. That is a real problem for the people this phase is for, and it is a different
+  phase's work.
+- **Anything that notices you are at the shop.** No location and no geofence. A person starts a shop.
+
+## Phase 11 · Nullable on in the API, L *(was C3)*
 
 A clean build emits **one** warning, not the ~145 this file used to claim. That is not progress:
 `Home.WebApi` sets `<Nullable>disable</Nullable>` while every other project enables it, and the API
@@ -489,7 +555,7 @@ models and controllers are where the `CS8618`s lived. They are suppressed, not f
 The job is turning nullable on there and absorbing what comes back in one go. No user-visible value,
 which is why it sits this late, but it gets harder every phase that adds API models.
 
-## Phase 11 · Beyond lights: a second device integration, L *(was B9)*
+## Phase 12 · Beyond lights: a second device integration, L *(was B9)*
 
 `DECISIONS.md` (12 Aug) establishes the adapter template: service interface in `Application`,
 adapter in `WebApi`, an unreachable provider is a return value rather than an exception, vendor wire
@@ -497,7 +563,7 @@ types stay at the boundary. VISION says "other devices as they come" and nothing
 researched. A thermostat, robot vacuum or smart plug is the obvious next one, and the pattern is
 ready and proven.
 
-## Phase 12 · The ones blocked on their own decisions, L each *(was B7, B10)*
+## Phase 13 · The ones blocked on their own decisions, L each *(was B7, B10)*
 
 Both are in `BACKLOG.md` with the open question written down. Neither is blocked on effort.
 
@@ -510,7 +576,7 @@ Both are in `BACKLOG.md` with the open question written down. Neither is blocked
   kitchen tablet plays from. Needs Premium. Naturally follows phase 7, which answers "who is this
   device".
 
-## Phase 13 · Where we have been, L *(from the phase ideas list, 6 Sep 2026)*
+## Phase 14 · Where we have been, L *(from the phase ideas list, 6 Sep 2026)*
 
 The household already keeps what it cooks, what it buys and what it has to do. It keeps nothing
 about where it went. "That playground with the shade", "the Thai place we liked", "the beach we
@@ -543,7 +609,7 @@ that talks to a third party for reviews or opening hours. This is the household'
 own outings, which is the only version of this that is worth keeping and the only one that does not
 need a privacy decision first.
 
-## Phase 14 · It looks like something, M *(from the phase ideas list, 6 Sep 2026)*
+## Phase 15 · It looks like something, M *(from the phase ideas list, 6 Sep 2026)*
 
 `VISION.md` asks for a product that does not look assembled from template defaults, and the type
 and colour work carries that. The identity does not exist at all yet:
@@ -568,7 +634,7 @@ in `wwwroot`. A house that cooks its own food should not have a stock photo of a
 wall.
 
 
-## Phase 15 · A board the household arranges itself, L *(new, 6 Sep 2026)*
+## Phase 16 · A board the household arranges itself, L *(new, 6 Sep 2026)*
 
 The dashboard fits without scrolling as of 6 Sep, on a landscape tablet, with the seven tiles that
 exist today. That is the cheaper half of the answer and it is already showing its edges: "fits"
@@ -628,7 +694,7 @@ would be the first thing in the app that does.
   exists now.
 
 
-## Phase 16 · What this house pays for, M *(new, 6 Sep 2026)*
+## Phase 17 · What this house pays for, M *(new, 6 Sep 2026)*
 
 Home knows what is for dinner, what is on the shopping list and what has to be done this week, and
 nothing at all about the eleven direct debits leaving the account. Streaming, insurance, the gym,
@@ -666,7 +732,7 @@ this is seeing what you stopped paying for and when.
    dashboard shows rather than something that reaches a phone, which is a fair first version on a
    screen that is always on anyway.
 
-4. **Does it earn a dashboard tile?** Probably, and that is exactly the pressure phase 15 exists
+4. **Does it earn a dashboard tile?** Probably, and that is exactly the pressure phase 16 exists
    to relieve: the board fits today with seven tiles and an eighth reopens it. Whichever of the two
    phases is done second inherits the problem.
 
@@ -677,7 +743,7 @@ this is seeing what you stopped paying for and when.
 - **Multiple currencies.** One household, one currency, until there is a reason.
 - **Paying anything.** It records what is charged. It never charges.
 
-## Phase 17 · Other households can pay for this, XL *(new, 6 Sep 2026)*
+## Phase 18 · Other households can pay for this, XL *(new, 6 Sep 2026)*
 
 The product bar for this app has always been that a family would pay for it rather than use the
 free thing. This is the phase that finds out.
@@ -712,7 +778,7 @@ What is not done is letting a second family in at all:
 3. **Who takes the money.** A payment provider, which brings a webhook, a subscription state
    machine, dunning, refunds and tax. None of that is interesting and all of it is required. Note
    the irony worth avoiding: this app would then have both a `Subscription` the household tracks
-   (phase 16) and a subscription the household *is*. Two different things and they must not share
+   (phase 17) and a subscription the household *is*. Two different things and they must not share
    a name in the code.
 
 4. **What happens when someone stops paying.** The answer cannot be that a family loses the
