@@ -15,11 +15,12 @@ public class ShoppingPriceLogicTests
 
     #region Methods
 
-    private static ShoppingListItem Line(decimal? amount, MeasurementUnitSE? unit, decimal? cost, long shoppingListItemID = 1)
+    private static ShoppingListItem Line(decimal? amount, MeasurementUnitSE? unit, decimal? cost, long shoppingListItemID = 1, bool inBasket = false)
         => new()
         {
             Amount = amount,
             Cost = cost,
+            InBasket = inBasket,
             Name = "Milk",
             ShoppingListItemID = shoppingListItemID,
             Unit = unit?.Value
@@ -42,6 +43,28 @@ public class ShoppingPriceLogicTests
                 Memory = _Memory,
                 ShoppingListItemID = 100 + index,
                 Unit = p.Unit?.Value
+            })
+        ];
+
+        return _Memory;
+    }
+
+    /// <summary>
+    /// Past purchases a week apart, newest first, all made on the one line, the way a list kept from
+    /// week to week with Untick all buys the same thing on the same line every time.
+    /// </summary>
+    private static ShoppingItemMemory ReusedLine(long shoppingListItemID, params decimal[] newestFirst)
+    {
+        var _Memory = new ShoppingItemMemory() { Name = "Milk", NameKey = "milk" };
+
+        _Memory.Prices =
+        [
+            .. newestFirst.Select((cost, index) => new ShoppingItemPrice()
+            {
+                BoughtOnUTC = TestServiceFactory.DefaultNow.UtcDateTime.AddDays(-7 * index),
+                Cost = cost,
+                Memory = _Memory,
+                ShoppingListItemID = shoppingListItemID
             })
         ];
 
@@ -119,13 +142,27 @@ public class ShoppingPriceLogicTests
     }
 
     [Fact]
-    public void Assess_NeverCountsTheLinesOwnPurchase()
+    public void Assess_LeavesOutOnlyThePurchaseTheLinesOwnTickRecorded()
     {
-        var _Insight = ShoppingPriceLogic.Assess(Line(null, null, 9.00m, shoppingListItemID: 100), Memory((9.00m, null, null), (4.00m, null, null)));
+        var _Insight = ShoppingPriceLogic.Assess(Line(null, null, 9.00m, shoppingListItemID: 100, inBasket: true), ReusedLine(100, 9.00m, 4.00m));
 
         _ = _Insight.UsualCost.Should().Be(4.00m);
-        _ = _Insight.IsDearerThanUsual.Should().BeTrue("a line is judged against what came before it, not against itself");
+        _ = _Insight.IsDearerThanUsual.Should().BeTrue("a line in the trolley is judged against the shops before this one, not against itself");
     }
+
+    [Fact]
+    public void Assess_JudgesALineKeptFromWeekToWeekAgainstItsEarlierShops()
+    {
+        var _Insight = ShoppingPriceLogic.Assess(Line(null, null, 5.00m, shoppingListItemID: 100), ReusedLine(100, 4.00m));
+
+        _ = _Insight.UsualCost.Should().Be(4.00m, "last week's purchase on the same line is exactly what usual is for");
+        _ = _Insight.IsDearerThanUsual.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Assess_GuessesALineKeptFromWeekToWeekFromItsLastShop()
+        => _ = ShoppingPriceLogic.Assess(Line(null, null, null, shoppingListItemID: 100), ReusedLine(100, 4.00m))
+            .EstimatedCost.Should().Be(4.00m);
 
     [Fact]
     public void Assess_FlagsOnlyWhatIsMoreThanTenPercentOverUsual()

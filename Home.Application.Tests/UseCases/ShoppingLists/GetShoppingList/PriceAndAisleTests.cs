@@ -117,6 +117,36 @@ public class PriceAndAisleTests : InteractorTest
     }
 
     [Fact]
+    public async Task HandleAsync_JudgesAListKeptFromWeekToWeekAgainstItsOwnLastShop()
+    {
+        var _List = BuildList(120, this.Ours, 2, MeasurementUnitSE.Litres, 5.00m);
+        var _Memory = BuildMemory(140, this.Ours, null);
+
+        _Memory.Prices =
+        [
+            new ShoppingItemPrice()
+            {
+                Amount = 2,
+                BoughtOnUTC = TestServiceFactory.DefaultNow.UtcDateTime.AddDays(-7),
+                Cost = 4.00m,
+                Memory = _Memory,
+                ShoppingItemPriceID = 150,
+                ShoppingListItemID = 130,
+                Unit = MeasurementUnitSE.Litres.Value
+            }
+        ];
+
+        _ = this.Database.Seed(_Memory, _List);
+
+        await this.HandleAsync(120);
+
+        var _Line = this.Line();
+
+        _ = _Line.UsualCost.Should().Be(4.00m, "last week's purchase was made on this very line, unticked since with Untick all");
+        _ = _Line.IsDearerThanUsual.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task HandleAsync_LeavesAPriceWithinTenPercentOfUsualUnflagged()
     {
         _ = this.Database.Seed(

@@ -57,11 +57,11 @@ reads it rather than reinterpreting it.
   corrects that record rather than adding a second, and unticking a single line within twelve hours
   takes it back, because that was a mis-tap. "Untick all" at the start of a new week keeps the
   history, because that shop happened.
-- **Chosen, not asked:** "usual" is the median of the last five comparable purchases, never counting
-  the line being judged, and a line is flagged when it is more than 10% dearer than that. An item
-  with no price on the list is estimated from the most recent purchase, scaled per unit when the two
-  share a unit and taken as it was otherwise, so the list can say what the shop will roughly cost
-  before anyone leaves.
+- **Chosen, not asked:** "usual" is the median of the last five comparable purchases, leaving out
+  only the purchase the line's own tick recorded, and a line is flagged when it is more than 10%
+  dearer than that. An item with no price on the list is estimated from the most recent purchase,
+  scaled per unit when the two share a unit and taken as it was otherwise, so the list can say what
+  the shop will roughly cost before anyone leaves.
 
 Left alone on purpose: suggestions still read the last price off the list lines, not the memory, so
 clearing a list still costs its suggestions their prices. Moving them onto the memory is the natural

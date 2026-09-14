@@ -43,10 +43,17 @@ public static class ShoppingPriceLogic
     public static ShoppingItemInsight Assess(ShoppingListItem item, ShoppingItemMemory? memory)
     {
         var _CategoryID = memory?.ShoppingCategory?.ShoppingCategoryID;
+        var _Prices = memory?.Prices ?? [];
 
-        // The line's own purchase never counts towards what is usual for it.
-        var _History = (memory?.Prices ?? [])
-            .Where(p => p.ShoppingListItemID != item.ShoppingListItemID)
+        // A line in the trolley is judged against the shops before this one, so only the purchase its
+        // own tick recorded is left out. What the same line cost on earlier shops still counts, which
+        // is all a list kept from week to week with Untick all has to go on.
+        var _ThisShop = item.InBasket && item.Cost is > 0
+            ? _Prices.Where(p => p.ShoppingListItemID == item.ShoppingListItemID).MaxBy(p => p.BoughtOnUTC)
+            : null;
+
+        var _History = _Prices
+            .Where(p => p != _ThisShop)
             .OrderByDescending(p => p.BoughtOnUTC)
             .ToList();
 
