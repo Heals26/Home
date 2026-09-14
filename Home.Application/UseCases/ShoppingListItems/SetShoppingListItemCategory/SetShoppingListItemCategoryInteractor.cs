@@ -55,7 +55,7 @@ internal class SetShoppingListItemCategoryInteractor : IInteractor<SetShoppingLi
         {
             // Filed against the name rather than the line, so the same item lands in the same aisle on
             // every list from now on.
-            var _Memory = _MemoryLogic.GetOrCreate(_Household, _ShoppingListItem.Name);
+            var _Memory = await _MemoryLogic.GetOrCreateAsync(_Household, _ShoppingListItem.Name, cancellationToken);
 
             _Memory.ShoppingCategory = _ShoppingCategory;
 

@@ -2,11 +2,13 @@
 using Home.Application.Infrastructure.ChangeTrackers;
 using Home.Application.Infrastructure.ShoppingLists;
 using Home.Application.Services.EntityLogic.ShoppingLists;
+using Home.Application.Services.Persistence;
 using Home.Application.Tests.Infrastructure;
 using Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
 using Home.Domain.Entities;
 using Home.Domain.Enumerations;
 using Home.WebApi.Presenters.ShoppingListItems.UpdateShoppingListItem;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Home.Application.Tests.UseCases.ShoppingListItems.UpdateShoppingListItem;
 
@@ -61,14 +63,15 @@ public class PriceMemoryTests : InteractorTest
         long shoppingListItemID,
         PropertyChangeTracker<decimal?> amount = default,
         PropertyChangeTracker<decimal?> cost = default,
-        PropertyChangeTracker<bool> inBasket = default)
+        PropertyChangeTracker<bool> inBasket = default,
+        PropertyChangeTracker<string> name = default)
     {
         var _Services = this.Services(out var _Context);
 
         _Services.Time.Advance(this.m_Elapsed);
 
         return new UpdateShoppingListItemInteractor().HandleAsync(
-            new UpdateShoppingListItemInputPort(amount, cost, inBasket, default, default, default, shoppingListItemID, default),
+            new UpdateShoppingListItemInputPort(amount, cost, inBasket, name, default, default, shoppingListItemID, default),
             this.m_Presenter,
             _Services
                 .With<IShoppingListLogic>(new ShoppingListLogic(_Context))
@@ -211,6 +214,61 @@ public class PriceMemoryTests : InteractorTest
 
         _ = this.Stored<ShoppingItemPrice>().Count(p => p.Memory.Household.HouseholdID == TheirHouseholdID).Should().Be(1);
         _ = this.Stored<ShoppingItemPrice>().Count(p => p.Memory.Household.HouseholdID == OurHouseholdID).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task HandleAsync_RenamingATickedLineMovesItsPurchaseRatherThanRecordingASecond()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 4.80m)));
+
+        await this.HandleAsync(130, inBasket: new(true));
+        this.m_Elapsed = TimeSpan.FromMinutes(10);
+        await this.HandleAsync(130, name: new("Full cream milk"));
+
+        _ = this.Stored<ShoppingItemPrice>().Should().ContainSingle("renaming what went into the trolley is not a second purchase");
+        _ = this.Stored<ShoppingItemPrice>().Count(p => p.Memory.NameKey == "full cream milk").Should().Be(1);
+    }
+
+    [Fact]
+    public async Task HandleAsync_UntickingARenamedLineStillTakesItsPurchaseBack()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 4.80m)));
+
+        await this.HandleAsync(130, inBasket: new(true));
+        await this.HandleAsync(130, name: new("Full cream milk"));
+        await this.HandleAsync(130, inBasket: new(false));
+
+        _ = this.Stored<ShoppingItemPrice>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenAnotherRequestRemembersTheItemFirst_CarriesOnWithTheirs()
+    {
+        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 4.80m)));
+
+        var _Services = this.Services(out var _Context);
+        var _Raced = new RacedPersistenceContext(_Context, () => this.Database.Seed(new ShoppingItemMemory()
+        {
+            Household = this.Ours,
+            Name = "Milk",
+            NameKey = "milk",
+            ShoppingItemMemoryID = 140
+        }));
+
+        await new UpdateShoppingListItemInteractor().HandleAsync(
+            new UpdateShoppingListItemInputPort(default, default, new(true), default, default, default, 130, default),
+            this.m_Presenter,
+            _Services
+                .With<IPersistenceContext>(_Raced)
+                .With<IShoppingListLogic>(new ShoppingListLogic(_Raced))
+                .With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Raced, _Services.Time))
+                .Build(),
+            CancellationToken.None);
+
+        _ = this.m_Presenter.Result.Should().BeOfType<NoContentResult>();
+        _ = this.Stored<ShoppingItemMemory>().Should().ContainSingle("the memory the other request saved is the one kept");
+        _ = this.Stored<ShoppingItemPrice>().Count(p => p.Memory.ShoppingItemMemoryID == 140).Should().Be(1);
+        _ = this.Stored<ShoppingListItem>().Single().InBasket.Should().BeTrue("losing the race must not lose the tick");
     }
 
     #endregion Methods

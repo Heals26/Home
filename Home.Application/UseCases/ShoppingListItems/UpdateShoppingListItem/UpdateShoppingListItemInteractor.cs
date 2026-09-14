@@ -36,10 +36,9 @@ internal class UpdateShoppingListItemInteractor : IInteractor<UpdateShoppingList
 
         var _ShoppingListItem = _ShoppingListLogic.UpdateItem(inputPort);
 
-        // Only a change to what is in the trolley, or to what something in it cost, can change what
-        // the household paid.
-        if (inputPort.InBasket.HasBeenSet || inputPort.Cost.HasBeenSet || inputPort.Amount.HasBeenSet || inputPort.Unit.HasBeenSet)
-            _MemoryLogic.RecordTick(_Household, _ShoppingListItem);
+        // A note or a new place in the list changes nothing the household has paid for.
+        if (inputPort.InBasket.HasBeenSet || inputPort.Cost.HasBeenSet || inputPort.Amount.HasBeenSet || inputPort.Unit.HasBeenSet || inputPort.Name.HasBeenSet)
+            await _MemoryLogic.RecordTickAsync(_Household, _ShoppingListItem, cancellationToken);
 
         _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 

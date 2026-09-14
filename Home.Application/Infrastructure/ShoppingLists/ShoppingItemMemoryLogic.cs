@@ -2,6 +2,7 @@
 using Home.Application.Services.Persistence;
 using Home.Application.UseCases.ShoppingLists.Models;
 using Home.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Home.Application.Infrastructure.ShoppingLists;
 
@@ -49,19 +50,42 @@ public class ShoppingItemMemoryLogic(IPersistenceContext persistenceContext, Tim
             i => ShoppingPriceLogic.Assess(i, _Memories.GetValueOrDefault(KeyOf(i.Name))));
     }
 
-    private ShoppingItemMemory Create(Household household, string name)
+    /// <summary>
+    /// Saved before anything is attached to it. Two requests can reach a new item's first purchase or
+    /// first aisle together and the unique index lets only one of them add it, so the one that loses
+    /// carries on with the memory the other saved instead of failing.
+    /// </summary>
+    private async Task<ShoppingItemMemory> CreateAsync(Household household, string name, CancellationToken cancellationToken)
     {
         var _Memory = new ShoppingItemMemory()
         {
             Household = household,
             Name = Truncate(name.Trim()),
-            NameKey = KeyOf(name),
-            Prices = []
+            NameKey = KeyOf(name)
         };
 
         persistenceContext.Add(_Memory);
 
-        return _Memory;
+        try
+        {
+            _ = await persistenceContext.SaveChangesAsync(cancellationToken);
+
+            return _Memory;
+        }
+        catch (DbUpdateException)
+        {
+            var _Saved = this.Find(household, name);
+
+            if (_Saved == null)
+                throw;
+
+            // Let go of the copy that lost, including from the household's collection, where the next
+            // save would otherwise find it and try to add it again.
+            persistenceContext.Entity(_Memory).State = EntityState.Detached;
+            _ = household.ShoppingItemMemories.Remove(_Memory);
+
+            return _Saved;
+        }
     }
 
     private ShoppingItemMemory? Find(Household household, string name)
@@ -73,59 +97,53 @@ public class ShoppingItemMemoryLogic(IPersistenceContext persistenceContext, Tim
             .Select(m => new
             {
                 Memory = m,
-                m.Prices,
                 m.ShoppingCategory
             })
             .SingleOrDefault()
             ?.Memory;
     }
 
-    ShoppingItemMemory IShoppingItemMemoryLogic.GetOrCreate(Household household, string name)
-        => this.Find(household, name) ?? this.Create(household, name);
+    Task<ShoppingItemMemory> IShoppingItemMemoryLogic.GetOrCreateAsync(Household household, string name, CancellationToken cancellationToken)
+        => this.GetOrCreateAsync(household, name, cancellationToken);
+
+    private async Task<ShoppingItemMemory> GetOrCreateAsync(Household household, string name, CancellationToken cancellationToken)
+        => this.Find(household, name) ?? await this.CreateAsync(household, name, cancellationToken);
 
     private static string KeyOf(string name)
         => Truncate(name.Trim().ToLowerInvariant());
 
-    void IShoppingItemMemoryLogic.RecordTick(Household household, ShoppingListItem item)
+    async Task IShoppingItemMemoryLogic.RecordTickAsync(Household household, ShoppingListItem item, CancellationToken cancellationToken)
     {
-        decimal? _Paid = item.InBasket && item.Cost is > 0 ? item.Cost : null;
-
-        // Nothing to take back for an item the household has never paid for, so an untick never
-        // creates a memory.
-        var _Memory = this.Find(household, item.Name)
-            ?? (_Paid == null ? null : this.Create(household, item.Name));
-
-        if (_Memory == null)
-            return;
-
         var _Since = this.NowUTC - s_CorrectionWindow;
-        var _Recent = _Memory.Prices
-            .FirstOrDefault(p => p.ShoppingListItemID == item.ShoppingListItemID && p.BoughtOnUTC >= _Since);
 
-        if (_Paid is { } _Cost)
+        // Found by the line rather than by its name, so renaming a line after it was ticked moves the
+        // purchase it recorded instead of recording another under the new name.
+        var _Recent = persistenceContext.GetEntities<ShoppingItemPrice>()
+            .Where(p => p.ShoppingListItemID == item.ShoppingListItemID
+                && p.BoughtOnUTC >= _Since
+                && p.Memory.Household.HouseholdID == household.HouseholdID)
+            .ToList();
+
+        if (!item.InBasket || item.Cost is not { } _Cost || _Cost <= 0)
         {
-            if (_Recent == null)
-            {
-                _Recent = new ShoppingItemPrice()
-                {
-                    Memory = _Memory,
-                    ShoppingListItemID = item.ShoppingListItemID
-                };
-
-                _Memory.Prices.Add(_Recent);
-                persistenceContext.Add(_Recent);
-            }
-
-            _Recent.Amount = item.Amount;
-            _Recent.BoughtOnUTC = this.NowUTC;
-            _Recent.Cost = _Cost;
-            _Recent.Unit = item.Unit;
+            persistenceContext.RemoveRange(_Recent);
+            return;
         }
-        else if (_Recent != null)
+
+        var _Memory = await this.GetOrCreateAsync(household, item.Name, cancellationToken);
+        var _Price = _Recent.FirstOrDefault();
+
+        if (_Price == null)
         {
-            _ = _Memory.Prices.Remove(_Recent);
-            persistenceContext.Remove(_Recent);
+            _Price = new ShoppingItemPrice() { ShoppingListItemID = item.ShoppingListItemID };
+            persistenceContext.Add(_Price);
         }
+
+        _Price.Amount = item.Amount;
+        _Price.BoughtOnUTC = this.NowUTC;
+        _Price.Cost = _Cost;
+        _Price.Memory = _Memory;
+        _Price.Unit = item.Unit;
     }
 
     private static string Truncate(string value)
