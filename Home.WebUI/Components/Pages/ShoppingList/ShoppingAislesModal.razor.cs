@@ -20,8 +20,12 @@ public partial class ShoppingAislesModal
 
     private string m_NewAisleName = string.Empty;
     private string? m_NewAisleError;
-    private string? m_RenameError;
-    private long? m_RenameErrorAisleID;
+
+    /// <summary>
+    /// Kept per aisle, so fixing one name never takes the message off another that is still wrong.
+    /// </summary>
+    private readonly Dictionary<long, string> m_RenameErrors = [];
+
     private bool m_Saving;
 
     #endregion Fields
@@ -56,8 +60,7 @@ public partial class ShoppingAislesModal
 
         this.m_NewAisleName = string.Empty;
         this.m_NewAisleError = null;
-        this.m_RenameError = null;
-        this.m_RenameErrorAisleID = null;
+        this.m_RenameErrors.Clear();
 
         await this.LoadAislesAsync();
     }
@@ -79,6 +82,15 @@ public partial class ShoppingAislesModal
 
         if (_Result != null)
             this.m_Aisles = [.. _Result.ShoppingCategories];
+    }
+
+    /// <summary>
+    /// A clash is about the name that was tried, so the message goes as soon as the name changes.
+    /// </summary>
+    private void NewAisleNameChanged(string name)
+    {
+        this.m_NewAisleName = name;
+        this.m_NewAisleError = null;
     }
 
     private async Task CreateAisleAsync()
@@ -116,15 +128,21 @@ public partial class ShoppingAislesModal
     private async Task RenameAisleAsync(ShoppingCategoryDto aisle, string name)
     {
         var _Name = name.Trim();
-
-        this.m_RenameErrorAisleID = aisle.ShoppingCategoryID;
-        this.m_RenameError = _Name.Length == 0
+        var _Error = _Name.Length == 0
             ? "Give the aisle a name."
             : this.AisleLogic.FindNameClash(this.m_Aisles, _Name, aisle.ShoppingCategoryID) is { } _Clash
                 ? $"There is already an aisle called {_Clash.Name}."
                 : null;
 
-        if (this.m_RenameError != null || _Name == aisle.Name)
+        if (_Error != null)
+        {
+            this.m_RenameErrors[aisle.ShoppingCategoryID] = _Error;
+            return;
+        }
+
+        _ = this.m_RenameErrors.Remove(aisle.ShoppingCategoryID);
+
+        if (_Name == aisle.Name)
             return;
 
         var _Result = await this.ApiAccess.SendRequestAsync<UpdateShoppingCategoryWebAppRequest, bool>(

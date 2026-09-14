@@ -14,7 +14,7 @@
                                       Busy="this.m_Saving"
                                       CanMoveUp="@(!this.m_Saving && this.m_Aisles.IndexOf(_Aisle) > 0)"
                                       CanMoveDown="@(!this.m_Saving && this.m_Aisles.IndexOf(_Aisle) < this.m_Aisles.Count - 1)"
-                                      Error="@(this.m_RenameErrorAisleID == _Aisle.ShoppingCategoryID ? this.m_RenameError : null)"
+                                      Error="@(this.m_RenameErrors.GetValueOrDefault(_Aisle.ShoppingCategoryID))"
                                       OnMoveUp="() => this.MoveAisleAsync(_Aisle, -1)"
                                       OnMoveDown="() => this.MoveAisleAsync(_Aisle, 1)"
                                       OnRename="name => this.RenameAisleAsync(_Aisle, name)"
@@ -31,7 +31,8 @@
             <HomeTextInput Label="New aisle"
                            AutoComplete="off"
                            Error="@this.m_NewAisleError"
-                           @bind-Value="this.m_NewAisleName"
+                           Value="@this.m_NewAisleName"
+                           ValueChanged="this.NewAisleNameChanged"
                            Placeholder="e.g. Deli" />
             <div class="mt-3 flex justify-end">
                 <HomeButton Loading="this.m_Saving"

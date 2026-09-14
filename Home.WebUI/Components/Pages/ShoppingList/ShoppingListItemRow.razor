@@ -49,7 +49,7 @@
                 @this.Detail()
                 @if (this.Item.IsDearerThanUsual && this.Item.UsualCost is { } _Usual)
                 {
-                    <span class="@(this.Item.InBasket ? "" : "text-caution")">· usually $@_Usual.ToString("F2")</span>
+                    <span class="@(this.Item.InBasket ? "" : "text-caution")">@($" · usually ${_Usual:F2}")</span>
                 }
             </span>
         }
