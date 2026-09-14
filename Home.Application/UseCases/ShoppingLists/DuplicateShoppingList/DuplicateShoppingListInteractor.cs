@@ -46,6 +46,7 @@ internal class DuplicateShoppingListInteractor : IInteractor<DuplicateShoppingLi
             // means the same things to buy, not last week's trolley or last week's receipt.
             var _Duplicate = new ShoppingList()
             {
+                GroupByAisle = _Source.GroupByAisle,
                 Household = _Household,
                 IsArchived = false,
                 Items = [.. _Source.Items.OrderBy(i => i.Sequence).Select(i => new ShoppingListItem()

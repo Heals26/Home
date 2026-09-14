@@ -131,6 +131,21 @@ public class DuplicateShoppingListInteractorTests : InteractorTest
     }
 
     [Fact]
+    public async Task HandleAsync_KeepsHowTheListIsGrouped()
+    {
+        var _List = BuildList(120, this.Ours, "Last week");
+
+        _List.GroupByAisle = true;
+
+        _ = this.Database.Seed(_List);
+
+        await this.HandleAsync(120, "This week");
+
+        _ = this.Stored<ShoppingList>().Single(sl => sl.Name == "This week").GroupByAisle.Should().BeTrue(
+            "a list read by aisle last week is walked the same way this week");
+    }
+
+    [Fact]
     public async Task HandleAsync_LeavesTheOriginalUntouched()
     {
         _ = this.Database.Seed(BuildList(120, this.Ours, "Last week"));
