@@ -4,6 +4,71 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-16 · Shopping mode decision 4 of 4: in the aisle the list reads by aisle with its total in view
+
+Mitch, 16 Sep 2026: while shopping mode is on, the list groups by aisle whatever it is set to at
+home, the reorder arrows and the My order or By aisle switch go, and how many things are in the
+trolley and what they come to stays pinned to the bottom of the screen. The screen is not kept
+awake and the add box stays where it is.
+
+**Chosen, not asked:** Untick all and Clear ticked are not offered in the aisle, where they could only
+be mis-tapped, and Done takes their place in the pinned bar. The bar's total takes an unpriced line
+at what it cost last time and says "About" when it does, as the whole-list total already did, and
+the list's own progress bar moves into the bar's top edge rather than showing twice.
+
+## 2026-09-16 · Shopping mode decision 3 of 4: in the aisle a tap ticks and a pencil edits
+
+Mitch, 16 Sep 2026: in shopping mode the whole row ticks, and a pencil at the end of the row opens
+the item. A tick does nothing else: no price box opens.
+
+At home the row stays as the 31 Aug decision left it, the circle ticks and the words open the item,
+because that decision is right for reading a list and wrong for pushing a trolley. Drag is off in
+the aisle as well.
+
+## 2026-09-16 · Shopping mode decision 2 of 4: only a shop remembers prices
+
+Supersedes the twelve-hour rules in shopping decision 1 of 4 (11 Sep).
+
+Mitch, 16 Sep 2026: a shop starts when someone switches shopping mode on for a list and ends at Done
+or after two quiet hours. A tick outside a shop remembers no price. Nothing is guessed, and a
+household that never switches the mode on remembers nothing, which is the trade taken.
+
+- **A shop is a `ShoppingTrip` on the list**, holding when it started, when anything last happened
+  during it, and when it was ended. Two quiet hours end it without anything being written.
+- **A line remembers the trip it was ticked on** (`ShoppingListItem.ShoppingTripID`) for as long as it
+  stays ticked, and a purchase records its trip (`ShoppingItemPrice.ShoppingTripID`). One line
+  bought on one trip is one record, however often its price is corrected.
+- **Unticking while the trip is still going takes that line's purchase back**; unticking after the
+  trip is over leaves it standing. That closes both losses the 14 Sep dry run found: a mis-tap after
+  Untick all cannot reach an earlier shop's price, and saving a ticked line's sheet days later
+  corrects its record instead of adding a second.
+- **Chosen, not asked:** a price typed on a line after its trip is over, while the line is still
+  ticked, counts for that trip, so prices can be filled in at home from the receipt, and it is dated
+  to the last thing that happened on the trip so last week's receipt does not rank ahead of this
+  week's shop. Any change to a line during a trip, and anyone joining it, keeps it going, so the two
+  quiet hours count from the last of those. Untick all and Clear ticked end the trip, because both
+  mean the shop is over. Switching shopping mode on while a trip is going joins it rather than
+  starting another, and two phones that start one at the same moment both keep whichever was saved
+  first. Neither trip column is a foreign key: a list already cascades to both its lines and its
+  trips and SQL Server refuses a second path, and what was paid has to outlive the trip anyway.
+
+## 2026-09-16 · Shopping mode decision 1 of 4: the layout belongs to the phone and the shop to the list
+
+Mitch, 16 Sep 2026: each phone turns the aisle layout on for itself, so the kitchen tablet stays as
+it is, and the shop belongs to the list, so two people who split up at the door are one shop with
+one set of prices.
+
+The phone remembers the trip it joined, in the browser like the board's "Just me" switch, rather
+than the list. A trip that ends anywhere, at Done on the other phone or after two quiet hours, takes
+every phone out of the aisle layout, and a later trip on the same list never pulls a phone back in
+until someone on it chooses to shop. A phone that is not in the layout still counts its ticks towards
+a trip going on with the list, because the shop is the list's.
+
+**Chosen, not asked:** "Start shopping" sits under the add box, and reads "Shopping in progress" with
+"Join" when a trip is already going. The phone remembers one trip per list, so shopping with two lists
+in the same supermarket keeps both in the aisle layout. Starting, joining and finishing a shop are
+written to the history feed under Shopping.
+
 ## 2026-09-11 · Shopping decision 4 of 4: each list chooses between its own order and the aisles
 
 Mitch, 11 Sep 2026: a toggle per list, "My order" or "By aisle", remembered. It is stored on the

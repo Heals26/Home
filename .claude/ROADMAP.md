@@ -31,6 +31,7 @@ name them still make sense.*
 | **Phase 7** *(8 Sep 2026)* | Identity decided as no switching on shared devices; members without a login; who ticked a chore off recorded and shown; a per-device "Just me" switch on the board and member chips on the calendar. |
 | **Phase 8** *(8 Sep 2026)* | History in words: every change recorded with a household and a summary, a `/history` page and a Recently tile, per-thing history on chores and recipes, and a planner that remembers what was last had. |
 | **Phase 9** *(11 Sep 2026)* | Aisles and price memory: the household's own aisles with a My order or By aisle switch on each list, and each line saying what it usually costs, whether this price is dearer and roughly what an unpriced one will come to. |
+| **Phase 10** *(16 Sep 2026)* | Shopping mode: a shop with a start and an end on each list that every phone joins, prices recorded only during a shop and tied to it, and an aisle layout per phone with whole-row ticks, a pencil to edit and the trolley total pinned. |
 
 ---
 
@@ -481,7 +482,7 @@ Four decisions in `DECISIONS.md` (all 11 Sep 2026) and then the build:
 the memory, nothing shows or edits an item's price history, and a renamed item starts a fresh memory
 rather than carrying its prices across.
 
-## Phase 10 · Shopping mode, L *(new, 14 Sep 2026)*
+## Phase 10 · Shopping mode, L *(new, 14 Sep 2026)* **DONE 16 Sep 2026**
 
 The shopping list is written at home and used in a supermarket, and it behaves the same in both
 places. Two problems come from that, one found in real use and one in the dry run of phase 9 on
@@ -545,6 +546,30 @@ everything else here rests on knowing which tick recorded which price.
   is where it drops. That is a real problem for the people this phase is for, and it is a different
   phase's work.
 - **Anything that notices you are at the shop.** No location and no geofence. A person starts a shop.
+
+### What shipped, 16 Sep 2026
+
+Four decisions in `DECISIONS.md` (all 16 Sep 2026) and then the build:
+
+- **A shop on each list.** `ShoppingTrip` holds when a shop started, when anything last happened on
+  it and when it ended. Start shopping joins the shop already going rather than starting another,
+  even when two phones press it together, and Done, Untick all, Clear ticked or two quiet hours end
+  it. Migration `ShoppingTrips`.
+- **Prices tied to the shop.** A priced line ticked during a shop records one purchase against that
+  shop. Unticking while the shop is going takes it back; after the shop the purchase stands, and a
+  price typed in later for a line still ticked corrects that purchase instead of adding another. The
+  twelve-hour window is gone, and both losses from the 14 Sep dry run have tests.
+- **The aisle layout.** Each phone remembers the shop it joined. While it is in one, the list reads
+  by aisle, the whole row ticks and a pencil opens the item, reordering and the view switch go, and a
+  bar pinned to the foot of the screen shows what the trolley comes to, how many lines are in it,
+  and Done. A phone that has not joined sees "Shopping in progress" with a Join button instead of
+  Start shopping.
+
+**Left for later, on purpose:** a ticked line still leaves its aisle for the trolley section straight
+away, so a mis-tap is put right by opening the trolley and unticking it, which is where the undo
+question from 14 Sep comes back in; a purchase recorded before trips existed belongs to no trip, so a
+line that was already ticked when the migration ran counts its own price towards its usual until it
+is unticked; and the screen is not kept awake.
 
 ## Phase 11 · Nullable on in the API, L *(was C3)*
 
