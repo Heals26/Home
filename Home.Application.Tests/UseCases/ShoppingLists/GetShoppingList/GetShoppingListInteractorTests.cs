@@ -56,8 +56,58 @@ public class GetShoppingListInteractorTests : InteractorTest
         return new GetShoppingListInteractor().HandleAsync(
             new GetShoppingListInputPort(shoppingListID),
             this.m_Presenter,
-            _Services.With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Context, _Services.Time)).Build(),
+            _Services
+                .With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Context, _Services.Time))
+                .With<IShoppingTripLogic>(new ShoppingTripLogic(_Context, _Services.Time))
+                .Build(),
             CancellationToken.None);
+    }
+
+    private static ShoppingTrip Trip(long shoppingTripID, ShoppingList shoppingList, TimeSpan quietFor, bool ended = false)
+    {
+        var _LastActivity = TestServiceFactory.DefaultNow.UtcDateTime - quietFor;
+
+        return new()
+        {
+            EndedOnUTC = ended ? _LastActivity : null,
+            LastActivityOnUTC = _LastActivity,
+            ShoppingList = shoppingList,
+            ShoppingTripID = shoppingTripID,
+            StartedOnUTC = _LastActivity.AddMinutes(-30)
+        };
+    }
+
+    [Fact]
+    public async Task HandleAsync_SaysWhichShopIsGoingOnWithTheList()
+    {
+        var _List = BuildList(120, this.Ours, "This week", "Milk");
+
+        _List.Trips =
+        [
+            Trip(150, _List, TimeSpan.FromDays(7), ended: true),
+            Trip(151, _List, TimeSpan.FromDays(3)),
+            Trip(152, _List, TimeSpan.FromMinutes(5))
+        ];
+
+        _ = this.Database.Seed(_List);
+
+        await this.HandleAsync(120);
+
+        _ = Ok<GetShoppingListApiResponse>(this.m_Presenter).ShoppingTripID.Should().Be(152);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenTheLastShopHasGoneQuiet_SaysNobodyIsShopping()
+    {
+        var _List = BuildList(120, this.Ours, "This week", "Milk");
+
+        _List.Trips = [Trip(150, _List, ShoppingTripLogic.QuietSpell + TimeSpan.FromMinutes(1))];
+
+        _ = this.Database.Seed(_List);
+
+        await this.HandleAsync(120);
+
+        _ = Ok<GetShoppingListApiResponse>(this.m_Presenter).ShoppingTripID.Should().BeNull("a shop nobody finished is over after two quiet hours");
     }
 
     [Fact]

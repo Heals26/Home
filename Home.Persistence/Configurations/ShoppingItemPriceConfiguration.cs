@@ -32,6 +32,9 @@ public class ShoppingItemPriceConfiguration : IEntityTypeConfiguration<ShoppingI
         _ = entity.Property(e => e.ShoppingListItemID)
             .IsRequired();
 
+        _ = entity.Property(e => e.ShoppingTripID)
+            .IsRequired(false);
+
         _ = entity.Property(e => e.Unit)
             .IsRequired(false);
 
@@ -44,6 +47,7 @@ public class ShoppingItemPriceConfiguration : IEntityTypeConfiguration<ShoppingI
             .IsRequired();
 
         _ = entity.HasIndex("ShoppingItemMemoryID", nameof(ShoppingItemPrice.BoughtOnUTC));
+        _ = entity.HasIndex(nameof(ShoppingItemPrice.ShoppingListItemID), nameof(ShoppingItemPrice.ShoppingTripID));
     }
 
     #endregion Methods

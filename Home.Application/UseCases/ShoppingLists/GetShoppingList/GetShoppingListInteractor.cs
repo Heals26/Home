@@ -20,6 +20,7 @@ internal class GetShoppingListInteractor : IInteractor<GetShoppingListInputPort,
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _MemoryLogic = serviceFactory.GetService<IShoppingItemMemoryLogic>();
+        var _TripLogic = serviceFactory.GetService<IShoppingTripLogic>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -37,7 +38,11 @@ internal class GetShoppingListInteractor : IInteractor<GetShoppingListInputPort,
         if (_ShoppingList == null)
             await outputPort.PresentShoppingListNotFoundAsync(inputPort.ShoppingListID, cancellationToken);
         else
-            await outputPort.PresentShoppingListAsync(_ShoppingList, _MemoryLogic.Assess(_Household, _ShoppingList.Items), cancellationToken);
+            await outputPort.PresentShoppingListAsync(
+                _ShoppingList,
+                _MemoryLogic.Assess(_Household, _ShoppingList.Items),
+                _TripLogic.FindOpen(_Household, _ShoppingList.ShoppingListID),
+                cancellationToken);
     }
 
     #endregion Methods

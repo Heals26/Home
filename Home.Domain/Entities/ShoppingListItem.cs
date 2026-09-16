@@ -31,6 +31,13 @@ public class ShoppingListItem
     public long Sequence { get; set; }
 
     /// <summary>
+    /// The trip the line was ticked on, for as long as it stays ticked, so its price is remembered
+    /// against that shop and no other. Not a foreign key, because a list already cascades to both its
+    /// lines and its trips and SQL Server refuses a second path.
+    /// </summary>
+    public long? ShoppingTripID { get; set; }
+
+    /// <summary>
     /// <see cref="Enumerations.MeasurementUnitSE"/> value. Null means an amount with no unit.
     /// </summary>
     public long? Unit { get; set; }

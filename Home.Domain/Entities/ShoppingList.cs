@@ -25,6 +25,7 @@ public class ShoppingList
 
     public Household Household { get; set; } = null!;
     public ICollection<ShoppingListItem> Items { get; set; } = [];
+    public ICollection<ShoppingTrip> Trips { get; set; } = [];
 
     #endregion Properties
 

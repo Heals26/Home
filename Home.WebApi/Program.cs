@@ -346,7 +346,8 @@ static IServiceCollection SetupScopedServices(IServiceCollection services)
         .AddScoped<ILightSyncLogic, LightSyncLogic>()
         .AddScoped<IRecipeLogic, RecipeLogic>()
         .AddScoped<IShoppingItemMemoryLogic, ShoppingItemMemoryLogic>()
-        .AddScoped<IShoppingListLogic, ShoppingListLogic>();
+        .AddScoped<IShoppingListLogic, ShoppingListLogic>()
+        .AddScoped<IShoppingTripLogic, ShoppingTripLogic>();
 
     return services;
 }

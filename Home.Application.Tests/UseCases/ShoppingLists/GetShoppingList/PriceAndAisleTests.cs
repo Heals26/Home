@@ -94,7 +94,10 @@ public class PriceAndAisleTests : InteractorTest
         return new GetShoppingListInteractor().HandleAsync(
             new GetShoppingListInputPort(shoppingListID),
             this.m_Presenter,
-            _Services.With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Context, _Services.Time)).Build(),
+            _Services
+                .With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Context, _Services.Time))
+                .With<IShoppingTripLogic>(new ShoppingTripLogic(_Context, _Services.Time))
+                .Build(),
             CancellationToken.None);
     }
 
@@ -143,6 +146,40 @@ public class PriceAndAisleTests : InteractorTest
         var _Line = this.Line();
 
         _ = _Line.UsualCost.Should().Be(4.00m, "last week's purchase was made on this very line, unticked since with Untick all");
+        _ = _Line.IsDearerThanUsual.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HandleAsync_JudgesALineInTheTrolleyAgainstEveryShopButThisOne()
+    {
+        var _List = BuildList(120, this.Ours, 2, MeasurementUnitSE.Litres, 5.00m);
+        var _Memory = BuildMemory(140, this.Ours, null);
+
+        _List.Items.Single().InBasket = true;
+        _List.Items.Single().ShoppingTripID = 161;
+
+        _Memory.Prices =
+        [
+            .. new[] { (Trip: 160L, Cost: 4.00m, DaysAgo: 7), (Trip: 161L, Cost: 5.00m, DaysAgo: 0) }.Select(p => new ShoppingItemPrice()
+            {
+                Amount = 2,
+                BoughtOnUTC = TestServiceFactory.DefaultNow.UtcDateTime.AddDays(-p.DaysAgo),
+                Cost = p.Cost,
+                Memory = _Memory,
+                ShoppingItemPriceID = p.Trip - 10,
+                ShoppingListItemID = 130,
+                ShoppingTripID = p.Trip,
+                Unit = MeasurementUnitSE.Litres.Value
+            })
+        ];
+
+        _ = this.Database.Seed(_Memory, _List);
+
+        await this.HandleAsync(120);
+
+        var _Line = this.Line();
+
+        _ = _Line.UsualCost.Should().Be(4.00m, "the purchase this tick recorded is not its own usual");
         _ = _Line.IsDearerThanUsual.Should().BeTrue();
     }
 

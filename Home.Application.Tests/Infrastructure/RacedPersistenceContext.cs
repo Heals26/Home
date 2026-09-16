@@ -5,11 +5,12 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 namespace Home.Application.Tests.Infrastructure;
 
 /// <summary>
-/// A context that loses a race on its first save: another request's write lands just before it, and
-/// the save fails the way SQL Server reports a unique index clash. The in-memory store has no unique
-/// indexes, so the clash is thrown here instead of by the database.
+/// A context that loses a race on its first save: another request's write lands just before it.
+/// Where a unique index stands between the two, the save then fails the way SQL Server reports the
+/// clash. The in-memory store has no unique indexes, so the clash is thrown here instead of by the
+/// database.
 /// </summary>
-public sealed class RacedPersistenceContext(IPersistenceContext inner, Action otherRequestSaves) : IPersistenceContext
+public sealed class RacedPersistenceContext(IPersistenceContext inner, Action otherRequestSaves, bool clashes = true) : IPersistenceContext
 {
 
     #region Fields
@@ -52,7 +53,9 @@ public sealed class RacedPersistenceContext(IPersistenceContext inner, Action ot
         this.m_Raced = true;
         otherRequestSaves();
 
-        throw new DbUpdateException("Cannot insert duplicate key row in object 'home.ShoppingItemMemory' with unique index 'IX_ShoppingItemMemory_HouseholdID_NameKey'.");
+        return clashes
+            ? throw new DbUpdateException("Cannot insert duplicate key row in object 'home.ShoppingItemMemory' with unique index 'IX_ShoppingItemMemory_HouseholdID_NameKey'.")
+            : inner.SaveChangesAsync(cancellationToken);
     }
 
     #endregion Methods

@@ -8,7 +8,7 @@ public interface IGetShoppingListOutputPort
 
     #region Methods
 
-    Task PresentShoppingListAsync(ShoppingList shoppingList, IReadOnlyDictionary<long, ShoppingItemInsight> insights, CancellationToken cancellationToken);
+    Task PresentShoppingListAsync(ShoppingList shoppingList, IReadOnlyDictionary<long, ShoppingItemInsight> insights, ShoppingTrip? openTrip, CancellationToken cancellationToken);
     Task PresentShoppingListNotFoundAsync(long shoppingListID, CancellationToken cancellationToken);
 
     #endregion Methods

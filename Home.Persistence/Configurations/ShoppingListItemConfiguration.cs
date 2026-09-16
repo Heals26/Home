@@ -41,6 +41,9 @@ public class ShoppingListItemConfiguration : IEntityTypeConfiguration<ShoppingLi
             .HasDefaultValue(0)
             .IsRequired();
 
+        _ = entity.Property(e => e.ShoppingTripID)
+            .IsRequired(false);
+
         _ = entity.Property<long>("ShoppingListID");
         _ = entity.HasOne(e => e.ShoppingList)
             .WithMany(e => e.Items)

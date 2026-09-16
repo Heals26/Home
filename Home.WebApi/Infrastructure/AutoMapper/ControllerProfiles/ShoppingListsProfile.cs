@@ -25,7 +25,8 @@ public class ShoppingListsProfile : Profile
             .ForMember(d => d.ShoppingCategoryID, o => o.Ignore())
             .ForMember(d => d.UsualCost, o => o.Ignore());
 
-        _ = this.CreateMap<ShoppingList, GetShoppingListApiResponse>();
+        _ = this.CreateMap<ShoppingList, GetShoppingListApiResponse>()
+            .ForMember(d => d.ShoppingTripID, o => o.Ignore());
         _ = this.CreateMap<IEnumerable<ShoppingList>, GetShoppingListsApiResponse>()
             .ForMember(d => d.ShoppingLists, o => o.MapFrom(s => s));
 
