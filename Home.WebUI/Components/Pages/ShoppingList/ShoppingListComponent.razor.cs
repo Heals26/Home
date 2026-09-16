@@ -11,6 +11,7 @@ using Home.WebUI.DataAccess.ShoppingListItems.SetShoppingListItemCategory;
 using Home.WebUI.DataAccess.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebUI.DataAccess.ShoppingLists.GetShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.Models;
+using Home.WebUI.DataAccess.ShoppingLists.StartShoppingTrip;
 using Home.WebUI.DataAccess.ShoppingLists.UpdateShoppingList;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.ApiProviders.Helpers;
@@ -40,6 +41,14 @@ public partial class ShoppingListComponent : IDisposable
     private bool m_LoadingList;
     private List<ShoppingCategoryDto> m_Aisles = [];
     private bool m_ShowAisles;
+
+    /// <summary>
+    /// Whether this device joined the shop going on with the list, which lays the list out for the
+    /// aisle here and nowhere else.
+    /// </summary>
+    private bool m_ShoppingHere;
+
+    private bool m_ChangingTrip;
 
     private HomeTextInput? m_QuickAddInput;
     private string m_QuickAddText = string.Empty;
@@ -141,6 +150,7 @@ public partial class ShoppingListComponent : IDisposable
         // an open edit, so none of it may survive the switch.
         this.m_LoadedShoppingListID = this.ShoppingListID;
         this.m_ShoppingList = null;
+        this.m_ShoppingHere = false;
         this.m_QuickAddText = string.Empty;
         this.m_ShowSuggestions = false;
         this.m_ShowTrolley = false;
@@ -190,6 +200,9 @@ public partial class ShoppingListComponent : IDisposable
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
+        var _ShoppingHere = _Result != null
+            && await this.ShoppingModeLogic.IsShoppingAsync(_RequestedShoppingListID, _Result.ShoppingTripID, this.CancellationToken);
+
         // A response for a list the user has already left would otherwise land under the new
         // list's heading, so it is dropped.
         if (_RequestedShoppingListID != this.ShoppingListID)
@@ -197,6 +210,7 @@ public partial class ShoppingListComponent : IDisposable
 
         this.m_LoadingList = false;
         this.m_ShoppingList = _Result;
+        this.m_ShoppingHere = _ShoppingHere;
     }
 
     /// <summary>
@@ -672,6 +686,65 @@ public partial class ShoppingListComponent : IDisposable
     #endregion Item Methods
 
     #region List Action Methods
+
+    /// <summary>
+    /// Joins the shop already going on with the list, or starts one, and lays this device out for
+    /// the aisle. Another device only learns that a shop is going on, and joins it for itself.
+    /// </summary>
+    private async Task StartShoppingAsync()
+    {
+        if (this.m_ChangingTrip || !this.ShoppingListID.HasValue)
+            return;
+
+        var _ShoppingListID = this.ShoppingListID.Value;
+
+        this.m_ChangingTrip = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, StartShoppingTripWebAppResponse>(
+            null!, ApiProvider.StartShoppingTrip(_ShoppingListID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+        if (_Result != null)
+            await this.ShoppingModeLogic.JoinAsync(_ShoppingListID, _Result.ShoppingTripID, this.CancellationToken);
+
+        this.m_ChangingTrip = false;
+
+        if (_Result == null)
+            return;
+
+        await this.LoadListAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
+    }
+
+    /// <summary>
+    /// Done. The shop ends for every device shopping with the list, not only this one.
+    /// </summary>
+    private async Task FinishShoppingAsync()
+    {
+        if (this.m_ChangingTrip || !this.ShoppingListID.HasValue)
+            return;
+
+        var _ShoppingListID = this.ShoppingListID.Value;
+
+        this.m_ChangingTrip = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+            null!, ApiProvider.EndShoppingTrip(_ShoppingListID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.CancellationToken);
+
+        if (_Result == true)
+            await this.ShoppingModeLogic.LeaveAsync(_ShoppingListID, this.CancellationToken);
+
+        this.m_ChangingTrip = false;
+
+        if (_Result != true)
+            return;
+
+        await this.LoadListAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
+    }
 
     private Task UntickAllAsync()
         => this.RunListActionAsync(ApiProvider.UntickShoppingListItems(this.ShoppingListID!.Value));

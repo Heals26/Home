@@ -37,17 +37,26 @@ public static partial class ApiProvider
         => new(HttpMethod.Delete, RouteType.Route, $"{GetShoppingListBaseUrl(shoppingListID)}/Items/Ticked");
 
     /// <summary>
-    /// Copies a list and everything on it, server-side — thirty round trips over a supermarket
+    /// Copies a list and everything on it, server-side, because thirty round trips over a supermarket
     /// connection is the difference between a list appearing and a list filling in.
     /// </summary>
     public static ApiProviderHelper DuplicateShoppingList(long shoppingListID)
         => new(HttpMethod.Post, RouteType.Body, $"{GetShoppingListBaseUrl(shoppingListID)}/Duplicate");
+
+    public static ApiProviderHelper EndShoppingTrip(long shoppingListID)
+        => new(HttpMethod.Post, RouteType.Route, $"{GetShoppingListBaseUrl(shoppingListID)}/Trip/End");
 
     public static ApiProviderHelper GetShoppingLists()
         => new(HttpMethod.Get, RouteType.Route, GetShoppingListsBaseUrl());
 
     public static ApiProviderHelper GetShoppingList(long shoppingListID)
         => new(HttpMethod.Get, RouteType.Route, GetShoppingListBaseUrl(shoppingListID));
+
+    /// <summary>
+    /// Joins the shop already going on with the list rather than starting a second one.
+    /// </summary>
+    public static ApiProviderHelper StartShoppingTrip(long shoppingListID)
+        => new(HttpMethod.Post, RouteType.Route, $"{GetShoppingListBaseUrl(shoppingListID)}/Trip");
 
     public static ApiProviderHelper UntickShoppingListItems(long shoppingListID)
         => new(HttpMethod.Post, RouteType.Route, $"{GetShoppingListBaseUrl(shoppingListID)}/Items/Untick");

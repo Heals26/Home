@@ -1,0 +1,24 @@
+﻿@* A line laid out for the aisle (16 Sep). The whole row ticks, because pushing a trolley leaves a
+   thumb and not a steady aim at a circle, and the pencil at the end opens the item instead of the
+   words. Nothing here reorders or drags. *@
+<div class="flex items-center">
+    <HomeListRow Class="flex-1 min-w-0 flex items-center gap-4 pl-5 pr-2 py-4 enabled:active:bg-ink-800"
+                 aria-pressed="@(this.Item.InBasket ? "true" : "false")"
+                 OnClick="() => this.OnToggle.InvokeAsync(this.Item)">
+        <span aria-hidden="true"
+              class="h-7 w-7 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors @(this.Item.InBasket ? "border-shopping bg-shopping/20" : "border-ink-600")">
+            @if (this.Item.InBasket)
+            {
+                <HomeIcon Name="check" Size="sm" Class="text-shopping" />
+            }
+        </span>
+        <ShoppingListItemText Item="this.Item" />
+    </HomeListRow>
+    <HomeButton IconOnly
+                Variant="ghost"
+                Class="mr-2"
+                aria-label="@($"Edit {this.Item.Name}")"
+                OnClick="() => this.OnEdit.InvokeAsync(this.Item)">
+        <HomeIcon Name="pencil" />
+    </HomeButton>
+</div>

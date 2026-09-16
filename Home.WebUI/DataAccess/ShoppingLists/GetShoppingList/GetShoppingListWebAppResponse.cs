@@ -23,6 +23,11 @@ public class GetShoppingListWebAppResponse
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The shop going on with the list, or null when nobody is shopping with it.
+    /// </summary>
+    public long? ShoppingTripID { get; set; }
+
     #endregion Properties
 
 }

@@ -1,0 +1,21 @@
+﻿@* How a phone switches to the aisle layout, and how a second phone finds the shop the first one
+   started so both tick into the same trolley. *@
+<HomeButton Variant="bare"
+            Size="none"
+            Class="mt-3 w-full flex items-center gap-3 rounded-xl border border-shopping/30 bg-shopping/10 px-4 min-h-[52px] text-left enabled:hover:bg-shopping/20"
+            Disabled="this.Busy"
+            aria-label="@(this.ShopInProgress ? "Join the shop in progress" : "Start shopping")"
+            OnClick="this.OnStart">
+    @if (this.ShopInProgress)
+    {
+        <span aria-hidden="true" class="h-2.5 w-2.5 shrink-0 rounded-full bg-shopping"></span>
+        <span class="flex-1 min-w-0 truncate text-sm font-medium text-ink-50">Shopping in progress</span>
+        <span class="shrink-0 text-sm font-semibold text-shopping">Join</span>
+    }
+    else
+    {
+        <HomeIcon Name="shopping-list" Class="shrink-0 text-shopping" />
+        <span class="flex-1 min-w-0 truncate text-sm font-medium text-ink-50">Start shopping</span>
+    }
+    <HomeIcon Name="chevron-right" Size="sm" Class="shrink-0 text-ink-500" />
+</HomeButton>

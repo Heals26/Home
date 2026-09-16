@@ -1,0 +1,33 @@
+﻿@* Pinned to the foot of the screen while shopping, so what the trolley comes to is in view from any
+   aisle. Its top edge fills as lines go into the trolley, which is why the list does not show its
+   own progress bar alongside it.
+
+   A sticky element stops short of its scroll area's padding, and the page keeps 24px of it, which
+   left the list showing through under the bar. So the bar is let down over that padding, and the
+   strip beneath it is painted the colour of the page. *@
+<div class="sticky -bottom-6 z-10 mt-4 pb-3">
+    <div class="overflow-hidden rounded-2xl border border-ink-700 bg-ink-900/95 shadow-2xl backdrop-blur">
+        <div class="h-1 bg-ink-800"
+             role="progressbar"
+             aria-label="In the trolley"
+             aria-valuenow="@this.ProgressPercent"
+             aria-valuemin="0"
+             aria-valuemax="100">
+            <div class="h-full bg-shopping transition-all duration-300" style="width: @(this.ProgressPercent)%"></div>
+        </div>
+        <div class="flex items-center gap-4 pl-5 pr-3 py-3">
+            <div class="flex-1 min-w-0">
+                <p class="flex items-baseline gap-1.5">
+                    @if (this.Estimate.IncludesGuesses)
+                    {
+                        <span class="text-xs text-ink-400">About</span>
+                    }
+                    <span class="font-display text-2xl leading-none tabular-nums text-ink-50">@($"${this.Estimate.Total:F2}")</span>
+                </p>
+                <p class="text-xs text-ink-400 mt-1 truncate">@($"{this.InTrolley} of {this.ItemCount} in the trolley")</p>
+            </div>
+            <HomeButton Loading="this.Finishing" OnClick="this.OnDone">Done</HomeButton>
+        </div>
+    </div>
+    <div aria-hidden="true" class="absolute inset-x-0 bottom-0 h-3 bg-ink-950"></div>
+</div>

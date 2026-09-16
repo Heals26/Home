@@ -1,6 +1,7 @@
 @using Home.WebUI.DataAccess.Recipes.Models
 
 @inject IShoppingAisleLogic AisleLogic
+@inject IShoppingModeLogic ShoppingModeLogic
 
 @* AllowOverflow because the suggestion list floats under the add box. Clipped to the card, it was
    cut off at the bottom edge, and on a short list there is almost no card for it to open into. *@
@@ -24,7 +25,8 @@
         }
     </TitleContent>
     <ActionsContent>
-        @if (this.TrolleyCount() > 0)
+        @* Not offered in the aisle, where they could only be mis-tapped. Done ends the shop there. *@
+        @if (this.TrolleyCount() > 0 && !this.m_ShoppingHere)
         {
             <HomeButton Size="sm" Variant="ghost" Disabled="this.m_RunningListAction" OnClick="this.UntickAllAsync">Untick all</HomeButton>
             <HomeButton Size="sm" Variant="secondary" Disabled="this.m_RunningListAction" OnClick="() => this.m_ShowConfirmClear = true">Clear ticked</HomeButton>
@@ -106,17 +108,27 @@
                 }
             </div>
 
+            @if (!this.m_ShoppingHere && (_ToGet.Count > 0 || this.m_ShoppingList.ShoppingTripID != null))
+            {
+                <ShoppingModeStart ShopInProgress="this.m_ShoppingList.ShoppingTripID != null"
+                                   Busy="this.m_ChangingTrip"
+                                   OnStart="this.StartShoppingAsync" />
+            }
+
             @if (this.ItemCount() == 0)
             {
                 <HomeEmptyState Title="List is empty" Subtitle="Type the first thing you'll need above" />
             }
             else
             {
-                <div class="mt-4 h-1.5 rounded-full bg-ink-800 overflow-hidden" role="progressbar" aria-valuenow="@this.ProgressPercent()" aria-valuemin="0" aria-valuemax="100">
-                    <div class="h-full bg-shopping transition-all duration-300" style="width: @(this.ProgressPercent())%"></div>
-                </div>
+                @if (!this.m_ShoppingHere)
+                {
+                    <div class="mt-4 h-1.5 rounded-full bg-ink-800 overflow-hidden" role="progressbar" aria-valuenow="@this.ProgressPercent()" aria-valuemin="0" aria-valuemax="100">
+                        <div class="h-full bg-shopping transition-all duration-300" style="width: @(this.ProgressPercent())%"></div>
+                    </div>
+                }
 
-                @if (_ToGet.Count > 0)
+                @if (_ToGet.Count > 0 && !this.m_ShoppingHere)
                 {
                     <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
                         <HomeSegmentedControl TValue="bool"
@@ -133,7 +145,24 @@
                     </div>
                 }
 
-                @if (_ToGet.Count > 0 && this.IsGroupedByAisle())
+                @* In the aisle the list reads by aisle whatever it is set to at home. *@
+                @if (_ToGet.Count > 0 && this.m_ShoppingHere)
+                {
+                    <div class="divide-y divide-ink-800 -mx-5 mt-2">
+                        @foreach (var _Group in this.AisleLogic.Group(_ToGet, this.m_Aisles))
+                        {
+                            <ShoppingAisleHeading @key="AisleKey(_Group)" Aisle="_Group.Aisle" />
+                            @foreach (var _Item in _Group.Items)
+                            {
+                                <ShoppingModeItemRow @key="_Item.ShoppingListItemID"
+                                                     Item="_Item"
+                                                     OnToggle="this.ToggleItemAsync"
+                                                     OnEdit="this.OpenEditItem" />
+                            }
+                        }
+                    </div>
+                }
+                else if (_ToGet.Count > 0 && this.IsGroupedByAisle())
                 {
                     @* The walking order is set in Aisles, so nothing here reorders. A row can still be
                        dragged onto another list. *@
@@ -197,7 +226,7 @@
                                      OnClick="() => this.m_ShowTrolley = !this.m_ShowTrolley">
                             <HomeIcon Name="chevron-down" Class="@($"shrink-0 text-ink-500 transition-transform {(this.m_ShowTrolley ? "" : "-rotate-90")}")" />
                             <span class="flex-1 text-sm font-medium text-ink-300">In the trolley (@_InTrolley.Count)</span>
-                            @if (this.TrolleyTotal() > 0)
+                            @if (this.TrolleyTotal() > 0 && !this.m_ShoppingHere)
                             {
                                 <span class="text-sm font-medium text-shopping">$@this.TrolleyTotal().ToString("F2")</span>
                             }
@@ -207,10 +236,20 @@
                             <div class="divide-y divide-ink-800 border-t border-ink-800">
                                 @foreach (var _Item in _InTrolley)
                                 {
-                                    <ShoppingListItemRow @key="_Item.ShoppingListItemID"
-                                                         Item="_Item"
-                                                         OnToggle="this.ToggleItemAsync"
-                                                         OnEdit="this.OpenEditItem" />
+                                    @if (this.m_ShoppingHere)
+                                    {
+                                        <ShoppingModeItemRow @key="_Item.ShoppingListItemID"
+                                                             Item="_Item"
+                                                             OnToggle="this.ToggleItemAsync"
+                                                             OnEdit="this.OpenEditItem" />
+                                    }
+                                    else
+                                    {
+                                        <ShoppingListItemRow @key="_Item.ShoppingListItemID"
+                                                             Item="_Item"
+                                                             OnToggle="this.ToggleItemAsync"
+                                                             OnEdit="this.OpenEditItem" />
+                                    }
                                 }
                             </div>
                         }
@@ -234,6 +273,18 @@
         }
     </ChildContent>
 </HomeCard>
+
+@* Outside the card so it can stay pinned the whole length of the list, not only while the card's
+   own bottom edge is in view. *@
+@if (this.m_ShoppingHere && this.m_ShoppingList != null)
+{
+    <ShoppingTrolleyBar Estimate="this.AisleLogic.Estimate(this.ItemsInTrolley())"
+                        InTrolley="this.TrolleyCount()"
+                        ItemCount="this.ItemCount()"
+                        ProgressPercent="this.ProgressPercent()"
+                        Finishing="this.m_ChangingTrip"
+                        OnDone="this.FinishShoppingAsync" />
+}
 
 <HomeModal @bind-Visible="this.m_ShowEditItem" Title="Edit item" OnSubmit="this.SaveItemAsync">
     <ChildContent>

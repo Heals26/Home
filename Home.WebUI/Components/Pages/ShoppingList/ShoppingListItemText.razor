@@ -1,0 +1,24 @@
+﻿@* The words of a line, read the same whether the row is laid out for home or for the aisle. *@
+<span class="block flex-1 min-w-0">
+    <span class="block text-sm font-medium truncate @(this.Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@this.Item.Name</span>
+    @if (this.Detail().Length > 0)
+    {
+        <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">
+            @this.Detail()
+            @if (this.Item.IsDearerThanUsual && this.Item.UsualCost is { } _Usual)
+            {
+                <span class="@(this.Item.InBasket ? "" : "text-caution")">@($" · usually ${_Usual:F2}")</span>
+            }
+        </span>
+    }
+    @* Its own line with an icon rather than another entry on the detail line, because this is the
+       thing being read at the shelf and it is prose, not a measurement. Two lines at most so a long
+       one cannot turn a row into a paragraph. *@
+    @if (!string.IsNullOrWhiteSpace(this.Item.Note))
+    {
+        <span class="flex items-start gap-1.5 mt-1 text-xs @(this.Item.InBasket ? "text-ink-600" : "text-ink-400")">
+            <HomeIcon Name="note" Size="sm" Class="shrink-0 mt-px" />
+            <span class="min-w-0 line-clamp-2">@this.Item.Note</span>
+        </span>
+    }
+</span>

@@ -1,8 +1,8 @@
-﻿@* One line of a shopping list, split into two targets: the circle ticks, the words open the item.
-   The whole row used to tick, which meant reading a line and tapping it to check the amount
-   crossed it off instead, and in a supermarket with a trolley that is a mis-tap you have to undo.
-   The circle keeps a 56px hit area of its own so the tick target did not shrink to the 24px ring
-   you can see, and the pencil is gone because the words now do its job. *@
+﻿@* One line of a shopping list as it reads outside a shop, split into two targets: the circle ticks,
+   the words open the item. The whole row used to tick, which meant reading a line and tapping it to
+   check the amount crossed it off instead. The circle keeps a 56px hit area of its own so the tick
+   target did not shrink to the 24px ring you can see. In the aisle, ShoppingModeItemRow gives the
+   tick back to the whole row, because there the tick is the point. *@
 
 @* Draggable only where there is a pointer to drag with. Touch fires no drag events, so the row's
    chevrons stay the way a finger reorders and this is the mouse's shortcut for the same move. The
@@ -42,27 +42,7 @@
     <HomeListRow Class="flex-1 min-w-0 pr-5 pl-0 min-h-[56px] enabled:hover:bg-transparent"
                  aria-label="@($"Edit {this.Item.Name}")"
                  OnClick="() => this.OnEdit.InvokeAsync(this.Item)">
-        <span class="block text-sm font-medium truncate @(this.Item.InBasket ? "text-ink-500 line-through" : "text-ink-50")">@this.Item.Name</span>
-        @if (this.Detail().Length > 0)
-        {
-            <span class="block text-xs mt-0.5 @(this.Item.InBasket ? "text-ink-600" : "text-ink-500")">
-                @this.Detail()
-                @if (this.Item.IsDearerThanUsual && this.Item.UsualCost is { } _Usual)
-                {
-                    <span class="@(this.Item.InBasket ? "" : "text-caution")">@($" · usually ${_Usual:F2}")</span>
-                }
-            </span>
-        }
-        @* Its own line with an icon rather than another entry on the detail line, because this is
-           the thing being read at the shelf and it is prose, not a measurement. Two lines at most
-           so a long one cannot turn a row into a paragraph. *@
-        @if (!string.IsNullOrWhiteSpace(this.Item.Note))
-        {
-            <span class="flex items-start gap-1.5 mt-1 text-xs @(this.Item.InBasket ? "text-ink-600" : "text-ink-400")">
-                <HomeIcon Name="note" Size="sm" Class="shrink-0 mt-px" />
-                <span class="min-w-0 line-clamp-2">@this.Item.Note</span>
-            </span>
-        }
+        <ShoppingListItemText Item="this.Item" />
     </HomeListRow>
     @* Only what is still to get can be reordered, because the order of the trolley is history, and the
        list you walk the shop with is the one worth arranging. *@

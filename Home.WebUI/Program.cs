@@ -104,6 +104,9 @@ _Builder.Services.AddScoped<IDevicePreferences, DevicePreferences>();
 // Sums over what a page already holds, with nothing kept between calls.
 _Builder.Services.AddSingleton<IShoppingAisleLogic, ShoppingAisleLogic>();
 
+// Scoped like the device preferences it reads, which reach the browser through the circuit.
+_Builder.Services.AddScoped<IShoppingModeLogic, ShoppingModeLogic>();
+
 // Live cross-device updates: the broker is the process-wide fan-out between circuits, and
 // each circuit talks to it through a broadcaster that pins the caller's own household.
 _Builder.Services.AddSingleton<IChangeBroker, ChangeBroker>();
