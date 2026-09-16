@@ -70,6 +70,7 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
             _Services
                 .With<IShoppingListLogic>(new ShoppingListLogic(_Context))
                 .With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Context, _Services.Time))
+                .With<IShoppingTripLogic>(new ShoppingTripLogic(_Context, _Services.Time))
                 .Build(),
             CancellationToken.None);
     }

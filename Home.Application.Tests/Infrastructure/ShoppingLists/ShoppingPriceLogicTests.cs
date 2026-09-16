@@ -15,14 +15,15 @@ public class ShoppingPriceLogicTests
 
     #region Methods
 
-    private static ShoppingListItem Line(decimal? amount, MeasurementUnitSE? unit, decimal? cost, long shoppingListItemID = 1, bool inBasket = false)
+    private static ShoppingListItem Line(decimal? amount, MeasurementUnitSE? unit, decimal? cost, long shoppingListItemID = 1, long? tickedOnTripID = null)
         => new()
         {
             Amount = amount,
             Cost = cost,
-            InBasket = inBasket,
+            InBasket = tickedOnTripID != null,
             Name = "Milk",
             ShoppingListItemID = shoppingListItemID,
+            ShoppingTripID = tickedOnTripID,
             Unit = unit?.Value
         };
 
@@ -51,7 +52,8 @@ public class ShoppingPriceLogicTests
 
     /// <summary>
     /// Past purchases a week apart, newest first, all made on the one line, the way a list kept from
-    /// week to week with Untick all buys the same thing on the same line every time.
+    /// week to week with Untick all buys the same thing on the same line every time. Each week is its
+    /// own trip, numbered up to the newest.
     /// </summary>
     private static ShoppingItemMemory ReusedLine(long shoppingListItemID, params decimal[] newestFirst)
     {
@@ -64,7 +66,8 @@ public class ShoppingPriceLogicTests
                 BoughtOnUTC = TestServiceFactory.DefaultNow.UtcDateTime.AddDays(-7 * index),
                 Cost = cost,
                 Memory = _Memory,
-                ShoppingListItemID = shoppingListItemID
+                ShoppingListItemID = shoppingListItemID,
+                ShoppingTripID = newestFirst.Length - index
             })
         ];
 
@@ -144,10 +147,19 @@ public class ShoppingPriceLogicTests
     [Fact]
     public void Assess_LeavesOutOnlyThePurchaseTheLinesOwnTickRecorded()
     {
-        var _Insight = ShoppingPriceLogic.Assess(Line(null, null, 9.00m, shoppingListItemID: 100, inBasket: true), ReusedLine(100, 9.00m, 4.00m));
+        var _Insight = ShoppingPriceLogic.Assess(Line(null, null, 9.00m, shoppingListItemID: 100, tickedOnTripID: 2), ReusedLine(100, 9.00m, 4.00m));
 
         _ = _Insight.UsualCost.Should().Be(4.00m);
         _ = _Insight.IsDearerThanUsual.Should().BeTrue("a line in the trolley is judged against the shops before this one, not against itself");
+    }
+
+    [Fact]
+    public void Assess_LeavesNothingOutForALineTickedOnAShopThatRecordedNothing()
+    {
+        var _Insight = ShoppingPriceLogic.Assess(Line(null, null, 5.00m, shoppingListItemID: 100, tickedOnTripID: 2), ReusedLine(100, 4.00m));
+
+        _ = _Insight.UsualCost.Should().Be(4.00m, "the only purchase on this line was made on an earlier trip");
+        _ = _Insight.IsDearerThanUsual.Should().BeTrue();
     }
 
     [Fact]

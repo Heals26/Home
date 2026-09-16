@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.Mediator;
+using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -23,6 +24,7 @@ internal class UntickShoppingListItemsInteractor : IInteractor<UntickShoppingLis
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<ShoppingList>>();
+        var _TripLogic = serviceFactory.GetService<IShoppingTripLogic>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -39,10 +41,14 @@ internal class UntickShoppingListItemsInteractor : IInteractor<UntickShoppingLis
 
         if (_ShoppingList != null)
         {
-            _ShoppingList.Items
-                .Where(sli => sli.InBasket)
-                .ToList()
-                .ForEach(sli => sli.InBasket = false);
+            // The shop ends before anything comes out of the trolley, so what was bought on it stands.
+            _ = _TripLogic.End(_Household, _ShoppingList.ShoppingListID);
+
+            foreach (var _Item in _ShoppingList.Items.Where(sli => sli.InBasket))
+            {
+                _Item.InBasket = false;
+                _Item.ShoppingTripID = null;
+            }
 
             _AuditLogic.UpdateAudit(_ShoppingList, $"unticked everything on '{_ShoppingList.Name}'");
 

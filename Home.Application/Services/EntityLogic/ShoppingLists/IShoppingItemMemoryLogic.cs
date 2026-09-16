@@ -23,10 +23,11 @@ public interface IShoppingItemMemoryLogic
     Task<ShoppingItemMemory> GetOrCreateAsync(Household household, string name, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Remembers what a line in the trolley cost, or takes back what the same line recorded moments
-    /// ago when it comes out of the trolley or loses its price.
+    /// Remembers what a line ticked during a shop cost, keeps that purchase in step with the line
+    /// while it stays ticked, and takes it back when the line comes out of the trolley before the
+    /// shop is over.
     /// </summary>
-    Task RecordTickAsync(Household household, ShoppingListItem item, CancellationToken cancellationToken);
+    Task RecordTickAsync(Household household, ShoppingListItem item, bool wasInBasket, ShoppingTrip? openTrip, CancellationToken cancellationToken);
 
     #endregion Methods
 

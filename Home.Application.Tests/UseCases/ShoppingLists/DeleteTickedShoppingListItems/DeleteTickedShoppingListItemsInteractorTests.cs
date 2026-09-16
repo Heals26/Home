@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Home.Application.Infrastructure.ShoppingLists;
+using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Tests.Infrastructure;
 using Home.Application.UseCases.ShoppingLists.DeleteTickedShoppingListItems;
 using Home.Domain.Entities;
@@ -50,11 +52,18 @@ public class DeleteTickedShoppingListItemsInteractorTests : InteractorTest
     }
 
     private Task HandleAsync(long shoppingListID)
-        => new DeleteTickedShoppingListItemsInteractor().HandleAsync(
+    {
+        var _Services = this.Services(out var _Context);
+
+        return new DeleteTickedShoppingListItemsInteractor().HandleAsync(
             new DeleteTickedShoppingListItemsInputPort(shoppingListID),
             this.m_Presenter,
-            this.Services().With(this.m_AuditLogic.Object).Build(),
+            _Services
+                .With(this.m_AuditLogic.Object)
+                .With<IShoppingTripLogic>(new ShoppingTripLogic(_Context, _Services.Time))
+                .Build(),
             CancellationToken.None);
+    }
 
     [Fact]
     public async Task HandleAsync_RemovesEverythingInTheBasketAndLeavesTheRest()
@@ -88,6 +97,29 @@ public class DeleteTickedShoppingListItemsInteractorTests : InteractorTest
         await this.HandleAsync(120);
 
         _ = this.Stored<ShoppingList>().Should().ContainSingle("closing off a shop empties the list, it does not delete it");
+    }
+
+    [Fact]
+    public async Task HandleAsync_EndsTheShop()
+    {
+        var _List = BuildList(120, this.Ours, (130, "Milk", true));
+
+        _List.Trips =
+        [
+            new ShoppingTrip()
+            {
+                LastActivityOnUTC = TestServiceFactory.DefaultNow.UtcDateTime,
+                ShoppingList = _List,
+                ShoppingTripID = 150,
+                StartedOnUTC = TestServiceFactory.DefaultNow.UtcDateTime
+            }
+        ];
+
+        _ = this.Database.Seed(_List);
+
+        await this.HandleAsync(120);
+
+        _ = this.Stored<ShoppingTrip>().Single().EndedOnUTC.Should().Be(TestServiceFactory.DefaultNow.UtcDateTime);
     }
 
     [Fact]

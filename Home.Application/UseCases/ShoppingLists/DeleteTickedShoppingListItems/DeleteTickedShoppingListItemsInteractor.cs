@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.Mediator;
+using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -24,6 +25,7 @@ internal class DeleteTickedShoppingListItemsInteractor : IInteractor<DeleteTicke
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
         var _AuthorisationService = serviceFactory.GetService<IAuthorisationService>();
         var _AuditLogic = serviceFactory.GetService<IAuditLogic<ShoppingList>>();
+        var _TripLogic = serviceFactory.GetService<IShoppingTripLogic>();
 
         var _Household = _AuthorisationService.GetHousehold();
 
@@ -40,6 +42,8 @@ internal class DeleteTickedShoppingListItemsInteractor : IInteractor<DeleteTicke
 
         if (_ShoppingList != null)
         {
+            _ = _TripLogic.End(_Household, _ShoppingList.ShoppingListID);
+
             var _Ticked = _ShoppingList.Items
                 .Where(sli => sli.InBasket)
                 .ToList();

@@ -11,12 +11,6 @@ public class ShoppingItemMemoryLogic(IPersistenceContext persistenceContext, Tim
 
     #region Fields
 
-    /// <summary>
-    /// How long a tick stays correctable: one trip round the shop, but not so long that reusing the
-    /// list next week edits last week's purchase instead of recording a new one.
-    /// </summary>
-    private static readonly TimeSpan s_CorrectionWindow = TimeSpan.FromHours(12);
-
     private const int MaximumNameLength = 200;
 
     #endregion Fields
@@ -49,6 +43,19 @@ public class ShoppingItemMemoryLogic(IPersistenceContext persistenceContext, Tim
             i => i.ShoppingListItemID,
             i => ShoppingPriceLogic.Assess(i, _Memories.GetValueOrDefault(KeyOf(i.Name))));
     }
+
+    /// <summary>
+    /// When a price typed in after the shop was bought: as late in the trip as anything is known to
+    /// have happened, so filling in last week's receipt does not rank it ahead of this week's shop.
+    /// </summary>
+    private DateTime BoughtOn(Household household, long shoppingTripID, ShoppingTrip? openTrip)
+        => shoppingTripID == openTrip?.ShoppingTripID
+            ? this.NowUTC
+            : persistenceContext.GetEntities<ShoppingTrip>()
+                .Where(t => t.ShoppingTripID == shoppingTripID
+                    && t.ShoppingList.Household.HouseholdID == household.HouseholdID)
+                .Select(t => (DateTime?)t.LastActivityOnUTC)
+                .SingleOrDefault() ?? this.NowUTC;
 
     /// <summary>
     /// Saved before anything is attached to it. Two requests can reach a new item's first purchase or
@@ -112,35 +119,53 @@ public class ShoppingItemMemoryLogic(IPersistenceContext persistenceContext, Tim
     private static string KeyOf(string name)
         => Truncate(name.Trim().ToLowerInvariant());
 
-    async Task IShoppingItemMemoryLogic.RecordTickAsync(Household household, ShoppingListItem item, CancellationToken cancellationToken)
+    async Task IShoppingItemMemoryLogic.RecordTickAsync(Household household, ShoppingListItem item, bool wasInBasket, ShoppingTrip? openTrip, CancellationToken cancellationToken)
     {
-        var _Since = this.NowUTC - s_CorrectionWindow;
+        if (item.InBasket && !wasInBasket)
+            item.ShoppingTripID = openTrip?.ShoppingTripID;
 
-        // Found by the line rather than by its name, so renaming a line after it was ticked moves the
-        // purchase it recorded instead of recording another under the new name.
-        var _Recent = persistenceContext.GetEntities<ShoppingItemPrice>()
+        if (item.ShoppingTripID is not { } _TripID)
+            return;
+
+        // Found by the line and its trip rather than by the item's name, so renaming a line after it
+        // was ticked moves the purchase it recorded instead of recording another under the new name.
+        var _Purchases = persistenceContext.GetEntities<ShoppingItemPrice>()
             .Where(p => p.ShoppingListItemID == item.ShoppingListItemID
-                && p.BoughtOnUTC >= _Since
+                && p.ShoppingTripID == _TripID
                 && p.Memory.Household.HouseholdID == household.HouseholdID)
             .ToList();
 
-        if (!item.InBasket || item.Cost is not { } _Cost || _Cost <= 0)
+        if (!item.InBasket)
         {
-            persistenceContext.RemoveRange(_Recent);
+            if (_TripID == openTrip?.ShoppingTripID)
+                persistenceContext.RemoveRange(_Purchases);
+
+            item.ShoppingTripID = null;
+            return;
+        }
+
+        if (item.Cost is not { } _Cost || _Cost <= 0)
+        {
+            persistenceContext.RemoveRange(_Purchases);
             return;
         }
 
         var _Memory = await this.GetOrCreateAsync(household, item.Name, cancellationToken);
-        var _Price = _Recent.FirstOrDefault();
+        var _Price = _Purchases.FirstOrDefault();
 
         if (_Price == null)
         {
-            _Price = new ShoppingItemPrice() { ShoppingListItemID = item.ShoppingListItemID };
+            _Price = new ShoppingItemPrice()
+            {
+                BoughtOnUTC = this.BoughtOn(household, _TripID, openTrip),
+                ShoppingListItemID = item.ShoppingListItemID,
+                ShoppingTripID = _TripID
+            };
+
             persistenceContext.Add(_Price);
         }
 
         _Price.Amount = item.Amount;
-        _Price.BoughtOnUTC = this.NowUTC;
         _Price.Cost = _Cost;
         _Price.Memory = _Memory;
         _Price.Unit = item.Unit;
