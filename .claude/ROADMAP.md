@@ -251,7 +251,7 @@ read to a screen reader as an ordinary button.
 **Still standing:** `<span>` at 116 and `<p>` at 166 across the app. Those are text and layout
 rather than controls, so there is no obvious component behind most of them, and turning every
 paragraph into `HomeText` would cost more than it pays. A `@foreach` body that is a whole card is
-the better next target, and phase 15 will want that anyway.
+the better next target, and phase 17 will want that anyway.
 ## Phase 6 · A shared calendar, and the time axis under it, XL *(new, 6 Sep 2026)* **DONE 8 Sep 2026**
 
 `VISION.md` says the dashboard answers "what's happening this week" without navigation. Today it
@@ -571,14 +571,70 @@ question from 14 Sep comes back in; a purchase recorded before trips existed bel
 line that was already ticked when the migration ran counts its own price towards its usual until it
 is unticked; and the screen is not kept awake.
 
-## Phase 11 · Nullable on in the API, L *(was C3)*
+## Phase 11 · Nullable on in the API, and undo, XL *(was C3; undo added 17 Sep 2026)*
+
+Two jobs, done in this order. Undo adds API models, and every API model written before nullable is on
+is one more to fix after it.
+
+### Nullable on in the API
 
 A clean build emits **one** warning, not the ~145 this file used to claim. That is not progress:
 `Home.WebApi` sets `<Nullable>disable</Nullable>` while every other project enables it, and the API
 models and controllers are where the `CS8618`s lived. They are suppressed, not fixed.
 
-The job is turning nullable on there and absorbing what comes back in one go. No user-visible value,
-which is why it sits this late, but it gets harder every phase that adds API models.
+The job is turning nullable on there and absorbing what comes back in one go. It has no
+user-visible value on its own, and it gets harder every phase that adds API models.
+
+### Undo
+
+Undo exists in exactly one place. Applying a light scene saves the room as it was, and "Previous
+look" puts it back (20 Aug). Everywhere else a mistake is fixed by hand or not at all, and the app
+leans on confirmations instead: Clear ticked asks first "because there is no undo" (17 Aug), and
+deleting a list wants a second tap.
+
+Phase 10 left the case that raised it. In the aisle a tick moves the line out of its aisle and into
+the trolley section straight away, so a mis-tap means opening the trolley and unticking the line
+there, one-handed, beside a trolley. Mitch, 17 Sep 2026: undo goes in with the nullable work.
+
+A confirmation interrupts every time to guard against the rare mistake. An undo costs nothing until
+the mistake happens. On a shared kitchen screen used by people who never read a manual, that is the
+better trade wherever the undo can be made honest.
+
+#### What the planning has to settle
+
+1. **Which actions can be undone?** Ticks and unticks, removing a line, Clear ticked and Untick all,
+   deleting a list, a chore or a recipe, and edits. Ticks are the cheap ones and deletes are the
+   valuable ones. Decide whether undo is everywhere or a named set, and whether an action's
+   confirmation goes once it can be undone.
+
+2. **How long is an undo on offer?** An "Undo" shown for a few seconds after the action is the
+   version everyone already understands, and the app has nothing to show one in yet. Undoing from
+   the history feed, which phase 8 left for later, is the powerful version, and it collides with
+   everything that has changed since. Probably the first; decide whether the second is ever in
+   scope.
+
+3. **How does a deleted row come back?** A delete is gone for good today, so undo needs the row
+   from somewhere. A soft delete means every query filters it, and household isolation already runs
+   through every one of those queries. A copy kept for the length of the undo is contained but has
+   to carry everything that went with the row. Holding the delete back until the undo expires shows
+   other devices something that is about to vanish. The choice decides how much of the app this
+   phase touches.
+
+4. **Whose undo is it?** The device that did it, or anyone in the household. Two people shopping one
+   list see each other's ticks live, so an undo of something another phone has changed since is the
+   conflict to decide.
+
+5. **What else has to be put back?** Undoing a tick during a shop takes back the price that tick
+   recorded, which an untick already does. Undoing Clear ticked restores the lines, and has to say
+   whether the shop it ended opens again. Undoing Done reopens a shop. Every action with a side
+   effect needs its answer written down.
+
+#### Deliberately not in scope
+
+- **Redo.** One step back is the need. A stack of them is an editor, not a household app.
+- **Versions.** This puts back the last thing done, not what a recipe said in June.
+- **Light commands.** The lights already have their undo, and a command a bulb has carried out
+  cannot be recalled.
 
 ## Phase 12 · Beyond lights: a second device integration, L *(was B9)*
 
@@ -588,20 +644,26 @@ types stay at the boundary. VISION says "other devices as they come" and nothing
 researched. A thermostat, robot vacuum or smart plug is the obvious next one, and the pattern is
 ready and proven.
 
-## Phase 13 · The ones blocked on their own decisions, L each *(was B7, B10)*
+## Phase 13 · Feedback button and support reader, L *(was B7)*
 
-Both are in `BACKLOG.md` with the open question written down. Neither is blocked on effort.
+In `BACKLOG.md` with the open question written down, and blocked on that decision rather than on
+effort.
 
-- **Feedback button and support reader.** Reading across all households breaks the
-  household-isolation invariant every other query obeys, so it needs either a separate operator app
-  or an explicit support role with its own policy. `ApiAuditEntry` already captures request bodies,
-  IPs, user agents and timing, so the substrate exists.
-- **Spotify.** OAuth is *per user* rather than one household token like LIFX, so it needs an
-  authorisation-code flow with refresh, a callback URL, and a decision about whose account the
-  kitchen tablet plays from. Needs Premium. Naturally follows phase 7, which answers "who is this
-  device".
+Reading across all households breaks the household-isolation invariant every other query obeys, so
+it needs either a separate operator app or an explicit support role with its own policy.
+`ApiAuditEntry` already captures request bodies, IPs, user agents and timing, so the substrate
+exists.
 
-## Phase 14 · Where we have been, L *(from the phase ideas list, 6 Sep 2026)*
+## Phase 14 · Spotify, L *(was B10)*
+
+In `BACKLOG.md` with the open question written down, and blocked on that decision rather than on
+effort.
+
+OAuth is *per user* rather than one household token like LIFX, so it needs an authorisation-code
+flow with refresh, a callback URL, and a decision about whose account the kitchen tablet plays
+from. Needs Premium. Naturally follows phase 7, which answers "who is this device".
+
+## Phase 15 · Where we have been, L *(from the phase ideas list, 6 Sep 2026)*
 
 The household already keeps what it cooks, what it buys and what it has to do. It keeps nothing
 about where it went. "That playground with the shade", "the Thai place we liked", "the beach we
@@ -634,7 +696,7 @@ that talks to a third party for reviews or opening hours. This is the household'
 own outings, which is the only version of this that is worth keeping and the only one that does not
 need a privacy decision first.
 
-## Phase 15 · It looks like something, M *(from the phase ideas list, 6 Sep 2026)*
+## Phase 16 · It looks like something, M *(from the phase ideas list, 6 Sep 2026)*
 
 `VISION.md` asks for a product that does not look assembled from template defaults, and the type
 and colour work carries that. The identity does not exist at all yet:
@@ -659,7 +721,7 @@ in `wwwroot`. A house that cooks its own food should not have a stock photo of a
 wall.
 
 
-## Phase 16 · A board the household arranges itself, L *(new, 6 Sep 2026)*
+## Phase 17 · A board the household arranges itself, L *(new, 6 Sep 2026)*
 
 The dashboard fits without scrolling as of 6 Sep, on a landscape tablet, with the seven tiles that
 exist today. That is the cheaper half of the answer and it is already showing its edges: "fits"
@@ -719,7 +781,7 @@ would be the first thing in the app that does.
   exists now.
 
 
-## Phase 17 · What this house pays for, M *(new, 6 Sep 2026)*
+## Phase 18 · What this house pays for, M *(new, 6 Sep 2026)*
 
 Home knows what is for dinner, what is on the shopping list and what has to be done this week, and
 nothing at all about the eleven direct debits leaving the account. Streaming, insurance, the gym,
@@ -757,7 +819,7 @@ this is seeing what you stopped paying for and when.
    dashboard shows rather than something that reaches a phone, which is a fair first version on a
    screen that is always on anyway.
 
-4. **Does it earn a dashboard tile?** Probably, and that is exactly the pressure phase 16 exists
+4. **Does it earn a dashboard tile?** Probably, and that is exactly the pressure phase 17 exists
    to relieve: the board fits today with seven tiles and an eighth reopens it. Whichever of the two
    phases is done second inherits the problem.
 
@@ -768,7 +830,7 @@ this is seeing what you stopped paying for and when.
 - **Multiple currencies.** One household, one currency, until there is a reason.
 - **Paying anything.** It records what is charged. It never charges.
 
-## Phase 18 · Other households can pay for this, XL *(new, 6 Sep 2026)*
+## Phase 19 · Other households can pay for this, XL *(new, 6 Sep 2026)*
 
 The product bar for this app has always been that a family would pay for it rather than use the
 free thing. This is the phase that finds out.
@@ -803,7 +865,7 @@ What is not done is letting a second family in at all:
 3. **Who takes the money.** A payment provider, which brings a webhook, a subscription state
    machine, dunning, refunds and tax. None of that is interesting and all of it is required. Note
    the irony worth avoiding: this app would then have both a `Subscription` the household tracks
-   (phase 17) and a subscription the household *is*. Two different things and they must not share
+   (phase 18) and a subscription the household *is*. Two different things and they must not share
    a name in the code.
 
 4. **What happens when someone stops paying.** The answer cannot be that a family loses the
@@ -819,57 +881,6 @@ What is not done is letting a second family in at all:
 Behind phase 7 and behind the hosting decision, both of which it depends on outright. Nothing here
 is hard next to what is already built; it is late because it is the one phase that changes what
 this project *is*, and the only one that cannot be undone by deleting some code.
-
-## Phase 19 · Undo, L *(new, 17 Sep 2026)*
-
-Undo exists in exactly one place. Applying a light scene saves the room as it was, and "Previous
-look" puts it back (20 Aug). Everywhere else a mistake is fixed by hand or not at all, and the app
-leans on confirmations instead: Clear ticked asks first "because there is no undo" (17 Aug), and
-deleting a list wants a second tap.
-
-Phase 10 left the case that raised it. In the aisle a tick moves the line out of its aisle and into
-the trolley section straight away, so a mis-tap means opening the trolley and unticking the line
-there, one-handed, beside a trolley. Mitch, 17 Sep 2026: undo is its own phase.
-
-A confirmation interrupts every time to guard against the rare mistake. An undo costs nothing until
-the mistake happens. On a shared kitchen screen used by people who never read a manual, that is the
-better trade wherever the undo can be made honest.
-
-### What the planning has to settle
-
-1. **Which actions can be undone?** Ticks and unticks, removing a line, Clear ticked and Untick all,
-   deleting a list, a chore or a recipe, and edits. Ticks are the cheap ones and deletes are the
-   valuable ones. Decide whether undo is everywhere or a named set, and whether an action's
-   confirmation goes once it can be undone.
-
-2. **How long is an undo on offer?** An "Undo" shown for a few seconds after the action is the
-   version everyone already understands, and the app has nothing to show one in yet. Undoing from
-   the history feed, which phase 8 left for later, is the powerful version, and it collides with
-   everything that has changed since. Probably the first; decide whether the second is ever in
-   scope.
-
-3. **How does a deleted row come back?** A delete is gone for good today, so undo needs the row
-   from somewhere. A soft delete means every query filters it, and household isolation already runs
-   through every one of those queries. A copy kept for the length of the undo is contained but has
-   to carry everything that went with the row. Holding the delete back until the undo expires shows
-   other devices something that is about to vanish. The choice decides how much of the app this
-   phase touches.
-
-4. **Whose undo is it?** The device that did it, or anyone in the household. Two people shopping one
-   list see each other's ticks live, so an undo of something another phone has changed since is the
-   conflict to decide.
-
-5. **What else has to be put back?** Undoing a tick during a shop takes back the price that tick
-   recorded, which an untick already does. Undoing Clear ticked restores the lines, and has to say
-   whether the shop it ended opens again. Undoing Done reopens a shop. Every action with a side
-   effect needs its answer written down.
-
-### Deliberately not in scope
-
-- **Redo.** One step back is the need. A stack of them is an editor, not a household app.
-- **Versions.** This puts back the last thing done, not what a recipe said in June.
-- **Light commands.** The lights already have their undo, and a command a bulb has carried out
-  cannot be recalled.
 
 ## Phase 20 · A receipt fills in the prices, XL *(new, 17 Sep 2026)*
 
