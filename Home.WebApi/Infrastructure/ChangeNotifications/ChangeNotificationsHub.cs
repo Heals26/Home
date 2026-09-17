@@ -1,4 +1,3 @@
-#nullable enable
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
@@ -10,7 +9,7 @@ namespace Home.WebApi.Infrastructure.ChangeNotifications;
 
 /// <summary>
 /// Relays "something changed" between a household's devices. The group is always derived from
-/// the caller's authenticated claims — a client can neither choose nor spoof a household, so
+/// the caller's authenticated claims. A client can neither choose nor spoof a household, so
 /// one family's changes can never reach another family's devices.
 /// </summary>
 [Authorize(Policy = FrameworkValues.ScopeWebApp)]

@@ -6,7 +6,7 @@ public class LightDto
     #region Properties
 
     /// <summary>
-    /// 0.0 to 1.0. Meaningful even when the light is off — it is the level it will return to.
+    /// 0.0 to 1.0. Meaningful even when the light is off, because it is the level it will return to.
     /// </summary>
     public double Brightness { get; set; }
 
@@ -18,10 +18,10 @@ public class LightDto
     /// <summary>
     /// The LIFX device ID. Stable, and what state changes are addressed to.
     /// </summary>
-    public string ID { get; set; }
+    public string ID { get; set; } = string.Empty;
 
     /// <summary>
-    /// False when the bulb has not been seen recently — it cannot be controlled.
+    /// False when the bulb has not been seen recently, and then it cannot be controlled.
     /// </summary>
     public bool IsConnected { get; set; }
 
@@ -38,7 +38,7 @@ public class LightDto
     /// <summary>
     /// The bulb's own name, e.g. "Bedside Left".
     /// </summary>
-    public string Label { get; set; }
+    public string Label { get; set; } = string.Empty;
 
     /// <summary>
     /// 0.0 to 1.0. Zero means white, in which case Kelvin is what matters.
@@ -82,7 +82,7 @@ public class LightDto
     /// <summary>
     /// The hardware's own name, e.g. "LIFX A19".
     /// </summary>
-    public string ProductName { get; set; }
+    public string ProductName { get; set; } = string.Empty;
 
     #endregion Properties
 

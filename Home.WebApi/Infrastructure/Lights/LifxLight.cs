@@ -16,28 +16,28 @@ internal class LifxLight
     public double Brightness { get; set; }
 
     [JsonPropertyName("color")]
-    public LifxColour Colour { get; set; }
+    public LifxColour? Colour { get; set; }
 
     [JsonPropertyName("connected")]
     public bool Connected { get; set; }
 
     [JsonPropertyName("group")]
-    public LifxNamedReference Group { get; set; }
+    public LifxNamedReference? Group { get; set; }
 
     [JsonPropertyName("id")]
-    public string ID { get; set; }
+    public string? ID { get; set; }
 
     [JsonPropertyName("label")]
-    public string Label { get; set; }
+    public string? Label { get; set; }
 
     [JsonPropertyName("location")]
-    public LifxNamedReference Location { get; set; }
+    public LifxNamedReference? Location { get; set; }
 
     [JsonPropertyName("product")]
-    public LifxProduct Product { get; set; }
+    public LifxProduct? Product { get; set; }
 
     [JsonPropertyName("power")]
-    public string Power { get; set; }
+    public string? Power { get; set; }
 
     #endregion Properties
 

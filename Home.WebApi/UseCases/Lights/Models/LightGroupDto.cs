@@ -18,7 +18,7 @@ public class LightGroupDto
     /// <summary>
     /// The group's name, e.g. "Living Room". Editable in Home.
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Display order on the Lights page.

@@ -28,7 +28,9 @@ public class WebAppPlatformHandler(
             context.Succeed(requirement);
         else
         {
-            httpContextAccessor.HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            if (httpContextAccessor.HttpContext is { } _HttpContext)
+                _HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
             context.Fail(new(this, "Invalid Platform Requirement"));
         }
 

@@ -8,7 +8,7 @@ public class AddRecipeStepApiRequest
     /// <summary>
     /// The full text content of the step.
     /// </summary>
-    public string Content { get; set; }
+    public string Content { get; set; } = string.Empty;
 
     /// <summary>
     /// The ID of the recipe this step belongs to.
@@ -23,7 +23,7 @@ public class AddRecipeStepApiRequest
     /// <summary>
     /// A short title summarising the step.
     /// </summary>
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     #endregion Properties
 

@@ -1,8 +1,4 @@
-﻿// Home.WebApi has nullable disabled project-wide, but IWeatherService's contract is nullable-aware
-// (a null snapshot means "forecaster unreachable"). Opting this file in keeps that meaning.
-#nullable enable
-
-using Home.Application.Services.Weather;
+﻿using Home.Application.Services.Weather;
 using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
 using System.Text.Json;
@@ -12,7 +8,7 @@ namespace Home.WebApi.Infrastructure.Weather;
 /// <summary>
 /// Reads the forecast from Open-Meteo (https://open-meteo.com), which needs no key and no account.
 /// Every call round-trips to the internet, so the forecaster being unreachable is an expected
-/// outcome rather than an exception — the surface returns null instead of throwing.
+/// outcome rather than an exception, and the surface returns null instead of throwing.
 /// </summary>
 internal class OpenMeteoWeatherService(
     HttpClient httpClient,
@@ -65,7 +61,7 @@ internal class OpenMeteoWeatherService(
             var _Payload = await _Response.Content.ReadAsStringAsync(cancellationToken);
             var _Forecast = JsonSerializer.Deserialize<OpenMeteoForecast>(_Payload, s_JsonOptions);
 
-            return _Forecast?.Current == null ? null : this.ToSnapshot(_Forecast);
+            return _Forecast?.Current is { } _Current ? this.ToSnapshot(_Current, _Forecast.Daily) : null;
         }
         catch (Exception _Exception) when (_Exception is HttpRequestException or TaskCanceledException or JsonException)
         {
@@ -74,16 +70,16 @@ internal class OpenMeteoWeatherService(
         }
     }
 
-    private WeatherSnapshot ToSnapshot(OpenMeteoForecast forecast)
+    private WeatherSnapshot ToSnapshot(OpenMeteoCurrent current, OpenMeteoDaily? daily)
         => new(
-            WeatherConditionMap.FromWmoCode(forecast.Current.WeatherCode),
-            forecast.Current.Temperature,
-            forecast.Current.ApparentTemperature,
-            forecast.Current.RelativeHumidity,
-            forecast.Current.Precipitation,
-            forecast.Current.IsDay == 1,
+            WeatherConditionMap.FromWmoCode(current.WeatherCode),
+            current.Temperature,
+            current.ApparentTemperature,
+            current.RelativeHumidity,
+            current.Precipitation,
+            current.IsDay == 1,
             timeProvider.GetUtcNow().UtcDateTime,
-            ToForecast(forecast.Daily));
+            ToForecast(daily));
 
     /// <summary>
     /// "timezone=auto" resolves the days against the coordinates rather than UTC, so a Brisbane

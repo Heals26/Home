@@ -10,7 +10,7 @@ public class GetShoppingListItemSuggestionsApiResponse
     /// <summary>
     /// Things the household has bought before, most often bought first
     /// </summary>
-    public ICollection<GetShoppingListItemSuggestionDto> Suggestions { get; set; }
+    public ICollection<GetShoppingListItemSuggestionDto> Suggestions { get; set; } = [];
 
     #endregion Properties
 
@@ -34,7 +34,7 @@ public class GetShoppingListItemSuggestionDto
     /// <summary>
     /// The item as it was last written
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// How often the household has added it

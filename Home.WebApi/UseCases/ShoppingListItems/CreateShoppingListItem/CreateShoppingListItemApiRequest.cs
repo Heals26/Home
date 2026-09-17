@@ -12,12 +12,12 @@ public class CreateShoppingListItemApiRequest
 
     public decimal? Cost { get; set; }
     public bool InBasket { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// What the name does not say: a brand, a size, which aisle, who it is for.
     /// </summary>
-    public string Note { get; set; }
+    public string? Note { get; set; }
 
     public long ShoppingListID { get; set; }
     public long? Unit { get; set; }

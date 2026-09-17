@@ -46,7 +46,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         try
         {
             (string accessToken, string clientSecret) _AccessToken = (string.Empty, string.Empty);
-            if (!this.TryValidateAuthorisationString(_AuthorisationHeaderValue, out _AccessToken))
+            if (!this.TryValidateAuthorisationString(_AuthorisationHeaderValue.ToString(), out _AccessToken))
             {
                 this.SetApiAuditEntry(null, nameof(TryValidateAuthorisationString), "Invalid Token");
                 return AuthenticateResult.Fail("Invalid Token");
@@ -106,7 +106,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         return true;
     }
 
-    private void SetApiAuditEntry(AuthenticationMetadata authenticationMetadata, string actionName, string errors)
+    private void SetApiAuditEntry(AuthenticationMetadata? authenticationMetadata, string actionName, string? errors)
     {
         var _ApiAuditEntry = this.Context.RequestServices.GetRequiredService<CreateApiAuditEntry>();
 

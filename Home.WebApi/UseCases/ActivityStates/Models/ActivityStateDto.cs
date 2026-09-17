@@ -12,7 +12,7 @@ public class ActivityStateDto
     /// </summary>
     public bool IsComplete { get; set; }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Left-to-right order on the board.

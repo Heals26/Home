@@ -11,10 +11,10 @@ internal class OpenMeteoForecast
     #region Properties
 
     [JsonPropertyName("current")]
-    public OpenMeteoCurrent Current { get; set; }
+    public OpenMeteoCurrent? Current { get; set; }
 
     [JsonPropertyName("daily")]
-    public OpenMeteoDaily Daily { get; set; }
+    public OpenMeteoDaily? Daily { get; set; }
 
     #endregion Properties
 

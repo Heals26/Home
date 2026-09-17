@@ -4,6 +4,22 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-17 · Nullable is on in the API, and request validation stays with the validators
+
+Phase 11, first half. `Home.WebApi` enables nullable like every other project, and the 175
+warnings that came back were fixed rather than suppressed: every API model property has an
+initialiser or says it can be null, matching what feeds it.
+
+- **MVC's implicit `[Required]` is off** (`SuppressImplicitRequiredAttributeForNonNullableReferenceTypes`).
+  With nullable on, MVC would require every non-nullable request property and answer 400 before an
+  input port's validator could answer 422 in its own words, and the 422 is what the web app
+  handles. Validation stays in one place.
+- **A presenter's `Result` starts as a 500**, so a slice that ends without presenting fails out
+  loud instead of handing MVC a null.
+- **`ApiAuditEntry.Details` and `UserAgent` say they can be null.** Both columns were always
+  configured nullable and the code already wrote nulls into them; only the C# caught up, and the
+  model did not change.
+
 ## 2026-09-16 · Shopping mode decision 4 of 4: in the aisle the list reads by aisle with its total in view
 
 Mitch, 16 Sep 2026: while shopping mode is on, the list groups by aisle whatever it is set to at

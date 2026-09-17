@@ -22,13 +22,13 @@ public class ShoppingListItemDto
     public bool InBasket { get; set; }
     public bool IsDearerThanUsual { get; set; }
     public long ShoppingListItemID { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// What the name does not say: a brand, a size, which aisle, who it is for. Null when the line
     /// carries nothing extra.
     /// </summary>
-    public string Note { get; set; }
+    public string? Note { get; set; }
 
     public long Sequence { get; set; }
 

@@ -13,7 +13,7 @@ public class GetShoppingListPresenter(IMapper mapper)
 
     #region Methods
 
-    Task IGetShoppingListOutputPort.PresentShoppingListAsync(ShoppingList shoppingList, IReadOnlyDictionary<long, ShoppingItemInsight> insights, ShoppingTrip openTrip, CancellationToken cancellationToken)
+    Task IGetShoppingListOutputPort.PresentShoppingListAsync(ShoppingList shoppingList, IReadOnlyDictionary<long, ShoppingItemInsight> insights, ShoppingTrip? openTrip, CancellationToken cancellationToken)
     {
         var _Response = mapper.Map<GetShoppingListApiResponse>(shoppingList);
         _Response.ShoppingTripID = openTrip?.ShoppingTripID;

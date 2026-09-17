@@ -4,6 +4,7 @@ using Home.Application.Tests.Infrastructure;
 using Home.Application.UseCases.Weather.GetWeather;
 using Home.WebApi.Presenters.Weather.GetWeather;
 using Home.WebApi.UseCases.Weather.GetWeather;
+using Home.WebApi.UseCases.Weather.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Net;
@@ -12,7 +13,7 @@ namespace Home.Application.Tests.UseCases.Weather.GetWeather;
 
 /// <summary>
 /// The dashboard's weather. The only read with no database behind it, and the only one whose
-/// three answers are all correct — no location set, provider unreachable, and an actual forecast.
+/// three answers are all correct: no location set, provider unreachable, and an actual forecast.
 /// </summary>
 public class GetWeatherInteractorTests : InteractorTest
 {
@@ -81,9 +82,12 @@ public class GetWeatherInteractorTests : InteractorTest
         var _Response = Ok<GetWeatherApiResponse>(this.m_Presenter);
 
         _ = _Response.HasLocation.Should().BeTrue();
-        _ = _Response.Current.Condition.Should().Be("Showers");
-        _ = _Response.Current.IconName.Should().Be("weather-showers");
-        _ = _Response.Current.TemperatureCelsius.Should().Be(17.5);
+
+        var _Current = _Response.Current.Should().NotBeNull().And.Subject.As<WeatherCurrentDto>();
+
+        _ = _Current.Condition.Should().Be("Showers");
+        _ = _Current.IconName.Should().Be("weather-showers");
+        _ = _Current.TemperatureCelsius.Should().Be(17.5);
         _ = _Response.Forecast.Select(d => d.Condition).Should().Equal(["Showers", "Clear"]);
         _ = _Response.Forecast.Select(d => d.IconName).Should().Equal(
             ["weather-showers", "weather-sun"],

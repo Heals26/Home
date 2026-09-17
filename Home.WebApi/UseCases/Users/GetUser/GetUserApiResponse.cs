@@ -13,12 +13,12 @@ public class GetUserApiResponse
 
     #region Properties
 
-    public string Email { get; set; }
-    public string FirstName { get; set; }
-    public string FullName { get; set; }
+    public string? Email { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
     public bool HasLogin { get; set; }
-    public string LastName { get; set; }
-    public string MiddleNames { get; set; }
+    public string LastName { get; set; } = string.Empty;
+    public string MiddleNames { get; set; } = string.Empty;
     public long UserID { get; set; }
 
     #endregion Properties

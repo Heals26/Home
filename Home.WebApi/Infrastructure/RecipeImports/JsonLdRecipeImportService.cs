@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Home.Application.Infrastructure.Recipes;
+﻿using Home.Application.Infrastructure.Recipes;
 using Home.Application.Services.RecipeImports;
 using System.Net;
 using System.Text.Json;
@@ -9,7 +8,7 @@ using System.Xml;
 namespace Home.WebApi.Infrastructure.RecipeImports;
 
 /// <summary>
-/// Reads the schema.org Recipe most cooking sites embed as JSON-LD. Nothing else is scraped —
+/// Reads the schema.org Recipe most cooking sites embed as JSON-LD. Nothing else is scraped:
 /// if a page has no structured recipe, the import honestly fails rather than guessing at HTML.
 /// All fetch and parse failures surface as null, never exceptions, per the adapter rules.
 /// </summary>
@@ -66,7 +65,7 @@ internal partial class JsonLdRecipeImportService(
     }
 
     /// <summary>
-    /// A recipe node can sit at the root, inside a root array, or inside a @graph — and sites
+    /// A recipe node can sit at the root, inside a root array, or inside a @graph, and sites
     /// get the casing of "Recipe" wrong often enough that the type check is case-insensitive.
     /// </summary>
     private static JsonElement? FindRecipeNode(JsonElement element)
@@ -132,7 +131,7 @@ internal partial class JsonLdRecipeImportService(
     private static partial Regex JsonLdBlocks();
 
     /// <summary>
-    /// An image arrives as an address, a list of addresses, or an ImageObject wrapping one —
+    /// An image arrives as an address, a list of addresses, or an ImageObject wrapping one,
     /// and only an absolute http or https address is ever kept.
     /// </summary>
     private static string? ReadImageUrl(JsonElement node)
@@ -246,7 +245,7 @@ internal partial class JsonLdRecipeImportService(
             if (_Text.Length == 0)
                 return;
 
-            // Many sites copy the text into name — a title that repeats the step is noise.
+            // Many sites copy the text into name, and a title that repeats the step is noise.
             var _Title = _Name.Length > 0 && !_Text.StartsWith(_Name, StringComparison.OrdinalIgnoreCase)
                 ? _Name
                 : sectionTitle;
@@ -257,7 +256,7 @@ internal partial class JsonLdRecipeImportService(
 
     /// <summary>
     /// Durations are meant to be ISO-8601 ("PT30M") but real pages emit "PT", "P1Y" and
-    /// "30 mins", all of which throw — an unreadable time is simply unknown.
+    /// "30 mins", all of which throw. An unreadable time is simply unknown.
     /// </summary>
     private static int? ReadMinutes(JsonElement recipe, string propertyName)
     {
@@ -289,7 +288,7 @@ internal partial class JsonLdRecipeImportService(
     }
 
     /// <summary>
-    /// A yield is a number, "4", or "Serves 4 to 6" — the first number in it is the serving
+    /// A yield is a number, "4", or "Serves 4 to 6", and the first number in it is the serving
     /// count worth keeping.
     /// </summary>
     private static int? ReadServings(JsonElement recipe)
@@ -319,7 +318,7 @@ internal partial class JsonLdRecipeImportService(
     }
 
     /// <summary>
-    /// Strips tags, decodes entities and collapses whitespace — recipe sites shove HTML into
+    /// Strips tags, decodes entities and collapses whitespace, because recipe sites shove HTML into
     /// their JSON-LD more often than they should.
     /// </summary>
     private static string Sanitise(string? value, int maxLength)
@@ -362,7 +361,7 @@ internal partial class JsonLdRecipeImportService(
             if (_Recipe.TryGetProperty("recipeInstructions", out var _Instructions))
                 ReadInstructions(_Instructions, string.Empty, _Steps);
 
-            // A name alone is not a recipe — without a single ingredient or step the page
+            // A name alone is not a recipe: without a single ingredient or step the page
             // gave nothing worth importing.
             if (_Ingredients.Count == 0 && _Steps.Count == 0)
                 return null;

@@ -26,7 +26,7 @@ public class CreateApiAuditEntry
 
         public long? CreatedResourceID { get; set; }
 
-        public string Details { get; set; } = string.Empty;
+        public string? Details { get; set; }
 
         #endregion Properties
 
@@ -54,7 +54,7 @@ public class CreateApiAuditEntry
         public string RequestBody { get; set; } = string.Empty;
         public DateTime RequestReceivedOnUTC { get; set; }
         public string RequestUri { get; set; } = string.Empty;
-        public string UserAgent { get; set; } = string.Empty;
+        public string? UserAgent { get; set; }
         public string Version { get; set; } = string.Empty;
 
         #endregion Properties

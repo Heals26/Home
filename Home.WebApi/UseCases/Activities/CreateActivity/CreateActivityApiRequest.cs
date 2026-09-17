@@ -5,7 +5,7 @@ public class CreateActivityApiRequest
 
     #region Properties
 
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public DateTime? DueDateUTC { get; set; }
 
     /// <summary>

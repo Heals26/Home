@@ -1,8 +1,4 @@
-﻿// Home.WebApi has nullable disabled project-wide; this file reasons about absent tokens, so it
-// opts in the same way LifxLightService does.
-#nullable enable
-
-using Home.Application.Services.Persistence;
+﻿using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 using Home.Domain.Entities;
 using System.Net.Http.Headers;
@@ -13,7 +9,7 @@ namespace Home.WebApi.Infrastructure.Lights;
 /// Attaches the LIFX bearer token to every outgoing provider request. The authenticated
 /// household's stored token wins; the <c>lifxApiToken</c> user secret is a developer fallback.
 /// Background work (the schedule runner) has no request context, so it uses the single stored
-/// token if exactly one household has one — a multi-household deployment will need the runner
+/// token if exactly one household has one. A multi-household deployment will need the runner
 /// to carry the household through explicitly, which is noted in DECISIONS.md.
 /// </summary>
 internal class LifxAuthenticationHandler(

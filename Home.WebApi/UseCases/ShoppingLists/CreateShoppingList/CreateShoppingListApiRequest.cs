@@ -8,7 +8,7 @@ public class CreateShoppingListApiRequest
     /// <summary>
     /// The name of the shopping list
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     #endregion Properties
 

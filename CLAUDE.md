@@ -98,10 +98,13 @@ dotnet test
   `tailwind.config.js`, which covers `.cs` as well as `.razor`. A class name assembled at runtime
   from pieces is invisible to it and its rule gets purged, which is why a missing icon renders as a
   plain grey square.
-- `Home.WebApi` sets `<Nullable>disable</Nullable>`; every other project enables it.
-- A clean build emits **one** warning, not the ~145 this file used to claim. That is suppression,
-  not progress: the `CS8618`s live in `Home.WebApi`, which opts out. Don't add a warning of a
-  category the build doesn't already emit. `known-gaps.md` has the measured numbers.
+- Nullable is on in every project, `Home.WebApi` included since 17 Sep 2026. MVC's implicit
+  `[Required]` on non-nullable request properties is switched off there, so request validation
+  stays with the input port validators.
+- A clean build emits **one** warning, a `CS8625` in a test, and since 17 Sep that count is real:
+  the `CS8618`s that `Home.WebApi` used to hide by opting out of nullable were fixed when it opted
+  in. Don't add a warning of a category the build doesn't already emit. `known-gaps.md` has the
+  measured numbers.
 - Reads are covered by tests against a real database; writes largely are not. `known-gaps.md`
   explains which harness to use and why a mocked context cannot catch a missing projection.
 - `CleanArchitecture.Mediator` resolves from the committed `packages/` folder via `nuget.config`,

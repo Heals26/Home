@@ -7,8 +7,9 @@ the `anthropic-skills` plugin at `code-review/references/csharp-blazor-style.md`
 Neither list is a licence to refactor. Fix an item when it is the task, or when you are already
 editing that exact code and the fix is a line or two. Otherwise mention it and move on.
 
-**Last verified: 4 September 2026** (test coverage and configuration) and **1 September 2026**
-(everything else), by rebuilding clean, running the suite, and querying the live database.
+**Last verified: 17 September 2026** (the warning count), **4 September 2026** (test coverage and
+configuration) and **1 September 2026** (everything else), by rebuilding clean, running the suite,
+and querying the live database.
 Every count below was measured, not remembered. If you are reading this more than a month later,
 re-measure before trusting a number.
 
@@ -92,20 +93,22 @@ household in the tracker.
 the read context rather than handing over a detached stand-in, because a harness that skipped it
 would fail where production passes. Worth knowing before changing either side.
 
-### The warning count is 1, because `Home.WebApi` opts out of nullable
+### The warning count is 1, and since 17 Sep it is real
 
-This corrects a long-standing claim here of "145 warnings, ~115 of them `CS8618`". A clean build of
-the whole solution now emits **one** warning: a `CS8625` in `CreateRecipeInteractorTests.cs`.
+A clean build of the whole solution emits **one** warning: a `CS8625` in
+`CreateRecipeInteractorTests.cs`.
 
-Do not read that as the nullable backlog having been paid off. `Home.WebApi` still sets
-`<Nullable>disable</Nullable>` while every other project enables it, and the API models and
-controllers are where most of those `CS8618`s lived. They are suppressed, not fixed. Turning
-nullable on in `Home.WebApi` will bring a few hundred warnings back in one go, which is the real
-shape of that job. `CS1591` is also suppressed there, because `GenerateDocumentationFile` is on for
-Swagger rather than for documentation coverage.
+Until 17 Sep 2026 that count was low only because `Home.WebApi` set `<Nullable>disable</Nullable>`,
+which hid the `CS8618`s on the API models. Nullable is on there now, and the 175 warnings it brought
+back were fixed rather than suppressed: request and response models got an initialiser or a `?` to
+match what feeds them, the vendor wire types went nullable because their consumers already treated
+them that way, and the files that had opted in with `#nullable enable` no longer need to. `CS1591`
+is still suppressed there, because `GenerateDocumentationFile` is on for Swagger rather than for
+documentation coverage.
 
-Files that need nullable-aware contracts inside `Home.WebApi` opt in with `#nullable enable` at the
-top. `Infrastructure/Lights/LifxLightService.cs` is the example.
+One behaviour was kept on purpose. With nullable on, MVC infers `[Required]` for every non-nullable
+request property and answers 400 before an input port's validator can answer 422 in its own words,
+so `Program.cs` sets `SuppressImplicitRequiredAttributeForNonNullableReferenceTypes`.
 
 ### `dotnet ef database update` targets LocalDB, not the real database
 

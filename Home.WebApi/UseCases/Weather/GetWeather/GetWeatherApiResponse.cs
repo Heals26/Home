@@ -10,7 +10,7 @@ public class GetWeatherApiResponse
     /// <summary>
     /// Conditions now. Null when <see cref="HasLocation"/> is false.
     /// </summary>
-    public WeatherCurrentDto Current { get; set; }
+    public WeatherCurrentDto? Current { get; set; }
 
     /// <summary>
     /// Today first, then the days after it. Empty when <see cref="HasLocation"/> is false.

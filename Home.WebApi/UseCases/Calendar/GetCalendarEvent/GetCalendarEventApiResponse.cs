@@ -24,15 +24,15 @@ public class GetCalendarEventApiResponse
     /// </summary>
     public bool IsReadOnly { get; set; }
 
-    public string Location { get; set; }
+    public string? Location { get; set; }
     public List<long> MemberUserIDs { get; set; } = [];
-    public string Notes { get; set; }
+    public string? Notes { get; set; }
     public bool RepeatsOnWeekdayOfMonth { get; set; }
     public DateOnly? RepeatUntil { get; set; }
     public DateOnly StartDate { get; set; }
     public TimeOnly? StartTime { get; set; }
-    public string SubscriptionName { get; set; }
-    public string TimeZoneID { get; set; }
+    public string? SubscriptionName { get; set; }
+    public string? TimeZoneID { get; set; }
     public string Title { get; set; } = string.Empty;
 
     #endregion Properties

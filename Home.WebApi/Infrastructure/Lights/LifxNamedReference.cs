@@ -11,10 +11,10 @@ internal class LifxNamedReference
     #region Properties
 
     [JsonPropertyName("id")]
-    public string ID { get; set; }
+    public string? ID { get; set; }
 
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     #endregion Properties
 

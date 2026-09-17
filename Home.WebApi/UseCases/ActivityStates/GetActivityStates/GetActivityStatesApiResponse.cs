@@ -7,7 +7,7 @@ public class GetActivityStatesApiResponse
 
     #region Properties
 
-    public ICollection<ActivityStateDto> States { get; set; }
+    public ICollection<ActivityStateDto> States { get; set; } = [];
 
     #endregion Properties
 

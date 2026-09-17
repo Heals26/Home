@@ -7,7 +7,7 @@ public class GetRecipesApiResponse
 
     #region Properties
 
-    public ICollection<GetRecipeDto> Recipes { get; set; }
+    public ICollection<GetRecipeDto> Recipes { get; set; } = [];
 
     #endregion Properties
 
@@ -20,10 +20,10 @@ public class GetRecipeDto
 
     public long? Complexity { get; set; }
     public int? CookMinutes { get; set; }
-    public string ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 
     /// <summary>
-    /// Ticks of the household photo's last upload — null when there is no photo. Doubles as the
+    /// Ticks of the household photo's last upload, or null when there is no photo. Doubles as the
     /// cache-buster in the image's URL.
     /// </summary>
     public long? ImageVersion { get; set; }
@@ -34,8 +34,8 @@ public class GetRecipeDto
     /// </summary>
     public DateOnly? LastHadDate { get; set; }
 
-    public ICollection<RecipeMealSlotDto> MealSlots { get; set; }
-    public string Name { get; set; }
+    public ICollection<RecipeMealSlotDto> MealSlots { get; set; } = [];
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The next day this is planned for, or null.
@@ -51,7 +51,7 @@ public class GetRecipeDto
     /// </summary>
     public int TimesHad { get; set; }
 
-    public string Url { get; set; }
+    public string Url { get; set; } = string.Empty;
 
     #endregion Properties
 

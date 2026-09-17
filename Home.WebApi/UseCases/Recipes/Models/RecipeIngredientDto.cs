@@ -13,7 +13,7 @@ public class RecipeIngredientDto
     public decimal? Amount { get; set; }
 
     public long IngredientID { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// What the household knows about buying this ingredient, such as a brand or which shop. It is
@@ -29,7 +29,7 @@ public class RecipeIngredientDto
     /// <see cref="NoteID"/> is what says whether one exists.
     /// </para>
     /// </summary>
-    public string Note { get; set; }
+    public string Note { get; set; } = string.Empty;
 
     /// <summary>
     /// The ID of the note in <see cref="Note"/>, needed to change or clear it. Null when there is
@@ -38,7 +38,7 @@ public class RecipeIngredientDto
     public long? NoteID { get; set; }
 
     /// <summary>
-    /// Where it sits in this recipe's list — the order it is reached for while cooking.
+    /// Where it sits in this recipe's list, which is the order it is reached for while cooking.
     /// </summary>
     public long Sequence { get; set; }
 

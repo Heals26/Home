@@ -15,7 +15,7 @@ public class GetIngredientSuggestionDto
     /// <summary>
     /// The ingredient as it was last written
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// How many of the household's recipes use it

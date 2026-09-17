@@ -9,41 +9,41 @@ public class GetRecipeApiResponse
 
     public long? Complexity { get; set; }
     public int? CookMinutes { get; set; }
-    public string ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 
     /// <summary>
-    /// Ticks of the household photo's last upload — null when there is no photo. Doubles as the
+    /// Ticks of the household photo's last upload, or null when there is no photo. Doubles as the
     /// cache-buster in the image's URL.
     /// </summary>
     public long? ImageVersion { get; set; }
 
-    public List<RecipeIngredientDto> Ingredients { get; set; }
+    public List<RecipeIngredientDto> Ingredients { get; set; } = [];
 
     /// <summary>
     /// The last day this was on the plan, up to today. Null when it has never been had.
     /// </summary>
     public DateOnly? LastHadDate { get; set; }
 
-    public List<RecipeMealSlotDto> MealSlots { get; set; }
-    public string Name { get; set; }
+    public List<RecipeMealSlotDto> MealSlots { get; set; } = [];
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The next day this is planned for, or null.
     /// </summary>
     public DateOnly? NextPlannedDate { get; set; }
 
-    public List<RecipeNoteDto> Notes { get; set; }
+    public List<RecipeNoteDto> Notes { get; set; } = [];
     public int? PrepMinutes { get; set; }
     public long RecipeID { get; set; }
     public int? Servings { get; set; }
-    public List<RecipeStepDto> Steps { get; set; }
+    public List<RecipeStepDto> Steps { get; set; } = [];
 
     /// <summary>
     /// How many days up to today it has been on the plan.
     /// </summary>
     public int TimesHad { get; set; }
 
-    public string Url { get; set; }
+    public string Url { get; set; } = string.Empty;
 
     #endregion Properties
 

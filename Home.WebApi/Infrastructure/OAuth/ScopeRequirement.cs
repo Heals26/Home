@@ -44,16 +44,15 @@ public class ScopeHandler : AuthorizationHandler<ScopeRequirement>
         if (!context.User.Claims.Any())
             return Task.CompletedTask;
 
-        if (!context.User.HasClaim(c => c.Type == FrameworkValues.IdentityClaimScopes))
+        var _ScopesClaim = context.User.FindFirst(FrameworkValues.IdentityClaimScopes);
+
+        if (_ScopesClaim == null)
         {
             context.Fail(new(this, "Claim not found"));
             return Task.CompletedTask;
         }
 
-        var _ScopesString = context.User.FindFirst(FrameworkValues.IdentityClaimScopes).Value;
-        var _Scopes = _ScopesString?.Split(",");
-
-        if (_Scopes?.Any(s => s.Equals(requirement.Scope)) ?? false)
+        if (_ScopesClaim.Value.Split(",").Any(s => s.Equals(requirement.Scope)))
             context.Succeed(requirement);
         else
             context.Fail(new(this, "Scope not found"));

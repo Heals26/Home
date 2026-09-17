@@ -20,7 +20,7 @@ public class CalendarItemDto
     public bool IsReadOnly { get; set; }
     public bool IsRecurring { get; set; }
     public CalendarItemKind Kind { get; set; }
-    public string Location { get; set; }
+    public string? Location { get; set; }
     public DateOnly? OccurrenceDate { get; set; }
     public List<string> People { get; set; } = [];
     public List<long> PersonUserIDs { get; set; } = [];
@@ -28,7 +28,7 @@ public class CalendarItemDto
     public DateOnly StartDate { get; set; }
     public TimeOnly? StartsAt { get; set; }
     public DateTime? StartUTC { get; set; }
-    public string Subtitle { get; set; }
+    public string? Subtitle { get; set; }
     public string Title { get; set; } = string.Empty;
 
     #endregion Properties

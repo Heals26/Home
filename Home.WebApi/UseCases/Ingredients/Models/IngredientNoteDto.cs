@@ -8,7 +8,7 @@ public class IngredientNoteDto
     /// <summary>
     /// The text content of the note.
     /// </summary>
-    public string Content { get; set; }
+    public string Content { get; set; } = string.Empty;
 
     /// <summary>
     /// The UTC date and time the note was created.

@@ -5,7 +5,7 @@ public class ShoppingCategoryDto
 
     #region Properties
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     public int Sequence { get; set; }
 

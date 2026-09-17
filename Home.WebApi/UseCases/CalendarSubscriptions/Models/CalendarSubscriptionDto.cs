@@ -15,7 +15,7 @@ public class CalendarSubscriptionDto
     /// <summary>
     /// Why the last fetch failed, or null when it succeeded.
     /// </summary>
-    public string LastError { get; set; }
+    public string? LastError { get; set; }
 
     public DateTime? LastFetchedUTC { get; set; }
     public string Name { get; set; } = string.Empty;

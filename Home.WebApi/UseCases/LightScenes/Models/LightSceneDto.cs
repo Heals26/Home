@@ -20,7 +20,7 @@ public class LightSceneDto
     /// <summary>
     /// The scene's name, e.g. "Movie".
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Display order.

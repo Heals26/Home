@@ -8,7 +8,7 @@ public class AddIngredientNoteApiRequest
     /// <summary>
     /// The text content of the note to add.
     /// </summary>
-    public string Content { get; set; }
+    public string Content { get; set; } = string.Empty;
 
     /// <summary>
     /// The ID of the ingredient to add the note to.

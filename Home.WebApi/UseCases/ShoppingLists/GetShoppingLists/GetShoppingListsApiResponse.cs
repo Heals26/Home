@@ -8,7 +8,7 @@ public class GetShoppingListsApiResponse
     /// <summary>
     /// A collection of shopping lists
     /// </summary>
-    public ICollection<GetShoppingListDto> ShoppingLists { get; set; }
+    public ICollection<GetShoppingListDto> ShoppingLists { get; set; } = [];
 
     #endregion Properties
 
@@ -32,7 +32,7 @@ public class GetShoppingListDto
     /// <summary>
     /// The name of the shopping list
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The ID of the shopping list

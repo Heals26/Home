@@ -1,7 +1,3 @@
-// Home.WebApi has nullable disabled project-wide, but ILightService's contract is nullable-aware
-// (a null light list means "provider unreachable"). Opting this file in keeps that meaning.
-#nullable enable
-
 using Home.Application.Services.Lights;
 using System.Globalization;
 using System.Net;
@@ -13,7 +9,7 @@ namespace Home.WebApi.Infrastructure.Lights;
 /// <summary>
 /// Drives LIFX bulbs through the LIFX cloud HTTP API (https://api.lifx.com/v1). Every call
 /// round-trips to the internet, so the hub being unreachable is an expected outcome rather than
-/// an exception — the whole surface returns a result instead of throwing.
+/// an exception, and the whole surface returns a result instead of throwing.
 /// </summary>
 internal class LifxLightService(HttpClient httpClient, ILogger<LifxLightService> logger) : ILightService
 {
@@ -303,7 +299,7 @@ internal class LifxLightService(HttpClient httpClient, ILogger<LifxLightService>
             light.Colour?.Kelvin ?? 0,
             ToCapabilities(light.Product));
 
-    private static LightCapabilities ToCapabilities(LifxProduct product)
+    private static LightCapabilities ToCapabilities(LifxProduct? product)
         => new(
             product?.Capabilities?.HasColour ?? false,
             product?.Capabilities?.HasVariableColourTemp ?? false,

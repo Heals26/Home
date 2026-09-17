@@ -8,7 +8,7 @@ public class GetCardSectionsApiResponse
     /// <summary>
     /// The sections this household puts on its activity cards, in the order they read
     /// </summary>
-    public ICollection<CardSectionDto> CardSections { get; set; }
+    public ICollection<CardSectionDto> CardSections { get; set; } = [];
 
     #endregion Properties
 

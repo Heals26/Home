@@ -9,14 +9,14 @@ public class ApiAuditEntry
     public string ActionName { get; set; } = string.Empty;
     public long? ClientApplicationID { get; set; }
     public long? CreatedResourceID { get; set; }
-    public string Details { get; set; } = string.Empty;
+    public string? Details { get; set; }
     public short HttpResponseStatusCode { get; set; }
     public string RemoteIPAddress { get; set; } = string.Empty;
     public string RequestBody { get; set; } = string.Empty;
     public DateTime RequestReceivedOnUTC { get; set; }
     public string RequestUri { get; set; } = string.Empty;
     public DateTime ResponseSentOnUTC { get; set; }
-    public string UserAgent { get; set; } = string.Empty;
+    public string? UserAgent { get; set; }
     public long? UserID { get; set; }
     public string Version { get; set; } = string.Empty;
 

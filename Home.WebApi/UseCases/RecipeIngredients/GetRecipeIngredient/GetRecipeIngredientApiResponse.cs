@@ -21,12 +21,12 @@ public class GetRecipeIngredientApiResponse
     /// <summary>
     /// The name of the ingredient.
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Notes that have been added to this ingredient.
     /// </summary>
-    public List<IngredientNoteDto> Notes { get; set; }
+    public List<IngredientNoteDto> Notes { get; set; } = [];
 
     /// <summary>
     /// The measurement the amount is in.

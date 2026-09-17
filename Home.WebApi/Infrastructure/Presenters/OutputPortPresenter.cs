@@ -21,7 +21,11 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
 
     public bool PresentedSuccessfully { get; private set; }
 
-    public IActionResult Result { get; private set; }
+    /// <summary>
+    /// A 500 until the use case presents something, so a slice that ends without presenting fails
+    /// the request out loud rather than handing MVC a null.
+    /// </summary>
+    public IActionResult Result { get; private set; } = new StatusCodeResult((int)HttpStatusCode.InternalServerError);
 
     #endregion Properties
 
@@ -101,7 +105,7 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
         return Task.CompletedTask;
     }
 
-    protected Task OkAsync(Stream stream, string contentType, CancellationToken cancellationToken, string fileName = null)
+    protected Task OkAsync(Stream stream, string contentType, CancellationToken cancellationToken, string? fileName = null)
     {
         this.PresentedSuccessfully = true;
         this.Result = new HomeStreamResult(stream, contentType) { FileName = fileName };
@@ -110,7 +114,7 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
     }
 
     /// <summary>
-    /// For a dependency we do not control being down — the caller can reasonably retry, which is
+    /// For a dependency we do not control being down. The caller can reasonably retry, which is
     /// what separates this from a 500.
     /// </summary>
     protected Task ServiceUnavailableAsync(string errorMessage, CancellationToken cancellationToken)

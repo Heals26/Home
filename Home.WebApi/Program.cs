@@ -121,9 +121,9 @@ static IServiceCollection SetupAuthentication(IServiceCollection services)
 
             if (_AuthorisationHeaderValue.Count != 0)
 
-                if (_AuthorisationHeaderValue.Single().StartsWith(FrameworkValues.Basic))
+                if (_AuthorisationHeaderValue.Single()?.StartsWith(FrameworkValues.Basic) == true)
                     return FrameworkValues.Basic;
-                else if (_AuthorisationHeaderValue.Single().StartsWith(FrameworkValues.Bearer))
+                else if (_AuthorisationHeaderValue.Single()?.StartsWith(FrameworkValues.Bearer) == true)
                     return FrameworkValues.Bearer;
 
             return FrameworkValues.Bearer;
@@ -187,7 +187,15 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
 {
     // The audit filter is what puts an action name against each entry; the middleware alone only
     // ever sees the URI.
-    _ = services.AddControllers(o => o.Filters.Add<ApiAuditingActionFilterAttribute>());
+    //
+    // With nullable on, MVC would treat every non-nullable string on a request model as required
+    // and answer 400 before the input port's validator could answer 422 with its own words.
+    // Validation stays with the validators, as it was before nullable was switched on.
+    _ = services.AddControllers(o =>
+    {
+        o.Filters.Add<ApiAuditingActionFilterAttribute>();
+        o.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+    });
     _ = services.AddSignalR();
 
     // Open generic, so AutoMapper can close it per grant response when it resolves the resolver.

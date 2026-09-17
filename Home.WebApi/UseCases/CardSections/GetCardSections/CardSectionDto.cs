@@ -18,7 +18,7 @@ public class CardSectionDto
     /// <summary>
     /// The heading as the household wrote it
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Where it reads down a card

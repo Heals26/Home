@@ -9,9 +9,9 @@ public class GetActivityRegionApiResponse
 
     public long ActivityRegionID { get; set; }
     public long CardSectionID { get; set; }
-    public string CardSectionName { get; set; }
+    public string CardSectionName { get; set; } = string.Empty;
     public int Sequence { get; set; }
-    public List<ActivityContentDto> Fields { get; set; }
+    public List<ActivityContentDto> Fields { get; set; } = [];
 
     #endregion Properties
 

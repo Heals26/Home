@@ -142,7 +142,8 @@ Use collection expressions (`[]`, `[.. source.Select(...)]`) rather than `new Li
 - `using` directives are alphabetised, no blank-line grouping, no `global using` beyond
   `ImplicitUsings`.
 - One type per file. The file is named after the type.
-- `Nullable` is `enable` everywhere except `Home.WebApi` (see `references/known-gaps.md`).
+- `Nullable` is `enable` in every project. `Home.WebApi` switched on 17 Sep 2026 with MVC's
+  implicit `[Required]` suppressed, so request validation stays with the input port validators.
 
 ## Folder structure: vertical slices
 
@@ -228,8 +229,7 @@ lands on LocalDB.
 - Members alphabetised within regions, `#endregion` labels match.
 - `dotnet test` passes.
 - No new compiler warnings **of a category the build doesn't already emit**. A clean build emits
-  one warning, not the ~145 this file used to claim, so a new code is a regression. That count is
-  low because `Home.WebApi` opts out of nullable, not because the backlog was paid off. If you need
-  a nullable annotation inside `Home.WebApi`, put `#nullable enable` at the top of that file rather
-  than letting `CS8632` appear.
+  one warning, a `CS8625` in `CreateRecipeInteractorTests.cs`, so a new code is a regression.
+  Nullable is on in `Home.WebApi` too, so an API model gets an initialiser or a `?` to match what
+  feeds it, like any other type.
 - `Home.WebUI/wwwroot/css/app.css` is generated and gitignored. Edit `wwwroot/css/input.css`.

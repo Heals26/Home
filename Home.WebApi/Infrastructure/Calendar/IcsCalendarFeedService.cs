@@ -1,8 +1,4 @@
-﻿// Home.WebApi has nullable disabled project-wide, but ICalendarFeedService's contract is
-// nullable-aware (a null feed means "could not be read"). Opting this file in keeps that meaning.
-#nullable enable
-
-using Home.Application.Services.Calendar;
+﻿using Home.Application.Services.Calendar;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 using IcsCalendar = Ical.Net.Calendar;

@@ -7,7 +7,7 @@ public class GetActivitiesApiResponse
 
     #region Properties
 
-    public ICollection<ActivitySummaryDto> Activities { get; set; }
+    public ICollection<ActivitySummaryDto> Activities { get; set; } = [];
 
     #endregion Properties
 

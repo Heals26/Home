@@ -6,19 +6,19 @@ public class WeatherCurrentDto
     #region Properties
 
     /// <summary>
-    /// What it feels like, in degrees Celsius — the number people dress by.
+    /// What it feels like, in degrees Celsius, which is the number people dress by.
     /// </summary>
     public double ApparentTemperatureCelsius { get; set; }
 
     /// <summary>
     /// The condition in plain words, e.g. "Partly cloudy".
     /// </summary>
-    public string Condition { get; set; }
+    public string Condition { get; set; } = string.Empty;
 
     /// <summary>
     /// The <c>home-icon-{name}</c> suffix to draw, already resolved for day or night.
     /// </summary>
-    public string IconName { get; set; }
+    public string IconName { get; set; } = string.Empty;
 
     /// <summary>
     /// True between sunrise and sunset at the household's coordinates.

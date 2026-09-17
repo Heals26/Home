@@ -8,7 +8,7 @@ public class ActivitySummaryDto
     #region Properties
 
     public long ActivityID { get; set; }
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public DateTime? DueDateUTC { get; set; }
 
     /// <summary>
@@ -19,15 +19,15 @@ public class ActivitySummaryDto
     /// <summary>
     /// Who ticked it off, or null when nobody in particular did.
     /// </summary>
-    public string CompletedBy { get; set; }
+    public string? CompletedBy { get; set; }
 
     public long? CompletedByUserID { get; set; }
     public DateTime? CompletedDateUTC { get; set; }
     public int Sequence { get; set; }
     public long? StateID { get; set; }
-    public string State { get; set; }
+    public string? State { get; set; }
     public long? AssignedToUserID { get; set; }
-    public string AssignedTo { get; set; }
+    public string? AssignedTo { get; set; }
     public List<TagDto> Tags { get; set; } = [];
 
     #endregion Properties

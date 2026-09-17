@@ -16,22 +16,22 @@ internal class OpenMeteoDaily
     /// Nullable because some Open-Meteo models omit a probability for days they cannot call.
     /// </summary>
     [JsonPropertyName("precipitation_probability_max")]
-    public List<int?> PrecipitationProbabilityMaximum { get; set; }
+    public List<int?>? PrecipitationProbabilityMaximum { get; set; }
 
     [JsonPropertyName("temperature_2m_max")]
-    public List<double> TemperatureMaximum { get; set; }
+    public List<double>? TemperatureMaximum { get; set; }
 
     [JsonPropertyName("temperature_2m_min")]
-    public List<double> TemperatureMinimum { get; set; }
+    public List<double>? TemperatureMinimum { get; set; }
 
     /// <summary>
     /// The local calendar days, ISO formatted, e.g. "2026-08-15".
     /// </summary>
     [JsonPropertyName("time")]
-    public List<string> Time { get; set; }
+    public List<string>? Time { get; set; }
 
     [JsonPropertyName("weather_code")]
-    public List<int> WeatherCode { get; set; }
+    public List<int>? WeatherCode { get; set; }
 
     #endregion Properties
 

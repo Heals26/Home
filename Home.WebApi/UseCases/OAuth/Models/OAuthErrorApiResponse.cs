@@ -18,7 +18,7 @@ public class OAuthErrorApiResponse
     /// <summary>
     /// One of the codes on <c>OAuthValues</c>: <c>invalid_client</c>, <c>invalid_grant</c> and so on.
     /// </summary>
-    public string Error { get; set; }
+    public string Error { get; set; } = string.Empty;
 
     #endregion Properties
 

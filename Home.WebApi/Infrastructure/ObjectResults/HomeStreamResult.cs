@@ -13,7 +13,7 @@ public class HomeStreamResult : FileStreamResult
 
     #region Properties
 
-    public string FileName { get; set; }
+    public string? FileName { get; set; }
 
     #endregion Properties
 

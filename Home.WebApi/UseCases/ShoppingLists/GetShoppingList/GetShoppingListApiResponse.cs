@@ -12,12 +12,12 @@ public class GetShoppingListApiResponse
     /// <summary>
     /// The name of the shopping list
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The items in the shopping list
     /// </summary>
-    public List<ShoppingListItemDto> Items { get; set; }
+    public List<ShoppingListItemDto> Items { get; set; } = [];
 
     /// <summary>
     /// The shop going on with the list, or null when nobody is shopping with it. A device that joined

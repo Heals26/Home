@@ -13,14 +13,14 @@ public class BaseController : ControllerBase
 
     #region Fields
 
-    private IMapper m_Mapper;
-    private Pipeline m_Pipeline;
+    private IMapper? m_Mapper;
+    private Pipeline? m_Pipeline;
 
     #endregion Fields
 
     #region Properties
 
-    public IMapper Mapper => this.m_Mapper ??= this.HttpContext.RequestServices.GetService<IMapper>();
+    public IMapper Mapper => this.m_Mapper ??= this.HttpContext.RequestServices.GetRequiredService<IMapper>();
     public Pipeline Pipeline => this.m_Pipeline ??= this.HttpContext.RequestServices.GetRequiredService<Pipeline>();
     public ServiceFactory ServiceFactory => this.HttpContext.RequestServices.GetRequiredService<ServiceFactory>();
 

@@ -139,7 +139,7 @@ public class ApiAuditing(RequestDelegate next, TimeProvider timeProvider)
                 .LogError(ex, "Failed to capture request data for the API audit trail.");
         }
 
-        static string TruncateUserAgent(string userAgent)
+        static string? TruncateUserAgent(string userAgent)
         {
             if (string.IsNullOrEmpty(userAgent))
                 return null;

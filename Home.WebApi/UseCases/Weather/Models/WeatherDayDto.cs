@@ -8,7 +8,7 @@ public class WeatherDayDto
     /// <summary>
     /// The day's condition in plain words, e.g. "Showers".
     /// </summary>
-    public string Condition { get; set; }
+    public string Condition { get; set; } = string.Empty;
 
     /// <summary>
     /// The local calendar day at midnight.
@@ -18,7 +18,7 @@ public class WeatherDayDto
     /// <summary>
     /// The <c>home-icon-{name}</c> suffix to draw. Always the daytime variant.
     /// </summary>
-    public string IconName { get; set; }
+    public string IconName { get; set; } = string.Empty;
 
     public double MaximumTemperatureCelsius { get; set; }
 

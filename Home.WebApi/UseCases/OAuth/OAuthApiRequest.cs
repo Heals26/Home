@@ -14,27 +14,27 @@ public class OAuthApiRequest
 
     [FromForm(Name = "client_secret")]
     [JsonPropertyName("client_secret")]
-    public string ClientSecret { get; set; }
+    public string? ClientSecret { get; set; }
 
     [FromForm(Name = "grant_type")]
     [JsonPropertyName("grant_type")]
-    public string GrantType { get; set; }
+    public string? GrantType { get; set; }
 
     [FromForm(Name = "password")]
     [JsonPropertyName("password")]
-    public string Password { get; set; }
+    public string? Password { get; set; }
 
     [FromForm(Name = "refresh_token")]
     [JsonPropertyName("refresh_token")]
-    public string RefreshToken { get; set; }
+    public string? RefreshToken { get; set; }
 
     [FromForm(Name = "scope")]
     [JsonPropertyName("scope")]
-    public string Scope { get; set; }
+    public string? Scope { get; set; }
 
     [FromForm(Name = "username")]
     [JsonPropertyName("username")]
-    public string Username { get; set; }
+    public string? Username { get; set; }
 
     #endregion Properties
 

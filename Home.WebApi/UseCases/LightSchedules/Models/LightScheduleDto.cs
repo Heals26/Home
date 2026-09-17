@@ -8,7 +8,7 @@ public class LightScheduleDto
     #region Properties
 
     /// <summary>
-    /// Bitmask of days — bit 0 is Sunday, matching <see cref="System.DayOfWeek"/>.
+    /// Bitmask of days, where bit 0 is Sunday, matching <see cref="System.DayOfWeek"/>.
     /// </summary>
     public int DaysOfWeek { get; set; }
 
@@ -28,12 +28,12 @@ public class LightScheduleDto
 
     public long LightSceneID { get; set; }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The name of the scene this schedule applies.
     /// </summary>
-    public string SceneName { get; set; }
+    public string SceneName { get; set; } = string.Empty;
 
     /// <summary>
     /// Local time of day the schedule fires at, when the trigger is a fixed time.

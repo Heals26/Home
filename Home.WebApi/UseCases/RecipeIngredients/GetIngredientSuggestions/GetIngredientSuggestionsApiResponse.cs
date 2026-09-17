@@ -8,7 +8,7 @@ public class GetIngredientSuggestionsApiResponse
     /// <summary>
     /// Ingredients the household has cooked with before, most used first
     /// </summary>
-    public ICollection<GetIngredientSuggestionDto> Suggestions { get; set; }
+    public ICollection<GetIngredientSuggestionDto> Suggestions { get; set; } = [];
 
     #endregion Properties
 

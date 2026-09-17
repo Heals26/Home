@@ -6,7 +6,7 @@ public class CreateActivityContentApiRequest
     #region Properties
 
     public long ActivityRegionID { get; set; }
-    public string Content { get; set; }
+    public string Content { get; set; } = string.Empty;
 
     #endregion Properties
 

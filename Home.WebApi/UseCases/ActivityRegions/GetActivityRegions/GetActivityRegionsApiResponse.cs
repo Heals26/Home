@@ -5,7 +5,7 @@ public class GetActivityRegionsApiResponse
 
     #region Properties
 
-    public ICollection<GetActivityRegionDto> Regions { get; set; }
+    public ICollection<GetActivityRegionDto> Regions { get; set; } = [];
 
     #endregion Properties
 
@@ -18,7 +18,7 @@ public class GetActivityRegionDto
 
     public long ActivityRegionID { get; set; }
     public long CardSectionID { get; set; }
-    public string CardSectionName { get; set; }
+    public string CardSectionName { get; set; } = string.Empty;
     public int Sequence { get; set; }
 
     #endregion Properties
