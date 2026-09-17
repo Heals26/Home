@@ -1,6 +1,6 @@
 ﻿# Roadmap
 
-*Eighteen phases, in the order they should be done. Each one is shippable on its own and leaves the
+*Twenty phases, in the order they should be done. Each one is shippable on its own and leaves the
 app better than it found it. Nothing here is half a feature that needs the next phase to be worth
 having.*
 
@@ -819,4 +819,107 @@ What is not done is letting a second family in at all:
 Behind phase 7 and behind the hosting decision, both of which it depends on outright. Nothing here
 is hard next to what is already built; it is late because it is the one phase that changes what
 this project *is*, and the only one that cannot be undone by deleting some code.
+
+## Phase 19 · Undo, L *(new, 17 Sep 2026)*
+
+Undo exists in exactly one place. Applying a light scene saves the room as it was, and "Previous
+look" puts it back (20 Aug). Everywhere else a mistake is fixed by hand or not at all, and the app
+leans on confirmations instead: Clear ticked asks first "because there is no undo" (17 Aug), and
+deleting a list wants a second tap.
+
+Phase 10 left the case that raised it. In the aisle a tick moves the line out of its aisle and into
+the trolley section straight away, so a mis-tap means opening the trolley and unticking the line
+there, one-handed, beside a trolley. Mitch, 17 Sep 2026: undo is its own phase.
+
+A confirmation interrupts every time to guard against the rare mistake. An undo costs nothing until
+the mistake happens. On a shared kitchen screen used by people who never read a manual, that is the
+better trade wherever the undo can be made honest.
+
+### What the planning has to settle
+
+1. **Which actions can be undone?** Ticks and unticks, removing a line, Clear ticked and Untick all,
+   deleting a list, a chore or a recipe, and edits. Ticks are the cheap ones and deletes are the
+   valuable ones. Decide whether undo is everywhere or a named set, and whether an action's
+   confirmation goes once it can be undone.
+
+2. **How long is an undo on offer?** An "Undo" shown for a few seconds after the action is the
+   version everyone already understands, and the app has nothing to show one in yet. Undoing from
+   the history feed, which phase 8 left for later, is the powerful version, and it collides with
+   everything that has changed since. Probably the first; decide whether the second is ever in
+   scope.
+
+3. **How does a deleted row come back?** A delete is gone for good today, so undo needs the row
+   from somewhere. A soft delete means every query filters it, and household isolation already runs
+   through every one of those queries. A copy kept for the length of the undo is contained but has
+   to carry everything that went with the row. Holding the delete back until the undo expires shows
+   other devices something that is about to vanish. The choice decides how much of the app this
+   phase touches.
+
+4. **Whose undo is it?** The device that did it, or anyone in the household. Two people shopping one
+   list see each other's ticks live, so an undo of something another phone has changed since is the
+   conflict to decide.
+
+5. **What else has to be put back?** Undoing a tick during a shop takes back the price that tick
+   recorded, which an untick already does. Undoing Clear ticked restores the lines, and has to say
+   whether the shop it ended opens again. Undoing Done reopens a shop. Every action with a side
+   effect needs its answer written down.
+
+### Deliberately not in scope
+
+- **Redo.** One step back is the need. A stack of them is an editor, not a household app.
+- **Versions.** This puts back the last thing done, not what a recipe said in June.
+- **Light commands.** The lights already have their undo, and a command a bulb has carried out
+  cannot be recalled.
+
+## Phase 20 · A receipt fills in the prices, XL *(new, 17 Sep 2026)*
+
+Price memory (phase 9) is only as good as the prices typed into it, and nobody types prices at the
+shelf. Phase 10 made that the rule: in the aisle a tick only ticks, and a price can be filled in
+afterwards for as long as the line stays ticked. That is the honest shape, and filling in thirty
+prices by hand at the kitchen bench is exactly the chore that does not get done.
+
+The receipt already has every price on it. Mitch, 16 Sep 2026: take a photo of the receipt and let
+it fill in the items.
+
+Phase 10 is what makes this buildable. A shop has edges now, so a receipt belongs to one shop, the
+lines ticked on that shop are the ones to price, and a price filled in after Done already corrects
+the purchase it belongs to instead of adding another.
+
+### What the planning has to settle
+
+1. **What reads the receipt?** Nothing in the app reads an image today. On the device, on the
+   server, or a paid service that reads documents or images: each differs in how well it reads a
+   crumpled thermal slip, what a receipt costs to read, and what leaves the house. A service needs a
+   key, and phase 1 took setup from six secrets to two, so it has to be optional to install as well
+   as to use. Whatever it is sits behind the adapter template the lights proved (12 Aug), so an
+   unreachable reader is a message rather than a crash. **Prove the reading first** on real
+   receipts from the shops this household uses, before anything is built around it.
+
+2. **How does a receipt line find its list line?** Receipts abbreviate ("FC MILK 2L"), print weighed
+   produce as a price per kilo, split multibuys, and put discounts on lines of their own. Matching
+   has to learn: once someone confirms a receipt name is Milk, the household should not be asked
+   again, which probably means aliases on `ShoppingItemMemory` beside the name key it already
+   matches on.
+
+3. **Does anything save without a look?** Almost certainly not. The first version shows what it
+   matched, what it could not, and what would change, and writes nothing until someone confirms. A
+   wrong price saved quietly skews "usually" for weeks, which is worse than no price at all.
+
+4. **What about things that were never on the list?** The bread nobody wrote down is still a
+   purchase. Recording it teaches the memory with no list line to hang it on, and a purchase belongs
+   to a line today (`ShoppingItemPrice.ShoppingListItemID` is required). Decide whether that changes
+   or those lines are left out.
+
+5. **Is the photo kept?** Recipe photos already live in the database (20 Aug), so there is a place
+   for the bytes. A receipt also carries the last digits of a card and a loyalty number, so the
+   likely answer is read it and throw it away, and the answer gets written down either way.
+
+6. **When is it offered?** Just after Done is the obvious moment. A shop ended by two quiet hours,
+   and a receipt found in a bag the next day, both need a way back to their shop.
+
+### Deliberately not in scope
+
+- **Comparing supermarkets.** One household's own receipts, not a price index.
+- **Budgets, spending reports and splitting the bill.**
+- **Online orders.** An order confirmation is a different input with a different trust conversation.
 
