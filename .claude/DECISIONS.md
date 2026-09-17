@@ -4,6 +4,47 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-17 · Undo decision 3 of 3: the confirmations stay
+
+Mitch, 17 Sep 2026: everything that asks before it acts still asks. Clear ticked, deleting a list,
+removing an aisle and deleting a light schedule keep their confirmation, and Undo is a second chance
+on top of it rather than a replacement for it.
+
+## 2026-09-17 · Undo decision 2 of 3: a bar says what just happened, for about ten seconds
+
+Mitch, 17 Sep 2026: after anything that can be undone, a bar at the bottom of the screen says what
+just happened and offers Undo, then goes by itself after about ten seconds.
+
+## 2026-09-17 · Undo decision 1 of 3: ticks and deletes, anywhere in the app
+
+Phase 11, second half. Mitch, 17 Sep 2026: ticking something off, on a shopping list or a chore, can
+be undone, and so can every delete or remove anywhere in the app, along with Clear ticked, Untick all
+and Done. Edits are not undone.
+
+**Chosen, not asked:**
+
+- **A delete sent with an undo token is held back rather than carried out.** The row stays with
+  `DeletedOnUTC` set and every query filters it out, so it is gone as far as anyone can see, and a
+  row the delete carries off with it stays too, out of reach behind its parent. A purge that runs
+  every minute deletes held-back rows for good once they are two minutes old; a kind it cannot delete
+  yet stays hidden and is tried again. A request without a token deletes exactly as it always did.
+- **Each action has its own token.** The device makes one and sends it in `X-Undo-Token`, and the API
+  writes down everything that request added, changed or held back against it (`UndoableAction`).
+  Undo sends the token back, so only the device that did something can undo it.
+- **The API honours an undo for a minute**, far longer than the bar shows, so an Undo tapped in time
+  on a slow connection is not turned away when it arrives. The purge waits longer again, so no undo
+  that is still honoured finds its rows gone.
+- **An undo puts back only what is still as the action left it.** A line unticked on another phone
+  since stays unticked. An action that did something no undo could put back, such as deleting a kind
+  of row that cannot be held back, is refused whole rather than half done, and so is an undo that
+  something has since taken the place of, such as a new photo on a recipe whose old one would return.
+- **An undone action leaves no history.** The history rows it wrote are among what it added, so they
+  go with it.
+- **Where an item was filed stays filed.** `ShoppingItemMemory` is shared by every list, so another
+  list may already be relying on a filing that an undo would otherwise take back.
+- **A held-back row already reads the way it will once it is deleted.** Whatever points at it finds
+  nothing there, and whatever cannot exist without it is hidden with it.
+
 ## 2026-09-17 · Nullable is on in the API, and request validation stays with the validators
 
 Phase 11, first half. `Home.WebApi` enables nullable like every other project, and the 175
