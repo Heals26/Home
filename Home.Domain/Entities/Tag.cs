@@ -1,11 +1,13 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
+
+namespace Home.Domain.Entities;
 
 /// <summary>
 /// A household-defined label with a colour, so the family can see at a glance what kind of thing
 /// a card is. The colour is stored as a hex string because the palette is chosen by the family at
 /// runtime and cannot come from the compiled Tailwind classes.
 /// </summary>
-public class Tag
+public class Tag : ISoftDeletable
 {
 
     #region Properties
@@ -15,10 +17,12 @@ public class Tag
     public ICollection<ActivityTag> Activities { get; set; } = [];
 
     /// <summary>
-    /// A validated #RRGGBB value. Never interpolated into a class name — only into an inline
+    /// A validated #RRGGBB value. Never interpolated into a class name, only into an inline
     /// style, after validation, so a stored value can't inject CSS.
     /// </summary>
     public string Colour { get; set; } = string.Empty;
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     public Household Household { get; set; } = null!;
 

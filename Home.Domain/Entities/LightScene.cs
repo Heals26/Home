@@ -1,15 +1,19 @@
+using Home.Domain.Deletions;
+
 namespace Home.Domain.Entities;
 
 /// <summary>
-/// A named look for a set of lights — "Movie", "Dinner" — captured from however they were set at
-/// the time and recalled with one tap.
+/// A named look for a set of lights, such as "Movie" or "Dinner", captured from however they were
+/// set at the time and recalled with one tap.
 /// </summary>
-public class LightScene
+public class LightScene : ISoftDeletable
 {
 
     #region Properties
 
     public long LightSceneID { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     /// <summary>
     /// The household's one automatic scene: how the lights looked just before a scene was last

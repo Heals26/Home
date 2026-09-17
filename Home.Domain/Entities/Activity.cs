@@ -1,6 +1,8 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class Activity
+namespace Home.Domain.Entities;
+
+public class Activity : ISoftDeletable
 {
     #region Fields
 
@@ -19,6 +21,7 @@ public class Activity
     public User? CompletedByUser { get; set; }
 
     public DateTime? CompletedDateUTC { get; set; }
+    public DateTime? DeletedOnUTC { get; set; }
     public DateTime? DueDateUTC { get; set; }
 
     /// <summary>
@@ -47,7 +50,7 @@ public class Activity
     public ActivityState? State { get; set; }
 
     /// <summary>
-    /// Where the card sits within its column. Ordering is per-column in practice — a card keeps
+    /// Where the card sits within its column. Ordering is per-column in practice: a card keeps
     /// its number when it moves, which is harmless because the order only has to be stable and
     /// rearrangeable, not gapless.
     /// </summary>

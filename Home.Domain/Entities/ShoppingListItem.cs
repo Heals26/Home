@@ -1,6 +1,8 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class ShoppingListItem
+namespace Home.Domain.Entities;
+
+public class ShoppingListItem : ISoftDeletable
 {
 
     #region Properties
@@ -14,6 +16,7 @@ public class ShoppingListItem
     public decimal? Amount { get; set; }
 
     public decimal? Cost { get; set; }
+    public DateTime? DeletedOnUTC { get; set; }
     public bool InBasket { get; set; }
     public string Name { get; set; } = string.Empty;
 

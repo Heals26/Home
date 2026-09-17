@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using FluentAssertions;
+using Home.Application.Infrastructure.Undo;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
+using Home.Application.Services.Undo;
 using Home.Application.Tests.Infrastructure.Mapping;
 using Home.Domain.Entities;
 using Home.WebApi.Infrastructure.Presenters;
@@ -139,7 +141,7 @@ public abstract class InteractorTest : IDisposable
     /// never seen the seeded rows, so a navigation is only ever populated by the query under test.
     /// <para>
     /// The signed-in household and member are resolved <em>through that same context</em>, because
-    /// the real <c>AuthorisationService</c> does — it queries the scoped context, which leaves the
+    /// the real <c>AuthorisationService</c> does: it queries the scoped context, which leaves the
     /// household tracked and lets EF fix it up onto everything the interactor loads afterwards.
     /// Some code leans on that: <c>ActivityLogic.AddRegion</c> reads <c>Activity.Household</c>
     /// without ever projecting it, and only works because the authorisation call already put the
@@ -148,7 +150,7 @@ public abstract class InteractorTest : IDisposable
     /// </para>
     /// <para>
     /// A household nobody seeded falls back to the in-memory one, which is what the two slices
-    /// that never touch the database — weather and household settings — rely on.
+    /// that never touch the database, weather and household settings, rely on.
     /// </para>
     /// </summary>
     protected TestServiceFactory Services()
@@ -159,8 +161,18 @@ public abstract class InteractorTest : IDisposable
     /// that has to share it. <c>IShoppingListLogic</c> is the only one today.
     /// </summary>
     protected TestServiceFactory Services(out IPersistenceContext context)
+        => this.Services(out context, new UndoScope());
+
+    /// <summary>
+    /// As <see cref="Services(out IPersistenceContext)"/>, for a request made by a device offering
+    /// Undo: give <paramref name="undoScope"/> a token and a household and the context holds the
+    /// request's deletes back. The context reads the factory's clock, so a held-back delete is
+    /// stamped with the time the test set.
+    /// </summary>
+    protected TestServiceFactory Services(out IPersistenceContext context, IUndoScope undoScope)
     {
-        var _Context = this.Database.Read();
+        var _Factory = new TestServiceFactory();
+        var _Context = this.Database.Read(undoScope, _Factory.Time);
         context = _Context;
 
         _ = this.AuthorisationService.Setup(a => a.GetHousehold())
@@ -173,9 +185,10 @@ public abstract class InteractorTest : IDisposable
                 .FirstOrDefault(u => u.UserID == this.SignedInUser.UserID)
                 ?? this.SignedInUser);
 
-        return new TestServiceFactory()
+        return _Factory
             .With(_Context)
-            .With(this.AuthorisationService.Object);
+            .With(this.AuthorisationService.Object)
+            .With(undoScope);
     }
 
     /// <summary>

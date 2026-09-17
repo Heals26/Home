@@ -17,8 +17,13 @@ public static class FrameworkValues
     public const string ScopeWebApp = "WebApp";
 
     /// <summary>
+    /// The header a device sends its undo token in, when it means to offer Undo for the request.
+    /// </summary>
+    public const string UndoTokenHeader = "X-Undo-Token";
+
+    /// <summary>
     /// How long an access token stays valid. Owned by <see cref="SessionValues"/> now, because
-    /// the refresh grant also reads it to decide when a token is worth replacing — this alias
+    /// the refresh grant also reads it to decide when a token is worth replacing, and this alias
     /// keeps the handler and both grant responses on the same number without touching them.
     /// </summary>
     public static readonly TimeSpan AccessTokenLifetime = SessionValues.AccessTokenLifetime;

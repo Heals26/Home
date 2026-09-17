@@ -1,12 +1,16 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class RecipeNote
+namespace Home.Domain.Entities;
+
+public class RecipeNote : ISoftDeletable
 {
 
     #region Properties
 
     public long NoteID { get; set; }
     public long RecipeID { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     public Recipe Recipe { get; set; } = null!;
     public Note Note { get; set; } = null!;

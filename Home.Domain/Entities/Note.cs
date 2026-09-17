@@ -1,6 +1,8 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class Note
+namespace Home.Domain.Entities;
+
+public class Note : ISoftDeletable
 {
 
     #region Properties
@@ -10,6 +12,7 @@ public class Note
     public DateTime CreatedOnUTC { get; set; }
 
     public ICollection<Audit> Audits { get; set; } = [];
+    public DateTime? DeletedOnUTC { get; set; }
 
     #endregion Properties
 

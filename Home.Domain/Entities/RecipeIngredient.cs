@@ -1,6 +1,8 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class RecipeIngredient
+namespace Home.Domain.Entities;
+
+public class RecipeIngredient : ISoftDeletable
 {
 
     #region Properties
@@ -8,11 +10,13 @@ public class RecipeIngredient
     public long IngredientID { get; set; }
     public long RecipeID { get; set; }
 
+    public DateTime? DeletedOnUTC { get; set; }
+
     public Ingredient Ingredient { get; set; } = null!;
     public Recipe Recipe { get; set; } = null!;
 
     /// <summary>
-    /// Where the ingredient sits in this recipe's list — the order it is reached for while
+    /// Where the ingredient sits in this recipe's list, which is the order it is reached for while
     /// cooking, which is how a cookbook sets them. It lives on the join rather than on the
     /// ingredient because the position belongs to one recipe, not to the thing itself.
     /// </summary>

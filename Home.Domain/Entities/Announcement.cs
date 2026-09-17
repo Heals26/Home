@@ -1,10 +1,12 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
+
+namespace Home.Domain.Entities;
 
 /// <summary>
-/// A short note pinned to the family board — "bin night", "Grandma here Saturday".
+/// A short note pinned to the family board, like "bin night", "Grandma here Saturday".
 /// Deliberately anonymous: the board belongs to the household, not a member.
 /// </summary>
-public class Announcement
+public class Announcement : ISoftDeletable
 {
 
     #region Properties
@@ -14,6 +16,8 @@ public class Announcement
     public string Content { get; set; } = string.Empty;
 
     public DateTime CreatedOnUTC { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     public Household Household { get; set; } = null!;
 

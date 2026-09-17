@@ -1,16 +1,20 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
+
+namespace Home.Domain.Entities;
 
 /// <summary>
-/// A named eating occasion the household defines for itself — Breakfast, Lunch, Dinner, Snack,
+/// A named eating occasion the household defines for itself: Breakfast, Lunch, Dinner, Snack,
 /// or whatever this family actually calls them. One vocabulary serves two jobs: which meal a
 /// planned recipe is for, and how the recipe book is filtered.
 /// </summary>
-public class MealSlot
+public class MealSlot : ISoftDeletable
 {
 
     #region Properties
 
     public long MealSlotID { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     public Household Household { get; set; } = null!;
 

@@ -1,15 +1,19 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
+
+namespace Home.Domain.Entities;
 
 /// <summary>
 /// A read-only iCalendar feed the household already keeps elsewhere (Google, Apple, Outlook).
 /// Home fetches it on a timer and stores the expanded occurrences as its own read-only events.
 /// </summary>
-public class CalendarSubscription
+public class CalendarSubscription : ISoftDeletable
 {
 
     #region Properties
 
     public long CalendarSubscriptionID { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     /// <summary>
     /// Why the last fetch failed, or null when it succeeded. The last good occurrences are kept

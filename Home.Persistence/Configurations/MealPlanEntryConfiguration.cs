@@ -24,6 +24,11 @@ public class MealPlanEntryConfiguration : IEntityTypeConfiguration<MealPlanEntry
             .HasMaxLength(250)
             .IsRequired(false);
 
+        // While a recipe's delete can still be undone, its planned meals are hidden with it, the way
+        // the cascade below takes them when the delete is carried out.
+        _ = entity.HasQueryFilter(e => e.DeletedOnUTC == null
+            && (EF.Property<long?>(e, "RecipeID") == null || e.Recipe != null));
+
         // The household owns the entry outright, because an entry that is only a title has no
         // recipe to be reached through. Restricted rather than cascading: the recipe below already
         // cascades and SQL Server will not accept two cascade paths to the same table. Nothing in

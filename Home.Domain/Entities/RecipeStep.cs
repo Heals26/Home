@@ -1,6 +1,8 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class RecipeStep
+namespace Home.Domain.Entities;
+
+public class RecipeStep : ISoftDeletable
 {
 
     #region Properties
@@ -8,6 +10,7 @@ public class RecipeStep
     public long RecipeStepID { get; set; }
 
     public string Content { get; set; } = string.Empty;
+    public DateTime? DeletedOnUTC { get; set; }
     public string Title { get; set; } = string.Empty;
     public int Sequence { get; set; }
 

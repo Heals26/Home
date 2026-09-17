@@ -7,6 +7,7 @@ using Home.Application.Infrastructure.Activities;
 using Home.Application.Infrastructure.Households;
 using Home.Application.Infrastructure.Recipes;
 using Home.Application.Infrastructure.ShoppingLists;
+using Home.Application.Infrastructure.Undo;
 using Home.Application.Infrastructure.Users;
 using Home.Application.Infrastructure.Lights;
 using Home.Application.Services.Calendar;
@@ -20,6 +21,7 @@ using Home.Application.Services.Lights;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.RecipeImports;
 using Home.Application.Services.Security;
+using Home.Application.Services.Undo;
 using Home.Application.Services.Validation;
 using Home.Application.Services.Weather;
 using Home.Application.UseCases.ApiAuditing;
@@ -27,6 +29,7 @@ using Home.Domain.Entities;
 using Home.Domain.Services.Audits;
 using Home.Domain.Services.Users;
 using Home.Persistence.Database;
+using Home.Persistence.Undo;
 using Home.WebApi.Infrastructure.Calendar;
 using Home.WebApi;
 using Home.WebApi.Infrastructure.AutoMapper.Resolvers;
@@ -37,11 +40,13 @@ using Home.WebApi.Infrastructure.Filters;
 using Home.WebApi.Infrastructure.Lights;
 using Home.WebApi.Infrastructure.OAuth;
 using Home.WebApi.Infrastructure.RecipeImports;
+using Home.WebApi.Infrastructure.Undo;
 using Home.WebApi.Infrastructure.Values;
 using Home.WebApi.Infrastructure.Weather;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -62,6 +67,7 @@ SetupLights(_Builder.Services, _Builder.Configuration);
 SetupRecipeImports(_Builder.Services);
 SetupWeather(_Builder.Services);
 SetupCalendar(_Builder.Services);
+SetupUndo(_Builder.Services);
 SetupEntityFramework(_Builder.Services, _Builder.Configuration);
 
 SetupAuthentication(_Builder.Services);
@@ -160,6 +166,8 @@ static IServiceCollection SetupEntityFramework(IServiceCollection services, ICon
 {
     var _ConnectionString = configuration["databaseConnectionString"];
 
+    // A held-back delete hides its row with a query filter, and a row that needs it is meant to go
+    // missing with it, which is exactly the interaction EF warns about.
     _ = services.AddDbContext<IPersistenceContext, PersistenceContext>(options =>
     {
         _ = options.UseSqlServer(_ConnectionString, o =>
@@ -167,7 +175,8 @@ static IServiceCollection SetupEntityFramework(IServiceCollection services, ICon
             _ = o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
             _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
         })
-        .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true);
+        .EnableSensitiveDataLogging(sensitiveDataLoggingEnabled: true)
+        .ConfigureWarnings(w => w.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning));
     });
 
     _ = services.AddDbContext<IAuditPersistenceContext, AuditPersistenceContext>(options =>
@@ -194,6 +203,7 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
     _ = services.AddControllers(o =>
     {
         o.Filters.Add<ApiAuditingActionFilterAttribute>();
+        o.Filters.Add<UndoTokenFilter>();
         o.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
     });
     _ = services.AddSignalR();
@@ -380,6 +390,19 @@ static IServiceCollection SetupScrutorServices(IServiceCollection services)
             .AsSelf()
             .WithScopedLifetime();
     });
+
+    return services;
+}
+
+// A request sent with an undo token has its deletes held back and its changes kept; the runner
+// carries out the held-back deletes once no undo can reach them.
+static IServiceCollection SetupUndo(IServiceCollection services)
+{
+    _ = services
+        .AddScoped<IUndoScope, UndoScope>()
+        .AddScoped<IUndoStore, UndoStore>();
+
+    _ = services.AddHostedService<UndoPurgeRunner>();
 
     return services;
 }

@@ -13,6 +13,7 @@ public class CreateUserProfile : Profile
             .ForMember(d => d.UserID, o => o.Ignore())
             .ForMember(d => d.AssignedActivities, o => o.Ignore())
             .ForMember(d => d.Audits, o => o.Ignore())
+            .ForMember(d => d.DeletedOnUTC, o => o.Ignore())
             // Set from the caller's own session by the interactor, never from the request.
             .ForMember(d => d.Household, o => o.Ignore())
             .ForMember(d => d.Password, o => o.Ignore())

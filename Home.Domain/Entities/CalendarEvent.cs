@@ -1,4 +1,5 @@
-﻿using Home.Domain.Enumerations;
+﻿using Home.Domain.Deletions;
+using Home.Domain.Enumerations;
 
 namespace Home.Domain.Entities;
 
@@ -11,7 +12,7 @@ namespace Home.Domain.Entities;
 /// 4pm stays 4pm across daylight saving and a viewer in another zone still sees the right day.
 /// </para>
 /// </summary>
-public class CalendarEvent
+public class CalendarEvent : ISoftDeletable
 {
 
     #region Properties
@@ -23,6 +24,8 @@ public class CalendarEvent
     /// Zero on a weekly event means the start date's own weekday.
     /// </summary>
     public int DaysOfWeek { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     /// <summary>
     /// Last day of the event (inclusive). Equal to <see cref="StartDate"/> for a single day.

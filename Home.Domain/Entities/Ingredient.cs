@@ -1,6 +1,8 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class Ingredient
+namespace Home.Domain.Entities;
+
+public class Ingredient : ISoftDeletable
 {
 
     #region Properties
@@ -12,6 +14,8 @@ public class Ingredient
     /// Weight), which were dropped on 4 Sep 2026 once every row had moved across.
     /// </summary>
     public decimal? Amount { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     public string Name { get; set; } = string.Empty;
 

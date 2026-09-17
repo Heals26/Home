@@ -35,7 +35,8 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
             .IsRequired();
 
         _ = entity.HasIndex("HouseholdID", nameof(Tag.Name))
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("[DeletedOnUTC] IS NULL");
     }
 
     #endregion Methods

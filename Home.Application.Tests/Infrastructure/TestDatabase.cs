@@ -1,6 +1,9 @@
-﻿using Home.Application.Services.Persistence;
+﻿using Home.Application.Infrastructure.Undo;
+using Home.Application.Services.Persistence;
+using Home.Application.Services.Undo;
 using Home.Persistence.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Home.Application.Tests.Infrastructure;
 
@@ -10,7 +13,7 @@ namespace Home.Application.Tests.Infrastructure;
 /// <para>
 /// That distinction is the entire point of this class. A mocked <see cref="IPersistenceContext"/>
 /// returning <c>AsQueryable()</c> hands the interactor an object graph that is already fully
-/// connected, so a projection which forgets to name a navigation still passes — the navigation was
+/// connected, so a projection which forgets to name a navigation still passes: the navigation was
 /// never unloaded to begin with. Against a real context the projection is what decides, and one
 /// that forgets a navigation comes back null exactly as it does in production. Three screens have
 /// shipped broken that way; a mock cannot catch a fourth.
@@ -45,26 +48,30 @@ public sealed class TestDatabase : IDisposable
         this.m_SeedContext = null;
     }
 
-    private PersistenceContext NewContext()
+    private PersistenceContext NewContext(IUndoScope? undoScope = null, TimeProvider? timeProvider = null)
         => new(new DbContextOptionsBuilder<PersistenceContext>()
-            .UseInMemoryDatabase(this.m_StoreName)
-            .EnableSensitiveDataLogging()
-            .Options);
+                .UseInMemoryDatabase(this.m_StoreName)
+                .EnableSensitiveDataLogging()
+                .ConfigureWarnings(w => w.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning))
+                .Options,
+            undoScope ?? new UndoScope(),
+            timeProvider ?? TimeProvider.System);
 
     /// <summary>
     /// A context that has never seen the seeded entities, so a navigation is populated only
-    /// because the query under test asked for it.
+    /// because the query under test asked for it. Give it an undo scope with a token to act as a
+    /// device offering Undo.
     /// </summary>
-    public IPersistenceContext Read()
+    public IPersistenceContext Read(IUndoScope? undoScope = null, TimeProvider? timeProvider = null)
     {
-        var _Context = this.NewContext();
+        var _Context = this.NewContext(undoScope, timeProvider);
         this.m_ReadContexts.Add(_Context);
 
         return _Context;
     }
 
     /// <summary>
-    /// Writes the given roots, letting EF cascade to everything they reference — seeding an
+    /// Writes the given roots, letting EF cascade to everything they reference: seeding an
     /// activity brings its household, sections, regions and lines with it.
     /// <para>
     /// One context does all the seeding for the life of the database, so a second call knows what

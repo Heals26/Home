@@ -1,3 +1,5 @@
+using Home.Domain.Deletions;
+
 namespace Home.Domain.Entities;
 
 /// <summary>
@@ -13,7 +15,7 @@ namespace Home.Domain.Entities;
 /// the planner to one household needs an owner that is always there.
 /// </para>
 /// </summary>
-public class MealPlanEntry
+public class MealPlanEntry : ISoftDeletable
 {
 
     #region Properties
@@ -25,6 +27,8 @@ public class MealPlanEntry
     /// only the date is meaningful.
     /// </summary>
     public DateTime Date { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     public Household Household { get; set; } = null!;
 

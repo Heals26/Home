@@ -1,11 +1,14 @@
+using Home.Domain.Deletions;
+
 namespace Home.Domain.Entities;
 
-public class ShoppingList
+public class ShoppingList : ISoftDeletable
 {
 
     #region Properties
 
     public long ShoppingListID { get; set; }
+    public DateTime? DeletedOnUTC { get; set; }
     public string Name { get; set; } = string.Empty;
 
     public ICollection<Audit> Audits { get; set; } = [];

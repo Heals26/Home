@@ -25,10 +25,12 @@ public class RecipeImageConfiguration : IEntityTypeConfiguration<RecipeImage>
             .HasMaxLength(100)
             .IsRequired();
 
-        // One photo per recipe, dying with it. Deliberately no navigation on Recipe — a stray
-        // Include there would drag image bytes through every book query.
+        // One photo per recipe, dying with it. Deliberately no navigation on Recipe, because a
+        // stray Include there would drag image bytes through every book query.
         _ = entity.Property<long>("RecipeID");
-        _ = entity.HasIndex("RecipeID").IsUnique();
+        _ = entity.HasIndex("RecipeID")
+            .IsUnique()
+            .HasFilter("[DeletedOnUTC] IS NULL");
         _ = entity.HasOne(e => e.Recipe)
             .WithOne()
             .HasConstraintName("FK_RecipeImage_Recipe")

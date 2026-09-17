@@ -33,7 +33,8 @@ public class ShoppingCategoryConfiguration : IEntityTypeConfiguration<ShoppingCa
             .IsRequired();
 
         _ = entity.HasIndex("HouseholdID", nameof(ShoppingCategory.Name))
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("[DeletedOnUTC] IS NULL");
     }
 
     #endregion Methods

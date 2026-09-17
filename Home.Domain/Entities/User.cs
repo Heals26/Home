@@ -1,11 +1,15 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class User
+namespace Home.Domain.Entities;
+
+public class User : ISoftDeletable
 {
 
     #region Properties
 
     public long UserID { get; set; }
+    public DateTime? DeletedOnUTC { get; set; }
+
     /// <summary>
     /// What the member signs in with. Null for a member who has no login: a child who is assigned
     /// things and named on events but never taps a password. Present only together with

@@ -35,7 +35,8 @@ public class MealSlotConfiguration : IEntityTypeConfiguration<MealSlot>
             .IsRequired();
 
         _ = entity.HasIndex("HouseholdID", nameof(MealSlot.Name))
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("[DeletedOnUTC] IS NULL");
     }
 
     #endregion Methods

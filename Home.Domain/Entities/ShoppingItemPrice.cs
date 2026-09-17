@@ -1,10 +1,12 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
+
+namespace Home.Domain.Entities;
 
 /// <summary>
 /// One time the household bought something, and what it paid. Written when a priced line is ticked
 /// during a shop, or priced afterwards while it is still ticked.
 /// </summary>
-public class ShoppingItemPrice
+public class ShoppingItemPrice : ISoftDeletable
 {
 
     #region Properties
@@ -19,6 +21,8 @@ public class ShoppingItemPrice
     /// The line price, as on the list: what was paid for <see cref="Amount"/>, not per unit.
     /// </summary>
     public decimal Cost { get; set; }
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     public ShoppingItemMemory Memory { get; set; } = null!;
 

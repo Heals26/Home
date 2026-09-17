@@ -1,11 +1,14 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class Recipe
+namespace Home.Domain.Entities;
+
+public class Recipe : ISoftDeletable
 {
 
     #region Properties
 
     public long RecipeID { get; set; }
+    public DateTime? DeletedOnUTC { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
 
@@ -32,7 +35,7 @@ public class Recipe
     public DateTime? ImageUpdatedOnUTC { get; set; }
 
     /// <summary>
-    /// A link to a picture of the finished dish — imported from the source page, or pasted in.
+    /// A link to a picture of the finished dish, imported from the source page, or pasted in.
     /// The household's own photo beats this when both exist.
     /// </summary>
     public string? ImageUrl { get; set; }

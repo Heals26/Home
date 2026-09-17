@@ -1,6 +1,8 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class ActivityTag
+namespace Home.Domain.Entities;
+
+public class ActivityTag : ISoftDeletable
 {
 
     #region Properties
@@ -9,6 +11,7 @@ public class ActivityTag
     public long TagID { get; set; }
 
     public Activity Activity { get; set; } = null!;
+    public DateTime? DeletedOnUTC { get; set; }
     public Tag Tag { get; set; } = null!;
 
     #endregion Properties

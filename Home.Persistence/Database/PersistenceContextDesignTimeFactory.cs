@@ -1,12 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Home.Application.Infrastructure.Undo;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Home.Persistence.Database;
 
 /// <summary>
 /// Lets <c>dotnet ef</c> build the model with this project as the startup project, so migrations
 /// can be added while the API is running and holding its output folder locked. Adding a migration
-/// never opens a connection — the string only needs to be well-formed.
+/// never opens a connection, so the string only needs to be well-formed.
 /// <para>
 /// <b>This factory wins over the startup project.</b> EF prefers an
 /// <see cref="IDesignTimeDbContextFactory{TContext}"/> to the host's service provider, so
@@ -26,9 +28,10 @@ public class PersistenceContextDesignTimeFactory : IDesignTimeDbContextFactory<P
             ?? "Server=(localdb)\\MSSQLLocalDB;Database=Home;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
 
         var _Options = new DbContextOptionsBuilder<PersistenceContext>();
-        _ = _Options.UseSqlServer(_ConnectionString, o => _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo"));
+        _ = _Options.UseSqlServer(_ConnectionString, o => _ = o.MigrationsHistoryTable("__EFMigrationsHistory", "dbo"))
+            .ConfigureWarnings(w => w.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning));
 
-        return new PersistenceContext(_Options.Options);
+        return new PersistenceContext(_Options.Options, new UndoScope(), TimeProvider.System);
     }
 
     #endregion Methods

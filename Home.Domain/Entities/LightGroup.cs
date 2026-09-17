@@ -1,15 +1,19 @@
-﻿namespace Home.Domain.Entities;
+﻿using Home.Domain.Deletions;
 
-public class LightGroup
+namespace Home.Domain.Entities;
+
+public class LightGroup : ISoftDeletable
 {
 
     #region Properties
 
     public long LightGroupID { get; set; }
 
+    public DateTime? DeletedOnUTC { get; set; }
+
     /// <summary>
     /// The provider's group ID where this group was seeded from one. Null for groups created in
-    /// Home, which the provider knows nothing about — those are addressed by listing their
+    /// Home, which the provider knows nothing about. Those are addressed by listing their
     /// lights instead.
     /// </summary>
     public string? ID { get; set; }

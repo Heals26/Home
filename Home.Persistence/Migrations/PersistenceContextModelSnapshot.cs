@@ -36,6 +36,9 @@ namespace Home.Persistence.Migrations
                     b.Property<DateTime?>("CompletedDateUTC")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("DueDateUTC")
                         .HasColumnType("datetime2");
 
@@ -85,6 +88,9 @@ namespace Home.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("RegionID")
                         .HasColumnType("bigint");
 
@@ -112,6 +118,9 @@ namespace Home.Persistence.Migrations
                     b.Property<long>("CardSectionID")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
 
@@ -131,6 +140,9 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ActivityStateID"));
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
@@ -161,6 +173,9 @@ namespace Home.Persistence.Migrations
                     b.Property<long>("TagID")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("ActivityID", "TagID");
 
                     b.HasIndex("TagID");
@@ -182,6 +197,9 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("CreatedOnUTC")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedOnUTC")
                         .HasColumnType("datetime2");
 
                     b.Property<long>("HouseholdID")
@@ -317,6 +335,9 @@ namespace Home.Persistence.Migrations
                     b.Property<int>("DaysOfWeek")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
@@ -412,6 +433,9 @@ namespace Home.Persistence.Migrations
                     b.Property<long>("UserID")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("CalendarEventID", "UserID");
 
                     b.HasIndex("UserID");
@@ -426,6 +450,9 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CalendarSubscriptionID"));
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
@@ -461,6 +488,9 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CardSectionID"));
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
@@ -548,6 +578,9 @@ namespace Home.Persistence.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -568,6 +601,9 @@ namespace Home.Persistence.Migrations
 
                     b.Property<long>("IngredientID")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("NoteID", "IngredientID");
 
@@ -657,6 +693,9 @@ namespace Home.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("LightGroupID"));
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ID")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -714,6 +753,9 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("LightSceneID"));
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
@@ -788,6 +830,9 @@ namespace Home.Persistence.Migrations
                     b.Property<int>("DaysOfWeek")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("bit");
 
@@ -831,6 +876,9 @@ namespace Home.Persistence.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
 
@@ -865,6 +913,9 @@ namespace Home.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("MealSlotID"));
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
 
@@ -882,7 +933,8 @@ namespace Home.Persistence.Migrations
                     b.HasKey("MealSlotID");
 
                     b.HasIndex("HouseholdID", "Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[DeletedOnUTC] IS NULL");
 
                     b.ToTable("MealSlot", "home");
                 });
@@ -904,6 +956,9 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("NoteID");
 
                     b.ToTable("Note", "home");
@@ -922,6 +977,9 @@ namespace Home.Persistence.Migrations
 
                     b.Property<int?>("CookMinutes")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
@@ -971,13 +1029,17 @@ namespace Home.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("RecipeID")
                         .HasColumnType("bigint");
 
                     b.HasKey("RecipeImageID");
 
                     b.HasIndex("RecipeID")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[DeletedOnUTC] IS NULL");
 
                     b.ToTable("RecipeImage", "home");
                 });
@@ -989,6 +1051,9 @@ namespace Home.Persistence.Migrations
 
                     b.Property<long>("RecipeID")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("Sequence")
                         .HasColumnType("bigint");
@@ -1008,6 +1073,9 @@ namespace Home.Persistence.Migrations
                     b.Property<long>("MealSlotID")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("RecipeID", "MealSlotID");
 
                     b.HasIndex("MealSlotID");
@@ -1022,6 +1090,9 @@ namespace Home.Persistence.Migrations
 
                     b.Property<long>("RecipeID")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("NoteID", "RecipeID");
 
@@ -1041,6 +1112,9 @@ namespace Home.Persistence.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("RecipeID")
                         .HasColumnType("bigint");
@@ -1068,6 +1142,9 @@ namespace Home.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ShoppingCategoryID"));
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
 
@@ -1082,7 +1159,8 @@ namespace Home.Persistence.Migrations
                     b.HasKey("ShoppingCategoryID");
 
                     b.HasIndex("HouseholdID", "Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[DeletedOnUTC] IS NULL");
 
                     b.ToTable("ShoppingCategory", "home");
                 });
@@ -1140,6 +1218,9 @@ namespace Home.Persistence.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("ShoppingItemMemoryID")
                         .HasColumnType("bigint");
 
@@ -1168,6 +1249,9 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ShoppingListID"));
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("GroupByAisle")
                         .ValueGeneratedOnAdd()
@@ -1208,6 +1292,9 @@ namespace Home.Persistence.Migrations
                     b.Property<decimal?>("Cost")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("InBasket")
                         .ValueGeneratedOnAdd()
@@ -1283,6 +1370,9 @@ namespace Home.Persistence.Migrations
                         .HasMaxLength(7)
                         .HasColumnType("nvarchar(7)");
 
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("HouseholdID")
                         .HasColumnType("bigint");
 
@@ -1294,9 +1384,49 @@ namespace Home.Persistence.Migrations
                     b.HasKey("TagID");
 
                     b.HasIndex("HouseholdID", "Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[DeletedOnUTC] IS NULL");
 
                     b.ToTable("Tag", "home");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.UndoableAction", b =>
+                {
+                    b.Property<long>("UndoableActionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("UndoableActionID"));
+
+                    b.Property<bool>("CanUndo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Changes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOnUTC")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("HouseholdID")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("Token")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UndoneOnUTC")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("UndoableActionID");
+
+                    b.HasIndex("CreatedOnUTC");
+
+                    b.HasIndex("HouseholdID");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("UndoableAction", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.User", b =>
@@ -1306,6 +1436,9 @@ namespace Home.Persistence.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("UserID"));
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .HasMaxLength(500)
@@ -1959,6 +2092,18 @@ namespace Home.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Tag_Household");
+
+                    b.Navigation("Household");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.UndoableAction", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_UndoableAction_Household");
 
                     b.Navigation("Household");
                 });

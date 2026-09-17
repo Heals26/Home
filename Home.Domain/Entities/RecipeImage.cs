@@ -1,10 +1,12 @@
+using Home.Domain.Deletions;
+
 namespace Home.Domain.Entities;
 
 /// <summary>
 /// A photo somebody took of the dish, stored as bytes on the recipe's own row family. Kept out of
 /// <see cref="Recipe"/> itself so listing the book never drags image bytes through a query.
 /// </summary>
-public class RecipeImage
+public class RecipeImage : ISoftDeletable
 {
 
     #region Properties
@@ -20,6 +22,8 @@ public class RecipeImage
     /// The MIME type the browser declared, served back with the bytes.
     /// </summary>
     public string ContentType { get; set; } = string.Empty;
+
+    public DateTime? DeletedOnUTC { get; set; }
 
     public Recipe Recipe { get; set; } = null!;
 
