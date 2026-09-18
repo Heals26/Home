@@ -14,6 +14,7 @@ using Home.Application.UseCases.RecipeIngredients.RemoveRecipeIngredient;
 using Home.Application.UseCases.Recipes.DeleteRecipe;
 using Home.Application.UseCases.ShoppingCategories.DeleteShoppingCategory;
 using Home.Application.UseCases.ShoppingListItems.DeleteShoppingListItem;
+using Home.Application.UseCases.ShoppingListItems.SetShoppingListItemInBasket;
 using Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
 using Home.Application.UseCases.ShoppingLists.DeleteShoppingList;
 using Home.Application.UseCases.ShoppingLists.DeleteTickedShoppingListItems;
@@ -28,6 +29,7 @@ using Home.WebApi.Presenters.RecipeIngredients.RemoveRecipeIngredient;
 using Home.WebApi.Presenters.Recipes.DeleteRecipe;
 using Home.WebApi.Presenters.ShoppingCategories.DeleteShoppingCategory;
 using Home.WebApi.Presenters.ShoppingListItems.DeleteShoppingListItem;
+using Home.WebApi.Presenters.ShoppingListItems.SetShoppingListItemInBasket;
 using Home.WebApi.Presenters.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebApi.Presenters.ShoppingLists.DeleteShoppingList;
 using Home.WebApi.Presenters.ShoppingLists.DeleteTickedShoppingListItems;
@@ -165,9 +167,9 @@ public class UndoActionInteractorTests : InteractorTest
         _ = this.Database.Seed(_List);
 
         await this.ActAsync(
-            new UpdateShoppingListItemInteractor(),
-            new UpdateShoppingListItemInputPort(default, default, new PropertyChangeTracker<bool>(true), default, default, default, 130, default),
-            new UpdateShoppingListItemPresenter(Mapper));
+            new SetShoppingListItemInBasketInteractor(),
+            new SetShoppingListItemInBasketInputPort(true, 130),
+            new SetShoppingListItemInBasketPresenter(Mapper));
 
         _ = this.Stored<ShoppingItemPrice>().Should().ContainSingle();
 
@@ -193,9 +195,9 @@ public class UndoActionInteractorTests : InteractorTest
         _ = this.Database.Seed(_Memory, _List);
 
         await this.ActAsync(
-            new UpdateShoppingListItemInteractor(),
-            new UpdateShoppingListItemInputPort(default, default, new PropertyChangeTracker<bool>(false), default, default, default, 130, default),
-            new UpdateShoppingListItemPresenter(Mapper));
+            new SetShoppingListItemInBasketInteractor(),
+            new SetShoppingListItemInBasketInputPort(false, 130),
+            new SetShoppingListItemInBasketPresenter(Mapper));
 
         _ = this.Stored<ShoppingItemPrice>().Should().BeEmpty();
 
@@ -382,13 +384,13 @@ public class UndoActionInteractorTests : InteractorTest
 
         await this.ActAsync(
             new UpdateShoppingListItemInteractor(),
-            new UpdateShoppingListItemInputPort(default, new PropertyChangeTracker<decimal?>(5.20m), default, default, default, default, 130, default),
+            new UpdateShoppingListItemInputPort(default, new PropertyChangeTracker<decimal?>(5.20m), default, default, 130, default),
             new UpdateShoppingListItemPresenter(Mapper));
 
         var _Services = this.Services(out var _Context);
 
         await new UpdateShoppingListItemInteractor().HandleAsync(
-            new UpdateShoppingListItemInputPort(default, new PropertyChangeTracker<decimal?>(6.00m), default, default, default, default, 130, default),
+            new UpdateShoppingListItemInputPort(default, new PropertyChangeTracker<decimal?>(6.00m), default, default, 130, default),
             new UpdateShoppingListItemPresenter(Mapper),
             _Services
                 .With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_Context, _Services.Time))

@@ -4,6 +4,8 @@ using Home.Application.UseCases.ShoppingListItems.GetShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.Application.UseCases.ShoppingListItems.MoveShoppingListItem;
 using Home.Application.UseCases.ShoppingListItems.SetShoppingListItemCategory;
+using Home.Application.UseCases.ShoppingListItems.SetShoppingListItemInBasket;
+using Home.Application.UseCases.ShoppingListItems.SetShoppingListItemSequence;
 using Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebApi.Infrastructure.Attributes;
 using Home.WebApi.Infrastructure.Values;
@@ -13,11 +15,15 @@ using Home.WebApi.Presenters.ShoppingListItems.GetShoppingListItem;
 using Home.WebApi.Presenters.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.WebApi.Presenters.ShoppingListItems.MoveShoppingListItem;
 using Home.WebApi.Presenters.ShoppingListItems.SetShoppingListItemCategory;
+using Home.WebApi.Presenters.ShoppingListItems.SetShoppingListItemInBasket;
+using Home.WebApi.Presenters.ShoppingListItems.SetShoppingListItemSequence;
 using Home.WebApi.Presenters.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebApi.UseCases.ShoppingListItems.CreateShoppingListItem;
 using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItem;
 using Home.WebApi.UseCases.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.WebApi.UseCases.ShoppingListItems.SetShoppingListItemCategory;
+using Home.WebApi.UseCases.ShoppingListItems.SetShoppingListItemInBasket;
+using Home.WebApi.UseCases.ShoppingListItems.SetShoppingListItemSequence;
 using Home.WebApi.UseCases.ShoppingListItems.UpdateShoppingListItem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -118,6 +124,40 @@ public class ShoppingListItemsController : BaseController
         return presenter.Result;
     }
 
+    /// <summary>
+    /// Ticks the line into the trolley or takes it back out. Its own route rather than a field on
+    /// the patch, because during a shop it is what records and takes back a purchase.
+    /// </summary>
+    [HttpPut("{shoppingListItemID}/Basket")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> SetShoppingListItemInBasket(
+        [FromServices] SetShoppingListItemInBasketPresenter presenter,
+        [FromRoute] long shoppingListItemID,
+        [FromBody] SetShoppingListItemInBasketApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new SetShoppingListItemInBasketInputPort(request.InBasket, shoppingListItemID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
+    /// <summary>
+    /// Puts the line at a position in its list, moving whatever it passes. Its own route rather than
+    /// a field on the patch, because it is the one write that changes rows the caller never named.
+    /// </summary>
+    [HttpPut("{shoppingListItemID}/Sequence")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> SetShoppingListItemSequence(
+        [FromServices] SetShoppingListItemSequencePresenter presenter,
+        [FromRoute] long shoppingListItemID,
+        [FromBody] SetShoppingListItemSequenceApiRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.Pipeline.InvokeAsync(new SetShoppingListItemSequenceInputPort(request.Sequence, shoppingListItemID), presenter, this.ServiceFactory, cancellationToken);
+
+        return presenter.Result;
+    }
+
     [HttpPatch("{shoppingListItemID}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateShoppingListItem(
@@ -129,10 +169,8 @@ public class ShoppingListItemsController : BaseController
         await this.Pipeline.InvokeAsync(new UpdateShoppingListItemInputPort(
             request.Amount,
             request.Cost,
-            request.InBasket,
             request.Name,
             request.Note,
-            request.Sequence,
             shoppingListItemID,
             request.Unit),
             presenter,

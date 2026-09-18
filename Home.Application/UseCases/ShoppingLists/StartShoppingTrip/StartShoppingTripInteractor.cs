@@ -40,7 +40,7 @@ internal class StartShoppingTripInteractor : IInteractor<StartShoppingTripInputP
             return;
         }
 
-        var _Trip = _TripLogic.FindOpen(_Household, _ShoppingList.ShoppingListID);
+        var _Trip = _TripLogic.RecordActivityOn(_Household, _ShoppingList.ShoppingListID);
 
         if (_Trip == null)
         {
@@ -49,7 +49,6 @@ internal class StartShoppingTripInteractor : IInteractor<StartShoppingTripInputP
         }
         else
         {
-            _TripLogic.RecordActivity(_Trip);
             _AuditLogic.UpdateAudit(_ShoppingList, $"joined in shopping with '{_ShoppingList.Name}'");
         }
 

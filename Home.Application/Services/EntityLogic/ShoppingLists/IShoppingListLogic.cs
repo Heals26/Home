@@ -13,8 +13,23 @@ public interface IShoppingListLogic
     bool DoesShoppingListExist(long shoppingListID);
     bool DoesShoppingListItemExist(long shoppingListItemID);
     ShoppingListItem? GetItem(long shoppingListItemID);
+
+    /// <summary>
+    /// The line, its list and the rest of the list around it, and only when this household owns it.
+    /// Everything that writes to a single line reads it through here, so the household check and the
+    /// loading are in one place rather than one per endpoint.
+    /// </summary>
+    ShoppingListItem? GetItem(Household household, long shoppingListItemID);
+
     IQueryable<ShoppingListItem> GetItems(long shoppingListID);
-    ShoppingListItem UpdateItem(UpdateShoppingListItemInputPort inputPort);
+
+    /// <summary>
+    /// Takes the line out of the order and puts it back at <paramref name="sequence"/>, closing the
+    /// gap it left and opening one where it lands.
+    /// </summary>
+    void MoveItem(ShoppingListItem shoppingListItem, long sequence);
+
+    void UpdateItem(ShoppingListItem shoppingListItem, UpdateShoppingListItemInputPort inputPort);
 
     #endregion Methods
 

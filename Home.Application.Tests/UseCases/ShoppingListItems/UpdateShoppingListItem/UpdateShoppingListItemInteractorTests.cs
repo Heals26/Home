@@ -12,9 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Home.Application.Tests.UseCases.ShoppingListItems.UpdateShoppingListItem;
 
 /// <summary>
-/// Editing a line on a shopping list, including ticking it into the basket. Moving an item shoves
-/// the ones at or below its new position down, which is the only write in the application that
-/// changes rows the caller did not name.
+/// The sheet behind a line on a shopping list. Ticking it and moving it are their own use cases, so
+/// what is left here is a form someone filled in, and every field left out of it stays as it was.
 /// </summary>
 public class UpdateShoppingListItemInteractorTests : InteractorTest
 {
@@ -56,16 +55,14 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
         long shoppingListItemID,
         PropertyChangeTracker<decimal?> amount = default,
         PropertyChangeTracker<decimal?> cost = default,
-        PropertyChangeTracker<bool> inBasket = default,
         PropertyChangeTracker<string> name = default,
         PropertyChangeTracker<string?> note = default,
-        PropertyChangeTracker<long> sequence = default,
         PropertyChangeTracker<long?> unit = default)
     {
         var _Services = this.Services(out var _Context);
 
         return new UpdateShoppingListItemInteractor().HandleAsync(
-            new UpdateShoppingListItemInputPort(amount, cost, inBasket, name, note, sequence, shoppingListItemID, unit),
+            new UpdateShoppingListItemInputPort(amount, cost, name, note, shoppingListItemID, unit),
             this.m_Presenter,
             _Services
                 .With<IShoppingListLogic>(new ShoppingListLogic(_Context))
@@ -73,17 +70,6 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
                 .With<IShoppingTripLogic>(new ShoppingTripLogic(_Context, _Services.Time))
                 .Build(),
             CancellationToken.None);
-    }
-
-    [Fact]
-    public async Task HandleAsync_TicksTheItemIntoTheBasket()
-    {
-        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1)));
-
-        await this.HandleAsync(130, inBasket: new(true));
-
-        _ = this.m_Presenter.Result.Should().BeOfType<NoContentResult>();
-        _ = this.Stored<ShoppingListItem>().Single().InBasket.Should().BeTrue();
     }
 
     [Fact]
@@ -101,11 +87,11 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
     }
 
     [Fact]
-    public async Task HandleAsync_WhenOnlyTheBasketIsSent_LeavesEverythingElseAlone()
+    public async Task HandleAsync_WhenOnlyOneFieldIsSent_LeavesEverythingElseAlone()
     {
         _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 3)));
 
-        await this.HandleAsync(130, inBasket: new(true));
+        await this.HandleAsync(130, cost: new(4.80m));
 
         var _Stored = this.Stored<ShoppingListItem>().Single();
 
@@ -144,65 +130,9 @@ public class UpdateShoppingListItemInteractorTests : InteractorTest
         _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Olive oil", 1)));
 
         await this.HandleAsync(130, note: new("Woolies brand"));
-        await this.HandleAsync(130, inBasket: new(true));
+        await this.HandleAsync(130, cost: new(9.50m));
 
-        _ = this.Stored<ShoppingListItem>().Single().Note.Should().Be(
-            "Woolies brand",
-            "ticking something off must not wipe what the line said");
-    }
-
-    /// <summary>
-    /// The list in order, which is the only thing a reorder is judged by.
-    /// </summary>
-    private IEnumerable<string> StoredOrder()
-        => this.Stored<ShoppingListItem>().OrderBy(i => i.Sequence).ThenBy(i => i.ShoppingListItemID).Select(i => i.Name);
-
-    [Fact]
-    public async Task HandleAsync_MovingAnItemUpTheListPutsItThereAndClosesTheGap()
-    {
-        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3), (133, "Jam", 4)));
-
-        await this.HandleAsync(133, sequence: new(2));
-
-        _ = this.StoredOrder().Should().Equal(
-            ["Milk", "Jam", "Bread", "Eggs"],
-            "this used to move every other item and never the one being moved, so reordering did nothing");
-    }
-
-    [Fact]
-    public async Task HandleAsync_MovingAnItemDownTheListWorksTheSameWayInReverse()
-    {
-        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3), (133, "Jam", 4)));
-
-        await this.HandleAsync(130, sequence: new(3));
-
-        _ = this.StoredOrder().Should().Equal(["Bread", "Eggs", "Milk", "Jam"]);
-    }
-
-    [Fact]
-    public async Task HandleAsync_LeavesTheListAloneWhenSomethingIsDroppedWhereItAlreadyWas()
-    {
-        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3)));
-
-        await this.HandleAsync(131, sequence: new(2));
-
-        _ = this.Stored<ShoppingListItem>().Select(i => i.Sequence).Should().Equal(
-            [1, 2, 3],
-            "a move to where it already is must not renumber anything");
-    }
-
-    [Fact]
-    public async Task HandleAsync_KeepsTheSequencesContiguousSoRepeatedMovesStayPredictable()
-    {
-        _ = this.Database.Seed(BuildList(120, this.Ours, (130, "Milk", 1), (131, "Bread", 2), (132, "Eggs", 3), (133, "Jam", 4)));
-
-        await this.HandleAsync(133, sequence: new(1));
-        await this.HandleAsync(130, sequence: new(4));
-        await this.HandleAsync(132, sequence: new(2));
-
-        _ = this.Stored<ShoppingListItem>().OrderBy(i => i.Sequence).Select(i => i.Sequence).Should().Equal(
-            [1, 2, 3, 4],
-            "nothing may drift apart, or a later move lands between two items instead of on one");
+        _ = this.Stored<ShoppingListItem>().Single().Note.Should().Be("Woolies brand");
     }
 
     [Fact]

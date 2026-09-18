@@ -3,16 +3,16 @@ using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.Security;
 
-namespace Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
+namespace Home.Application.UseCases.ShoppingListItems.SetShoppingListItemInBasket;
 
-internal class UpdateShoppingListItemInteractor : IInteractor<UpdateShoppingListItemInputPort, IUpdateShoppingListItemOutputPort>
+internal class SetShoppingListItemInBasketInteractor : IInteractor<SetShoppingListItemInBasketInputPort, ISetShoppingListItemInBasketOutputPort>
 {
 
     #region Methods
 
     public async Task HandleAsync(
-        UpdateShoppingListItemInputPort inputPort,
-        IUpdateShoppingListItemOutputPort outputPort,
+        SetShoppingListItemInBasketInputPort inputPort,
+        ISetShoppingListItemInBasketOutputPort outputPort,
         ServiceFactory serviceFactory,
         CancellationToken cancellationToken)
     {
@@ -31,20 +31,17 @@ internal class UpdateShoppingListItemInteractor : IInteractor<UpdateShoppingList
         }
         else
         {
-            var _InBasket = _ShoppingListItem.InBasket;
+            var _WasInBasket = _ShoppingListItem.InBasket;
 
-            _ShoppingListLogic.UpdateItem(_ShoppingListItem, inputPort);
+            _ShoppingListItem.InBasket = inputPort.InBasket;
 
             var _Trip = _TripLogic.RecordActivityOn(_Household, _ShoppingListItem.ShoppingList.ShoppingListID);
 
-            // A note changes nothing the household has paid for, and what a line is called is part of
-            // what it cost, because the memory is kept against the name.
-            if (inputPort.Cost.HasBeenSet || inputPort.Amount.HasBeenSet || inputPort.Unit.HasBeenSet || inputPort.Name.HasBeenSet)
-                await _MemoryLogic.RecordTickAsync(_Household, _ShoppingListItem, _InBasket, _Trip, cancellationToken);
+            await _MemoryLogic.RecordTickAsync(_Household, _ShoppingListItem, _WasInBasket, _Trip, cancellationToken);
 
             _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
-            await outputPort.PresentShoppingListItemNoContentAsync(cancellationToken);
+            await outputPort.PresentShoppingListItemInBasketSetAsync(cancellationToken);
         }
     }
 

@@ -21,9 +21,10 @@ public interface IShoppingTripLogic
     ShoppingTrip? FindOpen(Household household, long shoppingListID);
 
     /// <summary>
-    /// Holds off the quiet spell that would otherwise end the trip.
+    /// The trip going on with the list, held off from the quiet spell that would otherwise end it,
+    /// because something has just happened on the list. Null when nobody is shopping with it.
     /// </summary>
-    void RecordActivity(ShoppingTrip shoppingTrip);
+    ShoppingTrip? RecordActivityOn(Household household, long shoppingListID);
 
     /// <summary>
     /// A new trip is saved straight away, along with anything else the request already has waiting

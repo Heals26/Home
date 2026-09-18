@@ -3,7 +3,8 @@ using Home.WebUI.Infrastructure.ChangeTrackers;
 namespace Home.WebUI.DataAccess.ShoppingListItems.UpdateShoppingListItem;
 
 /// <summary>
-/// Omit a property to leave it alone, so ticking an item off can't clobber its name or cost.
+/// The sheet behind a line. Omit a property to leave it alone, so saving one field cannot clobber
+/// another that someone changed on their own device. Ticking and moving have their own requests.
 /// </summary>
 public class UpdateShoppingListItemWebAppRequest
 {
@@ -21,11 +22,6 @@ public class UpdateShoppingListItemWebAppRequest
     public PropertyChangeTracker<decimal?> Cost { get; set; }
 
     /// <summary>
-    /// Whether the item is in the trolley.
-    /// </summary>
-    public PropertyChangeTracker<bool> InBasket { get; set; }
-
-    /// <summary>
     /// The item's name.
     /// </summary>
     public PropertyChangeTracker<string> Name { get; set; }
@@ -36,12 +32,7 @@ public class UpdateShoppingListItemWebAppRequest
     public PropertyChangeTracker<string?> Note { get; set; }
 
     /// <summary>
-    /// Display order within the list.
-    /// </summary>
-    public PropertyChangeTracker<long> Sequence { get; set; }
-
-    /// <summary>
-    /// The ID of the item — mirrored into the body alongside the route.
+    /// The ID of the item, mirrored into the body alongside the route.
     /// </summary>
     public long ShoppingListItemID { get; set; }
 

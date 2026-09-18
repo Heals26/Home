@@ -45,71 +45,69 @@ public class ShoppingListLogic(IPersistenceContext persistenceContext) : IShoppi
     ShoppingListItem? IShoppingListLogic.GetItem(long shoppingListItemID)
         => persistenceContext.Find<ShoppingListItem>(shoppingListItemID);
 
-    IQueryable<ShoppingListItem> IShoppingListLogic.GetItems(long shoppingListID)
+    ShoppingListItem? IShoppingListLogic.GetItem(Household household, long shoppingListItemID)
         => persistenceContext.GetEntities<ShoppingListItem>()
-            .Where(sli => sli.ShoppingList.ShoppingListID == shoppingListID)
-            .OrderBy(sli => sli.Sequence)
-            .ThenBy(sli => sli.ShoppingListItemID);
-
-    ShoppingListItem IShoppingListLogic.UpdateItem(UpdateShoppingListItemInputPort inputPort)
-    {
-        var _ShoppingListItem = persistenceContext.GetEntities<ShoppingListItem>()
-            .Where(sli => sli.ShoppingListItemID == inputPort.ShoppingListItemID)
+            .Where(sli => sli.ShoppingListItemID == shoppingListItemID
+                && sli.ShoppingList.Household.HouseholdID == household.HouseholdID)
             .Select(sli => new
             {
                 ShoppingListItem = sli,
                 sli.ShoppingList,
                 sli.ShoppingList.Items
             })
-            .Single()
-            .ShoppingListItem;
+            .SingleOrDefault()
+            ?.ShoppingListItem;
 
+    IQueryable<ShoppingListItem> IShoppingListLogic.GetItems(long shoppingListID)
+        => persistenceContext.GetEntities<ShoppingListItem>()
+            .Where(sli => sli.ShoppingList.ShoppingListID == shoppingListID)
+            .OrderBy(sli => sli.Sequence)
+            .ThenBy(sli => sli.ShoppingListItemID);
+
+    /// <summary>
+    /// This used to shuffle the items at or after the target down by one and never assign the moved
+    /// item its own sequence, so a reorder pushed the list apart and left the item exactly where it
+    /// started. Doing it in one place server-side, rather than as a pair of swaps from the caller, is
+    /// what lets a list be reordered by dropping an item anywhere in it and not only by nudging it
+    /// past its neighbour.
+    /// </summary>
+    void IShoppingListLogic.MoveItem(ShoppingListItem shoppingListItem, long sequence)
+    {
+        if (sequence == shoppingListItem.Sequence)
+            return;
+
+        var _From = shoppingListItem.Sequence;
+
+        foreach (var _Other in shoppingListItem.ShoppingList.Items
+            .Where(i => i.ShoppingListItemID != shoppingListItem.ShoppingListItemID))
+        {
+            if (sequence > _From && _Other.Sequence > _From && _Other.Sequence <= sequence)
+                _Other.Sequence--;
+            else if (sequence < _From && _Other.Sequence >= sequence && _Other.Sequence < _From)
+                _Other.Sequence++;
+        }
+
+        shoppingListItem.Sequence = sequence;
+    }
+
+    void IShoppingListLogic.UpdateItem(ShoppingListItem shoppingListItem, UpdateShoppingListItemInputPort inputPort)
+    {
         if (inputPort.Amount.HasBeenSet)
-            _ShoppingListItem.Amount = inputPort.Amount.Value;
+            shoppingListItem.Amount = inputPort.Amount.Value;
 
         if (inputPort.Cost.HasBeenSet)
-            _ShoppingListItem.Cost = inputPort.Cost.Value;
-
-        if (inputPort.InBasket.HasBeenSet)
-            _ShoppingListItem.InBasket = inputPort.InBasket.Value;
+            shoppingListItem.Cost = inputPort.Cost.Value;
 
         if (inputPort.Name.HasBeenSet)
-            _ShoppingListItem.Name = inputPort.Name.Value;
+            shoppingListItem.Name = inputPort.Name.Value;
 
         // Blank comes back as nothing at all, so an emptied box leaves a clean line rather than a
         // note that is there but says nothing.
         if (inputPort.Note.HasBeenSet)
-            _ShoppingListItem.Note = string.IsNullOrWhiteSpace(inputPort.Note.Value) ? null : inputPort.Note.Value.Trim();
+            shoppingListItem.Note = string.IsNullOrWhiteSpace(inputPort.Note.Value) ? null : inputPort.Note.Value.Trim();
 
         if (inputPort.Unit.HasBeenSet)
-            _ShoppingListItem.Unit = inputPort.Unit.Value;
-
-        // Take the item out of the order and put it back at the position asked for, closing the gap
-        // it left and opening one where it lands. Everything else keeps its relative order.
-        //
-        // This used to shuffle the items at or after the target down by one and never assign the
-        // moved item its own sequence, so a reorder pushed the list apart and left the item exactly
-        // where it started. Doing it in one place server-side, rather than as a pair of swaps from
-        // the caller, is what lets a list be reordered by dropping an item anywhere in it and not
-        // only by nudging it past its neighbour.
-        if (inputPort.Sequence.HasBeenSet && inputPort.Sequence.Value != _ShoppingListItem.Sequence)
-        {
-            var _From = _ShoppingListItem.Sequence;
-            var _To = inputPort.Sequence.Value;
-
-            foreach (var _Other in _ShoppingListItem.ShoppingList.Items
-                .Where(i => i.ShoppingListItemID != _ShoppingListItem.ShoppingListItemID))
-            {
-                if (_To > _From && _Other.Sequence > _From && _Other.Sequence <= _To)
-                    _Other.Sequence--;
-                else if (_To < _From && _Other.Sequence >= _To && _Other.Sequence < _From)
-                    _Other.Sequence++;
-            }
-
-            _ShoppingListItem.Sequence = _To;
-        }
-
-        return _ShoppingListItem;
+            shoppingListItem.Unit = inputPort.Unit.Value;
     }
 
     #endregion Methods

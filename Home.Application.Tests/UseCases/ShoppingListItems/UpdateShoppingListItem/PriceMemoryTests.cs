@@ -4,12 +4,14 @@ using Home.Application.Infrastructure.ShoppingLists;
 using Home.Application.Services.EntityLogic.ShoppingLists;
 using Home.Application.Services.Persistence;
 using Home.Application.Tests.Infrastructure;
+using Home.Application.UseCases.ShoppingListItems.SetShoppingListItemInBasket;
 using Home.Application.UseCases.ShoppingListItems.UpdateShoppingListItem;
 using Home.Application.UseCases.ShoppingLists.EndShoppingTrip;
 using Home.Application.UseCases.ShoppingLists.StartShoppingTrip;
 using Home.Application.UseCases.ShoppingLists.UntickShoppingListItems;
 using Home.Domain.Entities;
 using Home.Domain.Enumerations;
+using Home.WebApi.Presenters.ShoppingListItems.SetShoppingListItemInBasket;
 using Home.WebApi.Presenters.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebApi.Presenters.ShoppingLists.EndShoppingTrip;
 using Home.WebApi.Presenters.ShoppingLists.StartShoppingTrip;
@@ -29,7 +31,7 @@ public class PriceMemoryTests : InteractorTest
 
     #region Fields
 
-    private readonly UpdateShoppingListItemPresenter m_Presenter = new(Mapper);
+    private readonly SetShoppingListItemInBasketPresenter m_Presenter = new(Mapper);
 
     /// <summary>
     /// How long after <see cref="TestServiceFactory.DefaultNow"/> the next request happens.
@@ -79,19 +81,44 @@ public class PriceMemoryTests : InteractorTest
             CancellationToken.None);
     }
 
-    private Task HandleAsync(
+    /// <summary>
+    /// The two writes a shop makes to a line, which are two use cases: the sheet behind it, and the
+    /// tick itself. A test that sends both gets them in that order, because that is the order a
+    /// price typed in at the shelf and then ticked off arrives in.
+    /// </summary>
+    private async Task HandleAsync(
         long shoppingListItemID,
         PropertyChangeTracker<decimal?> amount = default,
         PropertyChangeTracker<decimal?> cost = default,
         PropertyChangeTracker<bool> inBasket = default,
         PropertyChangeTracker<string> name = default)
     {
+        if (amount.HasBeenSet || cost.HasBeenSet || name.HasBeenSet)
+        {
+            var _SheetServices = this.Services(out var _SheetContext);
+
+            _SheetServices.Time.Advance(this.m_Elapsed);
+
+            await new UpdateShoppingListItemInteractor().HandleAsync(
+                new UpdateShoppingListItemInputPort(amount, cost, name, default, shoppingListItemID, default),
+                new UpdateShoppingListItemPresenter(Mapper),
+                _SheetServices
+                    .With<IShoppingListLogic>(new ShoppingListLogic(_SheetContext))
+                    .With<IShoppingItemMemoryLogic>(new ShoppingItemMemoryLogic(_SheetContext, _SheetServices.Time))
+                    .With<IShoppingTripLogic>(new ShoppingTripLogic(_SheetContext, _SheetServices.Time))
+                    .Build(),
+                CancellationToken.None);
+        }
+
+        if (!inBasket.HasBeenSet)
+            return;
+
         var _Services = this.Services(out var _Context);
 
         _Services.Time.Advance(this.m_Elapsed);
 
-        return new UpdateShoppingListItemInteractor().HandleAsync(
-            new UpdateShoppingListItemInputPort(amount, cost, inBasket, name, default, default, shoppingListItemID, default),
+        await new SetShoppingListItemInBasketInteractor().HandleAsync(
+            new SetShoppingListItemInBasketInputPort(inBasket.Value, shoppingListItemID),
             this.m_Presenter,
             _Services
                 .With<IShoppingListLogic>(new ShoppingListLogic(_Context))
@@ -441,8 +468,8 @@ public class PriceMemoryTests : InteractorTest
             ShoppingItemMemoryID = 140
         }));
 
-        await new UpdateShoppingListItemInteractor().HandleAsync(
-            new UpdateShoppingListItemInputPort(default, default, new(true), default, default, default, 130, default),
+        await new SetShoppingListItemInBasketInteractor().HandleAsync(
+            new SetShoppingListItemInBasketInputPort(true, 130),
             this.m_Presenter,
             _Services
                 .With<IPersistenceContext>(_Raced)

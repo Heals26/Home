@@ -8,6 +8,8 @@ using Home.WebUI.DataAccess.ShoppingCategories.Models;
 using Home.WebUI.DataAccess.ShoppingListItems.CreateShoppingListItem;
 using Home.WebUI.DataAccess.ShoppingListItems.GetShoppingListItemSuggestions;
 using Home.WebUI.DataAccess.ShoppingListItems.SetShoppingListItemCategory;
+using Home.WebUI.DataAccess.ShoppingListItems.SetShoppingListItemInBasket;
+using Home.WebUI.DataAccess.ShoppingListItems.SetShoppingListItemSequence;
 using Home.WebUI.DataAccess.ShoppingListItems.UpdateShoppingListItem;
 using Home.WebUI.DataAccess.ShoppingLists.GetShoppingList;
 using Home.WebUI.DataAccess.ShoppingLists.Models;
@@ -431,13 +433,9 @@ public partial class ShoppingListComponent : IDisposable
     {
         item.InBasket = !item.InBasket;
 
-        var _Result = await this.UndoLogic.SendRequestAsync<UpdateShoppingListItemWebAppRequest, bool>(
-            new UpdateShoppingListItemWebAppRequest()
-            {
-                InBasket = new PropertyChangeTracker<bool>(item.InBasket),
-                ShoppingListItemID = item.ShoppingListItemID
-            },
-            ApiProvider.UpdateShoppingListItem(item.ShoppingListItemID),
+        var _Result = await this.UndoLogic.SendRequestAsync<SetShoppingListItemInBasketWebAppRequest, bool>(
+            new SetShoppingListItemInBasketWebAppRequest() { InBasket = item.InBasket },
+            ApiProvider.SetShoppingListItemInBasket(item.ShoppingListItemID),
             new UndoOffer(ChangeArea.ShoppingLists, $"{(item.InBasket ? "Ticked" : "Unticked")} {item.Name}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
@@ -592,18 +590,14 @@ public partial class ShoppingListComponent : IDisposable
     }
 
     /// <summary>
-    /// Only the sequence is sent, so a reorder cannot overwrite a name or a price someone is
-    /// editing on another device.
+    /// Its own call, so a reorder cannot overwrite a name or a price someone is editing on another
+    /// device.
     /// </summary>
     private async Task<bool> SetItemSequenceAsync(ShoppingListItemDto item, long sequence)
     {
-        return await this.ApiAccess.SendRequestAsync<UpdateShoppingListItemWebAppRequest, bool>(
-            new UpdateShoppingListItemWebAppRequest()
-            {
-                Sequence = new(sequence),
-                ShoppingListItemID = item.ShoppingListItemID
-            },
-            ApiProvider.UpdateShoppingListItem(item.ShoppingListItemID),
+        return await this.ApiAccess.SendRequestAsync<SetShoppingListItemSequenceWebAppRequest, bool>(
+            new SetShoppingListItemSequenceWebAppRequest() { Sequence = sequence },
+            ApiProvider.SetShoppingListItemSequence(item.ShoppingListItemID),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken) == true;
     }

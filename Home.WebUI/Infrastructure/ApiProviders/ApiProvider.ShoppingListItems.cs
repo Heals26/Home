@@ -32,6 +32,12 @@ public static partial class ApiProvider
     public static ApiProviderHelper SetShoppingListItemCategory(long shoppingListItemID)
         => new(HttpMethod.Put, RouteType.Body, $"{GetShoppingListItemBaseUrl(shoppingListItemID)}/Category");
 
+    public static ApiProviderHelper SetShoppingListItemInBasket(long shoppingListItemID)
+        => new(HttpMethod.Put, RouteType.Body, $"{GetShoppingListItemBaseUrl(shoppingListItemID)}/Basket");
+
+    public static ApiProviderHelper SetShoppingListItemSequence(long shoppingListItemID)
+        => new(HttpMethod.Put, RouteType.Body, $"{GetShoppingListItemBaseUrl(shoppingListItemID)}/Sequence");
+
     public static ApiProviderHelper UpdateShoppingListItem(long shoppingListItemID)
         => new(HttpMethod.Patch, RouteType.Body, GetShoppingListItemBaseUrl(shoppingListItemID));
 

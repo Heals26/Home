@@ -54,8 +54,15 @@ public class ShoppingTripLogic(IPersistenceContext persistenceContext, TimeProvi
             .OrderBy(t => t.ShoppingTripID);
     }
 
-    void IShoppingTripLogic.RecordActivity(ShoppingTrip shoppingTrip)
-        => shoppingTrip.LastActivityOnUTC = this.NowUTC;
+    ShoppingTrip? IShoppingTripLogic.RecordActivityOn(Household household, long shoppingListID)
+    {
+        var _Trip = this.Open(household, shoppingListID).FirstOrDefault();
+
+        if (_Trip != null)
+            _Trip.LastActivityOnUTC = this.NowUTC;
+
+        return _Trip;
+    }
 
     async Task<ShoppingTrip> IShoppingTripLogic.StartAsync(Household household, ShoppingList shoppingList, CancellationToken cancellationToken)
     {
