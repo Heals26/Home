@@ -43,6 +43,10 @@ public class HomeHttpClient(
             Content = apiProvider.RouteType.GetHttpRequestMessage(request)
         };
         _Message.Headers.Add("api-version", apiProvider.Version);
+
+        if (apiProvider.UndoToken is { } _UndoToken)
+            _Message.Headers.Add(HttpClientValues.UndoTokenHeader, _UndoToken.ToString());
+
         return _Message;
     }
 
@@ -70,7 +74,7 @@ public class HomeHttpClient(
         {
             var _AccessToken = await householdSession.GetAccessTokenAsync(cancellationToken);
 
-            // Build a fresh HttpRequestMessage per attempt — they cannot be reused across calls
+            // Build a fresh HttpRequestMessage per attempt, because they cannot be reused across calls
             var _HttpRequestMessage = BuildMessage(request, apiProvider);
 
             if (!string.IsNullOrEmpty(_AccessToken))
@@ -133,7 +137,7 @@ public class HomeHttpClient(
                             return default;
                         default:
                             // The API could not be asked whether the session is still good, so it
-                            // keeps the benefit of the doubt — the next attempt may well succeed.
+                            // keeps the benefit of the doubt: the next attempt may well succeed.
                             errors.Invoke(new ValidationProblemDetails()
                             {
                                 Title = "Cannot reach the API.",

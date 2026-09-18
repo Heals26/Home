@@ -1,0 +1,20 @@
+﻿@implements IDisposable
+
+@* Says what was just done and offers to take it back. The live region is always there, because a
+   screen reader only announces a change to a region it has already seen. *@
+<div class="@this.Classes()" role="status" aria-live="polite">
+    @if (this.Shows() && this.UndoLogic.Bar is { } _Bar)
+    {
+        <div class="flex items-center gap-2 rounded-2xl border border-ink-700 bg-ink-900/95 py-1.5 pl-5 pr-1.5 shadow-2xl backdrop-blur motion-safe:animate-undo-rise">
+            <p class="min-w-0 flex-1 truncate py-2.5 text-sm text-ink-100">@_Bar.Message</p>
+            @if (_Bar.CanUndo)
+            {
+                <HomeButton Variant="bare"
+                            Size="none"
+                            Loading="_Bar.IsUndoing"
+                            Class="inline-flex min-h-[44px] shrink-0 items-center rounded-xl px-4 text-sm font-semibold text-ink-50 enabled:hover:bg-ink-800"
+                            OnClick="this.UndoAsync">Undo</HomeButton>
+            }
+        </div>
+    }
+</div>

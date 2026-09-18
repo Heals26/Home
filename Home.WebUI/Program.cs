@@ -11,7 +11,9 @@ using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.Services.ShoppingLists;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Home.WebUI.Infrastructure.ShoppingLists;
+using Home.WebUI.Infrastructure.Undo;
 using Home.WebUI.Infrastructure.UriProvider;
 using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -111,6 +113,9 @@ _Builder.Services.AddScoped<IShoppingModeLogic, ShoppingModeLogic>();
 // each circuit talks to it through a broadcaster that pins the caller's own household.
 _Builder.Services.AddSingleton<IChangeBroker, ChangeBroker>();
 _Builder.Services.AddScoped<IChangeBroadcaster, ChangeBroadcaster>();
+
+// Scoped so the Undo bar belongs to the tab that did the thing, and follows it from page to page.
+_Builder.Services.AddScoped<IUndoLogic, UndoLogic>();
 
 // Singleton so the count survives the circuit: a new browser tab must not reset it.
 _Builder.Services.AddSingleton<ILoginThrottle, LoginThrottle>();

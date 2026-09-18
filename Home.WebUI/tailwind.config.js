@@ -67,6 +67,16 @@ module.exports = {
         '12': '3rem',
         '14': '3.5rem',
       },
+      // The Undo bar rising into place. Only ever used behind motion-safe:.
+      keyframes: {
+        'undo-rise': {
+          from: { opacity: '0', transform: 'translateY(0.5rem)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'undo-rise': 'undo-rise 180ms ease-out',
+      },
       // A Surface turned upright is still ~912 CSS pixels wide, so `md:` keeps matching and the
       // landscape layout survives a rotation it was never designed for. `rail:` asks the real
       // question (is this device wide AND lying down?) so upright tablets get the thumb-reachable

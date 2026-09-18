@@ -59,6 +59,7 @@
 @using Home.WebUI.Infrastructure.Services.Time
 @using Home.WebUI.Infrastructure.Services.Preferences
 @using Home.WebUI.Infrastructure.Services.ShoppingLists
+@using Home.WebUI.Infrastructure.Services.Undo
 @using Home.WebUI.Infrastructure.Calendar
 @using Home.WebUI.Infrastructure.History
 @using Home.WebUI.Infrastructure.ShoppingLists
@@ -100,3 +101,4 @@
 @inject IHomeHttpClient ApiAccess
 @inject NavigationManager NavigationManager
 @inject TimeProvider TimeProvider
+@inject IUndoLogic UndoLogic
