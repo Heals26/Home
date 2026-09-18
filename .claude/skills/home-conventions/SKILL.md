@@ -198,7 +198,10 @@ Two rules that fall out of that:
   `Home.WebApi/Infrastructure/Lights/`; it is mapped to `LightSnapshot` at the boundary.
 
 Partial updates use `PropertyChangeTracker<T>` the same way `UpdateRecipe` does, so setting one
-property can't clobber another.
+property can't clobber another. That is for a form someone filled in. A request that means one thing
+the household would name, such as ticking a line off or moving it, is its own use case with a plain
+input port (`SetShoppingListItemInBasket`, `SetShoppingListItemSequence`), and whatever the two then
+share lives in a `[Thing]Logic` service both of them call rather than in either interactor.
 
 ## Working on the Blazor front end
 

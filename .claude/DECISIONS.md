@@ -4,6 +4,38 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-18 · A command gets its own use case, and the patch keeps the form
+
+Mitch, 18 Sep 2026, on the back of the undo work: if a command comes out of the patch into a use
+case of its own, then the logic both of them need has to have one home rather than two.
+
+Ticking a line into the trolley and moving it up the list are now `SetShoppingListItemInBasket` and
+`SetShoppingListItemSequence`, a PUT each, and `UpdateShoppingListItem` keeps the amount, the price,
+the name, the note and the measurement: the sheet someone filled in. The rule behind it is that a
+request meaning one thing the household would name is a use case, while a request saving a form is a
+patch, and `PropertyChangeTracker` stays for the second because absent and null are different
+answers there.
+
+What moved rather than being copied:
+
+- **`IShoppingListLogic.GetItem(household, id)`** is the one household-scoped read of a line, its
+  list and the list around it. Each endpoint used to write that query again.
+- **`IShoppingListLogic.MoveItem`** holds the renumbering that used to sit inside `UpdateItem`, and
+  `UpdateItem` now works on the line it is handed rather than looking it up a second time.
+- **`IShoppingTripLogic.RecordActivityOn`** replaces `FindOpen` followed by `RecordActivity`
+  wherever something happens on a list, which is the pair every write and the join all needed.
+
+**Chosen, not asked:**
+
+- **A tick still writes nothing to the history feed.** The use case could now say "ticked 'Milk' off
+  'Weekly Shop'" in the feed's own words, but a shop of thirty lines would post thirty entries and
+  bury what the feed is for. Started, joined and finished already say a shop happened, and the Undo
+  bar says what was just done on the device that did it.
+- **A reorder still counts as activity on the shop**, holding off the quiet spell like any other
+  change to the list, which is what the patch did when it carried the sequence.
+- **Nothing else was converted.** `SetActivityCompletion`, `Items/Untick`, `Trip/End` and
+  `SetShoppingListItemCategory` were already commands, and what is left on a patch is a form.
+
 ## 2026-09-17 · Undo decision 3 of 3: the confirmations stay
 
 Mitch, 17 Sep 2026: everything that asks before it acts still asks. Clear ticked, deleting a list,
