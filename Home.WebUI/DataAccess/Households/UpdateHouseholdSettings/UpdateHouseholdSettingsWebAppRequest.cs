@@ -18,7 +18,7 @@ public class UpdateHouseholdSettingsWebAppRequest
     /// <summary>
     /// The LIFX API token. Send an empty string to disconnect.
     /// </summary>
-    public PropertyChangeTracker<string> LifxApiToken { get; set; }
+    public PropertyChangeTracker<string?> LifxApiToken { get; set; }
 
     /// <summary>
     /// Decimal degrees, -180 to 180. Send null to clear the location.

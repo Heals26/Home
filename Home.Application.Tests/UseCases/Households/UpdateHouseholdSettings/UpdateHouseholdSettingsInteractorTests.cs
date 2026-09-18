@@ -25,7 +25,7 @@ public class UpdateHouseholdSettingsInteractorTests : InteractorTest
 
     private Task HandleAsync(
         PropertyChangeTracker<double?> latitude = default,
-        PropertyChangeTracker<string> lifxApiToken = default,
+        PropertyChangeTracker<string?> lifxApiToken = default,
         PropertyChangeTracker<double?> longitude = default,
         PropertyChangeTracker<string> name = default)
         => new UpdateHouseholdSettingsInteractor().HandleAsync(

@@ -42,7 +42,7 @@ public class UpdateRecipeInteractorTests : InteractorTest
         long recipeID,
         PropertyChangeTracker<long?> complexity = default,
         PropertyChangeTracker<int?> cookMinutes = default,
-        PropertyChangeTracker<string> imageUrl = default,
+        PropertyChangeTracker<string?> imageUrl = default,
         PropertyChangeTracker<string> name = default,
         PropertyChangeTracker<int?> prepMinutes = default,
         PropertyChangeTracker<int?> servings = default,

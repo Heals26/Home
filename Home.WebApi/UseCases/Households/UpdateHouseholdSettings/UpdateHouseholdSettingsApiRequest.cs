@@ -8,6 +8,6 @@ namespace Home.WebApi.UseCases.Households.UpdateHouseholdSettings;
 /// </summary>
 public record UpdateHouseholdSettingsApiRequest(
     PropertyChangeTracker<double?> Latitude,
-    PropertyChangeTracker<string> LifxApiToken,
+    PropertyChangeTracker<string?> LifxApiToken,
     PropertyChangeTracker<double?> Longitude,
     PropertyChangeTracker<string> Name);

@@ -20,7 +20,7 @@ public class UpdateRecipeWebAppRequest
     /// <summary>
     /// A picture of the finished dish.
     /// </summary>
-    public PropertyChangeTracker<string> ImageUrl { get; set; }
+    public PropertyChangeTracker<string?> ImageUrl { get; set; }
 
     /// <summary>
     /// The name of the recipe.

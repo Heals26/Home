@@ -46,7 +46,7 @@ internal class UpdateUserInteractor : IInteractor<UpdateUserInputPort, IUpdateUs
                 _User.Email = _User.Email.Trim();
             }
 
-            if (inputPort.Password.HasBeenSet && !string.IsNullOrEmpty(inputPort.Password.Value))
+            if (inputPort.Password.HasBeenSet && inputPort.Password.Value is { Length: > 0 } _Password)
             {
                 if (_User.Email == null)
                 {
@@ -54,7 +54,7 @@ internal class UpdateUserInteractor : IInteractor<UpdateUserInputPort, IUpdateUs
                     return;
                 }
 
-                _PasswordServive.SetPassword(_User, inputPort.Password);
+                _PasswordServive.SetPassword(_User, _Password);
             }
 
             _AuditLogic.UpdateAudit(_User);

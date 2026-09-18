@@ -6,7 +6,7 @@ namespace Home.Application.UseCases.Recipes.UpdateRecipe;
 public record UpdateRecipeInputPort(
     PropertyChangeTracker<long?> Complexity,
     PropertyChangeTracker<int?> CookMinutes,
-    PropertyChangeTracker<string> ImageUrl,
+    PropertyChangeTracker<string?> ImageUrl,
     PropertyChangeTracker<string> Name,
     PropertyChangeTracker<int?> PrepMinutes,
     long RecipeID,

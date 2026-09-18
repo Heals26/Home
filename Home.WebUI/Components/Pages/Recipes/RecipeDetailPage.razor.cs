@@ -250,7 +250,7 @@ public partial class RecipeDetailPage : IDisposable
         {
             Complexity = new PropertyChangeTracker<long?>(this.m_EditComplexity),
             CookMinutes = new PropertyChangeTracker<int?>(ParseInt(this.m_EditCookMinutes)),
-            ImageUrl = new PropertyChangeTracker<string>(this.m_EditImageUrl),
+            ImageUrl = new PropertyChangeTracker<string?>(this.m_EditImageUrl),
             Name = new PropertyChangeTracker<string>(this.m_EditName),
             PrepMinutes = new PropertyChangeTracker<int?>(ParseInt(this.m_EditPrepMinutes)),
             Servings = new PropertyChangeTracker<int?>(ParseInt(this.m_EditServings)),

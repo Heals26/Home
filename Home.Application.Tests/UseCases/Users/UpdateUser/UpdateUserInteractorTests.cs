@@ -31,11 +31,11 @@ public class UpdateUserInteractorTests : InteractorTest
 
     private Task HandleAsync(
         long userID,
-        PropertyChangeTracker<string> email = default,
+        PropertyChangeTracker<string?> email = default,
         PropertyChangeTracker<string> firstName = default,
         PropertyChangeTracker<string> lastName = default,
         PropertyChangeTracker<string> middleNames = default,
-        PropertyChangeTracker<string> password = default)
+        PropertyChangeTracker<string?> password = default)
         => new UpdateUserInteractor().HandleAsync(
             new UpdateUserInputPort(email, firstName, lastName, middleNames, password, userID),
             this.m_Presenter,

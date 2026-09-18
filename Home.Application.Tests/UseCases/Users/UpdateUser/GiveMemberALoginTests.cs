@@ -39,7 +39,7 @@ public class GiveMemberALoginTests : InteractorTest
         return _Child;
     }
 
-    private Task HandleAsync(long userID, PropertyChangeTracker<string> email, PropertyChangeTracker<string> password)
+    private Task HandleAsync(long userID, PropertyChangeTracker<string?> email, PropertyChangeTracker<string?> password)
         => new UpdateUserInteractor().HandleAsync(
             new UpdateUserInputPort(email, default, default, default, password, userID),
             this.m_Presenter,
