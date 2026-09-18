@@ -155,6 +155,15 @@ removed. They are harmless, because every one carries a 90-day expiry and rotati
 prunes expired rows, and the table still carries the `SupersededByAuthenticationMetadataID` /
 `SupersededOnUTC` columns that died with the 19 Aug no-rotation decision.
 
+### A signed-in request is not `IsAuthenticated`
+
+The bearer handler builds its `ClaimsIdentity` from a list of claims with no authentication type, so
+`User.Identity.IsAuthenticated` is false on every request, signed in or not. Nothing noticed until
+undo, because the policies that guard the API ask for scopes and claims rather than for an
+authenticated user, and the undo filter now reads the `UserID` claim like everything else does.
+Giving the identity a type would be a one-line fix and a change to what every policy means, so it is
+not a drive-by either.
+
 ### Minor inconsistency
 
 `CancellationTokenHandler` declares `#region Properties` twice, the first containing a field.

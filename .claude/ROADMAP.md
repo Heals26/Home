@@ -571,7 +571,7 @@ question from 14 Sep comes back in; a purchase recorded before trips existed bel
 line that was already ticked when the migration ran counts its own price towards its usual until it
 is unticked; and the screen is not kept awake.
 
-## Phase 11 · Nullable on in the API, and undo, XL *(was C3; undo added 17 Sep 2026)*
+## Phase 11 · Nullable on in the API, and undo, XL *(was C3; undo added 17 Sep 2026)* **DONE 18 Sep 2026**
 
 Two jobs, done in this order. Undo adds API models, and every API model written before nullable is on
 is one more to fix after it.
@@ -635,6 +635,39 @@ better trade wherever the undo can be made honest.
 - **Versions.** This puts back the last thing done, not what a recipe said in June.
 - **Light commands.** The lights already have their undo, and a command a bulb has carried out
   cannot be recalled.
+
+### What shipped, 17 and 18 Sep 2026
+
+**Nullable on in the API, 17 Sep.** `Home.WebApi` enables nullable like every other project, and the
+175 warnings that came back were fixed rather than suppressed. MVC's implicit `[Required]` is off
+with it, so a request still fails in the input port validator's words with a 422 rather than in
+MVC's with a 400. The one warning a clean build emits is now a real one.
+
+**Undo, 18 Sep.** Three decisions in `DECISIONS.md` (all 17 Sep 2026) and then the build:
+
+- **A delete sent with an undo token is held back rather than carried out.** `DeletedOnUTC` on the
+  30 kinds of row a household owns, a query filter on each so a held-back row is gone as far as
+  every query is concerned, filtered unique indexes so a name a delete freed can be used again, and
+  a purge every minute that carries out the deletes no undo can reach any more. Migration `Undo`.
+- **What a request changed is written down against its token.** A device sends `X-Undo-Token` with
+  an action it may offer to take back, and everything that request adds, changes or holds back is
+  kept as JSON on `UndoableAction`. `POST api/Undo/{token}` puts back only what is still as the
+  request left it, and refuses whole an action it could only half undo. The API honours a token for
+  a minute and the purge waits two, so an Undo tapped in time never finds its rows gone.
+- **The bar.** Every tick and every delete in the app goes through the web app's undo logic, and for
+  about ten seconds a bar says what was done and offers Undo. It belongs to the tab that did it, a
+  newer action takes it from an older one, and where the foot of the page is covered, inside an open
+  dialog or over the trolley bar in the aisle, it shows there instead so Done never moves. Undoing
+  Done puts this device back into the shop it left, and an undo that arrives too late says so.
+- **Twenty tests** over undoing a line, a tick, a purchase, Clear ticked, Untick all, Done, a list,
+  an aisle, a member, a recipe ingredient, a planned meal and a chore, over what is refused (another
+  device's change, an expired token, a second undo, another household, an action that could only be
+  half undone), and over the purge.
+
+**Left for later, on purpose:** an edit is not undone, and neither is signing a device out or
+clearing a note by emptying its box, which are an edit and a session rather than a delete; the
+history feed still offers nothing to undo from, which phase 8 left for later; and the bar holds one
+action at a time, so a run of ticks can only take the last one back.
 
 ## Phase 12 · Beyond lights: a second device integration, L *(was B9)*
 

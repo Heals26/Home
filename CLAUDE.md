@@ -116,6 +116,10 @@ dotnet test
   reads nothing else.
 - A member need not have a login (`User.Email`/`Password` are optional as a pair). Anything that
   acts still requires a signed-in member; a member without a login is someone to assign things to.
+- A delete is a real delete unless the request carries an `X-Undo-Token`, in which case the row is
+  held back behind a query filter and carried out a couple of minutes later by `UndoPurgeRunner`. A
+  new entity the household owns implements `ISoftDeletable`, or deleting one makes the whole action
+  refuse its undo.
 - Calendar dates are shown in the *browser's* zone through `IViewerClock` (Blazor Server would
   otherwise answer in the server's). The rest of the app still uses server-local time.
 - Australian English in identifiers, comments and strings, except where a framework type fixes the

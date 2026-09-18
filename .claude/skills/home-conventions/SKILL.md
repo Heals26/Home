@@ -172,6 +172,16 @@ Read `references/use-case-slice.md`. It walks the seven files end to end with th
 each, using `GetRecipe` as the worked example. Do not improvise this, because the pipeline wiring
 is convention-driven and easy to get subtly wrong.
 
+## Deleting something
+
+A new entity a household owns implements `ISoftDeletable` and carries `DeletedOnUTC`, which
+`PersistenceContext` filters out of every query for it. A request that carries an `X-Undo-Token`
+holds its deletes back that way rather than carrying them out, and `UndoPurgeRunner` carries them
+out once no undo can reach them. An entity that cannot be held back makes the whole action refuse
+its undo, so leaving the interface off is a decision, not an omission. A unique index on a
+soft-deletable table needs `HasFilter("[DeletedOnUTC] IS NULL")`, or a name a delete freed cannot be
+used again until the purge.
+
 ## Talking to something outside the database
 
 The Lights slice is the reference. An interface goes in `Home.Application/Services/{Thing}/`

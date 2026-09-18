@@ -15,6 +15,21 @@ on top of it rather than a replacement for it.
 Mitch, 17 Sep 2026: after anything that can be undone, a bar at the bottom of the screen says what
 just happened and offers Undo, then goes by itself after about ten seconds.
 
+**Chosen, not asked:**
+
+- **The bar belongs to the tab that did it.** The token never leaves that device, so another phone
+  sees the change and is never offered the undo, which is also what keeps two people holding the
+  same list out of each other's way.
+- **A newer action takes the bar from an older one**, so what is on offer is always the last thing
+  done.
+- **Where the foot of the page is covered, the bar shows there instead.** Inside an open dialog,
+  which nothing outside can be seen or tapped through, and above the trolley bar in the aisle, so
+  Done never moves under a thumb that is already reaching for it.
+- **An undo the API turns down says "This can no longer be undone."** and goes after four seconds.
+  One that never reaches the API leaves Undo on the bar to try again.
+- **The bar says the past tense of the control that was tapped**, "Removed Milk" for Remove and
+  "Marked Bins as done" for Mark as done, so nothing has to be worked out twice.
+
 ## 2026-09-17 · Undo decision 1 of 3: ticks and deletes, anywhere in the app
 
 Phase 11, second half. Mitch, 17 Sep 2026: ticking something off, on a shopping list or a chore, can
@@ -42,6 +57,9 @@ and Done. Edits are not undone.
   go with it.
 - **Where an item was filed stays filed.** `ShoppingItemMemory` is shared by every list, so another
   list may already be relying on a filing that an undo would otherwise take back.
+- **Two removals are left out.** Clearing an ingredient's note by emptying its box is an edit of
+  the note, and signing a device out ends a session rather than deleting anything the household
+  owns, where a session coming back would be a surprise of the wrong kind.
 - **A held-back row already reads the way it will once it is deleted.** Whatever points at it finds
   nothing there, and whatever cannot exist without it is hidden with it.
 
