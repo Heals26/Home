@@ -25,6 +25,7 @@ using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Recipes;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Home.WebUI.Infrastructure.ShoppingLists;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -323,8 +324,9 @@ public partial class RecipeDetailPage : IDisposable
                 this.m_CancellationTokenHandler.Token) == true;
 
         if (this.m_RemovePhoto)
-            return await this.ApiAccess.SendRequestAsync<object, bool>(
+            return await this.UndoLogic.SendRequestAsync<object, bool>(
                 null!, ApiProvider.DeleteRecipeImage(this.RecipeID),
+                new UndoOffer(ChangeArea.Recipes, "Removed the photo"),
                 e => this.m_ErrorHandler?.AddError(e),
                 this.m_CancellationTokenHandler.Token) == true;
 
@@ -540,8 +542,11 @@ public partial class RecipeDetailPage : IDisposable
 
     private async Task RemoveIngredientAsync(long ingredientID)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Name = this.m_Recipe?.Ingredients.FirstOrDefault(i => i.IngredientID == ingredientID)?.Name;
+
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.RemoveRecipeIngredient(this.RecipeID, ingredientID),
+            new UndoOffer(ChangeArea.Recipes, $"Removed {_Name ?? "the ingredient"}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
@@ -730,8 +735,11 @@ public partial class RecipeDetailPage : IDisposable
 
     private async Task RemoveStepAsync(long recipeStepID)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Step = this.m_Recipe?.Steps.FirstOrDefault(s => s.RecipeStepID == recipeStepID);
+
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.RemoveRecipeStep(recipeStepID),
+            new UndoOffer(ChangeArea.Recipes, _Step == null ? "Removed the step" : $"Removed step {_Step.Sequence}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
@@ -814,8 +822,9 @@ public partial class RecipeDetailPage : IDisposable
 
     private async Task RemoveNoteAsync(long noteID)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.RemoveRecipeNote(this.RecipeID, noteID),
+            new UndoOffer(ChangeArea.Recipes, "Removed the note"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 

@@ -6,6 +6,7 @@ using Home.WebUI.DataAccess.ShoppingLists.GetShoppingLists;
 using Home.WebUI.DataAccess.ShoppingLists.UpdateShoppingList;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.ShoppingList;
@@ -321,8 +322,11 @@ public partial class ShoppingListsComponent : IDisposable
 
     private async Task<bool> DeleteShoppingListAsync(long shoppingListID)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Name = this.m_ShoppingLists?.ShoppingLists.FirstOrDefault(l => l.ShoppingListID == shoppingListID)?.Name;
+
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteShoppingList(shoppingListID),
+            new UndoOffer(ChangeArea.ShoppingLists, $"Deleted {_Name ?? "the list"}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 

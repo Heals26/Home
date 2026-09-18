@@ -9,6 +9,7 @@ using Home.WebUI.DataAccess.Recipes.Models;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Recipes;
@@ -295,8 +296,11 @@ public partial class RecipesPage : IDisposable
 
     private async Task DeleteRecipeAsync(long recipeID)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Name = this.m_Recipes?.Recipes.FirstOrDefault(r => r.RecipeID == recipeID)?.Name;
+
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteRecipe(recipeID),
+            new UndoOffer(ChangeArea.Recipes, $"Deleted {_Name ?? "the recipe"}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 

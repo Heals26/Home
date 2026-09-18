@@ -106,7 +106,7 @@
                                      OnMoveDown="() => this.MoveSectionAsync(_Section, 1)" />
 
                         @* A section still written on cards cannot be deleted, because the writing would go
-                           with it and there is no undo. The count says why the button is off. *@
+                           with it. The count says why the button is off. *@
                         <HomeButton IconOnly Variant="ghost" Class="hover:text-red-400"
                                     title="@(_Section.CardCount > 0 ? $"Used on {_Section.CardCount} card(s)" : "Delete section")"
                                     aria-label="@($"Delete {_Section.Name}")"

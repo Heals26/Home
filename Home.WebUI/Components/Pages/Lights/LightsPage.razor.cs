@@ -20,6 +20,7 @@ using Home.WebUI.DataAccess.LightSchedules.UpdateLightSchedule;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Components;
 
@@ -414,8 +415,9 @@ public partial class LightsPage : IDisposable
 
     private async Task DeleteSceneAsync(LightSceneDto scene)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteLightScene(scene.LightSceneID),
+            new UndoOffer(ChangeArea.Lights, $"Deleted {scene.Name}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
@@ -552,8 +554,9 @@ public partial class LightsPage : IDisposable
 
         this.m_DeletingSchedule = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteLightSchedule(this.m_ScheduleToDelete.LightScheduleID),
+            new UndoOffer(ChangeArea.Lights, $"Deleted {this.m_ScheduleToDelete.Name}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
@@ -816,8 +819,9 @@ public partial class LightsPage : IDisposable
 
     private async Task DeleteGroupAsync(LightGroupDto group)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteLightGroup(group.LightGroupID),
+            new UndoOffer(ChangeArea.Lights, $"Deleted {group.Name}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 

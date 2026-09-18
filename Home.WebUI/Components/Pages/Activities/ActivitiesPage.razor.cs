@@ -17,6 +17,7 @@ using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Activities;
@@ -352,9 +353,12 @@ public partial class ActivitiesPage : IDisposable
         if (this.m_Saving) return;
         this.m_Saving = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
             new SetActivityCompletionWebAppRequest() { IsComplete = completion.IsComplete },
             ApiProvider.SetActivityCompletion(completion.Activity.ActivityID),
+            new UndoOffer(
+                ChangeArea.Activities,
+                $"Marked {completion.Activity.Title} as {(completion.IsComplete ? "done" : "not done")}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 

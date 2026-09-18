@@ -16,6 +16,7 @@ using Home.WebUI.DataAccess.Weather.Models;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Dashboard;
@@ -297,8 +298,9 @@ public partial class DashboardPage : IDisposable
 
     private async Task DeleteAnnouncementAsync(AnnouncementDto announcement)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteAnnouncement(announcement.AnnouncementID),
+            new UndoOffer(ChangeArea.Announcements, "Removed the note"),
             _ => this.m_LoadFailed = true,
             this.m_CancellationTokenHandler.Token);
 
@@ -336,9 +338,10 @@ public partial class DashboardPage : IDisposable
 
     private async Task CompleteActivityAsync(CalendarItemDto item)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
             new SetActivityCompletionWebAppRequest() { IsComplete = true },
             ApiProvider.SetActivityCompletion(item.ID),
+            new UndoOffer(ChangeArea.Activities, $"Marked {item.Title} as done"),
             _ => this.m_LoadFailed = true,
             this.m_CancellationTokenHandler.Token);
 

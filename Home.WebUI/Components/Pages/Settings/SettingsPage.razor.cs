@@ -11,6 +11,7 @@ using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Security;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Globalization;
@@ -459,8 +460,11 @@ public partial class SettingsPage : IDisposable
 
         this.m_RemovingMember = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Name = this.m_Users?.FirstOrDefault(u => u.UserID == this.m_EditingUserID.Value)?.FullName;
+
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteUser(this.m_EditingUserID.Value),
+            new UndoOffer(ChangeArea.Users, $"Removed {_Name ?? "the member"}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 

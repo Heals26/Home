@@ -4,16 +4,19 @@ using Home.WebUI.DataAccess.ShoppingCategories.GetShoppingCategories;
 using Home.WebUI.DataAccess.ShoppingCategories.Models;
 using Home.WebUI.DataAccess.ShoppingCategories.UpdateShoppingCategory;
 using Home.WebUI.Infrastructure.ApiProviders;
+using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.ShoppingList;
 
-public partial class ShoppingAislesModal
+public partial class ShoppingAislesModal : IDisposable
 {
 
     #region Fields
 
     private ErrorHandler? m_ErrorHandler;
+    private IDisposable? m_ChangeSubscription;
     private List<ShoppingCategoryDto> m_Aisles = [];
     private bool m_Loading;
     private bool m_WasVisible;
@@ -46,6 +49,10 @@ public partial class ShoppingAislesModal
 
     #region Lifecycle Methods
 
+    protected override async Task OnInitializedAsync()
+        => this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
+            this.OnHouseholdChangedAsync, this.CancellationToken);
+
     /// <summary>
     /// Read afresh each time it opens, so an aisle added on another phone is there to move.
     /// </summary>
@@ -65,9 +72,28 @@ public partial class ShoppingAislesModal
         await this.LoadAislesAsync();
     }
 
+    public void Dispose()
+        => this.m_ChangeSubscription?.Dispose();
+
     #endregion Lifecycle Methods
 
     #region Methods
+
+    /// <summary>
+    /// An aisle put back with Undo, or changed on another phone, shows up while the list is open. Not
+    /// in the middle of a move, which is still renumbering the list a reload would replace.
+    /// </summary>
+    private async Task OnHouseholdChangedAsync(ChangeArea area)
+    {
+        if (area != ChangeArea.ShoppingLists || !this.Visible || this.m_Saving)
+            return;
+
+        await this.InvokeAsync(async () =>
+        {
+            await this.LoadAislesAsync();
+            this.StateHasChanged();
+        });
+    }
 
     private async Task LoadAislesAsync()
     {
@@ -200,8 +226,9 @@ public partial class ShoppingAislesModal
 
         this.m_Saving = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteShoppingCategory(aisle.ShoppingCategoryID),
+            new UndoOffer(ChangeArea.ShoppingLists, $"Removed {aisle.Name}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 

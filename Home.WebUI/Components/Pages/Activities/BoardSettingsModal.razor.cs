@@ -13,11 +13,13 @@ using Home.WebUI.DataAccess.Tags.Models;
 using Home.WebUI.DataAccess.Tags.UpdateTag;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.ChangeTrackers;
+using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Activities;
 
-public partial class BoardSettingsModal
+public partial class BoardSettingsModal : IDisposable
 {
 
     #region Fields
@@ -31,6 +33,7 @@ public partial class BoardSettingsModal
 
     private const string DefaultTagColour = "#7dd3fc";
 
+    private IDisposable? m_ChangeSubscription;
     private bool m_WasVisible;
     private string m_Tab = "columns";
     private bool m_Saving;
@@ -68,6 +71,10 @@ public partial class BoardSettingsModal
 
     #region Lifecycle Methods
 
+    protected override async Task OnInitializedAsync()
+        => this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
+            this.OnHouseholdChangedAsync, this.CancellationToken);
+
     protected override async Task OnParametersSetAsync()
     {
         if (this.Visible == this.m_WasVisible)
@@ -79,9 +86,28 @@ public partial class BoardSettingsModal
             await this.LoadAsync();
     }
 
+    public void Dispose()
+        => this.m_ChangeSubscription?.Dispose();
+
     #endregion Lifecycle Methods
 
     #region Methods
+
+    /// <summary>
+    /// A column, section or label put back with Undo shows up while the settings are open. Nothing
+    /// typed into them is cleared, and nothing is read while a change is still being saved.
+    /// </summary>
+    private async Task OnHouseholdChangedAsync(ChangeArea area)
+    {
+        if (area != ChangeArea.Activities || !this.Visible || this.m_Saving)
+            return;
+
+        await this.InvokeAsync(async () =>
+        {
+            await Task.WhenAll(this.LoadStatesAsync(), this.LoadTagsAsync(), this.LoadCardSectionsAsync());
+            this.StateHasChanged();
+        });
+    }
 
     private async Task OnVisibleChangedAsync(bool visible)
         => await this.VisibleChanged.InvokeAsync(visible);
@@ -256,8 +282,9 @@ public partial class BoardSettingsModal
 
         this.m_Saving = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteActivityState(state.ActivityStateID, this.m_MoveCardsToStateID),
+            new UndoOffer(ChangeArea.Activities, $"Deleted {state.Name}"),
             e => this.ErrorHandler?.AddError(e),
             this.CancellationToken);
 
@@ -379,8 +406,9 @@ public partial class BoardSettingsModal
 
         this.m_Saving = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteCardSection(section.CardSectionID),
+            new UndoOffer(ChangeArea.Activities, $"Deleted {section.Name}"),
             e => this.ErrorHandler?.AddError(e),
             this.CancellationToken);
 
@@ -483,8 +511,9 @@ public partial class BoardSettingsModal
 
         this.m_Saving = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteTag(tag.TagID),
+            new UndoOffer(ChangeArea.Activities, $"Deleted {tag.Name}"),
             e => this.ErrorHandler?.AddError(e),
             this.CancellationToken);
 

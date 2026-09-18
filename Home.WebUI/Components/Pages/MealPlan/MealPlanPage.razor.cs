@@ -20,6 +20,7 @@ using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Recipes;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using System.Globalization;
 
 namespace Home.WebUI.Components.Pages.MealPlan;
@@ -399,8 +400,9 @@ public partial class MealPlanPage : IDisposable
 
     private async Task DeleteEntryAsync(MealPlanEntryDto entry)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteMealPlanEntry(entry.MealPlanEntryID),
+            new UndoOffer(ChangeArea.MealPlan, $"Removed {entry.Name}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
@@ -560,8 +562,11 @@ public partial class MealPlanPage : IDisposable
 
     private async Task DeleteMealSlotAsync(long mealSlotID)
     {
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Name = this.m_MealSlots.FirstOrDefault(m => m.MealSlotID == mealSlotID)?.Name;
+
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteMealSlot(mealSlotID),
+            new UndoOffer(ChangeArea.MealPlan, $"Deleted {_Name ?? "the meal"}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 

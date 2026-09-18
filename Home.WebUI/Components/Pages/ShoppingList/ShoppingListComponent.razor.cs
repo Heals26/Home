@@ -18,6 +18,7 @@ using Home.WebUI.Infrastructure.ApiProviders.Helpers;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.ShoppingLists;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Home.WebUI.Infrastructure.ShoppingLists;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -430,13 +431,14 @@ public partial class ShoppingListComponent : IDisposable
     {
         item.InBasket = !item.InBasket;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<UpdateShoppingListItemWebAppRequest, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<UpdateShoppingListItemWebAppRequest, bool>(
             new UpdateShoppingListItemWebAppRequest()
             {
                 InBasket = new PropertyChangeTracker<bool>(item.InBasket),
                 ShoppingListItemID = item.ShoppingListItemID
             },
             ApiProvider.UpdateShoppingListItem(item.ShoppingListItemID),
+            new UndoOffer(ChangeArea.ShoppingLists, $"{(item.InBasket ? "Ticked" : "Unticked")} {item.Name}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
@@ -667,8 +669,9 @@ public partial class ShoppingListComponent : IDisposable
 
         this.m_SavingItem = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteShoppingListItem(this.m_EditingItemID.Value),
+            new UndoOffer(ChangeArea.ShoppingLists, $"Removed {this.m_EditOriginalName}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
@@ -726,11 +729,20 @@ public partial class ShoppingListComponent : IDisposable
             return;
 
         var _ShoppingListID = this.ShoppingListID.Value;
+        var _ShoppingModeLogic = this.ShoppingModeLogic;
+        var _ShoppingTripID = this.m_ShoppingList?.ShoppingTripID;
 
         this.m_ChangingTrip = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.EndShoppingTrip(_ShoppingListID),
+            new UndoOffer(ChangeArea.ShoppingLists, "Finished shopping")
+            {
+                // The shop comes back, and this device goes back into it.
+                OnUndone = _ShoppingTripID is { } _TripID
+                    ? cancellationToken => _ShoppingModeLogic.JoinAsync(_ShoppingListID, _TripID, cancellationToken)
+                    : null
+            },
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
@@ -747,28 +759,33 @@ public partial class ShoppingListComponent : IDisposable
     }
 
     private Task UntickAllAsync()
-        => this.RunListActionAsync(ApiProvider.UntickShoppingListItems(this.ShoppingListID!.Value));
+        => this.RunListActionAsync(ApiProvider.UntickShoppingListItems(this.ShoppingListID!.Value), "Unticked all");
 
     private async Task ClearTickedAsync()
     {
         this.m_ShowConfirmClear = false;
 
-        await this.RunListActionAsync(ApiProvider.DeleteTickedShoppingListItems(this.ShoppingListID!.Value));
+        var _Ticked = this.TrolleyCount();
+
+        await this.RunListActionAsync(
+            ApiProvider.DeleteTickedShoppingListItems(this.ShoppingListID!.Value),
+            $"Cleared {_Ticked} ticked {(_Ticked == 1 ? "item" : "items")}");
     }
 
     /// <summary>
     /// Both of these are one call rather than one per item, because a thirty-line list emptying a line at
     /// a time over a supermarket connection is the difference between instant and painful.
     /// </summary>
-    private async Task RunListActionAsync(ApiProviderHelper apiProvider)
+    private async Task RunListActionAsync(ApiProviderHelper apiProvider, string summary)
     {
         if (this.m_RunningListAction || !this.ShoppingListID.HasValue)
             return;
 
         this.m_RunningListAction = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, apiProvider,
+            new UndoOffer(ChangeArea.ShoppingLists, summary),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 

@@ -9,6 +9,8 @@ using Home.WebUI.DataAccess.Users.Models;
 using Home.WebUI.Infrastructure.Activities;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.ChangeTrackers;
+using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Activities;
@@ -210,8 +212,9 @@ public partial class ActivityEditModal
         if (this.m_Saving || this.Activity == null) return;
         this.m_Saving = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteActivity(this.Activity.ActivityID),
+            new UndoOffer(ChangeArea.Activities, $"Deleted {this.Activity.Title}"),
             e => this.ErrorHandler?.AddError(e),
             this.CancellationToken);
 

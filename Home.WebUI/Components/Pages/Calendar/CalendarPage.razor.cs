@@ -13,6 +13,7 @@ using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.Calendar;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 
 namespace Home.WebUI.Components.Pages.Calendar;
 
@@ -323,8 +324,9 @@ public partial class CalendarPage : IDisposable
 
         this.m_Busy = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteCalendarEvent(_Item.ID, wholeSeries ? null : _Item.OccurrenceDate ?? _Item.Date),
+            new UndoOffer(ChangeArea.Calendar, wholeSeries ? $"Deleted {_Item.Title}" : $"Skipped {_Item.Title} this time"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
@@ -346,9 +348,10 @@ public partial class CalendarPage : IDisposable
 
         this.m_Busy = true;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<SetActivityCompletionWebAppRequest, bool>(
             new SetActivityCompletionWebAppRequest() { IsComplete = true },
             ApiProvider.SetActivityCompletion(_Item.ID),
+            new UndoOffer(ChangeArea.Activities, $"Marked {_Item.Title} as done"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 

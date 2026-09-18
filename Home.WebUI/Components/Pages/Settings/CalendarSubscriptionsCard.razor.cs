@@ -5,6 +5,7 @@ using Home.WebUI.DataAccess.CalendarSubscriptions.Models;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
+using Home.WebUI.Infrastructure.Services.Undo;
 
 namespace Home.WebUI.Components.Pages.Settings;
 
@@ -14,6 +15,7 @@ public partial class CalendarSubscriptionsCard : IDisposable
     #region Fields
 
     private CancellationTokenHandler m_CancellationTokenHandler = new();
+    private IDisposable? m_ChangeSubscription;
     private ErrorHandler? m_ErrorHandler;
 
     // Loaded data
@@ -39,14 +41,35 @@ public partial class CalendarSubscriptionsCard : IDisposable
         _ = await this.ViewerClock.GetTimeZoneIDAsync(this.m_CancellationTokenHandler.Token);
 
         await this.LoadAsync();
+
+        this.m_ChangeSubscription = await this.ChangeBroadcaster.SubscribeAsync(
+            this.OnHouseholdChangedAsync, this.m_CancellationTokenHandler.Token);
     }
 
     public void Dispose()
-        => this.m_CancellationTokenHandler.Dispose();
+    {
+        this.m_ChangeSubscription?.Dispose();
+        this.m_CancellationTokenHandler.Dispose();
+    }
 
     #endregion Lifecycle Methods
 
     #region Methods
+
+    /// <summary>
+    /// A calendar put back with Undo, or added on another device, shows up without leaving the page.
+    /// </summary>
+    private async Task OnHouseholdChangedAsync(ChangeArea area)
+    {
+        if (area != ChangeArea.Calendar)
+            return;
+
+        await this.InvokeAsync(async () =>
+        {
+            await this.LoadAsync();
+            this.StateHasChanged();
+        });
+    }
 
     private async Task LoadAsync()
     {
@@ -110,8 +133,9 @@ public partial class CalendarSubscriptionsCard : IDisposable
     {
         this.m_RemovingID = subscription.CalendarSubscriptionID;
 
-        var _Result = await this.ApiAccess.SendRequestAsync<object, bool>(
+        var _Result = await this.UndoLogic.SendRequestAsync<object, bool>(
             null!, ApiProvider.DeleteCalendarSubscription(subscription.CalendarSubscriptionID),
+            new UndoOffer(ChangeArea.Calendar, $"Removed {subscription.Name}"),
             e => this.m_ErrorHandler?.AddError(e),
             this.m_CancellationTokenHandler.Token);
 
