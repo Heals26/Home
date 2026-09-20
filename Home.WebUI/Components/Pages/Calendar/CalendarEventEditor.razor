@@ -65,7 +65,7 @@
             @if (this.Form.Frequency == CalendarRecurrenceFrequency.Weekly)
             {
                 <div class="flex flex-wrap gap-2" role="group" aria-label="Days of the week">
-                    @foreach (var _Day in s_WeekOrder)
+                    @foreach (var _Day in WeekLogic.Order)
                     {
                         <HomeChip Selected="(this.Form.DaysOfWeek & (1 << (int)_Day)) != 0"
                                   aria-label="@_Day.ToString()"

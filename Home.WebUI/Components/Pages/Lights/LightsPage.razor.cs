@@ -21,6 +21,7 @@ using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.Undo;
+using Home.WebUI.Infrastructure.Time;
 using Home.WebUI.Infrastructure.Values;
 using Microsoft.AspNetCore.Components;
 
@@ -108,16 +109,10 @@ public partial class LightsPage : IDisposable
 
     private const int AllDaysOfWeek = 127;
 
-    // Bit 0 is Sunday, matching System.DayOfWeek, displayed Monday-first.
+    // Bit 0 is Sunday, matching System.DayOfWeek, and shown in the order a week reads here.
     private static readonly ScheduleDay[] ScheduleDays =
     [
-        new("Mon", 1 << 1),
-        new("Tue", 1 << 2),
-        new("Wed", 1 << 3),
-        new("Thu", 1 << 4),
-        new("Fri", 1 << 5),
-        new("Sat", 1 << 6),
-        new("Sun", 1 << 0),
+        .. WeekLogic.Order.Select((d, i) => new ScheduleDay(WeekLogic.ShortNames[i], 1 << (int)d))
     ];
 
     private static readonly List<HomeSegmentedControl<LightEffectKind>.SegmentOption> EffectOptions =

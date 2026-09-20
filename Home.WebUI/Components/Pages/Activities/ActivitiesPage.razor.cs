@@ -18,6 +18,7 @@ using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.Undo;
+using Home.WebUI.Infrastructure.Time;
 using Microsoft.AspNetCore.Components;
 
 namespace Home.WebUI.Components.Pages.Activities;
@@ -281,7 +282,7 @@ public partial class ActivitiesPage : IDisposable
         if (this.m_View == DayView)
             return [this.m_Anchor.Date];
 
-        var _StartOfWeek = ActivityBoardLogic.StartOfWeek(this.m_Anchor);
+        var _StartOfWeek = WeekLogic.StartOfWeek(this.m_Anchor);
 
         return [.. Enumerable.Range(0, 7).Select(i => _StartOfWeek.AddDays(i))];
     }
@@ -291,7 +292,7 @@ public partial class ActivitiesPage : IDisposable
         if (this.m_View == DayView)
             return ActivityBoardLogic.DescribeLongDay(this.m_Anchor);
 
-        var _StartOfWeek = ActivityBoardLogic.StartOfWeek(this.m_Anchor);
+        var _StartOfWeek = WeekLogic.StartOfWeek(this.m_Anchor);
 
         return $"{ActivityBoardLogic.DescribeDate(_StartOfWeek)} to {ActivityBoardLogic.DescribeDate(_StartOfWeek.AddDays(6))}";
     }

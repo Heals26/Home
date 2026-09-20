@@ -14,6 +14,7 @@ using Home.WebUI.Infrastructure.Calendar;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.Undo;
+using Home.WebUI.Infrastructure.Time;
 
 namespace Home.WebUI.Components.Pages.Calendar;
 
@@ -100,11 +101,11 @@ public partial class CalendarPage : IDisposable
     {
         if (this.m_View == CalendarView.Month)
         {
-            var _Start = CalendarFormat.StartOfWeek(this.FirstOfMonth());
+            var _Start = WeekLogic.StartOfWeek(this.FirstOfMonth());
             return (_Start, _Start.AddDays(41));
         }
 
-        var _WeekStart = CalendarFormat.StartOfWeek(this.m_Anchor);
+        var _WeekStart = WeekLogic.StartOfWeek(this.m_Anchor);
         return (_WeekStart, _WeekStart.AddDays(6));
     }
 
@@ -193,7 +194,7 @@ public partial class CalendarPage : IDisposable
     private string RangeLabel()
         => this.m_View == CalendarView.Month
             ? CalendarFormat.MonthLabel(this.FirstOfMonth())
-            : CalendarFormat.WeekLabel(CalendarFormat.StartOfWeek(this.m_Anchor));
+            : CalendarFormat.WeekLabel(WeekLogic.StartOfWeek(this.m_Anchor));
 
     // Opening things
 

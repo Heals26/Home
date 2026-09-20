@@ -69,9 +69,6 @@ public static class CalendarFormat
             : $"{Time(item.StartsAt.Value)} to {Time(_EndsAt)}";
     }
 
-    public static DateOnly StartOfWeek(DateOnly date)
-        => date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
-
     public static string ShortDate(DateOnly date)
         => date.ToString("ddd d MMM", CultureInfo.CurrentCulture);
 

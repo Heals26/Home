@@ -1,11 +1,12 @@
-﻿@* Six weeks, Monday first. On a wide screen each cell lists its first few things and counts the
-   rest; on a narrow one it shows dots, because a chip in a 45px column is a smear. The date is the
+﻿@* Six weeks, starting on whichever day a week starts here. On a wide screen each cell lists its
+   first few things and counts the rest; on a narrow one it shows dots, because a chip in a 45px
+   column is a smear. The date is the
    control that adds something to that day, and the chips are the controls that open what is there;
    the cell itself is not a button, because a button holding buttons is a tap that goes to the
    wrong place half the time. *@
 
 <div class="grid grid-cols-7 gap-px rounded-2xl overflow-hidden border border-ink-800 bg-ink-800">
-    @foreach (var _Name in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" })
+    @foreach (var _Name in WeekLogic.ShortNames)
     {
         <div class="bg-ink-950 px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-widest text-ink-500">@_Name</div>
     }

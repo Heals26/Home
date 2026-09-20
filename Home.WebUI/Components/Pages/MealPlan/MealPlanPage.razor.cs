@@ -21,6 +21,7 @@ using Home.WebUI.Infrastructure.ChangeTrackers;
 using Home.WebUI.Infrastructure.Recipes;
 using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.Undo;
+using Home.WebUI.Infrastructure.Time;
 using System.Globalization;
 
 namespace Home.WebUI.Components.Pages.MealPlan;
@@ -78,7 +79,7 @@ public partial class MealPlanPage : IDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        this.m_WeekStart = StartOfWeek(this.TimeProvider.GetLocalNow().Date);
+        this.m_WeekStart = WeekLogic.StartOfWeek(this.TimeProvider.GetLocalNow().Date);
 
         await this.LoadMealSlotsAsync();
         await this.LoadWeekAsync();
@@ -143,7 +144,7 @@ public partial class MealPlanPage : IDisposable
 
     private async Task GoToTodayAsync()
     {
-        this.m_WeekStart = StartOfWeek(this.TimeProvider.GetLocalNow().Date);
+        this.m_WeekStart = WeekLogic.StartOfWeek(this.TimeProvider.GetLocalNow().Date);
         this.m_Entries = null;
 
         await this.LoadWeekAsync();
@@ -590,7 +591,7 @@ public partial class MealPlanPage : IDisposable
         => (this.m_Entries ?? []).Any(e => e.MealSlotID == null);
 
     private bool IsCurrentWeek()
-        => this.m_WeekStart == StartOfWeek(this.TimeProvider.GetLocalNow().Date);
+        => this.m_WeekStart == WeekLogic.StartOfWeek(this.TimeProvider.GetLocalNow().Date);
 
     private bool IsToday(DateTime day)
         => day == this.TimeProvider.GetLocalNow().Date;
@@ -628,9 +629,6 @@ public partial class MealPlanPage : IDisposable
 
     private static TimeSpan? ParseTimeOfDay(string value)
         => TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var _Parsed) ? _Parsed : null;
-
-    private static DateTime StartOfWeek(DateTime date)
-        => date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
 
     private IEnumerable<DateTime> WeekDays()
         => Enumerable.Range(0, 7).Select(i => this.m_WeekStart.AddDays(i));

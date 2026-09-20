@@ -16,7 +16,7 @@ public partial class CalendarMonthGrid
     #region Properties
 
     /// <summary>
-    /// The 42 days on show, Monday first, starting on or before the first of the month.
+    /// The 42 days on show, starting on or before the first of the month.
     /// </summary>
     [Parameter] public List<CalendarDayDto> Days { get; set; } = [];
 

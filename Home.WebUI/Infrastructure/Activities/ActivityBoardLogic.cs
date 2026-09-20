@@ -5,7 +5,7 @@ using System.Globalization;
 namespace Home.WebUI.Infrastructure.Activities;
 
 /// <summary>
-/// The shaping the board, the week, the day and the card detail all need — kept in one place so
+/// The shaping the board, the week, the day and the card detail all need, kept in one place so
 /// the views cannot drift apart on how a due time reads or how a day is ordered.
 /// </summary>
 public static class ActivityBoardLogic
@@ -70,17 +70,10 @@ public static class ActivityBoardLogic
 
     /// <summary>
     /// A label's colour is chosen by the family at runtime, so it can only ever go into an inline
-    /// style — and only after it has been proved to be #RRGGBB.
+    /// style, and only after it has been proved to be #RRGGBB.
     /// </summary>
     public static string SafeColour(string? colour)
         => HomeColourPicker.IsValidColour(colour) ? colour! : FallbackColour;
-
-    /// <summary>
-    /// The Monday of the week the day falls in — a family week starts on a Monday regardless of
-    /// what the machine's culture says.
-    /// </summary>
-    public static DateTime StartOfWeek(DateTime day)
-        => day.Date.AddDays(-(((int)day.DayOfWeek + 6) % 7));
 
     public static List<ActivitySummaryDto> WithoutDueDate(IEnumerable<ActivitySummaryDto> activities)
         => [.. activities.Where(a => !a.DueDateUTC.HasValue).OrderBy(a => a.Title)];

@@ -12,15 +12,6 @@ public partial class CalendarEventEditor
 
     #region Fields
 
-    /// <summary>
-    /// Monday first, to match every other week in the app; the bitmask itself stays Sunday-based.
-    /// </summary>
-    private static readonly DayOfWeek[] s_WeekOrder =
-    [
-        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,
-        DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
-    ];
-
     private readonly List<HomeSelect<CalendarRecurrenceFrequency>.SelectOption> m_FrequencyOptions =
     [
         new("Does not repeat", CalendarRecurrenceFrequency.None),
