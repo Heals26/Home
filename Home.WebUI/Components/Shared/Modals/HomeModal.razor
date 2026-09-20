@@ -37,8 +37,10 @@
                     <HomeIcon Name="x" Size="lg" />
                 </HomeButton>
             </div>
-            @* Body *@
-            <div class="px-6 py-5 overflow-y-auto app-scrollable">
+            @* Body. min-h-0 is what makes the scrolling work: a flex child will not shrink below
+               its content without it, so the body grew past the panel's 90vh and the overflow it
+               was given never engaged. A long modal on a phone simply ran off the screen. *@
+            <div class="min-h-0 flex-1 px-6 py-5 overflow-y-auto app-scrollable">
                 @if (this.OnSubmit.HasDelegate)
                 {
                     <form @onsubmit="this.SubmitAsync" @onsubmit:preventDefault>
