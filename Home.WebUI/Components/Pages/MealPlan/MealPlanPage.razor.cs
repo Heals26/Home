@@ -51,6 +51,13 @@ public partial class MealPlanPage : IDisposable
     /// chip can be the recipe's name and nothing else.
     /// </summary>
     private MealPlanEntryDto? m_SelectedEntry;
+
+    /// <summary>
+    /// What the sheet's name box holds while an occasion is being renamed.
+    /// </summary>
+    private string m_SelectedName = string.Empty;
+    private bool m_SavingName;
+
     private bool m_ShowPicker;
     private DateTime m_PickerDate;
     private long? m_PickerMealSlotID;
@@ -346,7 +353,43 @@ public partial class MealPlanPage : IDisposable
     }
 
     private void OpenEntrySheet(MealPlanEntryDto entry)
-        => this.m_SelectedEntry = entry;
+    {
+        this.m_SelectedEntry = entry;
+        this.m_SelectedName = entry.Name;
+    }
+
+    /// <summary>
+    /// Renames an occasion, the planned meal that is only its own name. A meal that is a recipe is
+    /// renamed by renaming the recipe, which is why the sheet offers that one the recipe instead.
+    /// </summary>
+    private async Task SaveSelectedNameAsync()
+    {
+        var _Name = this.m_SelectedName.Trim();
+
+        if (this.m_SavingName
+            || this.m_SelectedEntry is not { RecipeID: null } _Entry
+            || _Name.Length == 0
+            || _Name == _Entry.Name)
+            return;
+
+        this.m_SavingName = true;
+
+        var _Result = await this.ApiAccess.SendRequestAsync<UpdateMealPlanEntryWebAppRequest, bool>(
+            new UpdateMealPlanEntryWebAppRequest() { Title = new PropertyChangeTracker<string>(_Name) },
+            ApiProvider.UpdateMealPlanEntry(_Entry.MealPlanEntryID),
+            e => this.m_ErrorHandler?.AddError(e),
+            this.m_CancellationTokenHandler.Token);
+
+        this.m_SavingName = false;
+
+        if (_Result != true)
+            return;
+
+        this.m_SelectedEntry = null;
+
+        await this.LoadWeekAsync();
+        await this.ChangeBroadcaster.PublishAsync(ChangeArea.MealPlan, this.m_CancellationTokenHandler.Token);
+    }
 
     private async Task RemoveSelectedEntryAsync()
     {

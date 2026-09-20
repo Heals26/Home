@@ -414,7 +414,8 @@
    icon buttons left the recipe name a sliver of a seven-day column. There is room for words. *@
 <HomeModal Visible="this.m_SelectedEntry != null"
            VisibleChanged="visible => { if (!visible) this.m_SelectedEntry = null; }"
-           Title="@(this.m_SelectedEntry?.Name ?? "Planned meal")">
+           Title="@(this.m_SelectedEntry?.Name ?? "Planned meal")"
+           OnSubmit="this.SaveSelectedNameAsync">
     <ChildContent>
         @if (this.m_SelectedEntry is { } _Selected)
         {
@@ -423,7 +424,8 @@
             </p>
 
             <div class="mt-4 flex flex-col gap-2">
-                @* An occasion has no recipe to open, so it is not offered one. *@
+                @* A meal that is a recipe is renamed by renaming the recipe, so that one is offered
+                   the recipe. An occasion is only its own name, so that one is offered the name. *@
                 @if (_Selected.RecipeID is { } _RecipeID)
                 {
                     <a href="/recipes/@_RecipeID"
@@ -431,6 +433,21 @@
                         <HomeIcon Name="book" Class="shrink-0 text-recipes" />
                         Open the recipe
                     </a>
+                }
+                else
+                {
+                    <div class="flex items-end gap-2">
+                        <HomeTextInput Class="flex-1"
+                                       Label="Name"
+                                       Name="occasion-name"
+                                       AutoComplete="off"
+                                       @bind-Value="this.m_SelectedName"
+                                       Placeholder="e.g. Takeaway" />
+                        <HomeButton Loading="this.m_SavingName"
+                                    Disabled="@(this.m_SelectedName.Trim().Length == 0 || this.m_SelectedName.Trim() == _Selected.Name)"
+                                    DisabledReason="Give it a different name first"
+                                    OnClick="this.SaveSelectedNameAsync">Save</HomeButton>
+                    </div>
                 }
 
                 <div class="grid grid-cols-2 gap-2">

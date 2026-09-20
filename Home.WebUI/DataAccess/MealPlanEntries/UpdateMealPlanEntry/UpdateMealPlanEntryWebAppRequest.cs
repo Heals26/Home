@@ -17,6 +17,12 @@ public class UpdateMealPlanEntryWebAppRequest
     /// </summary>
     public PropertyChangeTracker<long?> MealSlotID { get; set; }
 
+    /// <summary>
+    /// What an occasion is called. A meal that is a recipe takes its name from the recipe and
+    /// ignores this.
+    /// </summary>
+    public PropertyChangeTracker<string> Title { get; set; }
+
     #endregion Properties
 
 }

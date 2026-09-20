@@ -69,7 +69,7 @@ public class MealPlanEntriesController : BaseController
         [FromBody] UpdateMealPlanEntryApiRequest request,
         CancellationToken cancellationToken)
     {
-        await this.Pipeline.InvokeAsync(new UpdateMealPlanEntryInputPort(request.Date, mealPlanEntryID, request.MealSlotID), presenter, this.ServiceFactory, cancellationToken);
+        await this.Pipeline.InvokeAsync(new UpdateMealPlanEntryInputPort(request.Date, mealPlanEntryID, request.MealSlotID, request.Title), presenter, this.ServiceFactory, cancellationToken);
 
         return presenter.Result;
     }

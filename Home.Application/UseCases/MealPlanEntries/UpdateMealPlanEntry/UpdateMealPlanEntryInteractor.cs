@@ -59,6 +59,11 @@ internal class UpdateMealPlanEntryInteractor : IInteractor<UpdateMealPlanEntryIn
                         .SingleOrDefault(s => s.MealSlotID == inputPort.MealSlotID.Value.Value && s.Household.HouseholdID == _Household.HouseholdID)
                     : null;
 
+            // Only an occasion has a name of its own. A meal that is a recipe reads its name from
+            // the recipe, so a title sent for one would be written and never seen again.
+            if (inputPort.Title.HasBeenSet && _Entry.Recipe == null)
+                _Entry.Title = inputPort.Title.Value.Trim();
+
             _AuditLogic.UpdateAudit(_Entry);
 
             _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);

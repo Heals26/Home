@@ -1,6 +1,10 @@
-﻿namespace Home.Application.UseCases.MealPlanEntries.UpdateMealPlanEntry;
+﻿using CleanArchitecture.Mediator;
+using Home.Application.Services.Validation;
+
+namespace Home.Application.UseCases.MealPlanEntries.UpdateMealPlanEntry;
 
 public interface IUpdateMealPlanEntryOutputPort
+    : IInputPortValidationFailureOutputPort<HomeInputPortValidationFailure>
 {
 
     #region Methods

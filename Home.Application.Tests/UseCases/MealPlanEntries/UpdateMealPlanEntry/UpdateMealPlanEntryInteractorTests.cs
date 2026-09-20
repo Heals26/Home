@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Home.Application.Tests.UseCases.MealPlanEntries.UpdateMealPlanEntry;
 
 /// <summary>
-/// Moving a planned meal to another day or another meal of the day. The household is reached
-/// through the recipe, the same path the entry itself hangs from.
+/// Moving a planned meal to another day or another meal of the day, and renaming an occasion. The
+/// household is reached through the recipe, the same path the entry itself hangs from.
 /// </summary>
 public class UpdateMealPlanEntryInteractorTests : InteractorTest
 {
@@ -33,6 +33,18 @@ public class UpdateMealPlanEntryInteractorTests : InteractorTest
             Recipe = recipe
         };
 
+    /// <summary>
+    /// A planned meal that is not a recipe, which is only ever its own name.
+    /// </summary>
+    private static MealPlanEntry BuildOccasion(long mealPlanEntryID, Household household, DateTime date, string title)
+        => new()
+        {
+            Date = date,
+            Household = household,
+            MealPlanEntryID = mealPlanEntryID,
+            Title = title
+        };
+
     private static MealSlot BuildSlot(long mealSlotID, Household household, string name)
         => new()
         {
@@ -51,9 +63,13 @@ public class UpdateMealPlanEntryInteractorTests : InteractorTest
             Url = $"https://example.test/{recipeID}"
         };
 
-    private Task HandleAsync(long mealPlanEntryID, PropertyChangeTracker<DateTime> date = default, PropertyChangeTracker<long?> mealSlotID = default)
+    private Task HandleAsync(
+        long mealPlanEntryID,
+        PropertyChangeTracker<DateTime> date = default,
+        PropertyChangeTracker<long?> mealSlotID = default,
+        PropertyChangeTracker<string> title = default)
         => new UpdateMealPlanEntryInteractor().HandleAsync(
-            new UpdateMealPlanEntryInputPort(date, mealPlanEntryID, mealSlotID),
+            new UpdateMealPlanEntryInputPort(date, mealPlanEntryID, mealSlotID, title),
             this.m_Presenter,
             this.Services().Build(),
             CancellationToken.None);
@@ -143,6 +159,47 @@ public class UpdateMealPlanEntryInteractorTests : InteractorTest
 
         ShouldBeNotFound(this.m_Presenter);
         _ = this.Stored<MealPlanEntry>().Single().Date.Should().Be(new DateTime(2026, 8, 12));
+    }
+
+    [Fact]
+    public async Task HandleAsync_RenamesAnOccasion()
+    {
+        _ = this.Database.Seed(BuildOccasion(150, this.Ours, new DateTime(2026, 8, 12), "Takeaway"));
+
+        await this.HandleAsync(150, title: new("  Dinner at Mum's  "));
+
+        _ = this.m_Presenter.Result.Should().BeOfType<NoContentResult>();
+        _ = this.Stored<MealPlanEntry>().Single().Title.Should().Be(
+            "Dinner at Mum's",
+            "the name is read off a chip, so it is stored trimmed rather than as typed");
+    }
+
+    [Fact]
+    public async Task HandleAsync_LeavesAMealThatIsARecipeNamedAfterItsRecipe()
+    {
+        _ = this.Database.Seed(BuildEntry(150, BuildRecipe(120, this.Ours), new DateTime(2026, 8, 12)));
+
+        await this.HandleAsync(150, title: new("Something else"));
+
+        _ = this.Stored<MealPlanEntry>().Single().Title.Should().BeNull(
+            "a meal that is a recipe takes its name from the recipe, so a title would never be seen again");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenOnlyTheNameIsSent_LeavesTheDayAndTheSlotAlone()
+    {
+        var _Slot = BuildSlot(140, this.Ours, "Dinner");
+        var _Entry = BuildOccasion(150, this.Ours, new DateTime(2026, 8, 12), "Takeaway");
+
+        _Entry.MealSlot = _Slot;
+
+        _ = this.Database.Seed(_Entry);
+
+        await this.HandleAsync(150, title: new("Fish and chips"));
+
+        _ = this.Stored<MealPlanEntry>().Single().Title.Should().Be("Fish and chips");
+        _ = this.Stored<MealPlanEntry>().Single().Date.Should().Be(new DateTime(2026, 8, 12));
+        _ = this.Stored<MealPlanEntry>().Count(e => e.MealSlot != null && e.MealSlot.MealSlotID == 140).Should().Be(1);
     }
 
     #endregion Methods
