@@ -5,7 +5,9 @@
     {
         <label for="@this.m_TextAreaID" class="text-sm font-medium text-ink-300">@this.Label</label>
     }
+    @* Keyed and left alone while someone types, for the reason in the code-behind. *@
     <textarea @attributes="this.AdditionalAttributes"
+              @key="this.m_Written"
               id="@this.m_TextAreaID"
               rows="@this.Rows"
               placeholder="@this.Placeholder"
@@ -14,7 +16,7 @@
               autocapitalize="sentences"
               aria-invalid="@(string.IsNullOrEmpty(this.Error) ? null : "true")"
               aria-describedby="@this.GetDescribedBy()"
-              value="@this.Value"
+              value="@this.m_Shown"
               @oninput="this.OnInputChangedAsync"
               class="@this.GetTextAreaClasses()"></textarea>
     @if (!string.IsNullOrEmpty(this.Hint))

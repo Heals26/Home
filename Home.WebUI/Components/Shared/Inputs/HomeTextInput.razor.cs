@@ -11,6 +11,23 @@ public partial class HomeTextInput
     private readonly string m_InputID = $"home-input-{Guid.NewGuid():N}";
     private ElementReference m_Input;
 
+    /// <summary>
+    /// What the box is rendered with, which is not always what <see cref="Value"/> says.
+    /// </summary>
+    private string m_Shown = string.Empty;
+
+    /// <summary>
+    /// What the browser last said the box holds, or null when the caller last set it.
+    /// </summary>
+    private string? m_Typed;
+
+    /// <summary>
+    /// Counts the times the caller has written to the box. It keys the element, because two writes
+    /// can carry the same text and the second one still has to reach a box the browser has changed
+    /// since, which an unchanged attribute never would.
+    /// </summary>
+    private int m_Written;
+
     #endregion Fields
 
     #region Properties
@@ -54,6 +71,29 @@ public partial class HomeTextInput
 
     #endregion Properties
 
+    #region Lifecycle Methods
+
+    /// <summary>
+    /// The browser owns the box while someone is typing in it. Every keystroke here is a round trip,
+    /// and rendering the value back into the box means the answer to one keystroke can land after the
+    /// next two have been typed and put the box back as it was, which is how a shopping list ate
+    /// letters. So the caller's value only reaches the box when it says something other than what was
+    /// typed, which is a caller setting the text rather than echoing it.
+    /// </summary>
+    protected override void OnParametersSet()
+    {
+        if (this.m_Typed != null && this.Value == this.m_Typed)
+            return;
+
+        if (this.m_Typed != null)
+            this.m_Written++;
+
+        this.m_Shown = this.Value;
+        this.m_Typed = null;
+    }
+
+    #endregion Lifecycle Methods
+
     #region Methods
 
     /// <summary>
@@ -64,7 +104,11 @@ public partial class HomeTextInput
         => this.m_Input.FocusAsync();
 
     private async Task OnInputChanged(ChangeEventArgs e)
-        => await this.ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+    {
+        this.m_Typed = e.Value?.ToString() ?? string.Empty;
+
+        await this.ValueChanged.InvokeAsync(this.m_Typed);
+    }
 
     private async Task OnChanged(ChangeEventArgs e)
         => await this.OnChange.InvokeAsync(e.Value?.ToString() ?? string.Empty);

@@ -9,6 +9,22 @@ public partial class HomeTextArea
 
     private readonly string m_TextAreaID = $"home-textarea-{Guid.NewGuid():N}";
 
+    /// <summary>
+    /// What the box is rendered with, which is not always what <see cref="Value"/> says.
+    /// </summary>
+    private string m_Shown = string.Empty;
+
+    /// <summary>
+    /// What the browser last said the box holds, or null when the caller last set it.
+    /// </summary>
+    private string? m_Typed;
+
+    /// <summary>
+    /// Counts the times the caller has written to the box, and keys the element so a write lands
+    /// even when it carries the same text as the one before it.
+    /// </summary>
+    private int m_Written;
+
     #endregion Fields
 
     #region Properties
@@ -28,10 +44,35 @@ public partial class HomeTextArea
 
     #endregion Properties
 
+    #region Lifecycle Methods
+
+    /// <summary>
+    /// The browser owns the box while someone is typing in it, for the reason written up on
+    /// <see cref="HomeTextInput"/>: on a slow connection the render answering one keystroke lands
+    /// after the next has been typed, and putting the value back eats it.
+    /// </summary>
+    protected override void OnParametersSet()
+    {
+        if (this.m_Typed != null && this.Value == this.m_Typed)
+            return;
+
+        if (this.m_Typed != null)
+            this.m_Written++;
+
+        this.m_Shown = this.Value;
+        this.m_Typed = null;
+    }
+
+    #endregion Lifecycle Methods
+
     #region Methods
 
     private async Task OnInputChangedAsync(ChangeEventArgs e)
-        => await this.ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+    {
+        this.m_Typed = e.Value?.ToString() ?? string.Empty;
+
+        await this.ValueChanged.InvokeAsync(this.m_Typed);
+    }
 
     private string? GetDescribedBy()
     {

@@ -5,7 +5,10 @@
     {
         <label for="@this.m_InputID" class="text-sm font-medium text-ink-300">@this.Label</label>
     }
+    @* Keyed on the writes, not on every render: see the code-behind for why the box is left alone
+       while someone is typing into it. *@
     <input @attributes="this.AdditionalAttributes"
+           @key="this.m_Written"
            @ref="this.m_Input"
            id="@this.m_InputID"
            type="@this.Type"
@@ -14,7 +17,7 @@
            inputmode="@this.InputMode"
            spellcheck="@this.GetSpellCheck()"
            autocapitalize="@this.GetAutoCapitalise()"
-           value="@this.Value"
+           value="@this.m_Shown"
            placeholder="@this.Placeholder"
            disabled="@this.Disabled"
            aria-invalid="@(string.IsNullOrEmpty(this.Error) ? null : "true")"
