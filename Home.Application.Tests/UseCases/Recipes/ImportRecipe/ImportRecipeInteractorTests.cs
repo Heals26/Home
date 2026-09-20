@@ -78,7 +78,12 @@ public class ImportRecipeInteractorTests
         _Added!.Name.Should().Be("Pad Thai");
         _Added.Url.Should().Be("https://example.test/pad-thai");
         _Added.Household.Should().BeSameAs(this.m_Household);
-        _Added.Ingredients.Select(i => i.Ingredient.Name).Should().Equal("200 g rice noodles", "2 eggs");
+        _Added.Ingredients.Select(i => i.Ingredient.Name).Should().Equal("Rice noodles", "Eggs");
+        _Added.Ingredients.Select(i => i.Ingredient.Amount).Should().Equal(200, 2);
+        _Added.Ingredients.Select(i => i.Ingredient.Unit).Should().Equal(2, null);
+        _Added.Ingredients.Select(i => i.Sequence).Should().Equal(
+            [1, 2],
+            "they are reached for in the order the site lists them, and a reorder needs somewhere to start");
         _Added.Steps.OrderBy(s => s.Sequence).Select(s => s.Content).Should().Equal("Soak the noodles.", "Fry everything.");
         _Added.Steps.OrderBy(s => s.Sequence).Select(s => s.Sequence).Should().Equal(1, 2);
     }

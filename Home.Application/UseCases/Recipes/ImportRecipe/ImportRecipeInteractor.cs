@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.Mediator;
+using Home.Application.Infrastructure.Recipes;
 using Home.Application.Services.Persistence;
 using Home.Application.Services.RecipeImports;
 using Home.Application.Services.Security;
@@ -46,14 +47,30 @@ internal class ImportRecipeInteractor : IInteractor<ImportRecipeInputPort, IImpo
             Url = inputPort.Url
         };
 
+        var _Sequence = 0;
+
+        // A site writes "2 cups plain flour" as one line. Kept whole it is a name with an amount
+        // buried in it, which the recipe cannot scale and a shopping list cannot price, so the
+        // amount and the unit are read off the front here.
         foreach (var _Ingredient in _Imported.Ingredients)
+        {
+            var _Parsed = IngredientTextLogic.Parse(_Ingredient);
+
             _Recipe.Ingredients.Add(new RecipeIngredient()
             {
-                Ingredient = new Ingredient() { Name = _Ingredient },
-                Recipe = _Recipe
+                Ingredient = new Ingredient()
+                {
+                    Amount = _Parsed.Amount,
+                    Name = _Parsed.Name,
+                    Unit = _Parsed.Unit
+                },
+                Recipe = _Recipe,
+                // In the order the site lists them, which is the order they are reached for.
+                Sequence = ++_Sequence
             });
+        }
 
-        var _Sequence = 0;
+        _Sequence = 0;
 
         foreach (var _Step in _Imported.Steps)
             _Recipe.Steps.Add(new RecipeStep()
