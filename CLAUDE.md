@@ -40,8 +40,9 @@ dotnet run --project Home.WebApi
 dotnet run --project Home.WebUI
 ```
 
-The API listens on `https://localhost:57174` / `http://localhost:57175` with Swagger at `/swagger`.
-The WebUI listens on `https://localhost:7019` / `http://localhost:5251`.
+The API listens on `http://localhost:57175` with Swagger at `/swagger`, and the WebUI on
+`http://0.0.0.0:5251`. Neither serves HTTPS: TLS belongs to whatever sits in front (a Cloudflare
+tunnel here), so nothing depends on a developer certificate that expires.
 `.claude/launch.json` defines both for the in-app browser preview.
 
 Three traps worth knowing before you hit them, all written up in `README.md`:

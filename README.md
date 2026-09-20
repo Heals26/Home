@@ -115,9 +115,16 @@ dotnet run --project Home.WebApi
 dotnet run --project Home.WebUI
 ```
 
-The API listens on `https://localhost:57174` and `http://localhost:57175`, with Swagger at
-`/swagger`. The web app listens on `https://localhost:7019` and `http://localhost:5251`. Open the
-web app, and the sign-in page offers to set up a household on a database with no users in it.
+The API listens on `http://localhost:57175`, with Swagger at `/swagger`. The web app listens on
+`http://0.0.0.0:5251`, on every address so a phone on the house network can reach it. Open the web
+app, and the sign-in page offers to set up a household on a database with no users in it.
+
+**Neither project serves HTTPS.** They did until a developer certificate expired mid-shop and
+Kestrel then refused to start at all, taking the plain HTTP endpoint down with it. TLS is the job of
+whatever puts this house on the internet, a Cloudflare tunnel in our case, which terminates it at
+its edge and forwards plain HTTP to `localhost:5251`. `UseForwardedHeaders` is what keeps the app
+aware that the caller arrived over HTTPS. The consequence is the one in `Program.cs`: this app must
+only ever be reachable through that tunnel, never exposed to the internet directly.
 
 `.claude/launch.json` defines both for anyone driving the app through an agent.
 

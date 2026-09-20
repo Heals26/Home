@@ -120,11 +120,11 @@ _Builder.Services.AddScoped<IUndoLogic, UndoLogic>();
 // Singleton so the count survives the circuit: a new browser tab must not reset it.
 _Builder.Services.AddSingleton<ILoginThrottle, LoginThrottle>();
 
-// A tunnel or reverse proxy terminates TLS at its edge and hands this app plain HTTP, so
-// without these headers UseHttpsRedirection would bounce a phone to the machine's own
-// localhost address. Both lists are cleared because the proxy is not on a known network,
-// which does mean these headers are trusted from any caller, so the app must only ever be
-// reachable through the proxy, never directly from the internet.
+// The Cloudflare tunnel terminates TLS at its edge and hands this app plain HTTP, so without these
+// headers every link the app writes would say http and the phone would be told its own connection
+// is insecure. Both lists are cleared because the tunnel is not on a known network, which does mean
+// these headers are trusted from any caller, so the app must only ever be reachable through the
+// tunnel, never directly from the internet.
 _ = _Builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -142,11 +142,14 @@ if (!_App.Environment.IsDevelopment())
     _ = _App.UseHsts();
 }
 
-// Before anything that reads the scheme or the caller's address, chiefly the redirect below.
+// Before anything that reads the scheme or the caller's address.
 _App.UseForwardedHeaders();
 
 _App.UseStaticFiles();
-_App.UseHttpsRedirection();
+
+// No UseHttpsRedirection, and no HTTPS endpoint to redirect to: TLS is the tunnel's job (20 Sep
+// 2026). This app serving its own HTTPS meant a developer certificate, and the day it expired
+// Kestrel refused to start at all, which took the plain HTTP endpoint the tunnel uses down with it.
 _App.UseRouting();
 
 _App.UseAuthentication();

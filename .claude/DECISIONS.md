@@ -4,6 +4,34 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-20 · TLS stops at the tunnel, and neither project serves HTTPS
+
+The ASP.NET Core developer certificate expired at 11:22 on 20 Sep 2026, while Mitch was in the
+supermarket with the list open. Kestrel could not produce a certificate for the HTTPS endpoint it
+was told to bind, so it refused to start the process at all, and the plain HTTP endpoint the phone
+actually reaches went down with it. The list was unreachable until someone got home.
+
+A certificate that expires once a year, is trusted on one machine, and is trusted by no phone was
+never holding anything up. The house is on the internet through a Cloudflare tunnel, which
+terminates TLS at its edge and forwards plain HTTP to the origin.
+
+- **Both launch profiles serve HTTP only.** The web app on `http://0.0.0.0:5251`, on every address
+  because a phone on the house network reaches it directly, and the API on
+  `http://localhost:57175`, which nothing outside this machine talks to.
+- **`UseHttpsRedirection` is gone from the web app.** With no HTTPS endpoint it had nowhere to send
+  anyone, and the tunnel already refuses plain HTTP at its edge.
+- **`UseForwardedHeaders` stays and matters more than ever.** It is the only reason the app knows a
+  request arrived over HTTPS, which is what keeps the links it writes and the cookies it sets
+  right.
+- **The consequence is a rule:** this app must only ever be reachable through the tunnel. Nothing
+  else in front of it, and never a port forwarded straight at it, because it trusts the forwarded
+  headers of whoever calls it.
+
+**Chosen, not asked:** the tunnel's public hostname must point at `http://localhost:5251` rather
+than the HTTPS origin that is now gone, and that ingress rule lives in the Cloudflare dashboard
+rather than in this repository. HSTS is still sent outside Development, because the public hostname
+really is HTTPS, at the edge.
+
 ## 2026-09-18 · A command gets its own use case, and the patch keeps the form
 
 Mitch, 18 Sep 2026, on the back of the undo work: if a command comes out of the patch into a use
