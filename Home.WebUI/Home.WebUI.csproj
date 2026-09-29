@@ -16,8 +16,14 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.12" />
   </ItemGroup>
 
-  <Target Name="BuildTailwind" BeforeTargets="Build">
+  <!-- Runs before wwwroot is catalogued as static web assets, so the stylesheet it writes gets a
+       fingerprint like every other file. On a clean clone the file did not exist when the project
+       was evaluated, so it is added to Content here as well. -->
+  <Target Name="BuildTailwind" BeforeTargets="ResolveProjectStaticWebAssets" Condition="'$(DesignTimeBuild)' != 'true'">
     <Exec Command="npm run build:css" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <ItemGroup>
+      <Content Include="wwwroot\css\app.css" Exclude="@(Content)" ExcludeFromSingleFile="true" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
   </Target>
 
 </Project>

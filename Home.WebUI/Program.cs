@@ -145,8 +145,6 @@ if (!_App.Environment.IsDevelopment())
 // Before anything that reads the scheme or the caller's address.
 _App.UseForwardedHeaders();
 
-_App.UseStaticFiles();
-
 // No UseHttpsRedirection, and no HTTPS endpoint to redirect to: TLS is the tunnel's job (20 Sep
 // 2026). This app serving its own HTTPS meant a developer certificate, and the day it expired
 // Kestrel refused to start at all, which took the plain HTTP endpoint the tunnel uses down with it.
@@ -158,6 +156,7 @@ _App.UseAuthorization();
 _App.UseWebSockets();
 _App.UseAntiforgery();
 
+_App.MapStaticAssets();
 _App.MapRecipeImageEndpoints();
 
 _App.MapRazorComponents<App>()

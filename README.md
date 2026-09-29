@@ -171,8 +171,11 @@ Tailwind only emits a rule for a class it can find in the files listed under `co
 from pieces will not be found, and its rule will be dropped. If an icon renders as a plain grey
 square, that is why: the mask rule was purged.
 
-The stylesheet is served without a cache-busting query string, so a browser that has already seen
-one version can hold on to it. Hard reload if a CSS change does not appear.
+Every file under `wwwroot` is served at an address that carries a fingerprint of its contents, such
+as `css/app.730n4mkmob.css`, so a browser picks up each new build instead of holding on to the last
+one. The exception is a stylesheet rebuilt on its own with `npm run build:css` while the app is
+running: it is served at the address it was built with, and the browser keeps the copy it has until
+you hard reload.
 
 <a id="dotnet-ef-ignores-your-connection-string"></a>
 ### `dotnet ef` ignores your connection string
