@@ -25,14 +25,14 @@ public class OAuthProfile : Profile
         _ = this.CreateMap<UserAuthentication, CreatePasswordGrantApiResponse>()
             .ForMember(d => d.ExpiresIn, o => o.MapFrom<TokenExpiresInResolver<CreatePasswordGrantApiResponse>>())
             .ForMember(d => d.GrantType, o => o.MapFrom(s => OAuthValues.GrantTypePassword))
-            .ForMember(d => d.Scope, o => o.MapFrom(s => string.Join(",", OAuthValues.WebAppScope.Name)))
+            .ForMember(d => d.Scope, o => o.MapFrom(s => OAuthValues.WebAppScope.Name))
             .ForMember(d => d.UserID, o => o.MapFrom(s => s.User.UserID));
 
         _ = this.CreateMap<OAuthApiRequest, CreateRefreshGrantInputPort>();
         _ = this.CreateMap<UserAuthentication, CreateRefreshGrantApiResponse>()
             .ForMember(d => d.ExpiresIn, o => o.MapFrom<TokenExpiresInResolver<CreateRefreshGrantApiResponse>>())
             .ForMember(d => d.GrantType, o => o.MapFrom(s => OAuthValues.GrantTypeRefresh))
-            .ForMember(d => d.Scope, o => o.MapFrom(s => string.Join(",", OAuthValues.WebAppScope.Name)))
+            .ForMember(d => d.Scope, o => o.MapFrom(s => OAuthValues.WebAppScope.Name))
             .ForMember(d => d.UserID, o => o.MapFrom(s => s.User.UserID));
     }
 

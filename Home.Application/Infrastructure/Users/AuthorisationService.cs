@@ -11,7 +11,7 @@ public class AuthorisationService(IHttpContextAccessor httpContextAccessor, IPer
 
     #region Properties
 
-    ClaimsPrincipal IAuthorisationService.User => httpContextAccessor.HttpContext.User;
+    ClaimsPrincipal IAuthorisationService.User => httpContextAccessor.HttpContext!.User;
 
     #endregion Properties
 

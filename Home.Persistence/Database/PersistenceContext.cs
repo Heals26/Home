@@ -116,7 +116,7 @@ public class PersistenceContext(
         _ = modelBuilder.ApplyConfigurationsFromAssembly(AssemblyUtility.GetAssembly());
 
         foreach (var _EntityType in modelBuilder.Model.GetEntityTypes()
-            .Where(t => typeof(ISoftDeletable).IsAssignableFrom(t.ClrType) && t.GetQueryFilter() == null)
+            .Where(t => typeof(ISoftDeletable).IsAssignableFrom(t.ClrType) && t.GetDeclaredQueryFilters().Count == 0)
             .ToList())
         {
             var _Row = Expression.Parameter(_EntityType.ClrType, "e");

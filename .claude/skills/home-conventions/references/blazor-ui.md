@@ -1,6 +1,6 @@
 ﻿# Home.WebUI Blazor conventions
 
-Blazor Server, .NET 8, Tailwind CSS. MudBlazor was deliberately stripped out
+Blazor Server, .NET 10, Tailwind CSS. MudBlazor was deliberately stripped out
 (`Strip MudBlazor, add Tailwind, build custom component library`). Do not reintroduce a component
 library. Everything is either a `Home*` component or raw Tailwind utilities.
 

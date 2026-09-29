@@ -1,6 +1,6 @@
 ﻿# Home
 
-A .NET 8 clean-architecture household app: recipes, shopping lists, activities, and (in progress)
+A .NET 10 clean-architecture household app: recipes, shopping lists, activities, and (in progress)
 LIFX light control. Blazor Server front end over a REST API, built on the
 `CleanArchitecture.Mediator` input-port / interactor / output-port pattern.
 

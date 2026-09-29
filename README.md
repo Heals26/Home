@@ -1,7 +1,7 @@
 # Home
 
 A family organiser built for a kitchen tablet. Recipes, shopping lists, a weekly meal plan, a chore
-board and LIFX light control, in one .NET 8 application.
+board and LIFX light control, in one .NET 10 application.
 
 It is a Blazor Server front end over a REST API, both in this repository, sharing a SQL Server
 database.
@@ -10,7 +10,7 @@ database.
 
 | | |
 |---|---|
-| .NET 8 SDK | The whole solution targets `net8.0`. |
+| .NET 10 SDK | The whole solution targets `net10.0`. |
 | Node 20 or later | Only to build the CSS. There is no JavaScript bundler. |
 | SQL Server | LocalDB ships with the SQL Server tooling, needs no service running, and is enough for development. There is no SQLite option. |
 

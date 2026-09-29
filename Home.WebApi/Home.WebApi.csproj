@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<!-- The XML doc file exists for Swagger, not for documentation coverage. CS1591 (missing
@@ -17,7 +17,7 @@
 		<PackageReference Include="AutoMapper" Version="15.1.1" />
 		<PackageReference Include="CleanArchitecture.Mediator" Version="1.0.0-local" />
 		<PackageReference Include="Ical.Net" Version="4.3.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.19">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
