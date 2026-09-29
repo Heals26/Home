@@ -223,7 +223,7 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
         options.AssumeDefaultVersionWhenUnspecified = true;
         options.DefaultApiVersion = new ApiVersion(1, 0);
         options.ReportApiVersions = true;
-    });
+    }).AddMvc();
 
     //services.AddVersionedApiExplorer(options => options.GroupNameFormat = "'v'VVV");
 

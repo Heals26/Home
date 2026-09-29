@@ -130,7 +130,7 @@ public class ApiAuditing(RequestDelegate next, TimeProvider timeProvider)
             requestData.RequestUri = ApiAuditing.GetRequestAbsoluteUriString(context);
             requestData.UserAgent = TruncateUserAgent(context.Request.Headers["User-Agent"].ToString());
 
-            var _Version = context.GetRequestedApiVersion()?.ToString();
+            var _Version = context.RequestedApiVersion?.ToString();
             requestData.Version = string.IsNullOrEmpty(_Version) ? "Unversioned" : _Version;
         }
         catch (Exception ex)
