@@ -4,6 +4,52 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-09-29 · .NET 10, a .slnx solution, the built-in OpenAPI document and fingerprinted static files
+
+Mitch, 29 Sep 2026: the solution becomes `Home.slnx`, and anything that is not .NET 10 standard is
+brought up to it. Every project targets `net10.0`, CI builds with the 10.0 SDK, and the Microsoft
+packages that move with the framework (EF Core, the SignalR client) are on 10.0.12.
+`Home.Application` takes ASP.NET Core from the shared framework rather than the retired 2.x
+`Microsoft.AspNetCore.Http.Abstractions` package.
+
+Asked and answered:
+
+- **The OpenAPI document comes from `Microsoft.AspNetCore.OpenApi`**, as the .NET 10 templates do,
+  not from Swashbuckle's generator. Swagger UI stays at `/swagger` and reads `/openapi/v1.json`;
+  `/swagger/v1/swagger.json` is gone. Fetching the document now leaves a row in the API audit
+  trail, because it is an endpoint rather than middleware that answered before auditing ran.
+- **Static files go through `MapStaticAssets`**, so every file under `wwwroot` carries a
+  fingerprint, a published build caches it for a year, and a new build is always fetched fresh. The
+  Tailwind step runs before the assets are catalogued, so the generated stylesheet is fingerprinted
+  too, even on a clean clone.
+- **The global `dotnet-ef` tool is 10.0.12** on the desktop, updated rather than pinned in the
+  repository.
+
+**Chosen, not asked:**
+
+- **A package counts as .NET 10 standard when the version in use is the one built for .NET 10.**
+  Asp.Versioning 10, Scrutor 7 and coverlet 10 are, so they moved, along with the test SDK and
+  xUnit, which were still at the .NET 8 template's versions. AutoMapper 15 and Markdig already ship
+  a `net10.0` build and stayed. Ical.Net and FluentValidation have no `net10.0` build in any
+  version, so moving Ical.Net to 5.x would be a rewrite that .NET 10 does not ask for.
+  FluentAssertions stays pinned to 7.x for its licence.
+- **xUnit stays on v2 (2.9.3)**, which is what the .NET 10 template uses, with the 3.1.5 adapter,
+  because the 4.0 adapter is built for xUnit v3.
+- **API versioning is now enforced.** Asp.Versioning 10's analyser pointed out that
+  `AddApiVersioning` was never followed by `AddMvc`, so the `[Version1]` attributes did nothing. With
+  it, an unsupported `api-version` gets a 400. The web app always sends 1.0, and a request without
+  the header still counts as 1.0.
+- **`Home.slnx` drops the x64 and x86 platforms**, which every project mapped back to Any CPU.
+- **`PropertyChangeTracker` is described in the OpenAPI document** as the `hasBeenSet` and `value`
+  pair its converter writes, spelled out at each property. The generator cannot see through a
+  converter, and its default schema names would give an `int?` tracker an `int`'s schema.
+- **A standalone `npm run build:css` needs a hard reload** on a development machine, because the
+  stylesheet keeps the address it was built with. A full build gives it a new one.
+
+Worth knowing: outside Development, `MapStaticAssets` only serves a published layout. The unpublished
+build output run as Production answers every static file with an empty 200. Publish it, or run it
+through the launch profile, which is Development.
+
 ## 2026-09-20 · TLS stops at the tunnel, and neither project serves HTTPS
 
 The ASP.NET Core developer certificate expired at 11:22 on 20 Sep 2026, while Mitch was in the
