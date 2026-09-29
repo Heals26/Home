@@ -103,8 +103,8 @@ which hid the `CS8618`s on the API models. Nullable is on there now, and the 175
 back were fixed rather than suppressed: request and response models got an initialiser or a `?` to
 match what feeds them, the vendor wire types went nullable because their consumers already treated
 them that way, and the files that had opted in with `#nullable enable` no longer need to. `CS1591`
-is still suppressed there, because `GenerateDocumentationFile` is on for Swagger rather than for
-documentation coverage.
+is still suppressed there, because `GenerateDocumentationFile` is on for the OpenAPI document
+rather than for documentation coverage.
 
 One behaviour was kept on purpose. With nullable on, MVC infers `[Required]` for every non-nullable
 request property and answers 400 before an input port's validator can answer 422 in its own words,

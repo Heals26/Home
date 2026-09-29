@@ -5,8 +5,9 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<!-- The XML doc file exists for Swagger, not for documentation coverage. CS1591 (missing
-		     XML comment) fired ~469 times and buried the warnings that actually matter. -->
+		<!-- The XML doc comments exist for the OpenAPI document, not for documentation coverage.
+		     CS1591 (missing XML comment) fired ~469 times and buried the warnings that actually
+		     matter. -->
 		<NoWarn>$(NoWarn);1591</NoWarn>
 		<Nullable>enable</Nullable>
 		<UserSecretsId>f6b1d435-a9e7-483c-bb25-be7f9fd4bdba</UserSecretsId>
@@ -17,13 +18,13 @@
 		<PackageReference Include="AutoMapper" Version="15.1.1" />
 		<PackageReference Include="CleanArchitecture.Mediator" Version="1.0.0-local" />
 		<PackageReference Include="Ical.Net" Version="4.3.1" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Scrutor" Version="7.0.0" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
-		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="9.0.4" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
 	</ItemGroup>
 
 	<ItemGroup>

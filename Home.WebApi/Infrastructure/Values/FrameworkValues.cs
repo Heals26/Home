@@ -14,6 +14,8 @@ public static class FrameworkValues
 
     public static string IdentityClaimScopes = "Scopes";
 
+    public const string ApiVersionHeader = "api-version";
+
     public const string ScopeWebApp = "WebApp";
 
     /// <summary>

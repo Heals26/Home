@@ -39,6 +39,7 @@ using Home.WebApi.Infrastructure.Extensions;
 using Home.WebApi.Infrastructure.Filters;
 using Home.WebApi.Infrastructure.Lights;
 using Home.WebApi.Infrastructure.OAuth;
+using Home.WebApi.Infrastructure.OpenApi;
 using Home.WebApi.Infrastructure.RecipeImports;
 using Home.WebApi.Infrastructure.Undo;
 using Home.WebApi.Infrastructure.Values;
@@ -82,10 +83,9 @@ _Application.Run();
 static void SetupApplication(WebApplication app, IWebHostEnvironment environment)
 {
     _ = app.UseStaticFiles();
-    _ = app.UseSwagger();
     _ = app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Home v1");
+        options.SwaggerEndpoint("/openapi/v1.json", "Home v1");
         options.EnableFilter();
         options.DocumentTitle = "Home Swagger";
     });
@@ -100,6 +100,7 @@ static void SetupApplication(WebApplication app, IWebHostEnvironment environment
     {
         _ = e.MapControllers();
         _ = e.MapHub<ChangeNotificationsHub>("/hubs/changes");
+        _ = e.MapOpenApi();
     });
 
     using var _Scope = app.Services.CreateScope();
@@ -219,7 +220,7 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
 
     _ = services.AddApiVersioning(options =>
     {
-        options.ApiVersionReader = new HeaderApiVersionReader(ApiVersionHeaderFilter.API_HEADER);
+        options.ApiVersionReader = new HeaderApiVersionReader(FrameworkValues.ApiVersionHeader);
         options.AssumeDefaultVersionWhenUnspecified = true;
         options.DefaultApiVersion = new ApiVersion(1, 0);
         options.ReportApiVersions = true;
@@ -243,16 +244,17 @@ static IServiceCollection SetupInfrastructure(IServiceCollection services)
     _ = _VersionDescription.AppendLine("<br>");
     _ = _VersionDescription.AppendLine("<strong>value:</strong> `<Version>`");
 
-    _ = services.AddSwaggerGen(s =>
+    _ = services.AddOpenApi(options =>
     {
-        s.OperationFilter<ApiVersionHeaderFilter>();
+        options.CreateSchemaReferenceId = PropertyChangeTrackerSchemaTransformer.CreateSchemaReferenceId;
 
-        s.CustomSchemaIds(t => t.FullName);
+        _ = options.AddDocumentTransformer((document, context, cancellationToken) =>
+        {
+            document.Info = new() { Title = "Home", Version = "v1", Description = _VersionDescription.ToString().Replace("<Version>", "1.0") };
 
-        s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Home", Version = "v1", Description = _VersionDescription.ToString().Replace("<Version>", "1.0") });
-
-        var _PresentationXML = $"{Home.WebApi.AssemblyUtility.GetAssembly().GetName().Name}.xml";
-        s.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, _PresentationXML));
+            return Task.CompletedTask;
+        });
+        _ = options.AddSchemaTransformer<PropertyChangeTrackerSchemaTransformer>();
     });
 
     return services;
