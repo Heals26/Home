@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Project Path="Home.Application.Tests/Home.Application.Tests.csproj" />
+  <Project Path="Home.Application/Home.Application.csproj" />
+  <Project Path="Home.Domain/Home.Domain.csproj" />
+  <Project Path="Home.Persistence/Home.Persistence.csproj" />
+  <Project Path="Home.WebApi/Home.WebApi.csproj" />
+  <Project Path="Home.WebUI/Home.WebUI.csproj" />
+</Solution>

@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "Home.sln",
+    "path": "Home.slnx",
     "projects": [
       "Home.Application\\Home.Application.csproj",
       "Home.Domain\\Home.Domain.csproj",

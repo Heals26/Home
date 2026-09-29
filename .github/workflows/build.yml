@@ -33,10 +33,10 @@ jobs:
         run: npm ci
 
       - name: Restore
-        run: dotnet restore Home.sln
+        run: dotnet restore Home.slnx
 
       - name: Build
-        run: dotnet build Home.sln --configuration Release --no-restore
+        run: dotnet build Home.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test Home.sln --configuration Release --no-build --verbosity normal
+        run: dotnet test Home.slnx --configuration Release --no-build --verbosity normal

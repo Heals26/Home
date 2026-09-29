@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "Home.sln",
+    "path": "Home.slnx",
     "projects": [
       "Home.WebUI\\Home.WebUI.csproj"
     ]
