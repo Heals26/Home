@@ -24,6 +24,15 @@ public partial class HomeNavRail
         new("/lights", "Lights", "lightbulb", "text-lights", NavLinkMatch.Prefix),
     ];
 
+    private bool m_ShowFeedback;
+
     #endregion Fields
+
+    #region Methods
+
+    private void OpenFeedback()
+        => this.m_ShowFeedback = true;
+
+    #endregion Methods
 
 }

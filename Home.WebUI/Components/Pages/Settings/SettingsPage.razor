@@ -238,6 +238,18 @@
                     </ChildContent>
                 </HomeCard>
 
+                @* The rail carries Feedback on a landscape tablet. The bottom bar has no room for it,
+                   so everywhere else it lives here. *@
+                <HomeCard Title="Feedback" Subtitle="Report a problem or suggest an idea." Class="rail:hidden">
+                    <ChildContent>
+                        <HomeListRow Class="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-800/40 text-sm text-ink-50 enabled:hover:border-ink-600"
+                                     OnClick="() => this.m_ShowFeedback = true">
+                            <HomeIcon Name="chat" Class="shrink-0 text-household" />
+                            Send feedback
+                        </HomeListRow>
+                    </ChildContent>
+                </HomeCard>
+
                 <HomeCard Title="Account">
                     <ChildContent>
                         <div class="flex flex-col gap-4">
@@ -257,6 +269,8 @@
         }
     </div>
 </div>
+
+<FeedbackSheet @bind-Visible="this.m_ShowFeedback" FromSettings />
 
 @* Edit-member modal. Removing lives in here rather than on the row, and is refused for whoever is
    signed in, because locking yourself out of your own household is not an undoable mistake. *@

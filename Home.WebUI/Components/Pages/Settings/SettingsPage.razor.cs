@@ -88,6 +88,8 @@ public partial class SettingsPage : IDisposable
     private string m_ConfirmPassword = string.Empty;
     private bool m_ChangingPassword;
 
+    private bool m_ShowFeedback;
+
     #endregion Fields
 
     #region Properties

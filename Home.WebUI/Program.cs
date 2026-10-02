@@ -11,8 +11,10 @@ using Home.WebUI.Infrastructure.Services.ChangeNotifications;
 using Home.WebUI.Infrastructure.Services.HttpClients;
 using Home.WebUI.Infrastructure.Services.Security;
 using Home.WebUI.Infrastructure.Services.ShoppingLists;
+using Home.WebUI.Infrastructure.Services.Support;
 using Home.WebUI.Infrastructure.Services.Undo;
 using Home.WebUI.Infrastructure.ShoppingLists;
+using Home.WebUI.Infrastructure.Support;
 using Home.WebUI.Infrastructure.Undo;
 using Home.WebUI.Infrastructure.UriProvider;
 using Home.WebUI.Infrastructure.Values;
@@ -116,6 +118,9 @@ _Builder.Services.AddScoped<IChangeBroadcaster, ChangeBroadcaster>();
 
 // Scoped so the Undo bar belongs to the tab that did the thing, and follows it from page to page.
 _Builder.Services.AddScoped<IUndoLogic, UndoLogic>();
+
+// Scoped so it follows one tab from page to page, which is how it knows the page before Settings.
+_Builder.Services.AddScoped<IFeedbackLogic, FeedbackLogic>();
 
 // Singleton so the count survives the circuit: a new browser tab must not reset it.
 _Builder.Services.AddSingleton<ILoginThrottle, LoginThrottle>();
