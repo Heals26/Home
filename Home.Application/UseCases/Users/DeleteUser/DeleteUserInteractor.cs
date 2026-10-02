@@ -47,6 +47,17 @@ internal class DeleteUserInteractor : IInteractor<DeleteUserInputPort, IDeleteUs
                     _Activity.CompletedByUser = null;
             }
 
+            // Feedback is NoAction for the same reason, and outlives its sender: what was said
+            // stays, only who said it goes.
+            foreach (var _Feedback in _PersistenceContext.GetEntities<Feedback>()
+                .Where(f => f.User != null && f.User.UserID == _User.UserID)
+                .Select(f => new { Feedback = f, f.User })
+                .ToList()
+                .Select(f => f.Feedback))
+            {
+                _Feedback.User = null;
+            }
+
             _PersistenceContext.Remove(_User);
         }
 

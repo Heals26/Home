@@ -17,7 +17,7 @@ namespace Home.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.19")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -536,6 +536,57 @@ namespace Home.Persistence.Migrations
                     b.HasKey("ClientApplicationID");
 
                     b.ToTable("ClientApplication", "home");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.Feedback", b =>
+                {
+                    b.Property<long>("FeedbackID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("FeedbackID"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedOnUTC")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedOnUTC")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeviceLabel")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long>("HouseholdID")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Page")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("ScreenHeight")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ScreenWidth")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("UserID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("FeedbackID");
+
+                    b.HasIndex("HouseholdID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("Feedback", "home");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.Household", b =>
@@ -1763,6 +1814,26 @@ namespace Home.Persistence.Migrations
                         .HasConstraintName("FK_CardSection_Household");
 
                     b.Navigation("Household");
+                });
+
+            modelBuilder.Entity("Home.Domain.Entities.Feedback", b =>
+                {
+                    b.HasOne("Home.Domain.Entities.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Feedback_Household");
+
+                    b.HasOne("Home.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_Feedback_User");
+
+                    b.Navigation("Household");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Home.Domain.Entities.IngredientNote", b =>
