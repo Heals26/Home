@@ -57,10 +57,16 @@ public class OutputPortPresenter(IMapper mapper) : IAuthenticationFailureOutputP
 
     #region OutputPort Generic Methods
 
-    protected Task<ContinuationBehaviour> ConflictAsync(CancellationToken cancellationToken)
+    protected Task<ContinuationBehaviour> ConflictAsync(string errorMessage, CancellationToken cancellationToken)
     {
         this.PresentedSuccessfully = true;
-        this.Result = new ConflictResult();
+        this.Result = new ConflictObjectResult(new ProblemDetails()
+        {
+            Detail = errorMessage,
+            Status = (int)HttpStatusCode.Conflict,
+            Title = "The request conflicts with the current state.",
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.8",
+        });
 
         return ContinuationBehaviour.ReturnAsync;
     }

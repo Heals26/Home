@@ -12,7 +12,7 @@ public class CreateUserPresenter(IMapper mapper) : OutputPortPresenter(mapper), 
     #region Methods
 
     Task<ContinuationBehaviour> ICreateUserOutputPort.PresentUserConflictAsync(string email, CancellationToken cancellationToken)
-        => this.ConflictAsync(cancellationToken);
+        => this.ConflictAsync($"A User With Email {email} Already Exists", cancellationToken);
 
     Task ICreateUserOutputPort.PresentUserCreatedAsync(long userID, CancellationToken cancellationToken)
         => this.CreatedAsync(userID, new CreateUserApiResponse() { UserID = userID }, cancellationToken);

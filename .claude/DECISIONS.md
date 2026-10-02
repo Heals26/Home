@@ -5,6 +5,18 @@ for anyone writing code later. When a decision is reversed, don't delete the ent
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
 
+## 2026-08-14 — Duplicate-email conflicts are presented, and 409s carry ProblemDetails
+
+`CreateUserBusinessRuleEvaluator` used to return `ContinuationBehaviour.Return` without presenting
+anything, so `POST api/Users` with a taken email produced an empty response and the UI had nothing
+to show. Business rules must present an outcome through the output port before short-circuiting —
+the evaluator now awaits `PresentUserConflictAsync`, `OutputPortPresenter.ConflictAsync` takes a
+message and returns a ProblemDetails body (mirroring `NotFoundAsync`), and `HomeHttpClient`
+surfaces 409 bodies to the `ErrorHandler`. Email uniqueness stays deliberately global rather than
+per household: emails are the usernames at login, so two households can't share one.
+`UpdateUserBusinessRuleEvaluator` still has the silent-return bug — fix it the same way when it's
+touched.
+
 ## 2026-08-13 — Registration is first-run only
 
 `POST api/Households/register` (anonymous) creates the household and its first member in one

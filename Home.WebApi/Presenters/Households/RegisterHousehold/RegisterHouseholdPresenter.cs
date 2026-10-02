@@ -15,7 +15,7 @@ public class RegisterHouseholdPresenter(IMapper mapper)
         => this.CreatedAsync(householdID, new RegisterHouseholdApiResponse() { HouseholdID = householdID }, cancellationToken);
 
     Task IRegisterHouseholdOutputPort.PresentRegistrationClosedAsync(CancellationToken cancellationToken)
-        => this.ConflictAsync(cancellationToken);
+        => this.ConflictAsync("Registration Is Closed", cancellationToken);
 
     #endregion Methods
 

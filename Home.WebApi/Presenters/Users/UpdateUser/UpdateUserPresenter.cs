@@ -11,7 +11,7 @@ public class UpdateUserPresenter(IMapper mapper) : OutputPortPresenter(mapper), 
     #region Methods
 
     Task<ContinuationBehaviour> IUpdateUserOutputPort.PresentUserConflictAsync(string email, CancellationToken cancellationToken)
-        => this.ConflictAsync(cancellationToken);
+        => this.ConflictAsync($"A User With Email {email} Already Exists", cancellationToken);
 
     Task IUpdateUserOutputPort.PresentUserNoContentAsync(CancellationToken cancellationToken)
         => this.NoContentAsync(cancellationToken);

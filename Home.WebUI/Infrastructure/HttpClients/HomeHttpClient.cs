@@ -116,6 +116,18 @@ public class HomeHttpClient(
                 case HttpStatusCode.BadRequest:
                     errors.Invoke(this.ConvertProblemDetailsToValidationProblemDetails(JsonSerializer.Deserialize<ProblemDetails>(_Content, JsonOptions.DefaultOptions)!));
                     return default;
+                case HttpStatusCode.Conflict:
+                    if (string.IsNullOrWhiteSpace(_Content))
+                        errors.Invoke(new()
+                        {
+                            Title = "Conflict.",
+                            Status = (int)HttpStatusCode.Conflict,
+                            Detail = "The request conflicts with the current state.",
+                            Errors = new Dictionary<string, string[]>()
+                        });
+                    else
+                        errors.Invoke(this.ConvertProblemDetailsToValidationProblemDetails(JsonSerializer.Deserialize<ProblemDetails>(_Content, JsonOptions.DefaultOptions)!));
+                    return default;
                 case HttpStatusCode.Unauthorized:
                     // Access token was rejected by the API — attempt a reactive refresh and retry once
                     if (await this.TryRefreshTokenAsync(errors, cancellationToken))

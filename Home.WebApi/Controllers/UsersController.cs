@@ -26,6 +26,7 @@ public class UsersController : BaseController
     [Version1]
     [HttpPost]
     [ProducesResponseType<CreateUserApiResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateUser(
         [FromServices] CreateUserPresenter presenter,
         [FromBody] CreateUserApiRequest body,

@@ -9,7 +9,7 @@ internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUs
 
     #region Methods
 
-    Task<ContinuationBehaviour> IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>.EvaluateAsync(
+    async Task<ContinuationBehaviour> IBusinessRuleEvaluator<CreateUserInputPort, ICreateUserOutputPort>.EvaluateAsync(
         CreateUserInputPort inputPort,
         ICreateUserOutputPort outputPort,
         ServiceFactory serviceFactory,
@@ -19,11 +19,12 @@ internal class CreateUserBusinessRuleEvaluator : IBusinessRuleEvaluator<CreateUs
 
         var _Persistence = serviceFactory.GetService<IPersistenceContext>();
 
+        // Uniqueness is deliberately global, not per household — emails are the usernames at login.
         if (_Persistence.GetEntities<User>()
             .Any(u => u.Email.ToLower() == inputPort.Email.ToLower()))
-            _Continuation = ContinuationBehaviour.Return;
+            _Continuation = await outputPort.PresentUserConflictAsync(inputPort.Email, cancellationToken);
 
-        return Task.FromResult(_Continuation);
+        return _Continuation;
     }
 
     #endregion Methods
