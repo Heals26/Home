@@ -28,13 +28,27 @@ Asked and answered:
 **Chosen, not asked:**
 
 - **It stays out of the history feed.** It is addressed to whoever supports the app rather than to
-  the family, so `CreateFeedback` is the one write that does not call `IAuditLogic`.
+  the family, so `CreateFeedback` does not call `IAuditLogic`, the same as a family note.
 - **A removed member's feedback stays, without a name on it.** `DeleteUser` unhooks it the way it
   already unhooks a chore.
 - **The text runs to 2,000 characters.**
 - **The device is the session's own label**, the one the signed-in devices card shows, read by the
   API from the session that sent it rather than sent by the web app.
 - **The phases keep their numbers**, because entries here point at them.
+
+**Chosen while building it, the same day:**
+
+- **The use cases live in a `Support` area**, behind `POST api/Support/Feedback`. An area called
+  `Feedback` would make `Feedback` a namespace under `UseCases`, and that namespace hides the entity
+  of the same name from every file there.
+- **Problem is chosen when the sheet opens.** A Send button held off until a kind is picked would be
+  off for a reason nobody can see, and the text says what it is either way.
+- **A draft survives the sheet closing**, because a tap on the backdrop should not cost someone what
+  they wrote. Only sent feedback starts afresh.
+- **Errors show inside the sheet**, because `ErrorHandler`'s toasts sit beneath an open dialog.
+- **The screen size is the browser window in CSS pixels**, which is what the layout had to fit,
+  rather than the device's physical screen.
+- **Sent from Settings in a tab that has been nowhere else, the page is Settings itself.**
 
 ## 2026-09-29 · .NET 10, a .slnx solution, the built-in OpenAPI document and fingerprinted static files
 

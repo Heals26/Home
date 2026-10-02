@@ -32,6 +32,8 @@ name them still make sense.*
 | **Phase 8** *(8 Sep 2026)* | History in words: every change recorded with a household and a summary, a `/history` page and a Recently tile, per-thing history on chores and recipes, and a planner that remembers what was last had. |
 | **Phase 9** *(11 Sep 2026)* | Aisles and price memory: the household's own aisles with a My order or By aisle switch on each list, and each line saying what it usually costs, whether this price is dearer and roughly what an unpriced one will come to. |
 | **Phase 10** *(16 Sep 2026)* | Shopping mode: a shop with a start and an end on each list that every phone joins, prices recorded only during a shop and tied to it, and an aisle layout per phone with whole-row ticks, a pencil to edit and the trolley total pinned. |
+| **Phase 11** *(18 Sep 2026)* | Nullable on in the API with its 175 warnings fixed, and Undo on every tick and every delete in the app, held back behind a query filter and offered on a bar for about ten seconds. |
+| **Phase 13** *(2 Oct 2026, ahead of phase 12)* | A feedback button: a problem or an idea recorded with who sent it, when, the page, the device and the window's size, from the rail on a landscape tablet and from Settings everywhere else. |
 
 ---
 
@@ -681,7 +683,7 @@ ready and proven.
 first. Integrations are still wanted, so this stays on the roadmap. When it is picked up, its
 planning has to answer what it can be tested against, since the house has nothing to test it on.
 
-## Phase 13 · A feedback button, S *(was B7; planned 2 Oct 2026, ahead of phase 12)*
+## Phase 13 · A feedback button, S *(was B7; planned 2 Oct 2026, ahead of phase 12)* **DONE 2 Oct 2026**
 
 A button that records feedback in the database, and nothing more for now. The support tool that
 reads it across households is later work, and the question that blocks it stays in `BACKLOG.md`.
@@ -727,6 +729,33 @@ screen size, every test passes, and the build still emits its one warning.
   in the database.
 - **Replies, statuses and notifications.** Nobody is told anything, and nothing is marked done.
 - **Screenshots and attachments.**
+
+### What shipped, 2 Oct 2026
+
+As planned, with one change of address: the use cases live in a `Support` area, so the endpoint is
+`POST api/Support/Feedback` rather than `api/Feedback`. A namespace called `Feedback` would have
+hidden the entity of the same name from everything under `UseCases`.
+
+- **`Feedback`**, soft-deletable, holding the household, the member, the text, a kind of Problem or
+  Idea, the page, the session's device label and the window's size. Migration `AddFeedback`.
+  Removing a member unhooks their feedback instead of being refused by it.
+- **`CreateFeedback`**, which takes the sender, the household, the time and the device from the
+  request's own session. The web app sends only the kind, the text, the page and the size.
+- **The sheet**, opened from a Feedback item at the foot of the rail on a landscape tablet and from
+  a Send feedback row in Settings everywhere else. Problem is chosen when it opens, the box's label
+  follows the choice, a draft survives the sheet closing, and an error shows inside the sheet.
+- **Eleven test cases**: what a sent feedback records and whose session names its device, the
+  repo's first validator tests (empty text, 2,001 characters, an unknown kind), and a removed
+  member's feedback staying without them.
+
+Driven end to end against a throwaway database: one sent from the rail on the shopping lists page
+recorded that page at 1280 by 800, one sent from Settings on a phone after Recipes recorded
+Recipes at 375 by 812, and one from Settings opened directly recorded Settings itself. None of
+them reached the history feed.
+
+**Found on the way:** `ErrorHandler`'s toasts sit beneath an open dialog, so an error raised from
+inside any dialog in the app is out of reach until it closes. Written up in `BACKLOG.md` beside the
+409 entry, which it makes worse.
 
 ## Phase 14 · Spotify, L *(was B10)*
 

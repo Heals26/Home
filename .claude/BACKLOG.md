@@ -22,6 +22,12 @@ members and never landed. It is on the `claude/inspiring-satoshi-fc1f25` branch 
 commits behind master, so read it as a sketch rather than something to merge: its messages are in
 title case and would not pass the copy rules.
 
+Worth fixing at the same time, because it hides the same errors: `ErrorHandler` draws its toasts on
+the page, and an open dialog sits above the page, so an error raised from inside a dialog (adding
+that member, for one) waits under the backdrop, out of reach, until the dialog closes. The feedback
+sheet shows its errors inside itself for that reason, which is a fix for one dialog, not for the
+rest.
+
 ## Drop the client application row for the bundled web app
 
 **Raised 4 Sep 2026. Parked: setup stays manual until this is decided.**
@@ -57,22 +63,20 @@ to satisfy, not two.
 Related: C5 in `ROADMAP.md` (nothing validates the OAuth secrets at startup, so a missing one is
 also a silent 401).
 
-## In-app feedback button, and a support tool to read it
+## A support tool to read feedback
 
-**Asked for 17 Aug 2026. Parked: not now.**
+**Asked for 17 Aug 2026. The button shipped as phase 13 on 2 Oct 2026; the reader is parked.**
 
-A **Feedback** button in the app that posts through the API into the database, plus a separate
-support tool for reading what comes in.
+Feedback is recorded in `home.Feedback` with who sent it, when, the household, the page, the device
+and the window's size, and nothing in the app reads it back. Until something does, it is read in
+the database.
 
-Shape it will probably take: a `Feedback` entity (content, who, which screen, when, app version),
-household-scoped like everything else, with a `CreateFeedback` slice and a button that can be
-dropped on any page. The support side is the open question, because reading across *all* households
-deliberately breaks the household-isolation rule that every other query obeys
-(`DECISIONS.md`, 14 Aug), so it needs either a separate operator-facing app or an explicit
-support role with its own authorisation policy. That decision comes first.
-
-Until then: the dashboard's family notes are the capture surface, read straight out of
-`home.Announcement`.
+The open question is unchanged. Reading across *all* households deliberately breaks the
+household-isolation rule that every other query obeys (`DECISIONS.md`, 14 Aug), so the reader needs
+either a separate operator-facing app or an explicit support role with its own authorisation
+policy. Which one depends on where other households live, which is phase 19's hosting question: on
+a shared server it is one of those two, and on a household's own copy, reading its feedback from
+anywhere else means sending it out of the house first.
 
 ## Spotify: play music from the app
 
