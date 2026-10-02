@@ -677,15 +677,56 @@ types stay at the boundary. VISION says "other devices as they come" and nothing
 researched. A thermostat, robot vacuum or smart plug is the obvious next one, and the pattern is
 ready and proven.
 
-## Phase 13 · Feedback button and support reader, L *(was B7)*
+**Waiting, 2 Oct 2026.** The house has no smart device besides the LIFX bulbs, so phase 13 goes
+first. Integrations are still wanted, so this stays on the roadmap. When it is picked up, its
+planning has to answer what it can be tested against, since the house has nothing to test it on.
 
-In `BACKLOG.md` with the open question written down, and blocked on that decision rather than on
-effort.
+## Phase 13 · A feedback button, S *(was B7; planned 2 Oct 2026, ahead of phase 12)*
 
-Reading across all households breaks the household-isolation invariant every other query obeys, so
-it needs either a separate operator app or an explicit support role with its own policy.
-`ApiAuditEntry` already captures request bodies, IPs, user agents and timing, so the substrate
-exists.
+A button that records feedback in the database, and nothing more for now. The support tool that
+reads it across households is later work, and the question that blocks it stays in `BACKLOG.md`.
+The decisions are in `DECISIONS.md` under 2 Oct 2026. In short:
+
+- At the foot of the rail on a landscape tablet, and a row in Settings on a phone or an upright
+  tablet. Both open one sheet: problem or idea, the text, Send.
+- Recorded with it: who, when, the household, the page, the device and the screen size. Sent from
+  Settings, the page is the one before Settings.
+- Who is whoever the device is signed in as, and nothing is added to the history feed.
+
+### The work
+
+- `Feedback` in the domain with a `FeedbackKind` of Problem or Idea, soft-deletable like every row
+  a household owns, its configuration, and a migration, `AddFeedback`.
+- One slice, `CreateFeedback`, on the seven-file recipe, behind `POST api/Feedback`. The request
+  carries the kind, the text, the page and the screen size. The interactor stamps the household,
+  the member, the time and the session's device label itself.
+- `DeleteUser` unhooks a removed member from their feedback.
+- In the web app: a Feedback item at the foot of the rail, a Send feedback row in Settings, and the
+  sheet both open. A small service remembers the page before Settings, and the screen size is read
+  from the browser the way the viewer's time zone already is.
+- When it ships, the backlog entry shrinks to the support tool.
+
+### The tests
+
+Against a real database, with a neighbouring household seeded as everywhere else:
+
+- Sent feedback lands under the sender's household with every field set, including the label of
+  the session that sent it.
+- The validator refuses empty text, text over 2,000 characters and an unknown kind.
+- Removing a member keeps their feedback, without them on it.
+
+### Done when
+
+A member can send a problem or an idea from the rail on a landscape tablet and from Settings on a
+phone, the row is in `home.Feedback` with who, when, the household, the page, the device and the
+screen size, every test passes, and the build still emits its one warning.
+
+### Deliberately not in scope
+
+- **The support tool**, and any screen that reads feedback back. Until it exists, feedback is read
+  in the database.
+- **Replies, statuses and notifications.** Nobody is told anything, and nothing is marked done.
+- **Screenshots and attachments.**
 
 ## Phase 14 · Spotify, L *(was B10)*
 

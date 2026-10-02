@@ -4,6 +4,38 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-10-02 · Feedback is a button that records, and reading it waits for a support tool
+
+Mitch, 2 Oct 2026: a button anyone signed in can press to send feedback, recorded in the database
+and nothing more for now. A support tool that shows who sent what, and when, comes later, and its
+open question, reading across households, stays in `BACKLOG.md`. He asked for it to be as simple as
+possible.
+
+Asked and answered:
+
+- **It goes ahead of phase 12.** The house has no smart device besides the LIFX bulbs to build a
+  second integration against. Integrations are still wanted, so phase 12 stays on the roadmap.
+- **It lives at the foot of the rail on a landscape tablet, and in Settings everywhere else.** The
+  app has no footer and the bottom bar is full at eight, so a phone or an upright tablet reaches it
+  from a row in Settings. Both open the same sheet.
+- **Someone chooses a problem or an idea, and writes.** A kind chosen when it is sent is the one
+  thing a support tool could not add afterwards.
+- **Recorded with it: who, when, the household, the page they were on, their device and their
+  screen size.** The app build was offered and left out. Sent from Settings, the page is the one
+  they came to Settings from, because Settings itself says nothing about the problem.
+- **Who is whoever the device is signed in as**, the same as ticking off a chore. No picker.
+
+**Chosen, not asked:**
+
+- **It stays out of the history feed.** It is addressed to whoever supports the app rather than to
+  the family, so `CreateFeedback` is the one write that does not call `IAuditLogic`.
+- **A removed member's feedback stays, without a name on it.** `DeleteUser` unhooks it the way it
+  already unhooks a chore.
+- **The text runs to 2,000 characters.**
+- **The device is the session's own label**, the one the signed-in devices card shows, read by the
+  API from the session that sent it rather than sent by the web app.
+- **The phases keep their numbers**, because entries here point at them.
+
 ## 2026-09-29 · .NET 10, a .slnx solution, the built-in OpenAPI document and fingerprinted static files
 
 Mitch, 29 Sep 2026: the solution becomes `Home.slnx`, and anything that is not .NET 10 standard is
