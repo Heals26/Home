@@ -4,6 +4,24 @@
 records enough to pick it up cold: what it is, why it was parked, and what has to be decided first.
 When one gets built, move the reasoning into `DECISIONS.md` and delete it from here.*
 
+## A conflict reaches the screen as an unexpected response
+
+**Found 2 Oct 2026 while clearing out an old worktree.** Small, and it touches every 409 the API
+sends.
+
+Every conflict a presenter reports goes through `OutputPortPresenter.ConflictAsync`, which answers
+with a bare 409 and no body. `HomeHttpClient` has no case for a 409, so any screen that does not
+head off the clash itself shows "The server returned an unexpected response (409)." Adding a member
+with an email that is already in use is the plain example: the API refuses it correctly and the
+person sees a status code instead of the reason.
+
+The fix has the same shape as the 404 and 422 cases beside it: `ConflictAsync` carries a message in
+a ProblemDetails body, each presenter's conflict says what clashed in its own words, and
+`HomeHttpClient` hands a 409's body to the error handler. Work started on 14 Aug did this for
+members and never landed. It is on the `claude/inspiring-satoshi-fc1f25` branch on GitHub, 180
+commits behind master, so read it as a sketch rather than something to merge: its messages are in
+title case and would not pass the copy rules.
+
 ## Drop the client application row for the bundled web app
 
 **Raised 4 Sep 2026. Parked: setup stays manual until this is decided.**
