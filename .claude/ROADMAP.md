@@ -757,6 +757,38 @@ them reached the history feed.
 inside any dialog in the app is out of reach until it closes. Written up in `BACKLOG.md` beside the
 409 entry, which it makes worse.
 
+## Phase 21 · What Home can do, M *(new, 2 Oct 2026; next, ahead of 12 and 14)*
+
+Mitch, 2 Oct 2026: features ship faster than anyone can keep track of, and using the app means
+running into things he had the idea for and forgot were built. A Markdown list was offered and
+turned down as boring. What he wants is a page in the app with the look and pace of a product page
+and the honesty of the app's own copy: what each thing does, in plain words, with no hype.
+
+The shape proposed, to be settled in planning:
+
+- **New lately at the top.** The last handful of things shipped, each with its date. This is the
+  part that answers "I forgot we did that".
+- **One section per part of the app, in that part's own hue.** A plain headline saying what the
+  part is for, a sentence per feature, and a link to the screen.
+- **Real pieces of the app instead of pictures.** Each feature is shown by a small working piece of
+  the app with sample data: the shopping line that says what an item usually costs and flags a
+  dearer price, "Had 3 days ago" in the meal picker, the Undo bar. They are drawn by the same
+  components as the real screens, so they cannot go stale or read like a brochure, and they keep to
+  phase 16's rule against generated images.
+- **Kept true by process.** The list lives in code, and every phase's "done when" adds whatever that
+  phase shipped.
+
+### What the planning has to settle
+
+1. **Where it lives.** The lean is a card in Settings beside Feedback.
+2. **How far the samples go.** Static pieces are the plan. Pieces that can be tapped without
+   touching any data would be more memorable and cost more per feature.
+3. **The first catalogue.** Every genuine feature built so far, drafted from this roadmap and the
+   decision log and pruned by Mitch. Genuine means something a person can see or use, so not the
+   .NET upgrade.
+
+Rough cost: a day for the page and the samples, with the catalogue the larger job.
+
 ## Phase 14 · Spotify, L *(was B10)*
 
 In `BACKLOG.md` with the open question written down, and blocked on that decision rather than on
