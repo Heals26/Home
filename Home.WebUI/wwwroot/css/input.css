@@ -112,11 +112,23 @@
      sideways. The controls are all `text-sm`, which is 14. Matched on pointer rather than width
      because it is a property of the input device, not the screen: a phone held in landscape is
      wider than a `sm:` breakpoint and still zooms. A touch device getting 16px type is the right
-     answer on its own merits anyway. */
+     answer on its own merits anyway.
+
+     It has to be !important. A class outranks an element selector wherever the two are written,
+     so the `text-sm` on every control beat this rule and it never applied, from 6 Sep until it
+     was found on 5 Oct 2026. */
   @media (pointer: coarse) {
     input, select, textarea {
-      font-size: 16px;
+      font-size: 16px !important;
     }
+  }
+  /* Two quick taps on a touch screen are a zoom in mobile Safari, so ticking two things in a row
+     or stepping an item up the list enlarged the page instead. Manipulation keeps scrolling and
+     pinching and drops only that. On the controls themselves because a touch is judged from the
+     element it starts on outwards, and the scrolling <main> between them and the page would
+     otherwise have the last word. */
+  a, button, input, label, select, textarea {
+    touch-action: manipulation;
   }
   ::selection {
     background-color: rgb(var(--ink-700));
