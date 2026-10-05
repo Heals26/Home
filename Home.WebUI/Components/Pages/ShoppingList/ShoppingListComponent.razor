@@ -66,7 +66,8 @@
                                    aria-autocomplete="list"
                                    aria-expanded="@(_Suggestions.Count > 0 ? "true" : "false")"
                                    @bind-Value="this.m_QuickAddText"
-                                   OnKeyDown="this.OnQuickAddKeyDownAsync"
+                                   OnKeyDown="this.OnQuickAddKeyDown"
+                                   OnSubmit="this.OnQuickAddSubmitAsync"
                                    OnFocus="this.OnQuickAddFocus"
                                    OnBlur="this.OnQuickAddBlurAsync" />
                     <HomeButton Loading="this.m_AddingItem"

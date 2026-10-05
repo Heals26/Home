@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace Home.WebUI.Components.Shared.Inputs;
 
@@ -8,6 +9,13 @@ public partial class HomeTextArea
     #region Fields
 
     private readonly string m_TextAreaID = $"home-textarea-{Guid.NewGuid():N}";
+    private ElementReference m_TextArea;
+
+    /// <summary>
+    /// A write from the caller that the render cannot deliver, waiting to be put into the box once
+    /// the render has landed. Null when there is nothing waiting.
+    /// </summary>
+    private string? m_PendingWrite;
 
     /// <summary>
     /// What the box is rendered with, which is not always what <see cref="Value"/> says.
@@ -18,12 +26,6 @@ public partial class HomeTextArea
     /// What the browser last said the box holds, or null when the caller last set it.
     /// </summary>
     private string? m_Typed;
-
-    /// <summary>
-    /// Counts the times the caller has written to the box, and keys the element so a write lands
-    /// even when it carries the same text as the one before it.
-    /// </summary>
-    private int m_Written;
 
     #endregion Fields
 
@@ -47,9 +49,8 @@ public partial class HomeTextArea
     #region Lifecycle Methods
 
     /// <summary>
-    /// The browser owns the box while someone is typing in it, for the reason written up on
-    /// <see cref="HomeTextInput"/>: on a slow connection the render answering one keystroke lands
-    /// after the next has been typed, and putting the value back eats it.
+    /// The browser owns the box while someone is typing in it, and a write from the caller goes in
+    /// once the render lands, both for the reasons written up on <see cref="HomeTextInput"/>.
     /// </summary>
     protected override void OnParametersSet()
     {
@@ -57,10 +58,21 @@ public partial class HomeTextArea
             return;
 
         if (this.m_Typed != null)
-            this.m_Written++;
+            this.m_PendingWrite = this.Value;
 
         this.m_Shown = this.Value;
         this.m_Typed = null;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (this.m_PendingWrite is not { } _Write)
+            return;
+
+        this.m_PendingWrite = null;
+
+        // A dead circuit cannot reach the browser, and that is never worth an error on screen.
+        try { await this.JS.InvokeVoidAsync("homeInput.write", this.m_TextArea, _Write); } catch { }
     }
 
     #endregion Lifecycle Methods

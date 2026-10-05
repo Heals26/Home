@@ -1,15 +1,24 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace Home.WebUI.Components.Shared.Inputs;
 
-public partial class HomeTextInput
+public partial class HomeTextInput : IDisposable
 {
 
     #region Fields
 
     private readonly string m_InputID = $"home-input-{Guid.NewGuid():N}";
     private ElementReference m_Input;
+
+    /// <summary>
+    /// A write from the caller that the render cannot deliver, waiting to be put into the box once
+    /// the render has landed. Null when there is nothing waiting.
+    /// </summary>
+    private string? m_PendingWrite;
+
+    private DotNetObjectReference<HomeTextInput>? m_Reference;
 
     /// <summary>
     /// What the box is rendered with, which is not always what <see cref="Value"/> says.
@@ -20,13 +29,6 @@ public partial class HomeTextInput
     /// What the browser last said the box holds, or null when the caller last set it.
     /// </summary>
     private string? m_Typed;
-
-    /// <summary>
-    /// Counts the times the caller has written to the box. It keys the element, because two writes
-    /// can carry the same text and the second one still has to reach a box the browser has changed
-    /// since, which an unchanged attribute never would.
-    /// </summary>
-    private int m_Written;
 
     #endregion Fields
 
@@ -64,6 +66,12 @@ public partial class HomeTextInput
     [Parameter] public EventCallback<string> OnChange { get; set; }
     [Parameter] public EventCallback OnFocus { get; set; }
     [Parameter] public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+    /// <summary>
+    /// Enter hands over what the box holds, and the box is emptied in the browser at once, before
+    /// the server has seen anything, so the next line can be typed while this one is saved. For a
+    /// box that takes one thing after another, like a shopping list's.
+    /// </summary>
+    [Parameter] public EventCallback<string> OnSubmit { get; set; }
     [Parameter] public string? Placeholder { get; set; }
     [Parameter] public string Type { get; set; } = "text";
     [Parameter] public string Value { get; set; } = string.Empty;
@@ -79,6 +87,11 @@ public partial class HomeTextInput
     /// next two have been typed and put the box back as it was, which is how a shopping list ate
     /// letters. So the caller's value only reaches the box when it says something other than what was
     /// typed, which is a caller setting the text rather than echoing it.
+    /// <para>
+    /// Such a write cannot travel in the render. The box holds typing the render tree never saw, so
+    /// an attribute that has not changed since the last write is never sent at all. It is put into
+    /// the same element once the render lands, which keeps the cursor in the box.
+    /// </para>
     /// </summary>
     protected override void OnParametersSet()
     {
@@ -86,10 +99,28 @@ public partial class HomeTextInput
             return;
 
         if (this.m_Typed != null)
-            this.m_Written++;
+            this.m_PendingWrite = this.Value;
 
         this.m_Shown = this.Value;
         this.m_Typed = null;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && this.OnSubmit.HasDelegate)
+        {
+            this.m_Reference = DotNetObjectReference.Create(this);
+
+            // A dead circuit cannot reach the browser, and that is never worth an error on screen.
+            try { await this.JS.InvokeVoidAsync("homeInput.submitOnEnter", this.m_Input, this.m_Reference); } catch { }
+        }
+
+        if (this.m_PendingWrite is not { } _Write)
+            return;
+
+        this.m_PendingWrite = null;
+
+        try { await this.JS.InvokeVoidAsync("homeInput.write", this.m_Input, _Write); } catch { }
     }
 
     #endregion Lifecycle Methods
@@ -112,6 +143,21 @@ public partial class HomeTextInput
 
     private async Task OnChanged(ChangeEventArgs e)
         => await this.OnChange.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+
+    /// <summary>
+    /// Enter, from the browser, which has already emptied the box and said so with the input event
+    /// it sent ahead of this call.
+    /// </summary>
+    [JSInvokable]
+    public async Task SubmitFromBrowserAsync(string text)
+        => await this.OnSubmit.InvokeAsync(text);
+
+    public void Dispose()
+    {
+        this.m_Reference?.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
 
     private string? GetDescribedBy()
     {

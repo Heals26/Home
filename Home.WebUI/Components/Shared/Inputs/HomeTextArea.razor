@@ -1,3 +1,5 @@
+@inject IJSRuntime JS
+
 @* Multi-line text. For a single line use HomeTextInput. *@
 
 <div class="flex flex-col gap-1.5 @this.Class">
@@ -5,9 +7,9 @@
     {
         <label for="@this.m_TextAreaID" class="text-sm font-medium text-ink-300">@this.Label</label>
     }
-    @* Keyed and left alone while someone types, for the reason in the code-behind. *@
+    @* Left alone while someone types, for the reason in the code-behind. *@
     <textarea @attributes="this.AdditionalAttributes"
-              @key="this.m_Written"
+              @ref="this.m_TextArea"
               id="@this.m_TextAreaID"
               rows="@this.Rows"
               placeholder="@this.Placeholder"

@@ -30,6 +30,16 @@ namespace Home.WebUI.Components.Pages.ShoppingList;
 public partial class ShoppingListComponent : IDisposable
 {
 
+    #region Records
+
+    /// <summary>
+    /// A line from the add box and the list it was typed on, which is where it goes even if the
+    /// screen has moved to another list by the time it is saved.
+    /// </summary>
+    private sealed record QuickAddLine(long ShoppingListID, string Text);
+
+    #endregion Records
+
     #region Fields
 
     /// <summary>
@@ -55,6 +65,13 @@ public partial class ShoppingListComponent : IDisposable
 
     private HomeTextInput? m_QuickAddInput;
     private string m_QuickAddText = string.Empty;
+
+    /// <summary>
+    /// Lines handed over with Enter and not saved yet, in the order they were typed. The box empties
+    /// the moment Enter is pressed, so someone typing quickly can be a line or two ahead of the saving.
+    /// </summary>
+    private readonly Queue<QuickAddLine> m_QuickAddLines = new();
+
     private bool m_AddingItem;
     private bool m_ShowSuggestions;
 
@@ -285,14 +302,80 @@ public partial class ShoppingListComponent : IDisposable
 
     #region Adding Methods
 
+    /// <summary>
+    /// The add button. Enter does not come through here: the box hands that over itself, through
+    /// <see cref="OnQuickAddSubmitAsync"/>.
+    /// </summary>
     private async Task QuickAddAsync()
     {
-        var _Parsed = ShoppingListItemLogic.Parse(this.m_QuickAddText);
-
-        if (_Parsed.Name.Length == 0)
+        if (!this.ShoppingListID.HasValue || ShoppingListItemLogic.Parse(this.m_QuickAddText).Name.Length == 0)
             return;
 
-        await this.AddItemAsync(_Parsed.Amount, null, _Parsed.Name, _Parsed.Unit);
+        this.m_QuickAddLines.Enqueue(new(this.ShoppingListID.Value, this.m_QuickAddText));
+        this.m_QuickAddText = string.Empty;
+
+        // The tap took the cursor to the button, and the next item is typed into the box.
+        await this.FocusQuickAddAsync();
+        await this.SaveQuickAddLinesAsync();
+    }
+
+    /// <summary>
+    /// Enter in the add box, which the browser has already emptied. The list is read now, when the
+    /// line was handed over, never when it was started.
+    /// </summary>
+    private async Task OnQuickAddSubmitAsync(string text)
+    {
+        if (!this.ShoppingListID.HasValue)
+            return;
+
+        this.m_QuickAddLines.Enqueue(new(this.ShoppingListID.Value, text));
+
+        await this.SaveQuickAddLinesAsync();
+    }
+
+    /// <summary>
+    /// Saves every waiting line in turn, then shows them once. A line handed over while a save is
+    /// under way joins the queue and is taken in its turn, where it used to be dropped.
+    /// </summary>
+    private async Task SaveQuickAddLinesAsync()
+    {
+        if (this.m_AddingItem)
+            return;
+
+        this.m_AddingItem = true;
+
+        var _Added = false;
+
+        while (this.m_QuickAddLines.TryDequeue(out var _Line))
+        {
+            var _Parsed = ShoppingListItemLogic.Parse(_Line.Text);
+
+            if (_Parsed.Name.Length == 0)
+                continue;
+
+            if (await this.CreateItemAsync(_Line.ShoppingListID, _Parsed.Amount, null, _Parsed.Name, _Parsed.Unit))
+                _Added = true;
+            else
+                this.RestoreQuickAddLine(_Line);
+        }
+
+        this.m_AddingItem = false;
+
+        if (_Added)
+            await this.ShowAddedAsync();
+    }
+
+    /// <summary>
+    /// A line that could not be saved goes back in the box it was typed into, unless the screen has
+    /// moved to another list or something new has been typed there since. Losing what someone wrote
+    /// is worse than the error that comes with it.
+    /// </summary>
+    private void RestoreQuickAddLine(QuickAddLine line)
+    {
+        if (line.ShoppingListID != this.ShoppingListID || this.m_QuickAddText.Length > 0)
+            return;
+
+        this.m_QuickAddText = line.Text;
     }
 
     /// <summary>
@@ -345,61 +428,76 @@ public partial class ShoppingListComponent : IDisposable
         // Chosen, so the pending close from the blur that came with the tap must not fire.
         this.m_SuggestionCloseToken++;
 
-        var _Typed = ShoppingListItemLogic.Parse(this.m_QuickAddText);
+        if (this.m_AddingItem || !this.ShoppingListID.HasValue)
+            return;
 
-        await this.AddItemAsync(
+        var _Line = new QuickAddLine(this.ShoppingListID.Value, this.m_QuickAddText);
+        var _Typed = ShoppingListItemLogic.Parse(_Line.Text);
+
+        this.m_AddingItem = true;
+        this.m_QuickAddText = string.Empty;
+
+        var _Added = await this.CreateItemAsync(
+            _Line.ShoppingListID,
             _Typed.Amount ?? suggestion.Amount,
             suggestion.Cost,
             suggestion.Name,
             _Typed.Amount != null ? _Typed.Unit : suggestion.Unit);
+
+        this.m_AddingItem = false;
+
+        // A tap on a touch screen can take the cursor out of the box, and a box without it leaves
+        // its suggestions open with nothing left to close them.
+        await this.FocusQuickAddAsync();
+
+        if (_Added)
+            await this.ShowAddedAsync();
+        else
+            this.RestoreQuickAddLine(_Line);
+
+        // Lines handed over with Enter while this was saving waited for it.
+        await this.SaveQuickAddLinesAsync();
     }
 
-    private async Task AddItemAsync(decimal? amount, decimal? cost, string name, long? unit)
+    /// <summary>
+    /// Saves one item. Showing it and telling the other devices is left to the caller, so a run of
+    /// lines typed one after another reloads the list once rather than once a line.
+    /// </summary>
+    private async Task<bool> CreateItemAsync(long shoppingListID, decimal? amount, decimal? cost, string name, long? unit)
     {
-        if (this.m_AddingItem || !this.ShoppingListID.HasValue)
-            return;
-
-        this.m_AddingItem = true;
-
-        // The target list is read at submit time, never when the line was started.
-        var _Request = new CreateShoppingListItemWebAppRequest()
-        {
-            Amount = amount,
-            Cost = cost,
-            Name = name,
-            ShoppingListID = this.ShoppingListID.Value,
-            Unit = unit
-        };
-
         var _Result = await this.ApiAccess.SendRequestAsync<CreateShoppingListItemWebAppRequest, CreateShoppingListItemWebAppResponse>(
-            _Request,
+            new CreateShoppingListItemWebAppRequest()
+            {
+                Amount = amount,
+                Cost = cost,
+                Name = name,
+                ShoppingListID = shoppingListID,
+                Unit = unit
+            },
             ApiProvider.CreateShoppingListItem(),
             e => this.m_ErrorHandler?.AddError(e),
             this.CancellationToken);
 
-        this.m_AddingItem = false;
+        return _Result != null;
+    }
 
-        if (_Result == null)
-            return;
+    private async Task ShowAddedAsync()
+    {
+        if (this.ShoppingListID.HasValue)
+            await this.LoadListAsync();
 
-        this.m_QuickAddText = string.Empty;
-
-        if (_Request.ShoppingListID != this.ShoppingListID)
-            return;
-
-        await this.LoadListAsync();
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.ShoppingLists, this.CancellationToken);
+    }
 
-        // Writing a list is one thing after another, so the cursor goes straight back where it was.
+    private async Task FocusQuickAddAsync()
+    {
         if (this.m_QuickAddInput != null)
             await this.m_QuickAddInput.FocusAsync();
     }
 
-    private async Task OnQuickAddKeyDownAsync(KeyboardEventArgs e)
+    private void OnQuickAddKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter")
-            await this.QuickAddAsync();
-        else if (e.Key == "Escape")
+        if (e.Key == "Escape")
             this.m_ShowSuggestions = false;
     }
 

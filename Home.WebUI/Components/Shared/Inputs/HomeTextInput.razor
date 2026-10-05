@@ -1,14 +1,14 @@
-﻿@* Text input, for text, email, search, url and tel. For passwords use HomePasswordInput. *@
+﻿@inject IJSRuntime JS
+
+@* Text input, for text, email, search, url and tel. For passwords use HomePasswordInput. *@
 
 <div class="flex flex-col gap-1.5 @this.Class">
     @if (!string.IsNullOrEmpty(this.Label))
     {
         <label for="@this.m_InputID" class="text-sm font-medium text-ink-300">@this.Label</label>
     }
-    @* Keyed on the writes, not on every render: see the code-behind for why the box is left alone
-       while someone is typing into it. *@
+    @* See the code-behind for why the box is left alone while someone is typing into it. *@
     <input @attributes="this.AdditionalAttributes"
-           @key="this.m_Written"
            @ref="this.m_Input"
            id="@this.m_InputID"
            type="@this.Type"
