@@ -413,49 +413,52 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M7.5 15h9a4.5 4.5 0 00.9-8.91A6 6 0 006.06 7.2 4 4 0 001.44 7.8zM13.5 16.8l-3.5 3.9h2.8l-1.3 2.8'/%3E%3C/svg%3E");
 }
 
-/* ─── Reconnect overlay ───────────────────────────────────────────────────────
+/* ─── Connection notice ───────────────────────────────────────────────────────
    Outside @layer components on purpose: Blazor adds the components-reconnect-*
-   classes at runtime, so they never appear in markup for Tailwind's scanner to
-   find and a layered block would be tree-shaken away. Paired with
-   wwwroot/js/reconnect.js, which reloads rather than leaving a page that looks
-   alive and does nothing.
+   classes at runtime and reconnect.js adds home-reconnect-open and home-held, so
+   none of them appear in markup for Tailwind's scanner to find and a layered
+   block would be tree-shaken away.
+
+   A pill at the top rather than an overlay, so the page stays readable and
+   scrollable while the connection comes back. It used to cover the whole screen
+   for every reconnect, which on a phone meant every unlock.
 ─────────────────────────────────────────────────────────────────────────────── */
 
 .home-reconnect {
   display: none;
   position: fixed;
-  inset: 0;
+  inset: auto;
+  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  left: 50%;
   z-index: 1000;
+  max-width: calc(100vw - 2rem);
+  margin: 0;
   align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  background: rgb(var(--ink-950) / 0.92);
-  backdrop-filter: blur(4px);
-}
-
-.home-reconnect.components-reconnect-show,
-.home-reconnect.components-reconnect-failed,
-.home-reconnect.components-reconnect-rejected {
-  display: flex;
-}
-
-.home-reconnect-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  max-width: 20rem;
-  padding: 2rem;
-  text-align: center;
-  border: 1px solid rgb(var(--ink-800));
-  border-radius: 1rem;
+  gap: 0.625rem;
+  padding: 0.5rem 1rem;
+  overflow: visible;
+  color: rgb(var(--ink-50));
   background: rgb(var(--ink-900));
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.6);
+  border: 1px solid rgb(var(--ink-700));
+  border-radius: 9999px;
+  box-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.6);
+  transform: translateX(-50%);
+}
+
+.home-reconnect.home-reconnect-open {
+  display: flex;
+  animation: home-reconnect-in 160ms ease-out;
+}
+
+@keyframes home-reconnect-in {
+  from { opacity: 0; transform: translate(-50%, -0.5rem); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .home-reconnect-spinner {
-  width: 2rem;
-  height: 2rem;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
   border: 2px solid rgb(var(--ink-700));
   border-top-color: rgb(var(--ink-50));
   border-radius: 9999px;
@@ -466,45 +469,56 @@
   to { transform: rotate(360deg); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .home-reconnect-spinner { animation-duration: 2s; }
-}
-
 .home-reconnect-title {
   display: none;
-  font-size: 1rem;
-  font-weight: 600;
-  color: rgb(var(--ink-50));
-}
-
-/* One heading per state, so the wording matches what is actually happening. */
-.components-reconnect-show .home-reconnect-title[data-state="show"],
-.components-reconnect-failed .home-reconnect-title[data-state="failed"],
-.components-reconnect-rejected .home-reconnect-title[data-state="rejected"] {
-  display: block;
-}
-
-.home-reconnect-detail {
   font-size: 0.875rem;
-  color: rgb(var(--ink-400));
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* One wording per state, so it says what is actually happening. */
+.components-reconnect-show .home-reconnect-title[data-state="show"],
+.components-reconnect-paused .home-reconnect-title[data-state="show"],
+.components-reconnect-failed .home-reconnect-title[data-state="failed"],
+.components-reconnect-rejected .home-reconnect-title[data-state="rejected"],
+.components-reconnect-resume-failed .home-reconnect-title[data-state="rejected"] {
+  display: block;
 }
 
 .home-reconnect-retry {
   display: none;
-  min-height: 44px;
-  margin-top: 0.25rem;
-  padding: 0.625rem 1.25rem;
+  min-height: 36px;
+  margin: -0.25rem -0.625rem -0.25rem 0.25rem;
+  padding: 0 0.875rem;
   font-size: 0.875rem;
   font-weight: 500;
+  white-space: nowrap;
   color: rgb(var(--ink-950));
   background: rgb(var(--ink-50));
-  border-radius: 0.5rem;
+  border-radius: 9999px;
+  touch-action: manipulation;
 }
 
 /* Only offered once waiting has stopped being the answer. */
 .components-reconnect-failed .home-reconnect-retry,
-.components-reconnect-rejected .home-reconnect-retry {
+.components-reconnect-rejected .home-reconnect-retry,
+.components-reconnect-resume-failed .home-reconnect-retry {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* A tap made while the connection was down, waiting to go through once it is back. */
+.home-held {
+  animation: home-held-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes home-held-pulse {
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-reconnect.home-reconnect-open { animation: none; }
+  .home-reconnect-spinner { animation-duration: 2s; }
+  .home-held { animation: none; opacity: 0.6; }
 }

@@ -25,7 +25,15 @@ var _Builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 _Builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents(options => options.DetailedErrors = true);
+    .AddInteractiveServerComponents(options =>
+    {
+        options.DetailedErrors = true;
+
+        // A phone drops its connection nearly every time it is locked, and coming back to a
+        // circuit the server still holds picks up exactly where it was, with nothing reloaded and
+        // nothing typed lost. Blazor's three minutes is shorter than a walk between two aisles.
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromHours(1);
+    });
 
 _Builder.Services.AddAuthentication(options =>
 {
