@@ -9,7 +9,7 @@ public partial class CalendarWeekView
     #region Properties
 
     /// <summary>
-    /// The seven days on show, Monday first.
+    /// The seven days on show, in <see cref="Infrastructure.Time.WeekLogic.Order"/>.
     /// </summary>
     [Parameter] public List<CalendarDayDto> Days { get; set; } = [];
 

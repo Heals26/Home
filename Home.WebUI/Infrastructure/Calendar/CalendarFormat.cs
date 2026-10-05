@@ -5,7 +5,8 @@ namespace Home.WebUI.Infrastructure.Calendar;
 
 /// <summary>
 /// How the calendar writes dates and times, in one place so a chip, a sheet and the dashboard
-/// never disagree about what "4pm" looks like. Weeks start on Monday, as the meal planner's do.
+/// never disagree about what "4pm" looks like. Where a week starts is <see cref="Time.WeekLogic"/>'s
+/// call, not this file's.
 /// </summary>
 public static class CalendarFormat
 {
