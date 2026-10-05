@@ -97,6 +97,14 @@ public partial class CalendarPage : IDisposable
 
     // The window on show
 
+    /// <summary>
+    /// The viewer's date comes from the browser, a round trip after the page first renders. Until
+    /// it has, there is no week to describe or move from, and the start of the week before the
+    /// first day DateOnly can hold does not exist.
+    /// </summary>
+    private bool KnowsToday()
+        => this.m_Today != default;
+
     private (DateOnly From, DateOnly To) Range()
     {
         if (this.m_View == CalendarView.Month)
@@ -127,6 +135,9 @@ public partial class CalendarPage : IDisposable
 
     private async Task MoveAsync(int direction)
     {
+        if (!this.KnowsToday())
+            return;
+
         this.m_Anchor = this.m_View == CalendarView.Month
             ? this.FirstOfMonth().AddMonths(direction)
             : this.m_Anchor.AddDays(7 * direction);
@@ -150,6 +161,10 @@ public partial class CalendarPage : IDisposable
 
         this.m_View = view;
         this.m_Days = null;
+
+        // The first load is still to come, and it reads the view when it runs.
+        if (!this.KnowsToday())
+            return;
 
         await this.LoadAsync();
     }

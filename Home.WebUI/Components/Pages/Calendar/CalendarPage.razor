@@ -27,10 +27,13 @@
                 <HomeButton IconOnly Size="sm" Variant="ghost" aria-label="@this.NextLabel()" OnClick="() => this.MoveAsync(1)">
                     <HomeIcon Name="chevron-right" Size="lg" />
                 </HomeButton>
-                <p class="ml-2 text-sm font-medium text-ink-200">@this.RangeLabel()</p>
-                @if (!this.IsShowingToday())
+                @if (this.KnowsToday())
                 {
-                    <HomeButton Variant="link" Size="sm" Class="ml-2 text-xs" OnClick="this.GoToTodayAsync">Today</HomeButton>
+                    <p class="ml-2 text-sm font-medium text-ink-200">@this.RangeLabel()</p>
+                    @if (!this.IsShowingToday())
+                    {
+                        <HomeButton Variant="link" Size="sm" Class="ml-2 text-xs" OnClick="this.GoToTodayAsync">Today</HomeButton>
+                    }
                 }
             </div>
 
