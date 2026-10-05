@@ -88,8 +88,8 @@ twenty-seven, counted 7 Sep 2026: `HomeButton`, `HomeCard`, `HomeCardAction`, `H
 
 **Every tag the app draws more than once has a component, and that component is the only place the
 tag is written.** There are exactly two `<button>` elements in `Home.WebUI`: the one inside
-`HomeButton`, and the reconnect overlay in `App.razor`, which Blazor shows when the circuit is gone
-and there is nothing left to render a component with. Everything else composes `HomeButton`.
+`HomeButton`, and the connection notice in `App.razor`, which shows when the circuit cannot be
+reached and there is nothing left to render a component with. Everything else composes `HomeButton`.
 
 That is what keeps the app consistent. A change to how a button presses, focuses or disables lands
 everywhere at once, and no screen can quietly invent a fourth way to draw the same control.

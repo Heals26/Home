@@ -4,6 +4,72 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-10-05 · A dropped connection is waited out quietly, and what is done meanwhile is kept
+
+From Mitch's notes list of 3 Oct 2026: *"We cannot have the reconnecting modal appear everytime a
+user unlocks their phone, it is highly annoying and terrible ux. We need a way of operating if the
+blazor server isn't communication."* This supersedes the 19 Aug entry on the reconnect overlay.
+
+What was happening: a phone drops its socket nearly every time it is locked. Blazor reconnected
+inside a second, but the overlay covered the screen for that second, and the check that runs after
+an unlock then reloaded the page a few seconds later anyway, because it took the failed ping that a
+dropped socket always gives for a dead page. Every unlock cost an overlay and a full reload.
+
+**Chosen, not asked** (built on his "fix all" while he was away):
+
+- **A short reconnect shows nothing.** A pill at the top appears once reconnecting has taken two
+  seconds, or at once if someone taps something meanwhile. It never covers the page, which stays
+  readable and scrollable. It is a popover, so it sits above an open sheet.
+- **Nothing done while the connection is down is thrown away.** `reconnect.js` stops every event
+  Blazor would try to send, holds taps on controls and Enter in a text box, and plays them back in
+  order once the connection returns. Each control is played back once, because a second tap on
+  something that seemed not to respond is not meant as a toggle. What was typed is sent again first,
+  then where the cursor went, so the server sees what the boxes really hold before a held Save runs.
+  A held control pulses while it waits.
+- **A dropped circuit is kept for an hour**, not Blazor's three minutes, so a phone unlocked between
+  aisles goes back to the same circuit with everything as it was. A waiting circuit costs the server
+  some memory and keeps running its own refreshes, which for a household is nothing against a reload.
+- **Only a circuit that is gone reloads the page:** when the server rejects it (restarted, or the
+  hour is up), or when Blazor has given up retrying and `Blazor.reconnect()` then finds nothing to go
+  back to. The unlock check reloads only when the circuit never answers while Blazor still believes
+  it is connected.
+
+**Not done, and on the roadmap as phase 22:** working with no server at all. Held taps get through a
+short outage, but not a reload, and nothing opens with no signal. That needs the list on the phone
+and its changes synced later, which is a decision about architecture rather than a fix.
+
+## 2026-10-05 · The add box keeps its cursor, and Enter empties it in the browser
+
+From the same notes: the shopping list's box had to be tapped again after every item, and its
+suggestions would not close when someone clicked away.
+
+- **Both came from the 20 Sep fix for eaten letters.** `HomeTextInput` wrote a caller's value by
+  re-keying the `<input>`, which replaces the element, and the replacement had no focus. So the box
+  lost the cursor and never heard the blur that closes the suggestions. A write now goes into the
+  same element through `homeInput.write` once the render lands. `HomeTextArea` does the same.
+- **Enter is handled in the browser** for a box with `OnSubmit`: the box empties the moment Enter is
+  pressed and the line is handed over, so the next item can be typed while the last one saves.
+  Emptying it from the server would land a round trip later and take the first letters of the next
+  item with it, the same race the 20 Sep fix closed.
+- **Lines queue instead of being dropped.** Before, an Enter during a save was ignored. Now a line
+  handed over while another saves waits its turn and goes to the list it was typed on, and one that
+  fails to save goes back into the box unless something new has been typed there.
+
+## 2026-10-05 · Two September fixes that did not hold
+
+Found while working through the notes lists of 20 Sep and 3 Oct.
+
+- **The 16px rule for touch screens never applied.** Every control carries `text-sm`, a class, and
+  the 6 Sep rule was an element selector, so the class won wherever the two were written and mobile
+  Safari kept zooming in on every field. It is now `!important` inside the `pointer: coarse` query,
+  the narrowest way to beat whatever utility a control carries. Controls also get
+  `touch-action: manipulation`, so two quick taps no longer zoom the page.
+- **The calendar threw on every visit after the week moved to Sunday.** Its first render came before
+  `IViewerClock` had answered, so it worked out a week from `DateOnly`'s zero value, a Monday, and
+  stepping back to the Sunday before it passed the earliest date there is. It now shows its range,
+  and moves, only once the browser has said what today is. The board and the meal plan read the
+  server's clock before their first render and never had the problem.
+
 ## 2026-10-02 · Feedback is a button that records, and reading it waits for a support tool
 
 Mitch, 2 Oct 2026: a button anyone signed in can press to send feedback, recorded in the database

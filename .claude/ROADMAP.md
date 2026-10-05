@@ -1,6 +1,6 @@
 ﻿# Roadmap
 
-*Twenty phases, in the order they should be done. Each one is shippable on its own and leaves the
+*Twenty-two phases, in the order they should be done. Each one is shippable on its own and leaves the
 app better than it found it. Nothing here is half a feature that needs the next phase to be worth
 having.*
 
@@ -788,6 +788,38 @@ The shape proposed, to be settled in planning:
    .NET upgrade.
 
 Rough cost: a day for the page and the samples, with the catalogue the larger job.
+
+## Phase 22 · Works without a signal, XL *(new, 5 Oct 2026; its place in the order is to be decided)*
+
+From Mitch's notes of 3 Oct 2026: *"We need a way of operating if the blazor server isn't
+communication."* The first half of that note, the overlay on every unlock, was fixed on 5 Oct. A
+short reconnect now shows nothing, the page stays usable, and taps and Enter made while the
+connection is down are held and played back when it returns, to a circuit the server keeps for an
+hour.
+
+That does not cover a shop with no signal at all. Every screen is drawn by a circuit on the server,
+so with no connection nothing on screen can change: a held tick pulses until the signal is back and
+only then shows as ticked, a reload with no signal gets the browser's error page, and anything held
+is lost if the circuit has gone by the time the signal returns. Working properly offline means the
+list lives on the phone and its changes sync later, which is a change of architecture for the
+screens it applies to, not a fix.
+
+### What the planning has to settle
+
+1. **Which screens.** The lean is the shopping list and nothing else at first, because it is the one
+   screen used where the signal is bad.
+2. **How the screen runs without the server.** Blazor WebAssembly for those pages, through the Auto
+   render mode, or plain JavaScript over a copy kept in the browser. WebAssembly keeps the components
+   and C#, at the cost of a first download of several megabytes on a phone.
+3. **How it reaches the API.** The web app holds the API's token in its own session and the browser
+   never sees one. A page running in the browser needs either a token of its own or endpoints on the
+   web app that pass its calls through.
+4. **What happens to changes two phones made apart.** Ticks merge naturally. An edit to the same
+   line, a delete of a ticked line and a list cleared on another phone each need a rule.
+5. **Whether the page opens with no signal.** That needs a service worker and an installable app,
+   which is close to a phase of its own.
+
+Rough cost: several days for the shopping list alone, most of it in 3 and 4.
 
 ## Phase 14 · Spotify, L *(was B10)*
 
