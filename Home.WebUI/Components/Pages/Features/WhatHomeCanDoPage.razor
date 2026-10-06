@@ -1,0 +1,78 @@
+﻿@page "/what-home-can-do"
+
+<HomePageTitle Title="What Home can do" />
+
+@* The app explaining itself, because things get built faster than anyone can remember them and
+   using the app means running into something you asked for months ago and forgot was there.
+
+   Two halves: what landed lately, which is the half that answers "I forgot we did that", and then
+   one section per part of the app in that part's own colour. Features are shown with the real
+   components rather than pictures, so nothing here can quietly stop being true while the screens
+   move on, and so the page cannot drift into a brochure. The list lives in FeatureCatalogue. *@
+
+<div class="flex flex-col h-full w-full">
+    <HomeTopBar Title="What Home can do"
+                Eyebrow="Every part of it"
+                EyebrowClass="text-household"
+                ShowBack
+                BackHref="/settings" />
+
+    <div class="flex-1 px-6 pb-12 app-scrollable">
+        <div class="mx-auto flex max-w-3xl flex-col gap-12">
+
+            <p class="text-sm text-ink-400">
+                What each part of the app does. The examples are the real screens with made-up data in
+                them.
+            </p>
+
+            <section>
+                <h2 class="font-display text-2xl text-ink-50">New lately</h2>
+                <p class="mt-1 text-sm text-ink-500">The last few things added.</p>
+
+                <ol class="mt-4">
+                    @foreach (var _Shipped in FeatureCatalogue.NewLately)
+                    {
+                        @* The date sits above the line on a phone, where a column of its own would
+                           take a quarter of the width off the words. *@
+                        <li class="flex flex-col gap-1 border-t border-ink-800 py-4 sm:flex-row sm:gap-4">
+                            <time datetime="@_Shipped.On.ToString("yyyy-MM-dd")"
+                                  class="shrink-0 text-xs tabular-nums text-ink-500 sm:w-24">
+                                @_Shipped.On.ToString("d MMM yyyy")
+                            </time>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-ink-50">@_Shipped.Name</p>
+                                <p class="mt-0.5 text-sm text-ink-400">@_Shipped.What</p>
+                            </div>
+                        </li>
+                    }
+                </ol>
+            </section>
+
+            @foreach (var _Area in FeatureCatalogue.Areas)
+            {
+                <section>
+                    <p class="@($"text-[11px] font-semibold uppercase tracking-widest {_Area.HueClass}")">@_Area.Eyebrow</p>
+                    <h2 class="mt-1 font-display text-2xl text-ink-50">@_Area.Headline</h2>
+
+                    <a href="@_Area.Href"
+                       class="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-300 underline underline-offset-4 transition-colors hover:text-ink-50">
+                        @($"Open {_Area.Eyebrow}")
+                        <HomeIcon Name="chevron-right" Size="sm" />
+                    </a>
+
+                    <ul class="mt-4">
+                        @foreach (var _Feature in _Area.Features)
+                        {
+                            <li class="border-t border-ink-800 py-4">
+                                <p class="text-sm font-medium text-ink-50">@_Feature.Name</p>
+                                <p class="mt-0.5 text-sm text-ink-400">@_Feature.What</p>
+                                <FeatureSampleCard Sample="_Feature.Sample" />
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+
+        </div>
+    </div>
+</div>

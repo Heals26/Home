@@ -481,6 +481,9 @@ public partial class SettingsPage : IDisposable
         await this.ChangeBroadcaster.PublishAsync(ChangeArea.Users, this.m_CancellationTokenHandler.Token);
     }
 
+    private void OpenWhatHomeCanDo()
+        => this.NavigationManager.NavigateTo("/what-home-can-do");
+
     private void OpenChangePasswordModal()
     {
         this.m_NewPassword = string.Empty;

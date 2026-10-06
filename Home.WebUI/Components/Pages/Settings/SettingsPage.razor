@@ -238,6 +238,16 @@
                     </ChildContent>
                 </HomeCard>
 
+                <HomeCard Title="What Home can do" Subtitle="Every part of the app and what it does, with the newest things first.">
+                    <ChildContent>
+                        <HomeListRow Class="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-800/40 text-sm text-ink-50 enabled:hover:border-ink-600"
+                                     OnClick="this.OpenWhatHomeCanDo">
+                            <HomeIcon Name="book" Class="shrink-0 text-household" />
+                            Have a look
+                        </HomeListRow>
+                    </ChildContent>
+                </HomeCard>
+
                 @* The rail carries Feedback on a landscape tablet. The bottom bar has no room for it,
                    so everywhere else it lives here. *@
                 <HomeCard Title="Feedback" Subtitle="Report a problem or suggest an idea." Class="rail:hidden">

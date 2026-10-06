@@ -1,0 +1,46 @@
+﻿@using Home.WebUI.Components.Pages.Activities
+@using Home.WebUI.Components.Pages.MealPlan
+@using Home.WebUI.Components.Pages.ShoppingList
+
+@* A real piece of the app, drawn by the same component the screen uses, with made-up data.
+
+   The three namespaces above are the reason this works: a component the compiler cannot resolve is
+   left as an unknown HTML tag, which renders nothing at all and says nothing about it.
+
+   It is framed and labelled because a control that looks live and does nothing is a lie. The frame
+   says specimen, and the piece inside is inert to a thumb and skipped by a screen reader, which
+   reads the sentence above it instead. *@
+
+@if (this.Sample != FeatureSample.None)
+{
+    <div class="mt-3 rounded-xl border border-ink-800 bg-ink-950/60 px-3 pb-3 pt-2">
+        <p class="mb-2 text-[10px] font-semibold uppercase tracking-widest text-ink-600">@this.Label()</p>
+
+        <div class="pointer-events-none select-none" aria-hidden="true">
+            @switch (this.Sample)
+            {
+                case FeatureSample.AisleRow:
+                    <ShoppingModeItemRow Item="this.AisleLine()" />
+                    break;
+
+                case FeatureSample.CalendarChip:
+                    <CalendarItemChip Item="this.Event()" />
+                    break;
+
+                case FeatureSample.ChoreCard:
+                    <ActivityCard Activity="this.Chore()" />
+                    break;
+
+                case FeatureSample.MealCell:
+                    <MealPlanCell Class="rounded-xl border border-ink-800 bg-ink-900/40 p-2"
+                                  AddLabel="Plan dinner"
+                                  Entries="this.PlannedMeals()" />
+                    break;
+
+                case FeatureSample.ShoppingLine:
+                    <ShoppingListItemRow Item="this.ShoppingLine()" />
+                    break;
+            }
+        </div>
+    </div>
+}
