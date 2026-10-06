@@ -1,5 +1,4 @@
-﻿using Home.WebUI.DataAccess.Households.GetSetupStatus;
-using Home.WebUI.DataAccess.Households.RegisterHousehold;
+﻿using Home.WebUI.DataAccess.Households.RegisterHousehold;
 using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Security;
@@ -38,23 +37,10 @@ public partial class SetupPage
 
     #region Lifecycle Methods
 
-    // Registration only exists while the server has no users, so anyone landing here
-    // after setup has happened is sent to the normal sign-in.
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         if (this.HttpContext == null)
-        {
             this.NavigationManager.NavigateTo(this.NavigationManager.Uri, forceLoad: true);
-            return;
-        }
-
-        var _Status = await this.ApiAccess.SendRequestAsync<object, GetSetupStatusWebAppResponse>(
-            null!, ApiProvider.GetSetupStatus(),
-            _ => { },
-            this.m_CancellationTokenHandler.Token);
-
-        if (_Status == null || !_Status.RequiresSetup)
-            this.NavigationManager.NavigateTo("/login");
     }
 
     #endregion Lifecycle Methods
@@ -72,7 +58,7 @@ public partial class SetupPage
             || string.IsNullOrWhiteSpace(this.Email)
             || string.IsNullOrWhiteSpace(this.Password))
         {
-            this.m_Error = "Fill everything in — the household needs all of it.";
+            this.m_Error = "Fill in every field.";
             return;
         }
 
@@ -93,8 +79,8 @@ public partial class SetupPage
         if (_Result == null)
             return;
 
-        // Sign the first member straight in — landing on a login form right after typing
-        // the same details would be pure friction.
+        // Sign the new member straight in. Landing on a login form right after typing the same
+        // details would be pure friction.
         var _SignIn = await this.OAuthClient.TryPasswordGrantAsync(this.Email, this.Password, this.m_CancellationTokenHandler.Token);
 
         // The household was created either way, so the fallback is the login page rather than an

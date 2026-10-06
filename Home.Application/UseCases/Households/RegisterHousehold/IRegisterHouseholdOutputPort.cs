@@ -10,7 +10,7 @@ public interface IRegisterHouseholdOutputPort
     #region Methods
 
     Task PresentHouseholdRegisteredAsync(long householdID, CancellationToken cancellationToken);
-    Task PresentRegistrationClosedAsync(CancellationToken cancellationToken);
+    Task<ContinuationBehaviour> PresentUserConflictAsync(string email, CancellationToken cancellationToken);
 
     #endregion Methods
 

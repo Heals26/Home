@@ -65,16 +65,15 @@ public class RegisterHouseholdInteractorTests
     }
 
     [Fact]
-    public async Task HandleAsync_ClosesRegistrationOnceAnyUserExists()
+    public async Task HandleAsync_CreatesAnotherHouseholdWhenOneAlreadyExists()
     {
-        await this.HandleAsync([new User() { UserID = 1 }]);
+        await this.HandleAsync([new User() { Email = "someone@else.test", UserID = 1 }]);
 
+        this.m_PersistenceContext.Verify(c => c.Add(It.IsAny<Household>()), Times.Once);
+        this.m_PersistenceContext.Verify(c => c.Add(It.IsAny<User>()), Times.Once);
         this.m_OutputPort.Verify(
-            o => o.PresentRegistrationClosedAsync(It.IsAny<CancellationToken>()),
+            o => o.PresentHouseholdRegisteredAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        this.m_PersistenceContext.Verify(c => c.Add(It.IsAny<Household>()), Times.Never);
-        this.m_PersistenceContext.Verify(c => c.Add(It.IsAny<User>()), Times.Never);
-        this.m_PersistenceContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

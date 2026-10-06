@@ -1,5 +1,4 @@
-﻿using Home.WebUI.DataAccess.Households.GetSetupStatus;
-using Home.WebUI.Infrastructure.ApiProviders;
+﻿using Home.WebUI.Infrastructure.ApiProviders;
 using Home.WebUI.Infrastructure.CancellationTokens;
 using Home.WebUI.Infrastructure.Security;
 using Home.WebUI.Infrastructure.Values;
@@ -16,7 +15,6 @@ public partial class Login
 
     private readonly CancellationTokenHandler m_CancellationTokenHandler = new();
     private string? m_Error;
-    private bool m_RequiresSetup;
 
     #endregion Fields
 
@@ -36,22 +34,10 @@ public partial class Login
 
     #region Lifecycle Methods
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         if (this.HttpContext == null)
-        {
             this.NavigationManager.NavigateTo(this.NavigationManager.Uri, forceLoad: true);
-            return;
-        }
-
-        // A fresh install has nobody to sign in — quietly offer first-run setup instead.
-        // Any failure here just leaves the link hidden; the form still works.
-        var _Status = await this.ApiAccess.SendRequestAsync<object, GetSetupStatusWebAppResponse>(
-            null!, ApiProvider.GetSetupStatus(),
-            _ => { },
-            this.m_CancellationTokenHandler.Token);
-
-        this.m_RequiresSetup = _Status?.RequiresSetup == true;
     }
 
     #endregion Lifecycle Methods

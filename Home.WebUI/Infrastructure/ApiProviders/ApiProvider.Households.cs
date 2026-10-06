@@ -17,9 +17,6 @@ public static partial class ApiProvider
     public static ApiProviderHelper GetHouseholdSettings()
         => new(HttpMethod.Get, RouteType.Route, $"{GetHouseholdsBaseUrl()}/settings");
 
-    public static ApiProviderHelper GetSetupStatus()
-        => new(HttpMethod.Get, RouteType.Route, $"{GetHouseholdsBaseUrl()}/setup-status", AllowsAnonymous: true);
-
     public static ApiProviderHelper RegisterHousehold()
         => new(HttpMethod.Post, RouteType.Body, $"{GetHouseholdsBaseUrl()}/register", AllowsAnonymous: true);
 

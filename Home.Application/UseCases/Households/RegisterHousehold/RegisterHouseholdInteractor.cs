@@ -8,8 +8,9 @@ using Home.Domain.Services.Users;
 namespace Home.Application.UseCases.Households.RegisterHousehold;
 
 /// <summary>
-/// First-run only: creates the household and its first member in one step, then locks
-/// itself — once any user exists, further members are added from inside the app instead.
+/// Creates a household and its first member in one step. Anyone without an account can do this,
+/// not only the first person on a fresh install. Everyone else in the household is added from
+/// inside the app.
 /// </summary>
 internal class RegisterHouseholdInteractor
     : IInteractor<RegisterHouseholdInputPort, IRegisterHouseholdOutputPort>
@@ -24,40 +25,32 @@ internal class RegisterHouseholdInteractor
         CancellationToken cancellationToken)
     {
         var _PersistenceContext = serviceFactory.GetService<IPersistenceContext>();
+        var _PasswordService = serviceFactory.GetService<IPasswordService>();
+        var _AuditLogic = serviceFactory.GetService<IAuditLogic<User>>();
+        var _HouseholdSetupLogic = serviceFactory.GetService<IHouseholdSetupLogic>();
 
-        if (_PersistenceContext.GetEntities<User>().Any())
+        var _Household = new Household() { Name = inputPort.HouseholdName.Trim() };
+
+        var _User = new User()
         {
-            await outputPort.PresentRegistrationClosedAsync(cancellationToken);
-        }
-        else
-        {
-            var _PasswordService = serviceFactory.GetService<IPasswordService>();
-            var _AuditLogic = serviceFactory.GetService<IAuditLogic<User>>();
-            var _HouseholdSetupLogic = serviceFactory.GetService<IHouseholdSetupLogic>();
+            Email = inputPort.Email.Trim(),
+            FirstName = inputPort.FirstName.Trim(),
+            Household = _Household,
+            LastName = inputPort.LastName.Trim(),
+            MiddleNames = string.Empty
+        };
 
-            var _Household = new Household() { Name = inputPort.HouseholdName.Trim() };
+        _AuditLogic.AddAudit(_User);
+        _PasswordService.SetPassword(_User, inputPort.Password);
 
-            var _User = new User()
-            {
-                Email = inputPort.Email.Trim(),
-                FirstName = inputPort.FirstName.Trim(),
-                Household = _Household,
-                LastName = inputPort.LastName.Trim(),
-                MiddleNames = string.Empty
-            };
+        _PersistenceContext.Add(_Household);
+        _PersistenceContext.Add(_User);
 
-            _AuditLogic.AddAudit(_User);
-            _PasswordService.SetPassword(_User, inputPort.Password);
+        _HouseholdSetupLogic.SeedDefaults(_Household);
 
-            _PersistenceContext.Add(_Household);
-            _PersistenceContext.Add(_User);
+        _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
 
-            _HouseholdSetupLogic.SeedDefaults(_Household);
-
-            _ = await _PersistenceContext.SaveChangesAsync(cancellationToken);
-
-            await outputPort.PresentHouseholdRegisteredAsync(_Household.HouseholdID, cancellationToken);
-        }
+        await outputPort.PresentHouseholdRegisteredAsync(_Household.HouseholdID, cancellationToken);
     }
 
     #endregion Methods

@@ -18,7 +18,7 @@
 
         <div class="bg-ink-900 rounded-2xl border border-ink-800 p-6">
             @* A statically rendered Blazor form: signing in answers with Set-Cookie, and only an
-               HTTP response can carry one — which is why this page renders without a circuit
+               HTTP response can carry one, which is why this page renders without a circuit
                (see App.razor.cs). *@
             <form method="post" @formname="sign-in" @onsubmit="this.SignInAsync">
                 <AntiforgeryToken />
@@ -44,12 +44,9 @@
             </form>
         </div>
 
-        @if (this.m_RequiresSetup)
-        {
-            <p class="text-sm text-ink-400 text-center mt-6">
-                First time here?
-                <a href="/setup" class="text-ink-50 underline underline-offset-4 hover:text-white">Set up your household</a>
-            </p>
-        }
+        <p class="text-sm text-ink-400 text-center mt-6">
+            Don't have an account?
+            <a href="/setup" class="text-ink-50 underline underline-offset-4 hover:text-white">Create a household</a>
+        </p>
     </div>
 </div>
