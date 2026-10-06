@@ -112,6 +112,9 @@ dotnet test
   not from nuget.org.
 - `Ical.Net` is used only inside `Home.WebApi/Infrastructure/Calendar/`. Subscribed calendars are
   expanded there and stored as plain read-only `CalendarEvent` rows; nothing else parses iCalendar.
+- A phase that ships something a person can see or use adds its line to
+  `Home.WebUI/Infrastructure/Features/FeatureCatalogue.cs`, which is what the "What Home can do"
+  page reads. That page is only true because finishing a phase includes writing it down there.
 - Every write goes through an `IAuditLogic<T>`, which puts what happened into words (`Audit.Summary`)
   and stamps the household. New slices that change something should call it; the feed at `/history`
   reads nothing else.

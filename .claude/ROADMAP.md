@@ -34,6 +34,7 @@ name them still make sense.*
 | **Phase 10** *(16 Sep 2026)* | Shopping mode: a shop with a start and an end on each list that every phone joins, prices recorded only during a shop and tied to it, and an aisle layout per phone with whole-row ticks, a pencil to edit and the trolley total pinned. |
 | **Phase 11** *(18 Sep 2026)* | Nullable on in the API with its 175 warnings fixed, and Undo on every tick and every delete in the app, held back behind a query filter and offered on a bar for about ten seconds. |
 | **Phase 13** *(2 Oct 2026, ahead of phase 12)* | A feedback button: a problem or an idea recorded with who sent it, when, the page, the device and the window's size, from the rail on a landscape tablet and from Settings everywhere else. |
+| **Phase 21** *(6 Oct 2026)* | A page of what Home can do: what landed lately with its date, a section per part of the app, and every feature shown by the real component rather than a picture. |
 
 ---
 
@@ -757,7 +758,7 @@ them reached the history feed.
 inside any dialog in the app is out of reach until it closes. Written up in `BACKLOG.md` beside the
 409 entry, which it makes worse.
 
-## Phase 21 · What Home can do, M *(new, 2 Oct 2026; next, ahead of 12 and 14)*
+## Phase 21 · What Home can do, M *(new, 2 Oct 2026)* **DONE 6 Oct 2026**
 
 Mitch, 2 Oct 2026: features ship faster than anyone can keep track of, and using the app means
 running into things he had the idea for and forgot were built. A Markdown list was offered and
@@ -788,6 +789,28 @@ The shape proposed, to be settled in planning:
    .NET upgrade.
 
 Rough cost: a day for the page and the samples, with the catalogue the larger job.
+
+### What shipped, 6 Oct 2026
+
+Three answers settled it: the page lives at `/what-home-can-do` behind a card in Settings, the
+samples are static, and the first catalogue was built whole for Mitch to prune on screen.
+
+- **The page.** What landed lately, dated, newest first, then a section per part of the app in that
+  part's own hue: the navigation's name as the eyebrow, a line saying what the part is for, a link
+  to the screen, and a sentence per feature.
+- **Real pieces, not pictures.** Five samples are drawn by the components the screens themselves
+  use, with made-up data: a shopping line that is dearer than usual, a ticked line in the aisle, a
+  calendar chip, a chore card and a meal plan square. Each sits in a labelled frame saying which
+  screen it came from, and is inert to a thumb and skipped by a screen reader, because a control
+  that looks live and does nothing is a lie.
+- **The catalogue is code.** `FeatureCatalogue` holds eight areas, fifty features and the dated
+  list, so the page cannot drift from what the app does without someone editing the app.
+- **The page lists itself**, which is the smallest proof that the process holds.
+
+**Left for later, on purpose:** nothing is tappable, so the three features whose point is the
+interaction (the tick, Undo, the trolley total) are described rather than tried; there is no jump
+list to the sections, which a longer catalogue will want; and the copy is a first pass for pruning
+rather than a finished catalogue.
 
 ## Phase 22 · Works without a signal, XL *(new, 5 Oct 2026; its place in the order is to be decided)*
 

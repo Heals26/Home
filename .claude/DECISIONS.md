@@ -4,6 +4,39 @@
 for anyone writing code later. When a decision is reversed, don't delete the entry. Add a new one
 that supersedes it. See `VISION.md` for what the product is; see `docs/HANDOVER.md` for the
 12 Aug 2026 point-in-time state.*
+## 2026-10-06 · The app explains itself, in a page made of the app
+
+Phase 21. Mitch, 2 Oct 2026: things ship faster than anyone can keep track of, and using the app
+means running into something he asked for months ago and forgot was built. A Markdown list was
+offered and turned down as boring.
+
+Three answers settled the shape (6 Oct 2026): it is a page of its own at `/what-home-can-do` behind
+a card in Settings rather than a section inside Settings, which is already the longest page in the
+app; the samples are static; and the first catalogue was built whole to be pruned on screen rather
+than agreed in chat first.
+
+- **The catalogue lives in code**, in `FeatureCatalogue`, which is what keeps it true. A phase that
+  ships something a person can see adds its line there as part of being finished.
+- **Features are shown with the real components**, five of them, filled with made-up data. A
+  picture of a screen is stale the day the screen changes, and a hand-drawn imitation is a brochure.
+
+**Chosen, not asked:**
+
+- **A sample is framed and labelled with the screen it came from**, and is inert to a thumb and
+  skipped by a screen reader. A control that looks live and does nothing is worse than a picture,
+  and the sentence above it already carries the meaning.
+- **The page lists itself**, in both halves, because a catalogue that leaves itself out is already
+  out of date.
+- **No jump list to the sections.** Eight sections read as a page today. A longer catalogue will
+  want one, and that is the point to add it.
+- **The copy is written flat.** Mitch, 6 Oct, on the first draft: every piece of text should read
+  the way he would write it, not the way an AI would. The page says what a thing does and stops:
+  short sentences, no cadence, no explaining the design back to the reader.
+- **A component in a namespace the page does not import renders as nothing at all.** Razor treats
+  an unresolved component as an unknown HTML tag, with no error at build or run time, which is how
+  four of the five samples came out as empty frames. The page imports the three component
+  namespaces it draws from, and the reason is written where they are imported.
+
 ## 2026-10-05 · A dropped connection is waited out quietly, and what is done meanwhile is kept
 
 From Mitch's notes list of 3 Oct 2026: *"We cannot have the reconnecting modal appear everytime a
